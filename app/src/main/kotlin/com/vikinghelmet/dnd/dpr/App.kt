@@ -49,6 +49,7 @@ fun calculateSpellDPR(spell: Spell) {
 
 fun main(args : Array<String>) {
     val spells = ArrayList<Spell>()
+    val monsters = ArrayList<Monster>()
     val spellNameBuilder = StringBuilder()
 
     // load spell books, and build the spell name
@@ -60,14 +61,28 @@ fun main(args : Array<String>) {
         }
         val jsonString = File(arg).readText()
 
-        val current: List<Spell> = Json.decodeFromString(jsonString)
-        spells.addAll (current)
+        if (jsonString.contains("challengeRating")) {
+            monsters.addAll(Json.decodeFromString(jsonString))
+        }
+        else {
+            spells.addAll(Json.decodeFromString(jsonString))
+        }
+    }
+
+    if (!monsters.isEmpty()) {
+        val name = spellNameBuilder.toString()
+        for (monster in monsters) {
+            if (monster.name == name) {
+                println("monster = $monster")
+            }
+        }
+        exitProcess(0)
     }
 
     if (spellNameBuilder.isNotEmpty()) {
-        val spellName = spellNameBuilder.toString()
+        val name = spellNameBuilder.toString()
         for (spell in spells) {
-            if (spell.name == spellName && spell.book == "Free Basic Rules (2024)") {
+            if (spell.name == name && spell.book == "Free Basic Rules (2024)") {
                 calculateSpellDPR(spell)
             }
         }
