@@ -101,7 +101,7 @@ data class Spell(
             if (payload is AttackPayload) {
                 var attackPayload: AttackPayload = payload
                 //println("attackPayload: "+attackPayload)
-                //println("aoe: "+attackPayload.aoe)
+                println("aoe: "+attackPayload.aoe)
 
                 if (attackPayload.aoe != null) {
                     return attackPayload.aoe!!.isBig()

@@ -8,6 +8,8 @@ data class AreaOfEffect(var shape: AreaOfEffectShape, var size: String)
         // println("isBig, size = "+size)
 
         // first field in size is almost always numeric; for now, treat 2-digit size as big
-        return "[0-9][0-9].*".toRegex().matches(size)
+        //return "[0-9][0-9].*".toRegex().matches(size)
+        // for now, always true ... ?
+        return true
     }
 }
