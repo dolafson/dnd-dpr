@@ -10,6 +10,9 @@ data class Spell(
     val book: String,
     val properties: SpellProperties
 ) {
+    // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
+    // concentration up to 1 min, but only 1 instant of damage
+    // note, in 2024 the spell was changed to Instantaneous (Bonus Action)
     fun getDuration(): Int? {
         val dur = properties.filterDuration ?: return null
 
@@ -20,19 +23,17 @@ data class Spell(
 
         val durList = dur.split(" ")
 
-        val timespan = when (durList[1]) {
+        return durList[0].toInt() * when (durList[1]) {
             "turn" -> 1
             "min" -> 10
             "hour", "hours", "Hours" -> 600
             "Days" -> 600 * 24
             else -> 0
         }
-
-        return durList[0].toInt() * timespan
     }
 
     fun getDamage(): DiceBlock {
-        var dice = DiceBlock(0, 0, 0, 0, 0)
+        val dice = DiceBlock(0, 0, 0, 0, 0)
 
         //  "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
         val damage = properties.Damage ?: return dice
@@ -50,23 +51,23 @@ data class Spell(
     }
 
     fun getSpellSaveResult(): List<SpellSaveResult> {
-        var result = mutableListOf<SpellSaveResult>()
+        val result = mutableListOf<SpellSaveResult>()
         val data = properties.dataDatarecords ?: return result
 
-        val dlist: List<DataRecord> = Json.decodeFromString(data)
-        // println(dlist)
-        for (d in dlist) {
+        val dataRecordList: List<DataRecord> = Json.decodeFromString(data)
+        // println(dataRecordList)
+        for (d in dataRecordList) {
             //println(d)
             val payload: DataRecordPayload = Json.decodeFromString(d.payload)
             if (payload is AttackPayload) {
-                var attackPayload: AttackPayload = payload
+                val attackPayload: AttackPayload = payload
                 // println(attackPayload)
 
                 if (attackPayload.save?.onSucceed != null) {
-                    var onSucceed = attackPayload.save?.onSucceed
+                    val onSucceed = attackPayload.save.onSucceed
                     //println(onSucceed)
 
-                    if (".*three times.*".toRegex().matches(onSucceed!!)) continue // TODO: accumulated saves
+                    if (".*three times.*".toRegex().matches(onSucceed)) continue // TODO: accumulated saves
 
                     if (".*[Hh]alf.*amage.*".toRegex().matches(onSucceed)) {
                         result.add(SpellSaveResult.HALF_DAMAGE)
@@ -93,18 +94,18 @@ data class Spell(
     fun isAreaOfEffectBig(): Boolean {
         val data = properties.dataDatarecords ?: return false
 
-        val dlist: List<DataRecord> = Json.decodeFromString(data)
-        // println(dlist)
-        for (d in dlist) {
+        val dataRecordList: List<DataRecord> = Json.decodeFromString(data)
+        // println(dataRecordList)
+        for (d in dataRecordList) {
             //println(d)
             val payload: DataRecordPayload = Json.decodeFromString(d.payload)
             if (payload is AttackPayload) {
-                var attackPayload: AttackPayload = payload
+                val attackPayload: AttackPayload = payload
                 //println("attackPayload: "+attackPayload)
                 println("aoe: "+attackPayload.aoe)
 
                 if (attackPayload.aoe != null) {
-                    return attackPayload.aoe!!.isBig()
+                    return attackPayload.aoe.isBig()
                 }
             }
         }

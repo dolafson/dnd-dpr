@@ -23,25 +23,25 @@ fun calculateSpellDPR(spell: Spell) {
     // CHARACTER TRAITS
 
     // fields to pull from character input ?
-    var isLucky: Boolean = false            // halfling feature
-    var isPlayerEvasive: Boolean = false    // optional feature for high-level Ranger, Rogue, Monk
+    val isLucky = false            // halfling feature
+    val isPlayerEvasive = false    // optional feature for high-level Ranger, Rogue, Monk
 
     // ----------------------------------------------------------------------------------------------------
     // PRECONDITIONS
 
-    // If the target has a bonus to their saving throw determined by a dice roll (such as from the Bless spell) then enter those dice here.
-    var bonusDiceToSave = DiceBlock(0, 0, 0, 0, 0)
+    // If the target has a bonus to their saving throw determined by a die roll (such as from the Bless spell) then enter those dice here.
+    val bonusDiceToSave = DiceBlock(0, 0, 0, 0, 0)
 
-    // If the target has a penalty to their saving throw determined by a dice roll (such as by the Bane spell) then enter those dice here.
-    var penaltyDiceToSave = DiceBlock(1, 0, 0, 0, 0)
+    // If the target has a penalty to their saving throw determined by a die roll (such as by the Bane spell) then enter those dice here.
+    val penaltyDiceToSave = DiceBlock(1, 0, 0, 0, 0)
 
     // ----------------------------------------------------------------------------------------------------
     // If you get a bonus on only one hit or target, such as with the Evoker's "Empowered Evocation" ability, you can enter the bonus here.
     // we may be able to extract this from spell properties ?
-    var bonusDamage = 0
-    var bonusDamageOnFirstHit = DiceBlock(0, 0, 0, 0, 0)
+    val bonusDamage = 0
+    val bonusDamageOnFirstHit = DiceBlock(0, 0, 0, 0, 0)
 
-    var dpr = DamagePerRound(0, 18, isLucky)
+    val dpr = DamagePerRound(0, 18, isLucky)
 
     dpr.calculateSpellDPR (spell, bonusDamage, bonusDamageOnFirstHit, isPlayerEvasive, bonusDiceToSave, penaltyDiceToSave)
     println ("")
@@ -49,26 +49,23 @@ fun calculateSpellDPR(spell: Spell) {
 
 fun main(args : Array<String>) {
     val spells = ArrayList<Spell>()
-    val spellNameArray = ArrayList<String>()
+    val spellNameBuilder = StringBuilder()
 
     // load spell books, and build the spell name
     for (arg in args) {
         if (! arg.endsWith(".json")) {
-            spellNameArray.add(arg) // if not a filename, then it is part of the spell name
+            if (spellNameBuilder.isNotEmpty()) spellNameBuilder.append(" ")
+            spellNameBuilder.append(arg)
             continue
         }
-        // val fileName = "/Users/dave/dnd/json/addendum.json"
-        // val jsonString = File(fileName).readText()
         val jsonString = File(arg).readText()
 
         val current: List<Spell> = Json.decodeFromString(jsonString)
         spells.addAll (current)
     }
 
-    if (! spellNameArray.isEmpty()) {
-        val spellName = spellNameArray.joinToString(separator = " ")
-        //println("spell name = " + spellName)
-
+    if (spellNameBuilder.isNotEmpty()) {
+        val spellName = spellNameBuilder.toString()
         for (spell in spells) {
             if (spell.name == spellName && spell.book == "Free Basic Rules (2024)") {
                 calculateSpellDPR(spell)

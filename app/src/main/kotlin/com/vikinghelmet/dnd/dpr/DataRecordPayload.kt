@@ -9,7 +9,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 @JsonIgnoreUnknownKeys
 @JsonClassDiscriminator("type") // Specify the field name in JSON
-sealed class DataRecordPayload()
+sealed class DataRecordPayload
 
 
 @Serializable
