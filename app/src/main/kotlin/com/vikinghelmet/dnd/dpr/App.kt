@@ -3,14 +3,9 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import java.io.File
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
+import java.io.File
 import kotlin.system.exitProcess
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
 
 class App {
     val greeting: String
@@ -19,165 +14,47 @@ class App {
         }
 }
 
-fun lookup(spellName: String, spells: List<Spell>) {
-    for (spell in spells) {
-        if (spell.name == spellName && spell.book == "Free Basic Rules (2024)") {
-            println("")
-            println(Json.encodeToString(spell))
-            println("")
-            var damageDice = DiceBlock(0,1,0,0,0)
-            var bonusDiceToSave = DiceBlock(0,0,0,0,0)
-            var penaltyDiceToSave = DiceBlock(1,0,0,0,0)
-            var bonusDamage = 0
-            var bonusDamageOnFirstHit = DiceBlock(0,0,0,0,0)
-            var isLucky: Boolean = false
-            var numberOfEffectsOrTargets = 1
-            var saveType: String = "Save for Half"
-            var durationType: String = "Save Every Round"
-            var maxDuration: Int = 10
+fun calculateSpellDPR(spell: Spell) {
+//    println("")
+//    println(Json.encodeToString(spell))
+//    println("")
 
-            var dpr = DamagePerRound(0, 18, numberOfEffectsOrTargets, maxDuration, isLucky, damageDice, bonusDamage, bonusDiceToSave, penaltyDiceToSave)
+    // ----------------------------------------------------------------------------------------------------
+    // CHARACTER TRAITS
 
-//            var p = 1 - dpr.saveProb("No Advantage")
+    // fields to pull from character input ?
+    var isLucky: Boolean = false            // halfling feature
+    var isPlayerEvasive: Boolean = false    // optional feature for high-level Ranger, Rogue, Monk
 
-            // 6. Chance to Hit (Hit%)
-            var chanceToHit = AvgMinMax (
-                1 - dpr.saveProb("No Advantage"),
-                1 - dpr.saveProb("Advantage"),
-                1 - dpr.saveProb("Disadvantage")
-            )
+    // ----------------------------------------------------------------------------------------------------
+    // PRECONDITIONS
 
-            chanceToHit.print("Chance to Hit")
+    // If the target has a bonus to their saving throw determined by a dice roll (such as from the Bless spell) then enter those dice here.
+    var bonusDiceToSave = DiceBlock(0, 0, 0, 0, 0)
 
-            var fullDamage: AvgMinMax = dpr.getAvgMinMax(damageDice, bonusDamage)
-            fullDamage.print("Full Damage")
+    // If the target has a penalty to their saving throw determined by a dice roll (such as by the Bane spell) then enter those dice here.
+    var penaltyDiceToSave = DiceBlock(1, 0, 0, 0, 0)
 
-            var halfDamage = fullDamage.half(damageDice)
-            halfDamage.print("Half Damage")
+    // ----------------------------------------------------------------------------------------------------
+    // If you get a bonus on only one hit or target, such as with the Evoker's "Empowered Evocation" ability, you can enter the bonus here.
+    // we may be able to extract this from spell properties ?
+    var bonusDamage = 0
+    var bonusDamageOnFirstHit = DiceBlock(0, 0, 0, 0, 0)
 
-            println("")
+    var dpr = DamagePerRound(0, 18, isLucky)
 
-            var fullDamageFirstHit: AvgMinMax = dpr.getAvgMinMax(bonusDamageOnFirstHit, bonusDamage)
-            fullDamageFirstHit.print("Full Damage (First Hit)")
-
-            var halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit)
-            halfDamageFirstHit.print("Half Damage (First Hit)")
-
-            var chanceofAtLeastOneHit = AvgMinMax (
-                1 - (1 - chanceToHit.avg).pow(numberOfEffectsOrTargets),
-                1 - (1 - chanceToHit.min).pow(numberOfEffectsOrTargets),
-                1 - (1 - chanceToHit.max).pow(numberOfEffectsOrTargets),
-            )
-            chanceofAtLeastOneHit.print("Chance of at least one hit")
-            println("")
-
-            var damagePerTarget = AvgMinMax (
-                chanceToHit.avg * fullDamage.avg  +  (1-chanceToHit.avg) * halfDamage.avg,
-                chanceToHit.min * fullDamage.avg  +  (1-chanceToHit.min) * halfDamage.avg,
-                chanceToHit.max * fullDamage.avg  +  (1-chanceToHit.max) * halfDamage.avg,
-            )
-            damagePerTarget.print("Damage Per Target")
-
-            // 12. Damage per Failed Save       =IF(G15="Evasion",D228,D225)
-            var damagePerFailedSave = AvgMinMax (
-                if (saveType == "Evasion") halfDamage.avg else fullDamage.avg,
-                if (saveType == "Evasion") halfDamage.min else fullDamage.min,
-                if (saveType == "Evasion") halfDamage.max else fullDamage.max
-            )
-            damagePerFailedSave.print("Damage Per Failed Save")
-
-            // 15. Damage per Successful Save   =IF(G15="No Save",D225,IF(G15="Save for Half",D228,0))
-            var damagePerSuccessfulSave = AvgMinMax (
-                if (saveType == "No Save") fullDamage.avg else if (saveType == "Save for Half") halfDamage.avg else 0f,
-                if (saveType == "No Save") fullDamage.min else if (saveType == "Save for Half") halfDamage.min else 0f,
-                if (saveType == "No Save") fullDamage.max else if (saveType == "Save for Half") halfDamage.max else 0f,
-            )
-            damagePerSuccessfulSave.print("Damage Per Successful Save")
-
-            // 21. Damage per Hit               =Y6*Y12+(1-Y6)*Y15
-            var damagePerHit = AvgMinMax (
-                chanceToHit.avg * damagePerFailedSave.avg + (1-chanceToHit.avg) * damagePerSuccessfulSave.avg,
-                chanceToHit.min * damagePerFailedSave.avg + (1-chanceToHit.min) * damagePerSuccessfulSave.avg,
-                chanceToHit.max * damagePerFailedSave.avg + (1-chanceToHit.max) * damagePerSuccessfulSave.avg,
-            )
-            damagePerHit.print("Damage Per Hit")
-            println("")
-
-            // 9. Average DPR                  =L13*Y21+Y18*IF(G15="Evasion",D234,D231)
-            var evasion = (if (saveType == "Evasion") halfDamageFirstHit.avg else fullDamageFirstHit.avg)
-
-            var averageDPR = AvgMinMax (
-                numberOfEffectsOrTargets * damagePerHit.avg  +  chanceofAtLeastOneHit.avg * evasion,
-                numberOfEffectsOrTargets * damagePerHit.min  +  chanceofAtLeastOneHit.min * evasion,
-                numberOfEffectsOrTargets * damagePerHit.max  +  chanceofAtLeastOneHit.max * evasion,
-            )
-            averageDPR.print("Average Damage Per Round")
-
-            // 28. Average Duration (In Rounds)
-            //  G20 = DurationType = "Save Every Round"
-            //  =IF(AND($G$20="Save Every Round",Y6<1), IF($H$19,(1/(1-Y6)-1)*(1-Y6^$I$19),1/(1-Y6)-1),IF($H$19,$I$19*Y6,"INFINITE"))
-            // all fields in formula are fixed except Y6 : Chance To Hit
-
-            var saveEvery: Boolean = (durationType == "Save Every Round")
-            var hasMaxDuration: Boolean = true
-
-            // var averageDuration = AvgMinMax ( 0f, 0f, 0f )
-            var averageDuration = AvgMinMax (
-                durationInRounds(durationType, chanceToHit.avg, maxDuration),
-                durationInRounds(durationType, chanceToHit.min, maxDuration),
-                durationInRounds(durationType, chanceToHit.max, maxDuration),
-            )
-
-            averageDuration.print("Average Duration (In Rounds)")
-
-            // 31. Average Total Damage Over Time
-            var averageTotalDamageOverTime = AvgMinMax (
-                averageDuration.avg * damagePerFailedSave.avg  +  damagePerSuccessfulSave.avg,
-                averageDuration.min * damagePerFailedSave.avg  +  damagePerSuccessfulSave.avg,
-                averageDuration.max * damagePerFailedSave.avg  +  damagePerSuccessfulSave.avg
-            )
-            averageTotalDamageOverTime.print("Average Total Damage Over Time")
-
-            println("")
-        }
-    }
-}
-
-fun durationInRounds(durationType: String, chanceToHit: Float, maxDuration: Int? = null): Float
-{
-    // 28. Average Duration (In Rounds)
-    //  G20 = DurationType = "Save Every Round"
-    //  =IF(AND($G$20="Save Every Round",Y6<1), IF($H$19,(1/(1-Y6)-1)*(1-Y6^$I$19),1/(1-Y6)-1),IF($H$19,$I$19*Y6,"INFINITE"))
-    // all fields in formula are fixed except Y6 : Chance To Hit
-
-    var saveEvery: Boolean = (durationType == "Save Every Round")
-    var hasMaxDuration: Boolean = (maxDuration != null)
-
-    if (saveEvery && chanceToHit < 1f) {
-        if (hasMaxDuration) {
-            return (1/(1-chanceToHit)-1) * (1-chanceToHit.pow(maxDuration!!))
-        } else {
-            return 1/(1-chanceToHit)-1
-        }
-    } else {
-        if (hasMaxDuration) {
-            maxDuration!! * chanceToHit
-        }
-        else {
-            return 10000000f // TODO: "INFINITE"
-        }
-    }
-    return -1f // TODO: never get here ...
+    dpr.calculateSpellDPR (spell, bonusDamage, bonusDamageOnFirstHit, isPlayerEvasive, bonusDiceToSave, penaltyDiceToSave)
+    println ("")
 }
 
 fun main(args : Array<String>) {
     val spells = ArrayList<Spell>()
     val spellNameArray = ArrayList<String>()
 
-
+    // load spell books, and build the spell name
     for (arg in args) {
         if (! arg.endsWith(".json")) {
-            spellNameArray.add(arg)
+            spellNameArray.add(arg) // if not a filename, then it is part of the spell name
             continue
         }
         // val fileName = "/Users/dave/dnd/json/addendum.json"
@@ -191,10 +68,16 @@ fun main(args : Array<String>) {
     if (! spellNameArray.isEmpty()) {
         val spellName = spellNameArray.joinToString(separator = " ")
         //println("spell name = " + spellName)
-        lookup(spellName, spells)
+
+        for (spell in spells) {
+            if (spell.name == spellName && spell.book == "Free Basic Rules (2024)") {
+                calculateSpellDPR(spell)
+            }
+        }
         exitProcess(0)
     }
 
+    // debug only: if no spell name given, iterate over spells, and print "data records"
     for (spell in spells) {
         if (spell.properties.dataDatarecords != null) {
             val dlist: List<DataRecord> = Json.decodeFromString(spell.properties.dataDatarecords)

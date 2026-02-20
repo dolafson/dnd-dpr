@@ -29,6 +29,7 @@ data class AttackPayload(
     val name: String? = null,
     val description: String? = null,
     val save: DataRecordPayloadSave? = null,
+    val aoe: AreaOfEffect? = null,    //  "aoe":{"shape":"Sphere","size":.....
     val actionType: String? = null,
     val range: String? = null
 )   : DataRecordPayload()
@@ -38,9 +39,8 @@ data class AttackPayload(
         val saveAbility: String,        // "Wisdom",
         val onFail: String? = null,     // "onFail": "Take 5d8 Force damage.",
         val onSucceed: String? = null,  // "onSucceed": "Half as much damage."
-
-        // val aoe:  "aoe":{"shape":"Sphere","size":.....
     )
+
 }
 
 @Serializable

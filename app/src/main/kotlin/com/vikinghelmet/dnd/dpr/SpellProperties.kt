@@ -1,7 +1,6 @@
 package com.vikinghelmet.dnd.dpr
 
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -23,7 +22,7 @@ data class SpellProperties (
     val Expansion: Int? = null,
     val Name: String? = null,
     val Save: String? = null,
-    @SerialName("data-RangeAoe") val dataRangeAoe: String? = null,
+    @SerialName("data-RangeAoe") val dataRangeAoe: String? = null, // not useful
 
     // Free Basic Rules (2024)
     val Classes: String? = null,

@@ -16,7 +16,7 @@ data class DiceBlock(var four: Int, var six: Int, var eight: Int, var ten: Int, 
         return (four*4 + six*6 + eight*8 + ten*10 + twelve*12);
     }
 
-    fun empty(): Boolean {
+    fun isEmpty(): Boolean {
         // println ("empty ... min = "+min()+", block = "+toList())
         return min() == 0
     }

@@ -1,10 +1,11 @@
 package com.vikinghelmet.dnd.dpr
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 
 data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
     fun half(diceBlock: DiceBlock): AvgMinMax {
-        val halfAvg = if (diceBlock.empty()) avg/2 else avg/2 - 0.25f
+        val halfAvg = if (diceBlock.isEmpty()) avg/2 else avg/2 - 0.25f
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())
     }
     fun print(label: String) {
@@ -12,16 +13,10 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
     }
 }
 
-class DamagePerRound (
+class DamagePerRound(
     var targetSaveBonus: Int,
     var effectSaveDC: Int,
-    var numberOfEfectsOrTargets: Int,
-    var maxDurationInRounds: Int,
-    var isLucky: Boolean,
-    var damageDice: DiceBlock,
-    var damageBonus: Int,
-    var bonusDiceToSave: DiceBlock,
-    var penaltyDiceToSave: DiceBlock,
+    var isLucky: Boolean // a character condition that gets used all over the place
 ) {
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
@@ -135,8 +130,8 @@ class DamagePerRound (
 
 // Compute the attack probability taking all variables into account:
 // attack bonus, AC, advantage, Elven Accuracy, and bonus dice (e.g. Bless).
-    fun totalProb(atk: Int, ac: Int, isAdvan: String, isElven: Boolean, isLucky: Boolean,
-                  autohit: Int): Float
+    fun totalProb(atk: Int, ac: Int, isAdvan: String, isElven: Boolean, isLucky: Boolean, autohit: Int,
+                bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock): Float
     {
         var arr    = buffDist(bonusDiceToSave)
         var negArr = buffDist(penaltyDiceToSave)
@@ -267,7 +262,7 @@ class DamagePerRound (
 
 // Compute the save probability taking all variables into account:
 // save bonus, DC, advantage, and bonus dice (e.g. Bless).
-    fun saveProb(isAdvan: String): Float
+    fun saveProb(isAdvan: String, bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock): Float
     {
         var bonus: Int = targetSaveBonus
         var dc: Int = effectSaveDC
@@ -351,12 +346,158 @@ class DamagePerRound (
         return sum
     }
 
-    fun minDamage(diceBlock: DiceBlock): Int {
-        return damageBonus + damageDice.min()
+
+    fun durationInRounds(saveEvery: Boolean, chanceToHit: Float, maxDuration: Int? = null): Float
+    {
+        // 28. Average Duration (In Rounds)
+        //  G20 = DurationType = "Save Every Round"
+        //  =IF(AND($G$20="Save Every Round",Y6<1), IF($H$19,(1/(1-Y6)-1)*(1-Y6^$I$19),1/(1-Y6)-1),IF($H$19,$I$19*Y6,"INFINITE"))
+        // all fields in formula are fixed except Y6 : Chance To Hit
+
+        var hasMaxDuration: Boolean = (maxDuration != null)
+
+        if (saveEvery && chanceToHit < 1f) {
+            if (hasMaxDuration) {
+                return (1/(1-chanceToHit)-1) * (1-chanceToHit.pow(maxDuration!!))
+            } else {
+                return 1/(1-chanceToHit)-1
+            }
+        } else {
+            if (hasMaxDuration) {
+                maxDuration!! * chanceToHit
+            }
+            else {
+                return 10000000f // TODO: "INFINITE"
+            }
+        }
+        return 0f // TODO: "Instantaneous"
     }
 
-    fun maxDamage(diceBlock: DiceBlock): Int {
-        return damageBonus + damageDice.max()
-    }
+    // ==========================================================
+    // here is where the fun really begins
 
+    fun calculateSpellDPR(
+        spell: Spell,
+        bonusDamage: Int,
+        bonusDamageOnFirstHit: DiceBlock,
+        isPlayerEvasive: Boolean,
+        bonusDiceToSave: DiceBlock,
+        penaltyDiceToSave: DiceBlock
+    ) {
+        var numberOfEffectsOrTargets = if (spell.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
+
+        val spellSaveResults = spell.getSpellSaveResult()
+        println("spell duration:      " + spell.getDuration())
+        println("spell damage:        " + spell.getDamage())
+        println("spell save result:   " + spellSaveResults)
+        println("num effects/targets: " + numberOfEffectsOrTargets)
+        println("")
+
+        val noSave      = spellSaveResults.isEmpty()
+        val saveForHalf = spellSaveResults.contains(SpellSaveResult.HALF_DAMAGE)
+        val saveEvery   = spellSaveResults.contains(SpellSaveResult.SPELL_ENDS) // TODO: also condition ends ???
+
+        if (spell.getDamage().isEmpty()) {
+            println ("This spell never directly creates damage")
+            return
+        }
+
+        // 6. Chance to Hit (Hit%)
+        var chanceToHit = AvgMinMax(
+            1 - saveProb("No Advantage", bonusDiceToSave, penaltyDiceToSave),
+            1 - saveProb("Advantage", bonusDiceToSave, penaltyDiceToSave),
+            1 - saveProb("Disadvantage", bonusDiceToSave, penaltyDiceToSave)
+        )
+
+        chanceToHit.print("Chance to Hit")
+
+        var fullDamage: AvgMinMax = getAvgMinMax(spell.getDamage(), bonusDamage)
+        fullDamage.print("Full Damage")
+
+        var halfDamage = fullDamage.half(spell.getDamage())
+        halfDamage.print("Half Damage")
+
+        println("")
+
+        var fullDamageFirstHit: AvgMinMax = getAvgMinMax(bonusDamageOnFirstHit, bonusDamage)
+        fullDamageFirstHit.print("Full Damage (First Hit)")
+
+        var halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit)
+        halfDamageFirstHit.print("Half Damage (First Hit)")
+
+        var chanceofAtLeastOneHit = AvgMinMax(
+            1 - (1 - chanceToHit.avg).pow(numberOfEffectsOrTargets),
+            1 - (1 - chanceToHit.min).pow(numberOfEffectsOrTargets),
+            1 - (1 - chanceToHit.max).pow(numberOfEffectsOrTargets),
+        )
+        chanceofAtLeastOneHit.print("Chance of at least one hit")
+        println("")
+
+        var damagePerTarget = AvgMinMax(
+            chanceToHit.avg * fullDamage.avg + (1 - chanceToHit.avg) * halfDamage.avg,
+            chanceToHit.min * fullDamage.avg + (1 - chanceToHit.min) * halfDamage.avg,
+            chanceToHit.max * fullDamage.avg + (1 - chanceToHit.max) * halfDamage.avg,
+        )
+        damagePerTarget.print("Damage Per Target")
+
+        // 12. Damage per Failed Save       =IF(G15="Evasion",D228,D225)
+        var damagePerFailedSave = AvgMinMax(
+            if (isPlayerEvasive) halfDamage.avg else fullDamage.avg,
+            if (isPlayerEvasive) halfDamage.min else fullDamage.min,
+            if (isPlayerEvasive) halfDamage.max else fullDamage.max
+        )
+        damagePerFailedSave.print("Damage Per Failed Save")
+
+        // 15. Damage per Successful Save   =IF(G15="No Save",D225,IF(G15="Save for Half",D228,0))
+        var damagePerSuccessfulSave = AvgMinMax(
+            if (noSave) fullDamage.avg else if (saveForHalf) halfDamage.avg else 0f,
+            if (noSave) fullDamage.min else if (saveForHalf) halfDamage.min else 0f,
+            if (noSave) fullDamage.max else if (saveForHalf) halfDamage.max else 0f,
+        )
+        damagePerSuccessfulSave.print("Damage Per Successful Save")
+
+        // 21. Damage per Hit               =Y6*Y12+(1-Y6)*Y15
+        var damagePerHit = AvgMinMax(
+            chanceToHit.avg * damagePerFailedSave.avg + (1 - chanceToHit.avg) * damagePerSuccessfulSave.avg,
+            chanceToHit.min * damagePerFailedSave.avg + (1 - chanceToHit.min) * damagePerSuccessfulSave.avg,
+            chanceToHit.max * damagePerFailedSave.avg + (1 - chanceToHit.max) * damagePerSuccessfulSave.avg,
+        )
+        damagePerHit.print("Damage Per Hit")
+        println("")
+
+        // 9. Average DPR                  =L13*Y21+Y18*IF(G15="Evasion",D234,D231)
+        var evasion = (if (isPlayerEvasive) halfDamageFirstHit.avg else fullDamageFirstHit.avg)
+
+        var averageDPR = AvgMinMax(
+            numberOfEffectsOrTargets * damagePerHit.avg + chanceofAtLeastOneHit.avg * evasion,
+            numberOfEffectsOrTargets * damagePerHit.min + chanceofAtLeastOneHit.min * evasion,
+            numberOfEffectsOrTargets * damagePerHit.max + chanceofAtLeastOneHit.max * evasion,
+        )
+        averageDPR.print("Average Damage Per Round")
+
+        // 28. Average Duration (In Rounds)
+        //  G20 = DurationType = "Save Every Round"
+        //  =IF(AND($G$20="Save Every Round",Y6<1), IF($H$19,(1/(1-Y6)-1)*(1-Y6^$I$19),1/(1-Y6)-1),IF($H$19,$I$19*Y6,"INFINITE"))
+        // all fields in formula are fixed except Y6 : Chance To Hit
+
+        // var averageDuration = AvgMinMax ( 0f, 0f, 0f )
+        var averageDuration = AvgMinMax(
+            durationInRounds(saveEvery, chanceToHit.avg, spell.getDuration()),
+            durationInRounds(saveEvery, chanceToHit.min, spell.getDuration()),
+            durationInRounds(saveEvery, chanceToHit.max, spell.getDuration()),
+        )
+
+        averageDuration.print("Average Duration (In Rounds)")
+
+        // 31. Average Total Damage Over Time
+        // if spell duration is "Instantaneous", damage over time = damage in first round
+        var averageTotalDamageOverTime = if (averageDuration.max <= 0) averageDPR else
+            AvgMinMax(
+            averageDuration.avg * damagePerFailedSave.avg + damagePerSuccessfulSave.avg,
+            averageDuration.min * damagePerFailedSave.avg + damagePerSuccessfulSave.avg,
+            averageDuration.max * damagePerFailedSave.avg + damagePerSuccessfulSave.avg
+        )
+
+        averageTotalDamageOverTime.print("Average Total Damage Over Time")
+    }
 }
