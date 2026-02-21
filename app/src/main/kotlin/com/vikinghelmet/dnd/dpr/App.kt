@@ -3,6 +3,7 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.spells.NewSpell
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.system.exitProcess
@@ -14,7 +15,7 @@ class App {
         }
 }
 
-fun calculateSpellDPR(spell: Spell) {
+fun calculateSpellDPR(spell: NewSpell) {
 //    println("")
 //    println(Json.encodeToString(spell))
 //    println("")
@@ -48,7 +49,7 @@ fun calculateSpellDPR(spell: Spell) {
 }
 
 fun main(args : Array<String>) {
-    val spells = ArrayList<Spell>()
+    val spells = ArrayList<NewSpell>()
     val monsters = ArrayList<Monster>()
     val spellNameBuilder = StringBuilder()
 
@@ -61,11 +62,11 @@ fun main(args : Array<String>) {
         }
         val jsonString = File(arg).readText()
 
-        if (jsonString.contains("Challenge Rating")) {
-            monsters.addAll(Json.decodeFromString(jsonString))
+        if (jsonString.contains("Acid Splash Damage Upcasting 17")) {
+            spells.addAll(Json.decodeFromString(jsonString))
         }
         else {
-            spells.addAll(Json.decodeFromString(jsonString))
+            monsters.addAll(Json.decodeFromString(jsonString))
         }
     }
 
@@ -98,12 +99,17 @@ fun main(args : Array<String>) {
     // debug only: if no spell name given, iterate over spells, and print "data records"
     for (spell in spells) {
         if (spell.properties.dataDatarecords != null) {
+            /*
             val dlist: List<SpellDataRecord> = Json.decodeFromString(spell.properties.dataDatarecords)
             // println(dlist)
             for (d in dlist) {
                 println(d)
                 val payload: SpellDataRecordPayload = Json.decodeFromString(d.payload)
                 println(payload)
+            }
+             */
+            for (d in spell.properties.dataDatarecords) {
+                println("spell dr payload = "+d.payload)
             }
         }
     }

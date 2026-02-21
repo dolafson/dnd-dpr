@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr
+package com.vikinghelmet.dnd.dpr.spells.payload.fields
 import kotlinx.serialization.Serializable
 
 @Serializable

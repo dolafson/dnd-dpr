@@ -1,6 +1,7 @@
 @file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 
 package com.vikinghelmet.dnd.dpr
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator

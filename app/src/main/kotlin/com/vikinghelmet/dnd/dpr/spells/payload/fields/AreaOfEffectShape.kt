@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr
+package com.vikinghelmet.dnd.dpr.spells.payload.fields
 
 enum class AreaOfEffectShape {
     Circle,
@@ -9,4 +9,5 @@ enum class AreaOfEffectShape {
     Line,
     Sphere,
     Square,
+    Wall
 }

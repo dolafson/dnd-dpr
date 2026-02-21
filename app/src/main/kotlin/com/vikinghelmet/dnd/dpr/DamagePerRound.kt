@@ -1,4 +1,5 @@
 package com.vikinghelmet.dnd.dpr
+import com.vikinghelmet.dnd.dpr.spells.NewSpell
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -308,7 +309,7 @@ class DamagePerRound(
     // here is where the fun really begins
 
     fun calculateSpellDPR(
-        spell: Spell,
+        spell: NewSpell,
         bonusDamage: Int,
         bonusDamageOnFirstHit: DiceBlock,
         isPlayerEvasive: Boolean,
