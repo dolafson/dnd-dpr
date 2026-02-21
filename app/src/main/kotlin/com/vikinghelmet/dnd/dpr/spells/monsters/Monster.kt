@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr
+package com.vikinghelmet.dnd.dpr.spells.monsters
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -76,7 +76,8 @@ data class MonsterProperties(
     @SerialName("data-AcNum")
     val dataAcNum: Int,
     @SerialName("data-Actions")
-    val dataActions: String? = null,
+    //val dataActions: String? = null,
+    val dataActions: List<Action>? = null,
     @SerialName("data-Bonus Actions")
     val dataBonusActions: String? = null,
     @SerialName("data-CrNum")
@@ -100,7 +101,8 @@ data class MonsterProperties(
     @SerialName("data-LANum")
     val dataLANum: Int? = null,
     @SerialName("data-Legendary Actions")
-    val dataLegendaryActions: String? = null,
+    //val dataLegendaryActions: String? = null,
+    val dataLegendaryActions: List<LegendaryAction>? = null,
     @SerialName("data-List")
     val dataList: String,
     @SerialName("data-Reactions")
@@ -109,8 +111,11 @@ data class MonsterProperties(
     val dataSizeNum: Int? = null,
     @SerialName("data-Spells")
     val dataSpells: String? = null,
+
     @SerialName("data-Traits")
-    val dataTraits: String? = null,
+    //val dataTraits: String? = null,
+    val dataTraits: List<Trait>? = null,
+
     @SerialName("data-XP")
     val dataXP: String
 ) {
