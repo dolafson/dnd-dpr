@@ -3,8 +3,8 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.system.exitProcess
@@ -16,102 +16,83 @@ class App {
         }
 }
 
-fun calculateSpellDPR(spell: Spell) {
-//    println("")
-//    println(Json.encodeToString(spell))
-//    println("")
+val spells = ArrayList<Spell>()
+val monsters = ArrayList<Monster>()
+val attackList = ArrayList<Attack>()
 
-    // ----------------------------------------------------------------------------------------------------
-    // CHARACTER TRAITS
+fun calculateSpellDPR(attack: Attack) {
+    var monster = getMonster(attack.monster)
+    var spell = getSpell(attack.spell)
 
-    // fields to pull from character input ?
-    val isLucky = false            // halfling feature
-    val isPlayerEvasive = false    // optional feature for high-level Ranger, Rogue, Monk
+    if (monster == null) {
+        println("monster not found: "+attack.monster)
+        return
+    }
 
-    // ----------------------------------------------------------------------------------------------------
-    // PRECONDITIONS
+    if (spell == null) {
+        println("spell not found: "+attack.spell)
+        return
+    }
 
-    // If the target has a bonus to their saving throw determined by a die roll (such as from the Bless spell) then enter those dice here.
-    val bonusDiceToSave = DiceBlock(0, 0, 0, 0, 0)
+    val isTargetEvasive = false    // get this from monster ... optional feature for high-level Assassin, Ranger, Rogue, Monk
 
-    // If the target has a penalty to their saving throw determined by a die roll (such as by the Bane spell) then enter those dice here.
-    val penaltyDiceToSave = DiceBlock(1, 0, 0, 0, 0)
+    val dpr = DamagePerRound(0, attack)
 
-    // ----------------------------------------------------------------------------------------------------
-    // If you get a bonus on only one hit or target, such as with the Evoker's "Empowered Evocation" ability, you can enter the bonus here.
-    // we may be able to extract this from spell properties ?
-    val bonusDamage = 0
-    val bonusDamageOnFirstHit = DiceBlock(0, 0, 0, 0, 0)
-
-    val dpr = DamagePerRound(0, 18, isLucky)
-
-    dpr.calculateSpellDPR (spell, bonusDamage, bonusDamageOnFirstHit, isPlayerEvasive, bonusDiceToSave, penaltyDiceToSave)
+    dpr.calculateSpellDPR (spell, attack, isTargetEvasive)
     println ("")
 }
 
-fun main(args : Array<String>) {
-    val spells = ArrayList<Spell>()
-    val monsters = ArrayList<Monster>()
-    val spellNameBuilder = StringBuilder()
+fun getMonster(name: String): Monster? {
+    if (monsters.isEmpty()) return null
 
-    // load spell books, and build the spell name
-    for (arg in args) {
-        if (! arg.endsWith(".json")) {
-            if (spellNameBuilder.isNotEmpty()) spellNameBuilder.append(" ")
-            spellNameBuilder.append(arg)
-            continue
+    for (monster in monsters) {
+        if (monster.name == name) {
+            println(Json.encodeToString(monster))
+            // println("DEX-mod = "+monster.properties.getMod("DEX"))
+            // println("STR-mod = "+monster.properties.getMod("STR"))
+            return monster
         }
+    }
+    return null
+}
+
+fun getSpell(name: String): Spell? {
+    if (spells.isEmpty()) return null
+
+    for (spell in spells) {
+        if (spell.name == name) {
+            println(Json.encodeToString(spell))
+            return spell
+        }
+    }
+    return null
+}
+
+fun main(args : Array<String>) {
+
+    // each arg should be a json file: spells, monsters, or attacks
+    for (arg in args) {
         val jsonString = File(arg).readText()
 
         if (jsonString.contains("Acid Splash Damage Upcasting 17")) {
             spells.addAll(Json.decodeFromString(jsonString))
+        }
+        else if (jsonString.contains("\"player\"")) {
+            attackList.addAll(Json.decodeFromString(jsonString))
         }
         else {
             monsters.addAll(Json.decodeFromString(jsonString))
         }
     }
 
-    if (!monsters.isEmpty()) {
-        val name = spellNameBuilder.toString()
-        for (monster in monsters) {
-
-            if (monster.name == name && monster.book.contains("Free Basic Rules")) { // 2014 or 2024
-                //println("monster = $monster")
-                println(Json.encodeToString(monster))
-//                println("AC = "+monster.properties.getACAsInt())
-                println("DEX-mod = "+monster.properties.getMod("DEX"))
-                println("STR-mod = "+monster.properties.getMod("STR"))
-            }
-            // creatures.add(Creature (monster.name, monster.armor_class))
-        }
+    if (attackList.isEmpty()) {
+        println("no attacks specified")
         exitProcess(0)
     }
 
-    if (spellNameBuilder.isNotEmpty()) {
-        val name = spellNameBuilder.toString()
-        for (spell in spells) {
-            if (spell.name == name && spell.book == "Free Basic Rules (2024)") {
-                calculateSpellDPR(spell)
-            }
-        }
-        exitProcess(0)
-    }
+    println(Json.encodeToString(attackList))
 
-    // debug only: if no spell name given, iterate over spells, and print "data records"
-    for (spell in spells) {
-        if (spell.properties.dataDatarecords != null) {
-            /*
-            val dlist: List<SpellDataRecord> = Json.decodeFromString(spell.properties.dataDatarecords)
-            // println(dlist)
-            for (d in dlist) {
-                println(d)
-                val payload: SpellDataRecordPayload = Json.decodeFromString(d.payload)
-                println(payload)
-            }
-             */
-            for (d in spell.properties.dataDatarecords) {
-                println("spell dr payload = "+d.payload)
-            }
-        }
+    for (attack in attackList) {
+        calculateSpellDPR(attack)
     }
 }

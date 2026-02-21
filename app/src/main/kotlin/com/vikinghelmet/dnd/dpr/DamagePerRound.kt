@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr
-import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -22,9 +22,10 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
 @Suppress("unused")
 class DamagePerRound(
     var targetSaveBonus: Int,
-    var effectSaveDC: Int,
-    var isLucky: Boolean // a character condition that gets used all over the place
+    var attack: Attack,
 ) {
+    val effectSaveDC = attack.player.effectSaveDC
+    val isLucky = attack.player.isLucky  // halfling feature
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
         val avg = averageDamage(diceBlock, bonusDamage, false, false)
@@ -311,12 +312,19 @@ class DamagePerRound(
 
     fun calculateSpellDPR(
         spell: Spell,
-        bonusDamage: Int,
-        bonusDamageOnFirstHit: DiceBlock,
-        isPlayerEvasive: Boolean,
-        bonusDiceToSave: DiceBlock,
-        penaltyDiceToSave: DiceBlock
+        attack: Attack,
+        isTargetEvasive: Boolean,
     ) {
+        var preconditions = attack.preconditions ?: Attack.Preconditions()
+        val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
+        val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
+
+        // ----------------------------------------------------------------------------------------------------
+        // If you get a bonus on only one hit or target, such as with the Evoker's "Empowered Evocation" ability, you can enter the bonus here.
+        // we may be able to extract this from spell properties ?
+        val bonusDamage = preconditions.bonusDamage ?: 0
+        val bonusDamageOnFirstHit = preconditions.bonusDamageOnFirstHit ?: DiceBlock(0, 0, 0, 0, 0)
+
         val numberOfEffectsOrTargets = if (spell.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
 
         val spellSaveResults = spell.getSpellSaveResult()
@@ -375,9 +383,9 @@ class DamagePerRound(
 
         // 12. Damage per Failed Save       =IF(G15="Evasion",D228,D225)
         val damagePerFailedSave = AvgMinMax(
-            if (isPlayerEvasive) halfDamage.avg else fullDamage.avg,
-            if (isPlayerEvasive) halfDamage.min else fullDamage.min,
-            if (isPlayerEvasive) halfDamage.max else fullDamage.max
+            if (isTargetEvasive) halfDamage.avg else fullDamage.avg,
+            if (isTargetEvasive) halfDamage.min else fullDamage.min,
+            if (isTargetEvasive) halfDamage.max else fullDamage.max
         )
         damagePerFailedSave.print("Damage Per Failed Save")
 
@@ -399,7 +407,7 @@ class DamagePerRound(
         println("")
 
         // 9. Average DPR                  =L13*Y21+Y18*IF(G15="Evasion",D234,D231)
-        val evasion = (if (isPlayerEvasive) halfDamageFirstHit.avg else fullDamageFirstHit.avg)
+        val evasion = (if (isTargetEvasive) halfDamageFirstHit.avg else fullDamageFirstHit.avg)
 
         val averageDPR = AvgMinMax(
             numberOfEffectsOrTargets * damagePerHit.avg + chanceofAtLeastOneHit.avg * evasion,
