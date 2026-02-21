@@ -4,7 +4,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.spells.monsters.Monster
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.system.exitProcess

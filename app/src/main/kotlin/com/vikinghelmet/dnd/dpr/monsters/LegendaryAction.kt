@@ -1,9 +1,9 @@
-package com.vikinghelmet.dnd.dpr.spells.monsters
+package com.vikinghelmet.dnd.dpr.monsters
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Trait(
+data class LegendaryAction(
     val Desc: String,
     val Name: String
 )

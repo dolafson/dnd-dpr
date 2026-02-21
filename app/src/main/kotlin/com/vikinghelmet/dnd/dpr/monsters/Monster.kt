@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.spells.monsters
+package com.vikinghelmet.dnd.dpr.monsters
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
