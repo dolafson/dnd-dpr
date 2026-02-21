@@ -4,5 +4,6 @@ enum class SaveResult {
     SPELL_ENDS,
     HALF_DAMAGE,
     NO_EFFECT,
-    CONDITION_ENDS
+    CONDITION_ENDS,
+    NOT_APPLICABLE
 }

@@ -60,25 +60,10 @@ data class Spell(
         // println(dataRecordList)
         for (d in data) {
             if (d.payload is Attack) {
-                if (d.payload.save?.onSucceed != null) {
-                    val onSucceed = d.payload.save.onSucceed
-                    //println(onSucceed)
-
-                    if (".*three times.*".toRegex().matches(onSucceed)) continue // TODO: accumulated saves
-
-                    if (".*[Hh]alf.*amage.*".toRegex().matches(onSucceed)) {
-                        result.add(SaveResult.HALF_DAMAGE)
-                    }
-                    if (".*([Ss]pell.*[Ee]nds|[Ee]nds.*[Ss]pell).*".toRegex().matches(onSucceed)) {
-                        result.add(SaveResult.SPELL_ENDS)
-                    }
-                    if (".*([Cc]ondition.*[Ee]nd|[Ee]nd.*[Ss]pell|no longer).*".toRegex().matches(onSucceed)) {
-                        result.add(SaveResult.CONDITION_ENDS)
-                    }
-                    if (".*([Nn]o effect|unaffected|isn.t Restrained|resists your efforts|isn.t affected).*".toRegex()
-                            .matches(onSucceed)
-                    ) {
-                        result.add(SaveResult.NO_EFFECT)
+                if (d.payload.save != null) {
+                    val attackResult = d.payload.save.getSaveResult()
+                    if (attackResult != SaveResult.NOT_APPLICABLE) {
+                        result.add(attackResult)
                     }
                 }
             }
