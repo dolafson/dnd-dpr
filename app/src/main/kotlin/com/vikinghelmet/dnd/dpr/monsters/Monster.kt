@@ -121,12 +121,12 @@ data class MonsterProperties(
 ) {
     fun getMod(modName: String): Int {
         return when (modName) {
-            "STR" -> dataSTRmod
-            "DEX" -> dataDEXmod
-            "CON" -> dataCONmod
-            "INT" -> dataINTmod
-            "WIS" -> dataWISmod
-            "CHA" -> dataCHAmod
+            "Strength" -> dataSTRmod
+            "Dexterity" -> dataDEXmod
+            "Constitution" -> dataCONmod
+            "Intelligence" -> dataINTmod
+            "Wisdom" -> dataWISmod
+            "Charisma" -> dataCHAmod
             else -> throw IllegalArgumentException("invalid mod name: {$modName}")
         }.toInt()
     }

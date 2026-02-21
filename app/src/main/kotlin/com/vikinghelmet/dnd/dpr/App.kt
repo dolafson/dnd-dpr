@@ -36,9 +36,9 @@ fun calculateSpellDPR(attack: Attack) {
 
     val isTargetEvasive = false    // get this from monster ... optional feature for high-level Assassin, Ranger, Rogue, Monk
 
-    val dpr = DamagePerRound(0, attack)
+    val dpr = DamagePerRound(attack)
 
-    dpr.calculateSpellDPR (spell, attack, isTargetEvasive)
+    dpr.calculateSpellDPR (spell, attack, monster, isTargetEvasive)
     println ("")
 }
 
@@ -47,9 +47,7 @@ fun getMonster(name: String): Monster? {
 
     for (monster in monsters) {
         if (monster.name == name) {
-            println(Json.encodeToString(monster))
-            // println("DEX-mod = "+monster.properties.getMod("DEX"))
-            // println("STR-mod = "+monster.properties.getMod("STR"))
+            // println(Json.encodeToString(monster))
             return monster
         }
     }
@@ -61,7 +59,7 @@ fun getSpell(name: String): Spell? {
 
     for (spell in spells) {
         if (spell.name == name) {
-            println(Json.encodeToString(spell))
+            // println(Json.encodeToString(spell))
             return spell
         }
     }

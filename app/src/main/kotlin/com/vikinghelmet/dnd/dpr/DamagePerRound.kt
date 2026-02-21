@@ -1,4 +1,5 @@
 package com.vikinghelmet.dnd.dpr
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlin.math.max
@@ -19,9 +20,7 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
 //    https://docs.google.com/document/d/11eTMZPPxWXHY0rQEhK1msO-40BcCGrzArSl4GX4CiJE/edit?tab=t.0
 
 
-@Suppress("unused")
 class DamagePerRound(
-    var targetSaveBonus: Int,
     var attack: Attack,
 ) {
     val effectSaveDC = attack.player.effectSaveDC
@@ -215,7 +214,7 @@ class DamagePerRound(
 
 // Compute the save probability taking all variables into account:
 // save bonus, DC, advantage, and bonus dice (e.g. Bless).
-    fun saveProb(isAdvan: String, bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock): Float
+    fun saveProb(targetSaveBonus: Int, isAdvan: String, bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock): Float
     {
         val dc: Int = effectSaveDC
         val arr    = buffDist(bonusDiceToSave)
@@ -313,6 +312,7 @@ class DamagePerRound(
     fun calculateSpellDPR(
         spell: Spell,
         attack: Attack,
+        monster: Monster,
         isTargetEvasive: Boolean,
     ) {
         var preconditions = attack.preconditions ?: Attack.Preconditions()
@@ -334,6 +334,17 @@ class DamagePerRound(
         println("num effects/targets: $numberOfEffectsOrTargets")
         println("")
 
+        var targetSaveBonus = 0
+        val save = spell.getFirstAttackSave() // TODO: need something more flexible here
+        
+        val ability = save?.saveAbility
+        if (ability != null) {
+            println("save ability = $ability")
+            targetSaveBonus = monster.properties.getMod(ability)
+            println("save proficiency = $targetSaveBonus")
+            println("")
+        }
+
         val noSave      = spellSaveResults.isEmpty()
         val saveForHalf = spellSaveResults.contains(SaveResult.HALF_DAMAGE)
         val saveEvery   = spellSaveResults.contains(SaveResult.SPELL_ENDS) // TODO: also condition ends ???
@@ -345,9 +356,9 @@ class DamagePerRound(
 
         // 6. Chance to Hit (Hit%)
         val chanceToHit = AvgMinMax(
-            1 - saveProb("No Advantage", bonusDiceToSave, penaltyDiceToSave),
-            1 - saveProb("Advantage", bonusDiceToSave, penaltyDiceToSave),
-            1 - saveProb("Disadvantage", bonusDiceToSave, penaltyDiceToSave)
+            1 - saveProb(targetSaveBonus,"No Advantage", bonusDiceToSave, penaltyDiceToSave),
+            1 - saveProb(targetSaveBonus,"Advantage", bonusDiceToSave, penaltyDiceToSave),
+            1 - saveProb(targetSaveBonus,"Disadvantage", bonusDiceToSave, penaltyDiceToSave)
         )
 
         chanceToHit.print("Chance to Hit")

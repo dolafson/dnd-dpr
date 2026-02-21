@@ -54,6 +54,17 @@ data class Spell(
         return dice
     }
 
+    fun getFirstAttackSave(): Attack.Save? {
+        val data = properties.dataDatarecords ?: return null
+        // println(dataRecordList)
+        for (d in data) {
+            if (d.payload is Attack) {
+                return d.payload.save
+            }
+        }
+        return null
+    }
+
     fun getSpellSaveResult(): List<SaveResult> {
         val result = mutableListOf<SaveResult>()
         val data = properties.dataDatarecords ?: return result
