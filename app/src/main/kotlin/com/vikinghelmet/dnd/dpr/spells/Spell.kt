@@ -1,12 +1,13 @@
 package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.DiceBlock
-import com.vikinghelmet.dnd.dpr.SpellSaveResult
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import kotlinx.serialization.Serializable
 
+// https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
+
 @Serializable
-data class NewSpell(
+data class Spell(
     val book: String,
     val description: String,
     val name: String,
@@ -53,8 +54,8 @@ data class NewSpell(
         return dice
     }
 
-    fun getSpellSaveResult(): List<SpellSaveResult> {
-        val result = mutableListOf<SpellSaveResult>()
+    fun getSpellSaveResult(): List<SaveResult> {
+        val result = mutableListOf<SaveResult>()
         val data = properties.dataDatarecords ?: return result
         // println(dataRecordList)
         for (d in data) {
@@ -66,18 +67,18 @@ data class NewSpell(
                     if (".*three times.*".toRegex().matches(onSucceed)) continue // TODO: accumulated saves
 
                     if (".*[Hh]alf.*amage.*".toRegex().matches(onSucceed)) {
-                        result.add(SpellSaveResult.HALF_DAMAGE)
+                        result.add(SaveResult.HALF_DAMAGE)
                     }
                     if (".*([Ss]pell.*[Ee]nds|[Ee]nds.*[Ss]pell).*".toRegex().matches(onSucceed)) {
-                        result.add(SpellSaveResult.SPELL_ENDS)
+                        result.add(SaveResult.SPELL_ENDS)
                     }
                     if (".*([Cc]ondition.*[Ee]nd|[Ee]nd.*[Ss]pell|no longer).*".toRegex().matches(onSucceed)) {
-                        result.add(SpellSaveResult.CONDITION_ENDS)
+                        result.add(SaveResult.CONDITION_ENDS)
                     }
                     if (".*([Nn]o effect|unaffected|isn.t Restrained|resists your efforts|isn.t affected).*".toRegex()
                             .matches(onSucceed)
                     ) {
-                        result.add(SpellSaveResult.NO_EFFECT)
+                        result.add(SaveResult.NO_EFFECT)
                     }
                 }
             }

@@ -3,7 +3,7 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.spells.NewSpell
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.system.exitProcess
@@ -15,7 +15,7 @@ class App {
         }
 }
 
-fun calculateSpellDPR(spell: NewSpell) {
+fun calculateSpellDPR(spell: Spell) {
 //    println("")
 //    println(Json.encodeToString(spell))
 //    println("")
@@ -49,7 +49,7 @@ fun calculateSpellDPR(spell: NewSpell) {
 }
 
 fun main(args : Array<String>) {
-    val spells = ArrayList<NewSpell>()
+    val spells = ArrayList<Spell>()
     val monsters = ArrayList<Monster>()
     val spellNameBuilder = StringBuilder()
 

@@ -1,6 +1,6 @@
-package com.vikinghelmet.dnd.dpr
+package com.vikinghelmet.dnd.dpr.spells
 
-enum class SpellSaveResult {
+enum class SaveResult {
     SPELL_ENDS,
     HALF_DAMAGE,
     NO_EFFECT,

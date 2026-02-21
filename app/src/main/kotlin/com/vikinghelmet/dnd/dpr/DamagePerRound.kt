@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr
-import com.vikinghelmet.dnd.dpr.spells.NewSpell
+import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -309,7 +310,7 @@ class DamagePerRound(
     // here is where the fun really begins
 
     fun calculateSpellDPR(
-        spell: NewSpell,
+        spell: Spell,
         bonusDamage: Int,
         bonusDamageOnFirstHit: DiceBlock,
         isPlayerEvasive: Boolean,
@@ -326,8 +327,8 @@ class DamagePerRound(
         println("")
 
         val noSave      = spellSaveResults.isEmpty()
-        val saveForHalf = spellSaveResults.contains(SpellSaveResult.HALF_DAMAGE)
-        val saveEvery   = spellSaveResults.contains(SpellSaveResult.SPELL_ENDS) // TODO: also condition ends ???
+        val saveForHalf = spellSaveResults.contains(SaveResult.HALF_DAMAGE)
+        val saveEvery   = spellSaveResults.contains(SaveResult.SPELL_ENDS) // TODO: also condition ends ???
 
         if (spell.getDamage().isEmpty()) {
             println ("This spell never directly creates damage")
