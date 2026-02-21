@@ -61,7 +61,7 @@ fun main(args : Array<String>) {
         }
         val jsonString = File(arg).readText()
 
-        if (jsonString.contains("challengeRating")) {
+        if (jsonString.contains("Challenge Rating")) {
             monsters.addAll(Json.decodeFromString(jsonString))
         }
         else {
@@ -72,9 +72,15 @@ fun main(args : Array<String>) {
     if (!monsters.isEmpty()) {
         val name = spellNameBuilder.toString()
         for (monster in monsters) {
-            if (monster.name == name) {
-                println("monster = $monster")
+
+            if (monster.name == name && monster.book.contains("Free Basic Rules")) { // 2014 or 2024
+                //println("monster = $monster")
+                println(Json.encodeToString(monster))
+//                println("AC = "+monster.properties.getACAsInt())
+                println("DEX-mod = "+monster.properties.getMod("DEX"))
+                println("STR-mod = "+monster.properties.getMod("STR"))
             }
+            // creatures.add(Creature (monster.name, monster.armor_class))
         }
         exitProcess(0)
     }
@@ -92,11 +98,11 @@ fun main(args : Array<String>) {
     // debug only: if no spell name given, iterate over spells, and print "data records"
     for (spell in spells) {
         if (spell.properties.dataDatarecords != null) {
-            val dlist: List<DataRecord> = Json.decodeFromString(spell.properties.dataDatarecords)
+            val dlist: List<SpellDataRecord> = Json.decodeFromString(spell.properties.dataDatarecords)
             // println(dlist)
             for (d in dlist) {
                 println(d)
-                val payload: DataRecordPayload = Json.decodeFromString(d.payload)
+                val payload: SpellDataRecordPayload = Json.decodeFromString(d.payload)
                 println(payload)
             }
         }

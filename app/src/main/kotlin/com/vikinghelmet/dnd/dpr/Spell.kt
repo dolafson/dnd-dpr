@@ -2,6 +2,8 @@ package com.vikinghelmet.dnd.dpr
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+// https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
+
 @Serializable
 data class Spell(
     val name: String,
@@ -54,11 +56,11 @@ data class Spell(
         val result = mutableListOf<SpellSaveResult>()
         val data = properties.dataDatarecords ?: return result
 
-        val dataRecordList: List<DataRecord> = Json.decodeFromString(data)
+        val dataRecordList: List<SpellDataRecord> = Json.decodeFromString(data)
         // println(dataRecordList)
         for (d in dataRecordList) {
             //println(d)
-            val payload: DataRecordPayload = Json.decodeFromString(d.payload)
+            val payload: SpellDataRecordPayload = Json.decodeFromString(d.payload)
             if (payload is AttackPayload) {
                 val attackPayload: AttackPayload = payload
                 // println(attackPayload)
@@ -94,11 +96,11 @@ data class Spell(
     fun isAreaOfEffectBig(): Boolean {
         val data = properties.dataDatarecords ?: return false
 
-        val dataRecordList: List<DataRecord> = Json.decodeFromString(data)
+        val dataRecordList: List<SpellDataRecord> = Json.decodeFromString(data)
         // println(dataRecordList)
         for (d in dataRecordList) {
             //println(d)
-            val payload: DataRecordPayload = Json.decodeFromString(d.payload)
+            val payload: SpellDataRecordPayload = Json.decodeFromString(d.payload)
             if (payload is AttackPayload) {
                 val attackPayload: AttackPayload = payload
                 //println("attackPayload: "+attackPayload)

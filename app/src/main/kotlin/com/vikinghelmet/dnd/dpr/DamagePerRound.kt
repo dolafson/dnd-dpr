@@ -214,7 +214,6 @@ class DamagePerRound(
 // save bonus, DC, advantage, and bonus dice (e.g. Bless).
     fun saveProb(isAdvan: String, bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock): Float
     {
-        val bonus: Int = targetSaveBonus
         val dc: Int = effectSaveDC
         val arr    = buffDist(bonusDiceToSave)
         val negArr = buffDist(penaltyDiceToSave)
@@ -223,21 +222,21 @@ class DamagePerRound(
         if (isAdvan == "No Advantage") {
             for (i in arr.indices) {
                 for (j in negArr.indices) {
-                    blessed += (arr[i] * negArr[j] * luckS(toSave(bonus + i - j, dc), isLucky))
+                    blessed += (arr[i] * negArr[j] * luckS(toSave(targetSaveBonus + i - j, dc), isLucky))
                 }
             }
         }
         if (isAdvan == "Advantage") {
             for (i in arr.indices) {
                 for (j in negArr.indices) {
-                    blessed += (arr[i] * negArr[j] * advanS(toSave(bonus + i - j, dc), isLucky))
+                    blessed += (arr[i] * negArr[j] * advanS(toSave(targetSaveBonus + i - j, dc), isLucky))
                 }
             }
         }
         if (isAdvan == "Disadvantage") {
             for (i in arr.indices) {
                 for (j in negArr.indices) {
-                    blessed += (arr[i] * negArr[j] * disadvS(toSave(bonus + i - j, dc), isLucky))
+                    blessed += (arr[i] * negArr[j] * disadvS(toSave(targetSaveBonus + i - j, dc), isLucky))
                 }
             }
         }

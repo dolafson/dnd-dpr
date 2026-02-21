@@ -9,18 +9,18 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 @JsonIgnoreUnknownKeys
 @JsonClassDiscriminator("type") // Specify the field name in JSON
-sealed class DataRecordPayload
+sealed class SpellDataRecordPayload
 
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Action")
-data class ActionPayload(val name: String) : DataRecordPayload()
+data class ActionPayload(val name: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Armor Class")
-data class ArmorClassPayload(val calculation: String) : DataRecordPayload()
+data class ArmorClassPayload(val calculation: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
@@ -32,7 +32,7 @@ data class AttackPayload(
     val aoe: AreaOfEffect? = null,    //  "aoe":{"shape":"Sphere","size":.....
     val actionType: String? = null,
     val range: String? = null
-)   : DataRecordPayload()
+)   : SpellDataRecordPayload()
 {
     @Serializable
     data class DataRecordPayloadSave (
@@ -46,7 +46,7 @@ data class AttackPayload(
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Condition")
-data class ConditionPayload(val name: String) : DataRecordPayload()
+data class ConditionPayload(val name: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
@@ -56,62 +56,62 @@ data class DamagePayload(
     val damageType: String,
     val diceCount: Int? = null,
     val diceSize: String? = null
-) : DataRecordPayload()
+) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Defense")
-data class DefensePayload(val defense: String, val condition: String? = null, val damage: String? = null) : DataRecordPayload()
+data class DefensePayload(val defense: String, val condition: String? = null, val damage: String? = null) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Effect")
-data class EffectPayload(val name: String) : DataRecordPayload()
+data class EffectPayload(val name: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Healing")
-data class HealingPayload(val ability: String, val isTemp: Boolean) : DataRecordPayload()
+data class HealingPayload(val ability: String, val isTemp: Boolean) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Generic Roll")
-data class GenericRollPayload(val name: String? = null, val _label: String? = null, val rollString: String) : DataRecordPayload()
+data class GenericRollPayload(val name: String? = null, val _label: String? = null, val rollString: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Hit Points")
-data class HitPointsPayload(val calculation: String) : DataRecordPayload()
+data class HitPointsPayload(val calculation: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Language")
-data class LanguagePayload(val name: String) : DataRecordPayload()
+data class LanguagePayload(val name: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Roll Bonus")
-data class RollBonusPayload(val bonusName: List<String>, val bonusDetails: String) : DataRecordPayload()
+data class RollBonusPayload(val bonusName: List<String>, val bonusDetails: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Sense")
-data class SensePayload(val name: String) : DataRecordPayload()
+data class SensePayload(val name: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Speed")
-data class SpeedPayload(val calculation: String) : DataRecordPayload()
+data class SpeedPayload(val calculation: String) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Spell")
-data class SpellPayload(val name: String, val description: String, val upcastText: String? = null) : DataRecordPayload()
+data class SpellPayload(val name: String, val description: String, val upcastText: String? = null) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
 @SerialName("Spell Attach")
-data class SpellAttachPayload(val spells: List<String>, val alwaysPrepared: Boolean) : DataRecordPayload()
+data class SpellAttachPayload(val spells: List<String>, val alwaysPrepared: Boolean) : SpellDataRecordPayload()
 
 @Serializable
 @JsonIgnoreUnknownKeys
@@ -123,5 +123,5 @@ data class UpcastingPayload(
     val changeMode: String,
     // val level: Int, // sometimes Int, sometimes String
     // val value: String, // sometimes Int, sometimes String
-) : DataRecordPayload()
+) : SpellDataRecordPayload()
 
