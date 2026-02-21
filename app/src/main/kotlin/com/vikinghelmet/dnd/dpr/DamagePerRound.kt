@@ -336,7 +336,7 @@ class DamagePerRound(
 
         var targetSaveBonus = 0
         val save = spell.getFirstAttackSave() // TODO: need something more flexible here
-        
+
         val ability = save?.saveAbility
         if (ability != null) {
             println("save ability = $ability")

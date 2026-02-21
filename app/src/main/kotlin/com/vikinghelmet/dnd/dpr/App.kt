@@ -72,7 +72,7 @@ fun main(args : Array<String>) {
     for (arg in args) {
         val jsonString = File(arg).readText()
 
-        if (jsonString.contains("Acid Splash Damage Upcasting 17")) {
+        if (jsonString.contains("School")) {
             spells.addAll(Json.decodeFromString(jsonString))
         }
         else if (jsonString.contains("\"player\"")) {
