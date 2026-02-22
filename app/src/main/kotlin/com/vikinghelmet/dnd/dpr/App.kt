@@ -177,9 +177,26 @@ fun main(args : Array<String>) {
         System.err.println()
         System.err.println("Attacks")
         System.err.println()
-        System.err.println("\t json file should contain an array of monster/spell pairs, for example:")
+        System.err.println("\t json file: should contain an array of monster/spell pairs, for example:")
         System.err.println()
         System.err.println("\t\t [{\"monster\":\"Goblin\",\"spell\":\"Ensnaring Strike\"}]\n")
+        System.err.println()
+        System.err.println("\t ")
+        System.err.println(""" for more complex scenarios, preconditions are also supported:
+            
+    [
+        {
+            "monster": "Goblin",
+            "spell": "Ensnaring Strike",
+            "preconditions": {
+                "bonusDiceToSave":       { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "penaltyDiceToSave":     { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "bonusDamageOnFirstHit": { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "bonusDamage": 5
+            }
+        }
+    ]            
+        """)
         System.err.println()
     }
 
