@@ -108,6 +108,7 @@ fun main(args : Array<String>) {
                 // println(playerData)
                 var player: Character = Json.decodeFromString(playerData)
                 println(Json.encodeToString(player))
+                player.test()
             }
             exitProcess(0)
         }
