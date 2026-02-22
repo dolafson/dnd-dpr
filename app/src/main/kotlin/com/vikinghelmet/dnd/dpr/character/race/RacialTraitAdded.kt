@@ -15,6 +15,6 @@ data class RacialTraitAdded(
         val definitionKey: String,
         val name: String,
         val description: String,
-        val snippet: String,
+        val snippet: String? = null,
     )
 }
