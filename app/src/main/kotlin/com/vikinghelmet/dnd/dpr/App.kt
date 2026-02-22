@@ -86,7 +86,7 @@ fun dump(arg: String) {
         for (item in spells)  println(Json.encodeToString(item))
         for (item in monsters)  println(Json.encodeToString(item))
         for (item in attacks)  println(Json.encodeToString(item))
-        character?.dump()
+        println(Json.encodeToString(character))
         return
     }
 
@@ -102,7 +102,7 @@ fun dump(arg: String) {
             for (item in attacks)  println(Json.encodeToString(item))
         }
         "character" -> {
-            character?.dump()
+            println(Json.encodeToString(character))
         }
     }
 }
@@ -125,8 +125,9 @@ fun search(arg: String) {
 }
 
 fun main(args : Array<String>) {
+    var exitEarly = false
 
-    // each arg should be a json file: spells, monsters, character, or attacks
+    // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
     for (arg in args) {
         var jsonString : String? = ""
         if (arg.endsWith(".json")) {
@@ -154,13 +155,22 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("dump")) {
             dump(arg)
+            exitEarly = true
         }
         else if (arg.startsWith("search")) {
-            dump(arg)
+            search(arg)
+            exitEarly = true
+        }
+        else if (arg.startsWith("test")) {
+            character?.test()
+            exitEarly = true
         }
     }
 
-    if (spells.isEmpty()) {
+    if (exitEarly) {
+        // quietly go away
+    }
+    else if (spells.isEmpty()) {
         println("no spell data")
     }
     else if (monsters.isEmpty()) {

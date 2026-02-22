@@ -1,14 +1,13 @@
 @file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 
-package com.vikinghelmet.dnd.dpr.character.abilities
+package com.vikinghelmet.dnd.dpr.character.classes
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class AbilityScore(
-    val id: Int,
-    val name: String? = null,
-    val value: Int
+data class CharacterClass(
+    val definition: ClassDefinition,
+    val level: Int,
 )

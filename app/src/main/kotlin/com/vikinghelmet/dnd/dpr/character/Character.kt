@@ -2,9 +2,9 @@
 
 package com.vikinghelmet.dnd.dpr.character
 
-import com.vikinghelmet.dnd.dpr.character.abilities.AbilityType
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
@@ -79,7 +79,7 @@ data class Character(
         return isFeatEnabled(Feat.GreatWeaponFighting)
     }
 
-    fun dump() {
+    fun test() {
         println ("")
         for (ability in AbilityType.entries) {
             if (ability == AbilityType.unused) continue
