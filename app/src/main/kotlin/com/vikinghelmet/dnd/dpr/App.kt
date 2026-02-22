@@ -182,7 +182,7 @@ fun main(args : Array<String>) {
         System.err.println("\t\t [{\"monster\":\"Goblin\",\"spell\":\"Ensnaring Strike\"}]\n")
         System.err.println()
         System.err.println("\t ")
-        System.err.println(""" for more complex scenarios, preconditions are also supported:
+        System.err.println("""Note: for more complex scenarios, the attack json also supports preconditions.  For example:
             
     [
         {
@@ -190,9 +190,9 @@ fun main(args : Array<String>) {
             "spell": "Ensnaring Strike",
             "preconditions": {
                 "bonusDiceToSave":       { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
-                "penaltyDiceToSave":     { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
-                "bonusDamageOnFirstHit": { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
-                "bonusDamage": 5
+                "penaltyDiceToSave":     { "four": 0, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "bonusDamageOnFirstHit": { "four": 0, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "bonusDamage": 0
             }
         }
     ]            
