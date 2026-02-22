@@ -331,20 +331,22 @@ class DamagePerRound(
         val numberOfEffectsOrTargets = if (spell.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
 
         val spellSaveResults = spell.getSpellSaveResult()
+        println()
         println("spell duration:      " + spell.getDuration())
         println("spell damage:        " + spell.getDamage())
         println("spell save result:   $spellSaveResults")
         println("num effects/targets: $numberOfEffectsOrTargets")
-        println("")
+        println()
 
         var targetSaveBonus = 0
         val save = spell.getFirstAttackSave() // TODO: need something more flexible here
 
         val ability = save?.saveAbility
         if (ability != null) {
-            println("save ability = $ability")
+            println("spell save ability      = $ability")
             targetSaveBonus = monster.properties.getMod(ability)
-            println("save proficiency = $targetSaveBonus")
+            println("target save proficiency = $targetSaveBonus")
+            println("spell caster save DC    = "+character.getSpellSaveDC())
             println("")
         }
 

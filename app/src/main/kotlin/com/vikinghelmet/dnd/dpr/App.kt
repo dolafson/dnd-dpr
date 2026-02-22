@@ -129,7 +129,6 @@ fun search(arg: String) {
         }
         "monsters" -> {
             for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-            for (item in monsters)  println(Json.encodeToString(item))
         }
         "attacks" -> {
 //            for (item in attacks) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
@@ -149,6 +148,40 @@ fun getResource(fileName: String): String? {
 
 fun main(args : Array<String>) {
     var exitEarly = false
+
+    if (args.isEmpty()) {
+        System.err.println()
+        System.err.println("Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | attacks.json >");
+        System.err.println()
+        System.err.println("File options:")
+        System.err.println()
+        System.err.println("\t file.json \t load spell or monster data from the given file; this is optional: program is prepackaged with 2024 data")
+        System.err.println()
+        System.err.println("Character options:")
+        System.err.println()
+        System.err.println("\t NumericID \t read character from DND Beyond API (character must have public visibility)")
+        System.err.println("\t file.json \t read character from a file")
+        System.err.println()
+        System.err.println("Dump (debug) options:")
+        System.err.println()
+        System.err.println("\t dump:spells \t export all known spells");
+        System.err.println("\t dump:monsters \t export all known monsters");
+        System.err.println("\t dump:attacks \t export attacks from user input");
+        System.err.println("\t dump:character\t export (minimal) character data from DND Beyond");
+        System.err.println("\t dump \t\t export all of the above");
+        System.err.println()
+        System.err.println("Search commands:")
+        System.err.println()
+        System.err.println("\t search:spells:NAME \t search for name in list of spells, and display details if found");
+        System.err.println("\t search:monsters:NAME \t search for name in list of spells, and display details if found");
+        System.err.println()
+        System.err.println("Attacks")
+        System.err.println()
+        System.err.println("\t json file should contain an array of monster/spell pairs, for example:")
+        System.err.println()
+        System.err.println("\t\t [{\"monster\":\"Goblin\",\"spell\":\"Ensnaring Strike\"}]\n")
+        System.err.println()
+    }
 
     val spellResource = getResource("spells.json")
     if (spellResource != null)  spells.addAll(Json.decodeFromString(spellResource))
