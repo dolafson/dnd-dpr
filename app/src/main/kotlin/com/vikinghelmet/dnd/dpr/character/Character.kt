@@ -3,6 +3,7 @@
 package com.vikinghelmet.dnd.dpr.character
 
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import kotlinx.serialization.SerialName
@@ -25,16 +26,19 @@ data class Character(
         return 0 // should not get here
     }
 
-    fun getModifiedAbilityScore(a: AbilityType): Int {
-        val raw = getRawAbilityScore(a)
+    fun getBonusModifierSum(a: AbilityType, list: List<Modifier>): Int {
         var mod = 0
-        for (modifier in characterData.modifiers.race) {
+        for (modifier in list) {
             if (modifier.type == "bonus" && modifier.entityId == a.ordinal) {
-                mod = (modifier.value?: 0)
-                break
+                mod += (modifier.value?: 0)
             }
         }
-        return raw + mod
+        return mod
+    }
+    fun getModifiedAbilityScore(a: AbilityType): Int {
+        return getRawAbilityScore(a) +
+                getBonusModifierSum(a, characterData.modifiers.race) +
+                getBonusModifierSum(a, characterData.modifiers.feat)
     }
 
     fun getLevel(): Int {
@@ -81,11 +85,14 @@ data class Character(
 
     fun test() {
         println ("")
+        println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
+
         for (ability in AbilityType.entries) {
             if (ability == AbilityType.unused) continue
-            val raw = getRawAbilityScore(ability)
-            val mod = getModifiedAbilityScore(ability)
-            println ("$ability: raw=$raw, mod=$mod")
+            val base = getRawAbilityScore(ability)
+            val withBonuses = getModifiedAbilityScore(ability)
+            //println ("$ability: base=$base, withBonuses=$mod")
+            println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
         }
 
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId

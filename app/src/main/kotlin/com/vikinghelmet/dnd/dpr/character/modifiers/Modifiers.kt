@@ -8,5 +8,6 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class Modifiers(
-    val race: List<RacialModifier>
+    val race: List<Modifier>,
+    val feat: List<Modifier>
 )

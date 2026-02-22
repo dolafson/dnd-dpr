@@ -7,7 +7,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class RacialModifier(
+data class Modifier(
     val entityId: Int? = null,
     val subType: String,
     val type: String,
