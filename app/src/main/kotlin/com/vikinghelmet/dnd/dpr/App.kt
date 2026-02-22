@@ -7,8 +7,9 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
-import kotlin.system.exitProcess
 
 class App {
     val greeting: String
@@ -19,27 +20,25 @@ class App {
 
 val spells = ArrayList<Spell>()
 val monsters = ArrayList<Monster>()
-val attackList = ArrayList<Attack>()
+val attacks = ArrayList<Attack>()
+var character: Character ?= null
 
 fun calculateSpellDPR(attack: Attack) {
-    var monster = getMonster(attack.monster)
-    var spell = getSpell(attack.spell)
-
+    val monster = getMonster(attack.monster)
     if (monster == null) {
         println("monster not found: "+attack.monster)
         return
     }
 
+    val spell = getSpell(attack.spell)
     if (spell == null) {
         println("spell not found: "+attack.spell)
         return
     }
 
-    val isTargetEvasive = false    // get this from monster ... optional feature for high-level Assassin, Ranger, Rogue, Monk
+    val dpr = DamagePerRound(character!!)
 
-    val dpr = DamagePerRound(attack)
-
-    dpr.calculateSpellDPR (spell, attack, monster, isTargetEvasive)
+    dpr.calculateSpellDPR (spell, attack, monster)
     println ("")
 }
 
@@ -67,51 +66,67 @@ fun getSpell(name: String): Spell? {
     return null
 }
 
+fun getRequest(url: String): String? {
+    val client = OkHttpClient() // TODO move?
+    val request = Request.Builder().url(url).build()
+
+    val response = client.newCall(request).execute()
+    return response.body?.string()
+}
+
+fun getFileOrURL(fileOrUrl: String): String? {
+    return if (fileOrUrl.startsWith("http")) {
+        getRequest(fileOrUrl)
+    }
+    else {
+        File(fileOrUrl).readText()
+    }
+}
+
 fun main(args : Array<String>) {
 
-    // each arg should be a json file: spells, monsters, or attacks
+    // each arg should be a json file: spells, monsters, character, or attacks
     for (arg in args) {
-        val jsonString = File(arg).readText()
+        val jsonString = getFileOrURL(arg)
+        if (jsonString == null) {
+            println("unable to read input: $arg")
+            continue
+        }
 
         if (jsonString.contains("School")) {
             spells.addAll(Json.decodeFromString(jsonString))
         }
-        else if (jsonString.contains("\"player\"")) {
-            attackList.addAll(Json.decodeFromString(jsonString))
-        }
-        else {
+        else if (jsonString.contains("\"Monsters\"")){
             monsters.addAll(Json.decodeFromString(jsonString))
         }
-    }
-
-    if (attackList.isEmpty()) {
-        println("no attacks specified")
-        exitProcess(0)
-    }
-
-    println(Json.encodeToString(attackList))
-
-    for (attack in attackList) {
-        val url = attack.player.url
-        if (url != null) {
-            val playerData = if (url.startsWith("http")) {
-                attack.getRequest(url)
-            }
-            else {
-                File(url).readText()
-            }
-
-            if (playerData == null) {
-                println("player not found")
-            }
-            else {
-                // println(playerData)
-                var player: Character = Json.decodeFromString(playerData)
-                println(Json.encodeToString(player))
-                player.test()
-            }
-            exitProcess(0)
+        else if (jsonString.contains("\"monster\"")) {
+            attacks.addAll(Json.decodeFromString(jsonString))
         }
-        calculateSpellDPR(attack)
+        else if (jsonString.contains("isAssignedToPlayer")) { // character data from dndbeyond
+            character = Json.decodeFromString(jsonString)
+            character?.test()
+        }
+        else {
+            println("unknown file type: $arg")
+        }
+    }
+
+    if (spells.isEmpty()) {
+        println("no spell data")
+    }
+    else if (monsters.isEmpty()) {
+        println("no monsters data")
+    }
+    else if (character == null) {
+        println("no character data")
+    }
+    else if (attacks.isEmpty()) {
+        println("no attacks specified")
+    }
+    else {
+        // println(Json.encodeToString(attacks))
+        for (attack in attacks) {
+            calculateSpellDPR(attack)
+        }
     }
 }

@@ -1,4 +1,5 @@
 package com.vikinghelmet.dnd.dpr
+import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -21,10 +22,10 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
 
 
 class DamagePerRound(
-    var attack: Attack,
+    var character: Character,
 ) {
-    val effectSaveDC = attack.player.effectSaveDC
-    val isLucky = attack.player.isLucky  // halfling feature
+    val effectSaveDC = character.getSpellSaveDC()
+    val isLucky = character.isLucky()  // halfling feature
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
         val avg = averageDamage(diceBlock, bonusDamage, false, false)
@@ -313,8 +314,8 @@ class DamagePerRound(
         spell: Spell,
         attack: Attack,
         monster: Monster,
-        isTargetEvasive: Boolean,
     ) {
+        val isTargetEvasive = monster.properties.isEvasive()
         var preconditions = attack.preconditions ?: Attack.Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)

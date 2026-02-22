@@ -98,10 +98,17 @@ data class Character(
 
     fun getSpellSaveDC(): Int {
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
-        val abilityType = AbilityType.entries[abilityId]
-        val score = getModifiedAbilityScore(abilityType)
-        val statBonus = statToBonusMap[score] ?: 0
+        val statBonus = if (abilityId == null) 0 else {
+            statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
+        }
         return 8 + statBonus + getProficiencyBonus()
+    }
+
+    fun isLucky(): Boolean { // halfling luck feature
+        for (trait in characterData.race.racialTraits) {
+            if (trait.definition.id == 13856136 && trait.definition.name == "Luck") return true
+        }
+        return false
     }
 
     fun test() {
@@ -114,13 +121,14 @@ data class Character(
         }
 
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
-        val spellAbilityType = AbilityType.entries[abilityId]
+        val spellAbilityType = if (abilityId == null) "n/a" else AbilityType.entries[abilityId]
 
         println ("")
         println ("level         = "+getLevel())
         println ("PB            = "+getProficiencyBonus())
         println ("spell ability = "+spellAbilityType)
         println ("spellSaveDC   = "+getSpellSaveDC())
+        println ("isLucky       = "+isLucky())
         println ("")
     }
 }

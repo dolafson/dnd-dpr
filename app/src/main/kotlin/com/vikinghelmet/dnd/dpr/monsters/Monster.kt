@@ -130,4 +130,12 @@ data class MonsterProperties(
             else -> throw IllegalArgumentException("invalid mod name: {$modName}")
         }.toInt()
     }
+
+    fun isEvasive(): Boolean {
+        if (dataTraits == null) return false
+        for (trait in dataTraits) {
+            if (trait.Name == "Evasion") return true
+        }
+        return false
+    }
 }

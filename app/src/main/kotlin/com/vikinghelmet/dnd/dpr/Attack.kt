@@ -1,23 +1,13 @@
 package com.vikinghelmet.dnd.dpr
 
 import kotlinx.serialization.Serializable
-import okhttp3.OkHttpClient
-import okhttp3.Request
 
 @Serializable
 data class Attack(
-    val player: Player,
     val preconditions: Preconditions? = null,
     val monster: String, // after monster DB lookup, we will extract targetSaveBonus and isTargetEvasive
     val spell: String
 ) {
-    @Serializable
-    data class Player(
-        val url: String? = null,
-        val effectSaveDC: Int,
-        val isLucky: Boolean,   // halfling feature
-    )
-
     @Serializable
     data class Preconditions (
         // If the target has a bonus to their saving throw determined by a die roll (such as from the Bless spell) then enter those dice here.
@@ -31,27 +21,4 @@ data class Attack(
         val bonusDamage: Int? = 0,
         val bonusDamageOnFirstHit: DiceBlock? = null
     )
-
-    // Initialize client
-
-    fun getRequest(url: String): String? {
-        val client = OkHttpClient() // TODO move
-        val request = Request.Builder().url(url).build()
-
-        val response = client.newCall(request).execute()
-        return response.body?.string()
-/*
-        // Asynchronous call
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) = e.printStackTrace()
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) return
-                    println(response.body?.string())
-                }
-            }
-        })
- */
-    }
-
 }
