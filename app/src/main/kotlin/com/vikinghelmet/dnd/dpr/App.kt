@@ -47,7 +47,6 @@ fun getMonster(name: String): Monster? {
 
     for (monster in monsters) {
         if (monster.name == name) {
-            // println(Json.encodeToString(monster))
             return monster
         }
     }
@@ -59,7 +58,6 @@ fun getSpell(name: String): Spell? {
 
     for (spell in spells) {
         if (spell.name == name) {
-            // println(Json.encodeToString(spell))
             return spell
         }
     }
@@ -83,11 +81,57 @@ fun getFileOrURL(fileOrUrl: String): String? {
     }
 }
 
+fun dump(arg: String) {
+    if (!arg.contains(":")) {
+        for (item in spells)  println(Json.encodeToString(item))
+        for (item in monsters)  println(Json.encodeToString(item))
+        for (item in attacks)  println(Json.encodeToString(item))
+        character?.dump()
+        return
+    }
+
+    val dumpType = arg.split(":")[1]
+    when (dumpType) {
+        "spells" -> {
+            for (item in spells)  println(Json.encodeToString(item))
+        }
+        "monsters" -> {
+            for (item in monsters)  println(Json.encodeToString(item))
+        }
+        "attacks" -> {
+            for (item in attacks)  println(Json.encodeToString(item))
+        }
+        "character" -> {
+            character?.dump()
+        }
+    }
+}
+
+fun search(arg: String) {
+    val searchType = arg.split(":")[1]
+    val searchValue = arg.split(":")[2]
+    when (searchType) {
+        "spells" -> {
+            for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
+        }
+        "monsters" -> {
+            for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
+            for (item in monsters)  println(Json.encodeToString(item))
+        }
+        "attacks" -> {
+//            for (item in attacks) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
+        }
+    }
+}
+
 fun main(args : Array<String>) {
 
     // each arg should be a json file: spells, monsters, character, or attacks
     for (arg in args) {
-        val jsonString = getFileOrURL(arg)
+        var jsonString : String? = ""
+        if (arg.endsWith(".json")) {
+            jsonString = getFileOrURL(arg)
+        }
         if (jsonString == null) {
             println("unable to read input: $arg")
             continue
@@ -104,10 +148,15 @@ fun main(args : Array<String>) {
         }
         else if (jsonString.contains("isAssignedToPlayer")) { // character data from dndbeyond
             character = Json.decodeFromString(jsonString)
-            character?.test()
         }
-        else {
+        else if (arg.endsWith(".json")){
             println("unknown file type: $arg")
+        }
+        else if (arg.startsWith("dump")) {
+            dump(arg)
+        }
+        else if (arg.startsWith("search")) {
+            dump(arg)
         }
     }
 
@@ -124,7 +173,6 @@ fun main(args : Array<String>) {
         println("no attacks specified")
     }
     else {
-        // println(Json.encodeToString(attacks))
         for (attack in attacks) {
             calculateSpellDPR(attack)
         }

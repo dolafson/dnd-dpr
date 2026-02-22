@@ -1,11 +1,11 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr.character.race
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class RacialTrait(
+data class RacialTraitAdded(
     val definition: RacialTraitDefinition,
 ) {
     @JsonIgnoreUnknownKeys

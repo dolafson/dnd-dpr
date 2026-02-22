@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr.character.race
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
@@ -8,5 +8,5 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class Race(
     val baseRaceName: String,
     val fullName: String,
-    val racialTraits: List<RacialTrait>
+    val racialTraits: List<RacialTraitAdded>
 )

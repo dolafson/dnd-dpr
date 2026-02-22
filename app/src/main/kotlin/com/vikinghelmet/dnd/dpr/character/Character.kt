@@ -1,70 +1,19 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package com.vikinghelmet.dnd.dpr.character
 
+import com.vikinghelmet.dnd.dpr.character.abilities.AbilityType
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
-
-val levelToProficiencyMap: Map<Int, Int> = mapOf(
-    1 to 2,
-    2 to 2,
-    3 to 2,
-    4 to 2,
-    5 to 3,
-    6 to 3,
-    7 to 3,
-    8 to 3,
-    9 to 4,
-    10 to 4,
-    11 to 4,
-    12 to 4,
-    13 to 5,
-    14 to 5,
-    15 to 5,
-    16 to 5,
-    17 to 6,
-    18 to 6,
-    19 to 6,
-    20 to 6,
-)
-
-val statToBonusMap: Map<Int, Int> = mapOf(
-    1 to -5,
-    2 to -4,
-    3 to -4,
-    4 to -3,
-    5 to -3,
-    6 to -2,
-    7 to -2,
-    8 to -1,
-    9 to -1,
-    10 to 0,
-    11 to 0,
-    12 to 1,
-    13 to 1,
-    14 to 2,
-    15 to 2,
-    16 to 3,
-    17 to 3,
-    18 to 4,
-    19 to 4,
-    20 to 5,
-    21 to 5,
-    22 to 6,
-    23 to 6,
-    24 to 7,
-    25 to 7,
-    26 to 8,
-    27 to 8,
-    28 to 9,
-    29 to 9,
-    30 to 10,
-)
 
 @JsonIgnoreUnknownKeys
 @Serializable
 data class Character(
     @SerialName("data")
-    val characterData: Data,
+    val characterData: CharacterData,
     val id: Int,
     val message: String,
     val success: Boolean
@@ -93,25 +42,44 @@ data class Character(
     }
 
     fun getProficiencyBonus(): Int {
-        return levelToProficiencyMap[getLevel()] ?: 0
+        return Constants.levelToProficiencyMap[getLevel()] ?: 0
     }
 
     fun getSpellSaveDC(): Int {
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
         val statBonus = if (abilityId == null) 0 else {
-            statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
+            Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
         }
         return 8 + statBonus + getProficiencyBonus()
     }
 
-    fun isLucky(): Boolean { // halfling luck feature
-        for (trait in characterData.race.racialTraits) {
-            if (trait.definition.id == 13856136 && trait.definition.name == "Luck") return true
+    fun isFeatEnabled(requested : Feat): Boolean {
+        for (feat in characterData.feats) {
+            if (feat.definition.name == requested.traitName) return true
         }
         return false
     }
 
-    fun test() {
+    fun isRacialTraitEnabled(requested : RacialTrait): Boolean {
+        for (trait in characterData.race.racialTraits) {
+            if (trait.definition.name == requested.traitName) return true
+        }
+        return false
+    }
+
+    fun isLucky(): Boolean {
+        return isRacialTraitEnabled (RacialTrait.Luck)
+    }
+
+    fun isElvenAccuracy(): Boolean {
+        return isRacialTraitEnabled (RacialTrait.ElvenAccuracy)
+    }
+
+    fun isGreatWeaponFighting(): Boolean {
+        return isFeatEnabled(Feat.GreatWeaponFighting)
+    }
+
+    fun dump() {
         println ("")
         for (ability in AbilityType.entries) {
             if (ability == AbilityType.unused) continue
@@ -128,7 +96,20 @@ data class Character(
         println ("PB            = "+getProficiencyBonus())
         println ("spell ability = "+spellAbilityType)
         println ("spellSaveDC   = "+getSpellSaveDC())
+        println ("")
         println ("isLucky       = "+isLucky())
+        println ("isEA          = "+isElvenAccuracy())
+        println ("isGWF         = "+isGreatWeaponFighting())
+
+        println ("")
+        for (trait in characterData.race.racialTraits) {
+            println("racial trait: "+trait.definition.name)
+        }
+
+        println ("")
+        for (feat in characterData.feats) {
+            println("feat: "+feat.definition.name)
+        }
         println ("")
     }
 }

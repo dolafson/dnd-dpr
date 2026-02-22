@@ -25,10 +25,12 @@ class DamagePerRound(
     var character: Character,
 ) {
     val effectSaveDC = character.getSpellSaveDC()
-    val isLucky = character.isLucky()  // halfling feature
+    val isLucky = character.isLucky()
+    val isEA    = character.isElvenAccuracy()
+    val isGWF   = character.isGreatWeaponFighting()
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
-        val avg = averageDamage(diceBlock, bonusDamage, false, false)
+        val avg = averageDamage(diceBlock, bonusDamage, isGWF, isEA)
         val min = diceBlock.min()+bonusDamage.toFloat()
         val max = diceBlock.max()+bonusDamage.toFloat()
         return AvgMinMax(avg, min, max)
@@ -356,6 +358,10 @@ class DamagePerRound(
         }
 
         // 6. Chance to Hit (Hit%)
+        // Use saveProb to calculate the save probability for the target (monster),
+        // then invert that prob to get our chance of "hitting" with the spell.  When
+        // the monster rolls with advantage - eg has "Magic Resistance" - this yields
+        // the player's minimum chance to hit
         val chanceToHit = AvgMinMax(
             1 - saveProb(targetSaveBonus,"No Advantage", bonusDiceToSave, penaltyDiceToSave),
             1 - saveProb(targetSaveBonus,"Advantage", bonusDiceToSave, penaltyDiceToSave),
