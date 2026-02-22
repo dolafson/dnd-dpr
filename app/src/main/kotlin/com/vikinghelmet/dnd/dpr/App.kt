@@ -3,6 +3,7 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlinx.serialization.json.Json
@@ -91,6 +92,25 @@ fun main(args : Array<String>) {
     println(Json.encodeToString(attackList))
 
     for (attack in attackList) {
+        val url = attack.player.url
+        if (url != null) {
+            val playerData = if (url.startsWith("http")) {
+                attack.getRequest(url)
+            }
+            else {
+                File(url).readText()
+            }
+
+            if (playerData == null) {
+                println("player not found")
+            }
+            else {
+                // println(playerData)
+                var player: Character = Json.decodeFromString(playerData)
+                println(Json.encodeToString(player))
+            }
+            exitProcess(0)
+        }
         calculateSpellDPR(attack)
     }
 }

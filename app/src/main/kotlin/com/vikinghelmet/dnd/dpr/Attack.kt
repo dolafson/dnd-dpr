@@ -1,7 +1,8 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.google.common.base.Preconditions
 import kotlinx.serialization.Serializable
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 @Serializable
 data class Attack(
@@ -12,6 +13,7 @@ data class Attack(
 ) {
     @Serializable
     data class Player(
+        val url: String? = null,
         val effectSaveDC: Int,
         val isLucky: Boolean,   // halfling feature
     )
@@ -29,4 +31,27 @@ data class Attack(
         val bonusDamage: Int? = 0,
         val bonusDamageOnFirstHit: DiceBlock? = null
     )
+
+    // Initialize client
+
+    fun getRequest(url: String): String? {
+        val client = OkHttpClient() // TODO move
+        val request = Request.Builder().url(url).build()
+
+        val response = client.newCall(request).execute()
+        return response.body?.string()
+/*
+        // Asynchronous call
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) = e.printStackTrace()
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) return
+                    println(response.body?.string())
+                }
+            }
+        })
+ */
+    }
+
 }
