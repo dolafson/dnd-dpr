@@ -96,7 +96,7 @@ In this sample output, the key things to note are
 - as a result ...
   - the monster needs to roll a 13 or higher to avoid the spell effect
   - the "chance to hit" is 60%
-- average duration is 2.7 rounds
-- average total damage (until spell ends) is 5.2
+- average duration is 1.49 rounds
+- average total damage (until spell ends) is 5.21
 
   
