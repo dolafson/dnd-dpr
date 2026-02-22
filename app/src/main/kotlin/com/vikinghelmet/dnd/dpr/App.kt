@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 
 class App {
@@ -70,7 +71,10 @@ fun getRequest(url: String): String? {
     val request = Request.Builder().url(url).build()
 
     val response = client.newCall(request).execute()
-    return response.body?.string()
+    if (response.code >= 400) {
+        throw IOException("request failed, response code = "+response.code)
+    }
+    return response.body?.string() ?: "{}"
 }
 
 fun getFileOrURL(fileOrUrl: String): String? {
@@ -82,11 +86,19 @@ fun getFileOrURL(fileOrUrl: String): String? {
     }
 }
 
+fun getCharacter(arg: String): Character? {
+    if (!arg.contains(":")) return null
+    val id = arg.split(":")[1]
+    val charJson = getFileOrURL("https://character-service.dndbeyond.com/character/v5/character/"+id) ?: "{}"
+    //println ("charJson = "+charJson)
+    return Json.decodeFromString(charJson)
+}
+
 fun dump(arg: String) {
     if (!arg.contains(":")) {
-        for (item in spells)  println(Json.encodeToString(item))
+        for (item in spells)    println(Json.encodeToString(item))
         for (item in monsters)  println(Json.encodeToString(item))
-        for (item in attacks)  println(Json.encodeToString(item))
+        for (item in attacks)   println(Json.encodeToString(item))
         println(Json.encodeToString(character))
         return
     }
@@ -146,29 +158,29 @@ fun main(args : Array<String>) {
 
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
     for (arg in args) {
-        var jsonString : String? = ""
         if (arg.endsWith(".json")) {
-            jsonString = getFileOrURL(arg)
-        }
-        if (jsonString == null) {
-            println("unable to read input: $arg")
-            continue
-        }
-
-        if (jsonString.contains("School")) {
-            spells.addAll(Json.decodeFromString(jsonString))
-        }
-        else if (jsonString.contains("\"Monsters\"")){
-            monsters.addAll(Json.decodeFromString(jsonString))
-        }
-        else if (jsonString.contains("\"monster\"")) {
-            attacks.addAll(Json.decodeFromString(jsonString))
-        }
-        else if (jsonString.contains("\"username\"")) {
-            character = Json.decodeFromString(jsonString)
+            val jsonString = getFileOrURL(arg)
+            if (jsonString == null) {
+                println("unable to read input: $arg")
+            }
+            else if (jsonString.contains("School")) {
+                spells.addAll(Json.decodeFromString(jsonString))
+            }
+            else if (jsonString.contains("\"Monsters\"")){
+                monsters.addAll(Json.decodeFromString(jsonString))
+            }
+            else if (jsonString.contains("\"monster\"")) {
+                attacks.addAll(Json.decodeFromString(jsonString))
+            }
+            else if (jsonString.contains("\"username\"")) {
+                character = Json.decodeFromString(jsonString)
+            }
         }
         else if (arg.endsWith(".json")){
             println("unknown file type: $arg")
+        }
+        else if (arg.startsWith("character")) {
+            character = getCharacter(arg)
         }
         else if (arg.startsWith("dump")) {
             dump(arg)
