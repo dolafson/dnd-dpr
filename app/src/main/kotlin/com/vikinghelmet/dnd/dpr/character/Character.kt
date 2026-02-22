@@ -14,9 +14,9 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class Character(
     @SerialName("data")
     val characterData: CharacterData,
-    val id: Int,
-    val message: String,
-    val success: Boolean
+    val id: Int? = null,
+    val message: String? = null,
+    val success: Boolean? = null
 ) {
     fun getRawAbilityScore(a: AbilityType): Int {
         for (stat in characterData.stats) {

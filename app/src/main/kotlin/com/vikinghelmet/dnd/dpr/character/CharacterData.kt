@@ -13,6 +13,8 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class CharacterData(
+    val username: String,
+    val name: String,
     val classes: List<CharacterClass>,
     val modifiers: Modifiers,
     val stats: List<Stat>,

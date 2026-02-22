@@ -147,7 +147,7 @@ fun main(args : Array<String>) {
         else if (jsonString.contains("\"monster\"")) {
             attacks.addAll(Json.decodeFromString(jsonString))
         }
-        else if (jsonString.contains("isAssignedToPlayer")) { // character data from dndbeyond
+        else if (jsonString.contains("\"username\"")) {
             character = Json.decodeFromString(jsonString)
         }
         else if (arg.endsWith(".json")){

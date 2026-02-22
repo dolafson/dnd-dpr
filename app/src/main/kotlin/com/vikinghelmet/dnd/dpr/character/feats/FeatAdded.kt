@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class FeatAdded(
-    val componentId: Int,
-    val componentTypeId: Int,
+    val componentId: Int? = null,
+    val componentTypeId: Int? = null,
     val definition: Definition,
-    val definitionId: Int
+    val definitionId: Int? = null
 )
