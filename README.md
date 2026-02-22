@@ -1,22 +1,22 @@
 # dnd-dpr
 
-DND Damage Per Round Calculator - Spell Attacks
+DND Damage Per Round Calculator 
 
-This tool reads spell and monster data originally from https://github.com/nick-aschenbach/dnd-data/tree/main/data
+This tool calculates the average Damage Per Round for Spell Attacks.  Support for Weapon Attacks may be added in a future release.  Until then, consider using [DPR Calc](https://dprcalc.com/), which provides an excellent interface for Weapon DPR (but does not yet support spells)
 
-The bin directory includes a few python scripts to transform the origin data into a more readable format 
+This tool reads spell and monster data originally from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  The bin directory includes a few python scripts to transform the origin data into a more readable format 
 
 Spell attack hit (and damage) probabilities are calculated using formulas borrowed from Ludic
 - [Ludic Documentation](https://docs.google.com/document/d/11eTMZPPxWXHY0rQEhK1msO-40BcCGrzArSl4GX4CiJE/edit?tab=t.0#heading=h.llxekwsqql6y)
-- [Ludic Spreadsheet](https://docs.google.com/spreadsheets/d/14WlZE_UKwn3Vhv4i8ewVOc-f2-A7tMW_VRum_p3YNHQ/edit?gid=151780215#gid=151780215)
-
-
+- [Ludic Spreadsheet](https://docs.google.com/spreadsheets/d/14WlZE_UKwn3Vhv4i8ewVOc-f2-A7tMW_VRum_p3YNHQ/edit?gid=151780215#gid=151780215)    
+  
+<br>
+  
 ## Build
 gradle build 
 
 ## Run
 java -jar ./app/build/libs/app-standalone.jar 
-
 
 ## Usage
 ```
@@ -50,6 +50,8 @@ Attacks:
 
 		 [{"monster":"Goblin","spell":"Ensnaring Strike"}]
 ```
+
+<br>
 
 ## Output Format
 
