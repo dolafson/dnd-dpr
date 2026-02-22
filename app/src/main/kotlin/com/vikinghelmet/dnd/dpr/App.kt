@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.io.InputStream
 
 class App {
     val greeting: String
@@ -124,8 +125,24 @@ fun search(arg: String) {
     }
 }
 
+fun getResource(fileName: String): String? {
+    val inputStream: InputStream = object {}.javaClass.getResourceAsStream("/$fileName") ?: return null
+    try {
+        return inputStream.bufferedReader().use { it.readText() }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return null
+    }
+}
+
 fun main(args : Array<String>) {
     var exitEarly = false
+
+    val spellResource = getResource("spells.json")
+    if (spellResource != null)  spells.addAll(Json.decodeFromString(spellResource))
+
+    val monsterResource = getResource("monsters.json")
+    if (monsterResource != null)  monsters.addAll(Json.decodeFromString(monsterResource))
 
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
     for (arg in args) {
