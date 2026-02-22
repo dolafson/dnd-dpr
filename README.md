@@ -42,7 +42,7 @@ Dump (debug) options:
 Search commands:
 
 	 search:spells:NAME 	 search for name in list of spells, and display details if found
-	 search:monsters:NAME 	 search for name in list of spells, and display details if found
+	 search:monsters:NAME 	 search for name in list of monsters, and display details if found
 
 Attacks:
 
