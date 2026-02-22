@@ -61,8 +61,9 @@ spell damage:        DiceBlock(four=0, six=1, eight=0, ten=0, twelve=0)
 spell save result:   [SPELL_ENDS]
 num effects/targets: 1
 
-save ability = Strength
-save proficiency = -1
+spell save ability      = Strength
+target save proficiency = -1
+spell caster save DC    = 12
 
 Chance to Hit, (avg, min, max) = (0.6, 0.36, 0.84)
 Full Damage, (avg, min, max) = (3.5, 1.0, 6.0)
@@ -82,4 +83,18 @@ Average Duration (In Rounds), (avg, min, max) = (1.4909303, 0.56247944, 4.331768
 Average Total Damage Over Time, (avg, min, max) = (5.218256, 1.968678, 15.161188)
 ```
 
+In this sample output, the key things to note are
+- the spell has a max duration of 1 minute (10 rounds)
+- each round it may trigger 1d6 damage
+- the number of effects/targets is 1 (this is a default)
+  - Note: some spells may impact more than 1 target; this needs to be made configurable
+- on a succesful hit, the spell requires the target to perform a Strength saving throw
+  - the monster (Goblin) has a save proficiency of -1 (they need to work out more)
+  - the spellcaster has a save DC of 12
+- as a result ...
+  - the monster needs to roll a 13 or higher to avoid the spell effect
+  - the "chance to hit" is 60%
+- average duration is 2.7 rounds
+- average total damage (until spell ends) is 5.2
 
+  
