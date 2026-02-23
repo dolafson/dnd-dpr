@@ -4,7 +4,19 @@ DND Damage Per Round Calculator
 
 This tool calculates the average Damage Per Round for Spell Attacks.  Support for Weapon Attacks may be added in a future release.  Until then, consider using [DPR Calc](https://dprcalc.com/), which provides an excellent interface for Weapon DPR (but does not yet support spells)
 
-This tool reads spell and monster data originally from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  The bin directory includes a few python scripts to transform the origin data into a more readable format 
+This tool reads spell and monster data originally from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  
+```
+Spells:
+ 333 "Free Basic Rules (2024)"
+
+Monsters:
+ 324 "Free Basic Rules (2014)"
+  55 "Free Basic Rules (2024)"
+```
+
+Nick's collection includes 319 spells from "Free Basic Rules (2014)", but there is significant overlap between the spell lists in 2014 and 2024.  Disambiguation is not yet supported in this tool, so for now we are using just the 2024 spells
+
+Nick's collection also includes data from several other sources, but the data format varies by source.  This tool may support that additional data in a future release.  Note, the [bin](https://github.com/dolafson/dnd-dpr/tree/main/bin) directory contains a pair of python scripts to transform the 2014/2024 data into a more readable format 
 
 Spell attack hit (and damage) probabilities are calculated using formulas borrowed from Ludic
 - [Ludic Documentation](https://docs.google.com/document/d/11eTMZPPxWXHY0rQEhK1msO-40BcCGrzArSl4GX4CiJE/edit?tab=t.0#heading=h.llxekwsqql6y)
@@ -49,6 +61,22 @@ Attacks:
 	 json file should contain an array of monster/spell pairs, for example:
 
 		 [{"monster":"Goblin","spell":"Ensnaring Strike"}]
+
+	 
+Note: for more complex scenarios, the attack json also supports preconditions.  For example:
+            
+    [
+        {
+            "monster": "Goblin",
+            "spell": "Ensnaring Strike",
+            "preconditions": {
+                "bonusDiceToSave":       { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "penaltyDiceToSave":     { "four": 0, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "bonusDamageOnFirstHit": { "four": 0, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "bonusDamage": 0
+            }
+        }
+    ]            
 ```
 
 <br>
@@ -100,3 +128,24 @@ In this sample output, the key things to note are
 - average total damage (until spell ends) is 5.21
 
   
+## Future Improvements
+
+In no particular order ...
+
+- add unit tests
+- add support for 2014 spells, with disambiguation
+  - (when spell exists in multiple sources, indicate which one is preferred)
+  - we may be able to extract this choice from the DND Beyond character data
+- add support for cascading conditions between attacks, for example:
+  - cast Mind Sliver, which on a hit reduces the target's next save roll by 1d4
+  - then cast a different spell which requires a save roll, including the above penalty
+- add optional support for constraint checks
+  - your character doesn't know that spell, can't cast it 100 times, etc 
+- add support for weapon attacks
+- add better support for levelling up / what-if scenarios
+  - for now this is done by hand-editing a character file and re-runnimg the DPR calculation
+- add a web interface
+  - i'll probably never use it, but someone else might
+- add simulated battles
+  - give the monster(s) a chance to fight back
+  - calculate probability of character death
