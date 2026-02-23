@@ -16,8 +16,8 @@ Monsters:
 ```
 
 Nick has spell data from many books - including Free Rules for 2014 and 2024 - with caveats:
-- the 2024 data allows multiple attacks per spell, with potentially multiple saves
-- the 2014 data allows multiple attacks per spell, but has no (structured) save data
+- the 2024 data includes spell save info - what monster ability is targeted, and what happens on success (half/no damage)
+- the 2014 data does NOT include spell save info
 
 To fill in the blanks in the 2014 spells, we also pull spell data from [5e-bits](https://github.com/5e-bits/5e-database/blob/main/src/2014/5e-SRD-Spells.json) .  This data is in a different format, so the [bin](https://github.com/dolafson/dnd-dpr/tree/main/bin) directory contains a set of python scripts to transform the data, and clean up fields as needed
 
