@@ -59,7 +59,7 @@ While performing the Attack DPR calculation, several stats are calculated and di
 
 ```
 spell duration:      10
-spell damage:        DiceBlock(four=0, six=1, eight=0, ten=0, twelve=0)
+spell damage:        DiceBlock(d4=0, d6=1, d8=0, d10=0, d12=0)
 spell save result:   [SPELL_ENDS]
 num effects/targets: 1
 

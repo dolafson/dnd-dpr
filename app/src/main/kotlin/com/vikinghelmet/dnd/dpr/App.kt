@@ -189,9 +189,9 @@ fun main(args : Array<String>) {
             "monster": "Goblin",
             "spell": "Ensnaring Strike",
             "preconditions": {
-                "bonusDiceToSave":       { "four": 1, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
-                "penaltyDiceToSave":     { "four": 0, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
-                "bonusDamageOnFirstHit": { "four": 0, "six": 0, "eight": 0, "ten": 0, "twelve": 0 },
+                "bonusDiceToSave":       { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+                "penaltyDiceToSave":     { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+                "bonusDamageOnFirstHit": { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
                 "bonusDamage": 0
             }
         }

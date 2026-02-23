@@ -95,19 +95,19 @@ class DamagePerRound(
     {
         val arr: MutableList<Float> = mutableListOf(1f)
 
-        for (i in 0..<diceBlock.four) {
+        for (i in 0..<diceBlock.d4) {
             convolve(arr, 4)
         }
-        for (i in 0..<diceBlock.six) {
+        for (i in 0..<diceBlock.d6) {
             convolve(arr, 6)
         }
-        for (i in 0..<diceBlock.eight) {
+        for (i in 0..<diceBlock.d8) {
             convolve(arr, 8)
         }
-        for (i in 0..<diceBlock.ten) {
+        for (i in 0..<diceBlock.d10) {
             convolve(arr, 10)
         }
-        for (i in 0..<diceBlock.twelve) {
+        for (i in 0..<diceBlock.d12) {
             convolve(arr, 12)
         }
         return arr

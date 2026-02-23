@@ -45,11 +45,11 @@ data class Spell(
         val diceCount = damageList[0].toInt()
 
         when (damageList[1]) {
-            "4" -> dice.four = diceCount
-            "6" -> dice.six = diceCount
-            "8" -> dice.eight = diceCount
-            "10" -> dice.ten = diceCount
-            "12" -> dice.twelve = diceCount
+            "4" -> dice.d4 = diceCount
+            "6" -> dice.d6 = diceCount
+            "8" -> dice.d8 = diceCount
+            "10" -> dice.d10 = diceCount
+            "12" -> dice.d12 = diceCount
         }
         return dice
     }
