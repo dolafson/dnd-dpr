@@ -7,6 +7,7 @@ This tool calculates the average Damage Per Round for Spell Attacks.  Support fo
 This tool reads spell and monster data originally from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  
 ```
 Spells:
+ 319 "Free Basic Rules (2014)"
  333 "Free Basic Rules (2024)"
 
 Monsters:
@@ -14,9 +15,11 @@ Monsters:
   55 "Free Basic Rules (2024)"
 ```
 
-Nick's collection includes 319 spells from "Free Basic Rules (2014)", but there is significant overlap between the spell lists in 2014 and 2024.  Disambiguation is not yet supported in this tool, so for now we are using just the 2024 spells
+Nick has spell data from many books - including Free Rules for 2014 and 2024 - with caveats:
+- the 2024 data allows multiple attacks per spell, with potentially multiple saves
+- the 2014 data allows multiple attacks per spell, but has no (structured) save data
 
-Nick's collection also includes data from several other sources, but the data format varies by source.  This tool may support that additional data in a future release.  Note, the [bin](https://github.com/dolafson/dnd-dpr/tree/main/bin) directory contains a pair of python scripts to transform the 2014/2024 data into a more readable format 
+To fill in the blanks in the 2014 spells, we also pull spell data from [5e-bits](https://github.com/5e-bits/5e-database/blob/main/src/2014/5e-SRD-Spells.json) .  This data is in a different format, so the [bin](https://github.com/dolafson/dnd-dpr/tree/main/bin) directory contains a set of python scripts to transform the data, and clean up fields as needed
 
 Spell attack hit (and damage) probabilities are calculated using formulas borrowed from Ludic
 - [Ludic Documentation](https://docs.google.com/document/d/11eTMZPPxWXHY0rQEhK1msO-40BcCGrzArSl4GX4CiJE/edit?tab=t.0#heading=h.llxekwsqql6y)
@@ -133,9 +136,6 @@ In this sample output, the key things to note are
 In no particular order ...
 
 - add unit tests
-- add support for 2014 spells, with disambiguation
-  - (when spell exists in multiple sources, indicate which one is preferred)
-  - we may be able to extract this choice from the DND Beyond character data
 - add support for cascading conditions between attacks, for example:
   - cast Mind Sliver, which on a hit reduces the target's next save roll by 1d4
   - then cast a different spell which requires a save roll, including the above penalty
