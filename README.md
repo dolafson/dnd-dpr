@@ -122,7 +122,7 @@ In this sample output, the key things to note are
 - the number of effects/targets is 1 (this is a default)
   - Note: some spells may impact more than 1 target; this needs to be made configurable
 - on a succesful hit, the spell requires the target to perform a Strength saving throw
-  - the monster (Goblin) has a save proficiency of -1 (they need to work out more)
+  - the monster (Goblin) is low on Strength, so for this spell it has a save proficiency of -1
   - the spellcaster has a save DC of 12
 - as a result ...
   - the monster needs to roll a 13 or higher to avoid the spell effect
