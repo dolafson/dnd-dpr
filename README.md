@@ -132,10 +132,20 @@ In this sample output, the key things to note are
 
 In no particular order ...
 
+- add unit tests
 - add support for 2014 spells, with disambiguation
   - (when spell exists in multiple sources, indicate which one is preferred)
   - we may be able to extract this choice from the DND Beyond character data
 - add support for cascading conditions between attacks, for example:
   - cast Mind Sliver, which on a hit reduces the target's next save roll by 1d4
   - then cast a different spell which requires a save roll, including the above penalty
+- add optional support for constraint checks
+  - your character doesn't know that spell, can't cast it 100 times, etc 
 - add support for weapon attacks
+- add better support for levelling up / what-if scenarios
+  - for now this is done by hand-editing a character file and re-runnimg the DPR calculation
+- add a web interface
+  - i'll probably never use it, but someone else might
+- add simulated battles
+  - give the monster(s) a chance to fight back
+  - calculate probability of character death
