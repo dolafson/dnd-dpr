@@ -14,6 +14,10 @@ data class Spell(
     val properties: Properties,
     val publisher: String
 ) {
+    fun is2014(): Boolean {
+        return book == "Free Basic Rules (2014)"
+    }
+    
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage
     // note, in 2024 the spell was changed to Instantaneous (Bonus Action)

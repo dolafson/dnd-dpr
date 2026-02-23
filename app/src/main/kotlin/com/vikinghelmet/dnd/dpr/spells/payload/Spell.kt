@@ -8,18 +8,18 @@ import kotlinx.serialization.Serializable
 @SerialName("Spell")
 data class Spell(
     val name: String,
-    val description: String,
+    val description: String? = null,
     val upcastText: String? = null,
-    val aoe: AreaOfEffect? = null,
-    val level: Int,
-    val school: String,
-    val castingTime: String,
-    val range: String,
-    val duration: String,
+    val aoe: AreaOfEffect? = null, // note: this one is not used, we are using the one in AttackPayload
+    val level: Int? = null,
+    val school: String? = null,
+    val castingTime: String? = null,
+    val range: String? = null,
+    val duration: String? = null,
     val ritual: Boolean? = null,
     val concentration: Boolean? = null,
     val cantripScale: String? = null,
-    val components: Components
+    val components: Components? = null
 ) : Payload()
 {
     @Serializable

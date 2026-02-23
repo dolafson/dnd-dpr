@@ -60,6 +60,18 @@ fun getSpell(name: String): Spell? {
 
     for (spell in spells) {
         if (spell.name == name) {
+            /*
+            println()
+            println("possible match: spell name = "+ name)
+            println("possible match: spell 2014 = "+ spell.is2014())
+            println("possible match: character 2014 = "+ character!!.is2014())
+            println()
+             */
+            if (character!!.is2014() != spell.is2014()) {
+                //println("2014 mismatch, try again")
+                continue
+            }
+
             return spell
         }
     }

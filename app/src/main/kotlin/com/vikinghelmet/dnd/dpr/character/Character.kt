@@ -19,7 +19,7 @@ data class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
-    fun followsRulesFrom2014(): Boolean {
+    fun is2014(): Boolean {
         if (characterData.characterValues == null) return false // default to 2024 rules
         for (value in characterData.characterValues) {
             if (value.notes?.endsWith(" 2014") == true) return true
@@ -115,7 +115,7 @@ data class Character(
         println ("isLucky       = "+isLucky())
         println ("isEA          = "+isElvenAccuracy())
         println ("isGWF         = "+isGreatWeaponFighting())
-        println ("is2014        = "+followsRulesFrom2014())
+        println ("is2014        = "+is2014())
 
         println ("")
         for (trait in characterData.race.racialTraits) {
