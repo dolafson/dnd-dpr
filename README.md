@@ -136,6 +136,7 @@ In this sample output, the key things to note are
 In no particular order ...
 
 - add unit tests
+- structured logging (log4j / logback)
 - add support for cascading conditions between attacks, for example:
   - cast Mind Sliver, which on a hit reduces the target's next save roll by 1d4
   - then cast a different spell which requires a save roll, including the above penalty
