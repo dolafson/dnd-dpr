@@ -41,7 +41,6 @@ fun calculateSpellDPR(attack: Attack) {
     val dpr = DamagePerRound(character!!)
 
     dpr.calculateSpellDPR (spell, attack, monster)
-    println ("")
 }
 
 fun getMonster(name: String): Monster? {
@@ -60,15 +59,7 @@ fun getSpell(name: String): Spell? {
 
     for (spell in spells) {
         if (spell.name == name) {
-            /*
-            println()
-            println("possible match: spell name = "+ name)
-            println("possible match: spell 2014 = "+ spell.is2014())
-            println("possible match: character 2014 = "+ character!!.is2014())
-            println()
-             */
             if (character!!.is2014() != spell.is2014()) {
-                //println("2014 mismatch, try again")
                 continue
             }
 
@@ -220,7 +211,12 @@ fun main(args : Array<String>) {
 
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
     for (arg in args) {
-        if (arg.endsWith(".json")) {
+        if (arg.startsWith("-")) {
+            when (arg) {
+                "-d" -> Globals.debug = true
+            }
+        }
+        else if (arg.endsWith(".json")) {
             val jsonString = getFileOrURL(arg)
             if (jsonString == null) {
                 println("unable to read input: $arg")

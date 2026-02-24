@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 data class Attack(
     val preconditions: Preconditions? = null,
     val monster: String, // after monster DB lookup, we will extract targetSaveBonus and isTargetEvasive
-    val spell: String
+    val spell: String,
+    val notes: List<String>? = null,
 ) {
     @Serializable
     data class Preconditions (

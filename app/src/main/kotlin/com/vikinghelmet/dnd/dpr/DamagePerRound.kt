@@ -12,8 +12,10 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
         val halfAvg = if (diceBlock.isEmpty()) avg/2 else avg/2 - 0.25f
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())
     }
-    fun print(label: String) {
-        println("$label, (avg, min, max) = ($avg, $min, $max)")
+    fun debug(label: String) {
+        if (Globals.debug) {
+            println("$label, (avg, min, max) = ($avg, $min, $max)")
+        }
     }
 }
 
@@ -332,10 +334,9 @@ class DamagePerRound(
 
         val spellSaveResults = spell.getSpellSaveResult()
         println()
-        println("spell duration:      " + spell.getDuration())
-        println("spell damage:        " + spell.getDamage())
-        println("spell save result:   $spellSaveResults")
-        println("num effects/targets: $numberOfEffectsOrTargets")
+        println("spell duration (max): " + spell.getDuration())
+        println("spell damage:         " + spell.getDamage())
+        println("num effects/targets:  $numberOfEffectsOrTargets")
         println()
 
         var targetSaveBonus = 0
@@ -347,6 +348,7 @@ class DamagePerRound(
             targetSaveBonus = monster.properties.getMod(ability)
             println("target save proficiency = $targetSaveBonus")
             println("spell caster save DC    = "+character.getSpellSaveDC())
+            println("spell save result:      = $spellSaveResults")
             println("")
         }
 
@@ -370,36 +372,35 @@ class DamagePerRound(
             1 - saveProb(targetSaveBonus,"Disadvantage", bonusDiceToSave, penaltyDiceToSave)
         )
 
-        chanceToHit.print("Chance to Hit")
+        chanceToHit.debug("Chance to Hit")
 
         val fullDamage: AvgMinMax = getAvgMinMax(spell.getDamage(), bonusDamage)
-        fullDamage.print("Full Damage")
+        fullDamage.debug("Full Damage")
 
         val halfDamage = fullDamage.half(spell.getDamage())
-        halfDamage.print("Half Damage")
-
-        println("")
+        halfDamage.debug("Half Damage")
+        if (Globals.debug) println("")
 
         val fullDamageFirstHit: AvgMinMax = getAvgMinMax(bonusDamageOnFirstHit, bonusDamage)
-        fullDamageFirstHit.print("Full Damage (First Hit)")
+        fullDamageFirstHit.debug("Full Damage (First Hit)")
 
         val halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit)
-        halfDamageFirstHit.print("Half Damage (First Hit)")
+        halfDamageFirstHit.debug("Half Damage (First Hit)")
 
         val chanceofAtLeastOneHit = AvgMinMax(
             1 - (1 - chanceToHit.avg).pow(numberOfEffectsOrTargets),
             1 - (1 - chanceToHit.min).pow(numberOfEffectsOrTargets),
             1 - (1 - chanceToHit.max).pow(numberOfEffectsOrTargets),
         )
-        chanceofAtLeastOneHit.print("Chance of at least one hit")
-        println("")
+        chanceofAtLeastOneHit.debug("Chance of at least one hit")
+        if (Globals.debug) println("")
 
         val damagePerTarget = AvgMinMax(
             chanceToHit.avg * fullDamage.avg + (1 - chanceToHit.avg) * halfDamage.avg,
             chanceToHit.min * fullDamage.avg + (1 - chanceToHit.min) * halfDamage.avg,
             chanceToHit.max * fullDamage.avg + (1 - chanceToHit.max) * halfDamage.avg,
         )
-        damagePerTarget.print("Damage Per Target")
+        damagePerTarget.debug("Damage Per Target")
 
         // 12. Damage per Failed Save       =IF(G15="Evasion",D228,D225)
         val damagePerFailedSave = AvgMinMax(
@@ -407,7 +408,7 @@ class DamagePerRound(
             if (isTargetEvasive) halfDamage.min else fullDamage.min,
             if (isTargetEvasive) halfDamage.max else fullDamage.max
         )
-        damagePerFailedSave.print("Damage Per Failed Save")
+        damagePerFailedSave.debug("Damage Per Failed Save")
 
         // 15. Damage per Successful Save   =IF(G15="No Save",D225,IF(G15="Save for Half",D228,0))
         val damagePerSuccessfulSave = AvgMinMax(
@@ -415,7 +416,7 @@ class DamagePerRound(
             if (noSave) fullDamage.min else if (saveForHalf) halfDamage.min else 0f,
             if (noSave) fullDamage.max else if (saveForHalf) halfDamage.max else 0f,
         )
-        damagePerSuccessfulSave.print("Damage Per Successful Save")
+        damagePerSuccessfulSave.debug("Damage Per Successful Save")
 
         // 21. Damage per Hit               =Y6*Y12+(1-Y6)*Y15
         val damagePerHit = AvgMinMax(
@@ -423,8 +424,8 @@ class DamagePerRound(
             chanceToHit.min * damagePerFailedSave.avg + (1 - chanceToHit.min) * damagePerSuccessfulSave.avg,
             chanceToHit.max * damagePerFailedSave.avg + (1 - chanceToHit.max) * damagePerSuccessfulSave.avg,
         )
-        damagePerHit.print("Damage Per Hit")
-        println("")
+        damagePerHit.debug("Damage Per Hit")
+        if (Globals.debug) println("")
 
         // 9. Average DPR                  =L13*Y21+Y18*IF(G15="Evasion",D234,D231)
         val evasion = (if (isTargetEvasive) halfDamageFirstHit.avg else fullDamageFirstHit.avg)
@@ -434,7 +435,7 @@ class DamagePerRound(
             numberOfEffectsOrTargets * damagePerHit.min + chanceofAtLeastOneHit.min * evasion,
             numberOfEffectsOrTargets * damagePerHit.max + chanceofAtLeastOneHit.max * evasion,
         )
-        averageDPR.print("Average Damage Per Round")
+        averageDPR.debug("Average Damage Per Round")
 
         // 28. Average Duration (In Rounds)
         //  =IF(AND($G$20="Save Every Round",Y6<1), IF($H$19,(1/(1-Y6)-1)*(1-Y6^$I$19),1/(1-Y6)-1),IF($H$19,$I$19*Y6,"INFINITE"))
@@ -445,7 +446,7 @@ class DamagePerRound(
             durationInRounds(saveEvery, chanceToHit.max, spell.getDuration()),
         )
 
-        averageDuration.print("Average Duration (In Rounds)")
+        averageDuration.debug("Average Duration (In Rounds)")
 
         // 31. Average Total Damage Over Time
         // if spell duration is "Instantaneous", damage over time = damage in first round
@@ -456,6 +457,11 @@ class DamagePerRound(
             averageDuration.max * damagePerFailedSave.avg + damagePerSuccessfulSave.avg
         )
 
-        averageTotalDamageOverTime.print("Average Total Damage Over Time")
+        averageTotalDamageOverTime.debug("Average Total Damage Over Time")
+
+        println(String.format("avg %%hit:         %2.2f", chanceToHit.avg))
+        println(String.format("avg duration:     %2.2f", averageDuration.avg))
+        println(String.format("avg total damage: %2.2f", averageTotalDamageOverTime.avg))
+        println()
     }
 }
