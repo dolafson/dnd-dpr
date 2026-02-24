@@ -28,11 +28,9 @@ class DamagePerRound(
 ) {
     val effectSaveDC = character.getSpellSaveDC()
     val isLucky = character.isLucky()
-    val isEA    = character.isElvenAccuracy()
-    val isGWF   = character.isGreatWeaponFighting()
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
-        val avg = averageDamage(diceBlock, bonusDamage, isGWF, isEA)
+        val avg = averageDamage(diceBlock, bonusDamage, character.isGreatWeaponFighting(), character.isElvenAccuracy())
         val min = diceBlock.min()+bonusDamage.toFloat()
         val max = diceBlock.max()+bonusDamage.toFloat()
         return AvgMinMax(avg, min, max)

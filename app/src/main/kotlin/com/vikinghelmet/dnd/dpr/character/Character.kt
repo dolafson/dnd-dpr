@@ -83,8 +83,18 @@ data class Character(
         return isRacialTraitEnabled (RacialTrait.Luck)
     }
 
+    /**
+     * Elemental Adept in D&D 5e enhances damage by treating any 1 rolled on damage dice for a chosen element
+     * (acid, cold, fire, lightning, or thunder) as a 2. It also allows spells to ignore resistance to that
+     * damage type, effectively doubling damage against resistant targets. This feat increases average damage
+     * slightly, particularly with multi-die spells.
+     */
     fun isElvenAccuracy(): Boolean {
         return isRacialTraitEnabled (RacialTrait.ElvenAccuracy)
+    }
+
+    fun isElementalAdept(): Boolean {
+        return isFeatEnabled(Feat.ElementalAdept)
     }
 
     fun isGreatWeaponFighting(): Boolean {
