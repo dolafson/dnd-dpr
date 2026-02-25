@@ -6,6 +6,7 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.weapons.Weapon
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
@@ -101,6 +102,56 @@ data class Character(
         return isFeatEnabled(Feat.GreatWeaponFighting)
     }
 
+    fun getWeaponList(): List<Weapon> {
+        val list = mutableListOf<Weapon>()
+
+        if (characterData.inventory == null) return list
+        for (item in characterData.inventory) {
+            val def = item.definition
+            if (def.filterType == "Weapon") {
+                var props = mutableListOf<String>()
+                if (def.properties != null) {
+                    for (prop in def.properties) props.add(prop.name)
+                }
+                val diceString = def.damage?.diceString ?: "0d4"
+                list.add(Weapon (def.name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange))
+            }
+        }
+        return list
+    }
+
+    fun getRangeAttackModifiers(): Int {
+        var mod = 0
+        for (modifier in characterData.modifiers.feat) {
+            if (modifier.type == "bonus" && modifier.subType == "ranged-weapon-attacks") {
+                mod += (modifier.value?: 0)
+            }
+        }
+        return mod
+    }
+
+    // this can potentially be used as part both attack and damage bonus calculation
+    fun getAbilityWeaponBonus(w: Weapon): Int {
+        // first calculate ability bonus, based on weapon type
+        val strBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Strength)] ?: 0
+        val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
+
+        val props = w.properties ?: emptyList()
+        return if (props.contains("Finesse")) Math.max(strBonus, dexBonus)
+        else if (w.attackType == 1) strBonus
+        else dexBonus
+    }
+
+    fun getAttackBonus(w: Weapon): Int {
+        val statBonus = getAbilityWeaponBonus(w)
+        val weaponTypeBonus = if (w.attackType == 2) getRangeAttackModifiers() else 0  // TODO: melee attack bonuses ?
+        return statBonus + getProficiencyBonus() + weaponTypeBonus // for now assume proficiency in all weapons
+    }
+
+    fun getDamageBonus(w: Weapon, isBA: Boolean): Int {
+        return if (isBA) 0 else getAbilityWeaponBonus(w) // TODO: two-weapon fighting feat lets you add bonus damage even in BA
+    }
+
     fun test() {
         println ("")
         println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
@@ -126,6 +177,14 @@ data class Character(
         println ("isEA          = "+isElvenAccuracy())
         println ("isGWF         = "+isGreatWeaponFighting())
         println ("is2014        = "+is2014())
+        println ("")
+        for (item in getWeaponList()) {
+            val attackHitBonus      = getAttackBonus(item)
+            val attackDamageBonus   = getDamageBonus(item, false)
+            //val baDamageBonus       = getDamageBonus(item, true) // for now, this is always 0
+            //println("$item, attackHitBonus=$attackHitBonus, attackDamageBonus=$attackDamageBonus, baDamageBonus=$baDamageBonus")
+            println("$item, attackHitBonus=$attackHitBonus, attackDamageBonus=$attackDamageBonus")
+        }
 
         println ("")
         for (trait in characterData.race.racialTraits) {

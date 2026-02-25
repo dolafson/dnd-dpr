@@ -7,6 +7,8 @@ enum class Feat(val id: Int, val traitName: String) {
     // https://www.dndbeyond.com/sources/dnd/phb-2024/feats#ElementalAdept
     ElementalAdept(0,"Elemental Adept"),
 
+    Archery(0, "Archery"),
+
     // others found along the way
     GreatWeaponMaster(0, "Great Weapon Master"),
     WeaponMastery(0, "Weapon Mastery"),
