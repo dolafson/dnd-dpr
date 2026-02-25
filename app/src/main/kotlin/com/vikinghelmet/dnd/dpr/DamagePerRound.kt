@@ -24,9 +24,8 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
 //    https://docs.google.com/document/d/11eTMZPPxWXHY0rQEhK1msO-40BcCGrzArSl4GX4CiJE/edit?tab=t.0
 
 
-class DamagePerRound(
-    var character: Character,
-) {
+class DamagePerRound(var character: Character)
+{
     val effectSaveDC = character.getSpellSaveDC()
     val isLucky = character.isLucky()
 
@@ -313,11 +312,8 @@ class DamagePerRound(
     // ==========================================================
     // here is where the fun really begins
 
-    fun calculateSpellDPR(
-        spell: Spell,
-        attack: Attack,
-        monster: Monster,
-    ) {
+    fun calculateSpellDPR(spell: Spell, attack: Attack, monster: Monster)
+    {
         val isTargetEvasive = monster.properties.isEvasive()
         var preconditions = attack.preconditions ?: Attack.Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
@@ -465,11 +461,8 @@ class DamagePerRound(
     }
 
     // ==========================================================
-    fun calculateWeaponDPR(
-        weapon: Weapon,
-        attack: Attack,
-        monster: Monster,
-    ) {
+    fun calculateWeaponDPR(weapon: Weapon, attack: Attack, monster: Monster)
+    {
         var preconditions = attack.preconditions ?: Attack.Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
@@ -509,7 +502,7 @@ class DamagePerRound(
             =J202+IF($G$42="Same as other attacks",Y202,$AD$202)+AR211  +AR199
 */
         val averageDPR = AvgMinMax(
-            normalAttackDPR.avg + bonusAttackDPR.avg,
+            normalAttackDPR.avg + bonusAttackDPR.avg,   // TODO: add GWM Crit, and OncePerRound DPR
             normalAttackDPR.max + bonusAttackDPR.max,
             normalAttackDPR.min + bonusAttackDPR.min,
         )
