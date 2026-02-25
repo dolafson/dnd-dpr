@@ -3,6 +3,7 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.weapons.Weapon
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -30,7 +31,7 @@ class DamagePerRound(
     val isLucky = character.isLucky()
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
-        val avg = averageDamage(diceBlock, bonusDamage, character.isGreatWeaponFighting(), character.isElvenAccuracy())
+        val avg = averageDamage(diceBlock, bonusDamage, character.isGreatWeaponFighting(), character.isElementalAdept())
         val min = diceBlock.min()+bonusDamage.toFloat()
         val max = diceBlock.max()+bonusDamage.toFloat()
         return AvgMinMax(avg, min, max)
@@ -461,5 +462,109 @@ class DamagePerRound(
         println(String.format("avg duration:     %2.2f", averageDuration.avg))
         println(String.format("avg total damage: %2.2f", averageTotalDamageOverTime.avg))
         println()
+    }
+
+    // ==========================================================
+    fun calculateWeaponDPR(
+        weapon: Weapon,
+        attack: Attack,
+        monster: Monster,
+    ) {
+        var preconditions = attack.preconditions ?: Attack.Preconditions()
+        val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
+        val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
+
+        val bonusDamage = preconditions.bonusDamage ?: 0
+        val bonusDamageBA = preconditions.bonusDamageBA ?: 0
+        val bonusDamageOnFirstHit = preconditions.bonusDamageOnFirstHit ?: DiceBlock(0, 0, 0, 0, 0)
+
+        val bonusDiceToSaveBA = preconditions.bonusDiceToSaveBA ?: DiceBlock(0, 0, 0, 0, 0)
+        val penaltyDiceToSaveBA = preconditions.penaltyDiceToSaveBA ?: DiceBlock(0, 0, 0, 0, 0)
+
+        println()
+        if (Globals.debug) {
+            println("weapon damage:         " + weapon.getDamageDice())
+            println()
+        }
+
+        // TODO get these from character
+        val attackBonus = 8
+        val attackBonusBA = 8 // usually this will be the same as attackBonus
+
+        val normalAttackDPR = getAttackDPR(
+            weapon, attack, monster, true, bonusDiceToSave, penaltyDiceToSave, attackBonus, bonusDamage,
+        )
+
+        val bonusAttackDPR = getAttackDPR(
+            weapon, attack, monster, false, bonusDiceToSaveBA, penaltyDiceToSaveBA, attackBonusBA, bonusDamageBA,
+        )
+
+/* Avg DPR:  (Y9, AC9, AG9) ->
+
+            Norm     BA                           BA    BA DPR  GWM     OncePerRound
+            DPR      Adv                          DPR   Select  Crit    DPR
+             *        *                            *              *       *
+            =B202+IF($G$42="Same as other attacks",Q202,$AD$202)+AJ211  +AJ199
+            =F202+IF($G$42="Same as other attacks",U202,$AD$202)+AN211  +AN199
+            =J202+IF($G$42="Same as other attacks",Y202,$AD$202)+AR211  +AR199
+*/
+        val averageDPR = AvgMinMax(
+            normalAttackDPR.avg + bonusAttackDPR.avg,
+            normalAttackDPR.max + bonusAttackDPR.max,
+            normalAttackDPR.min + bonusAttackDPR.min,
+        )
+        averageDPR.debug("Average DPR")
+
+        println(String.format("avg total damage:  %2.2f", averageDPR.avg))
+        println()
+    }
+
+    private fun getAttackDPR(
+        weapon: Weapon, attack: Attack, monster: Monster, mainAttack: Boolean,
+        bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock, attackBonus: Int, bonusDamage: Int,
+    ): AvgMinMax {
+        val AC = monster.properties.dataAcNum
+
+        val autoHit = 20 // for a champion, this could be 19 or 18      // E13
+        val isElemental = character.isElementalAdept()
+
+        // # Hit%:     (Y6, AC6, AG6) -> (B199, F199, J199)
+        val chanceToHit = AvgMinMax(
+            totalProb(attackBonus, AC,"No Advantage", isElemental, isLucky, autoHit, bonusDiceToSave,penaltyDiceToSave),
+            totalProb(attackBonus, AC, "Advantage", isElemental, isLucky, autoHit, bonusDiceToSave, penaltyDiceToSave),
+            totalProb(attackBonus, AC,"Disadvantage", isElemental, isLucky,autoHit, bonusDiceToSave, penaltyDiceToSave),
+        )
+        chanceToHit.debug("Chance to Hit")
+
+        println(String.format("avg %%hit (%s):   %2.2f",  (if (mainAttack) "main" else "bonus"), chanceToHit.avg))
+
+        // DPH:                             (B205, F205, J205)
+        val fullDamage = getAvgMinMax(weapon.getDamageDice(), bonusDamage)
+        fullDamage.debug("Full Damage")
+
+        // DPC (damage per crit)          (B208, F208, J208)
+        val critDamage = getAvgMinMax(weapon.getDamageDice().double(), bonusDamage)
+        fullDamage.debug("Crit Damage")
+
+        if (Globals.debug) println("")
+
+        // Crit%:        (B211, F211, J211)
+        val critChance = AvgMinMax(
+            critChance(autoHit, "No Advantage", character.isElementalAdept(), isLucky),
+            critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
+            critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
+        )
+        fullDamage.debug("Crit %Hit")
+
+        val numberOfTargets = attack.numTargets ?: 1
+
+        // Normal Attack DPR (does not include bonus attack):          (B202, F202, J202)
+        val normalAttackDPR = AvgMinMax(
+            numberOfTargets * ((chanceToHit.avg - critChance.avg) * fullDamage.avg + (critChance.avg * critDamage.avg)),
+            numberOfTargets * ((chanceToHit.max - critChance.max) * fullDamage.max + (critChance.max * critDamage.max)),
+            numberOfTargets * ((chanceToHit.min - critChance.min) * fullDamage.min + (critChance.min * critDamage.min)),
+        )
+        normalAttackDPR.debug("Normal Attack DPR")
+        return normalAttackDPR
     }
 }

@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.DiceBlock
+import com.vikinghelmet.dnd.dpr.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import kotlinx.serialization.Serializable
 
@@ -17,7 +18,7 @@ data class Spell(
     fun is2014(): Boolean {
         return book == "Free Basic Rules (2014)"
     }
-    
+
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage
     // note, in 2024 the spell was changed to Instantaneous (Bonus Action)
@@ -41,21 +42,7 @@ data class Spell(
     }
 
     fun getDamage(): DiceBlock {
-        val dice = DiceBlock(0, 0, 0, 0, 0)
-
-        //  "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
-        val damage = properties.Damage ?: return dice
-        val damageList = damage.split("d")
-        val diceCount = damageList[0].toInt()
-
-        when (damageList[1]) {
-            "4" -> dice.d4 = diceCount
-            "6" -> dice.d6 = diceCount
-            "8" -> dice.d8 = diceCount
-            "10" -> dice.d10 = diceCount
-            "12" -> dice.d12 = diceCount
-        }
-        return dice
+        return DiceBlockHelper.getDiceBlock(properties.Damage)
     }
 
     fun getFirstAttackSave(): Attack.Save? {

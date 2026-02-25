@@ -32,15 +32,18 @@ fun calculateSpellDPR(attack: Attack) {
         return
     }
 
+    val dpr = DamagePerRound(character!!)
+
     val spell = getSpell(attack.spell)
-    if (spell == null) {
-        println("spell not found: "+attack.spell)
+    if (spell != null) {
+        dpr.calculateSpellDPR (spell, attack, monster)
         return
     }
 
-    val dpr = DamagePerRound(character!!)
-
-    dpr.calculateSpellDPR (spell, attack, monster)
+    val weapon = attack.weapon
+    if (weapon != null) {
+        dpr.calculateWeaponDPR (weapon, attack, monster)
+    }
 }
 
 fun getMonster(name: String): Monster? {
@@ -54,8 +57,8 @@ fun getMonster(name: String): Monster? {
     return null
 }
 
-fun getSpell(name: String): Spell? {
-    if (spells.isEmpty()) return null
+fun getSpell(name: String?): Spell? {
+    if (name == null || spells.isEmpty()) return null
 
     for (spell in spells) {
         if (spell.name == name) {

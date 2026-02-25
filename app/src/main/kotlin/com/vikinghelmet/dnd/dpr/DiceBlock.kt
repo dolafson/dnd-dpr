@@ -1,6 +1,26 @@
 package com.vikinghelmet.dnd.dpr
 import kotlinx.serialization.Serializable
 
+object DiceBlockHelper {
+    fun getDiceBlock(diceString: String?): DiceBlock {
+        val dice = DiceBlock(0, 0, 0, 0, 0)
+
+        //  "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
+        val damage = diceString ?: return dice
+        val damageList = damage.split("d")
+        val diceCount = damageList[0].toInt()
+
+        when (damageList[1]) {
+            "4" -> dice.d4 = diceCount
+            "6" -> dice.d6 = diceCount
+            "8" -> dice.d8 = diceCount
+            "10" -> dice.d10 = diceCount
+            "12" -> dice.d12 = diceCount
+        }
+        return dice
+    }
+}
+
 @Serializable
 data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d12: Int)
 {
@@ -25,5 +45,9 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
 
     fun isEmpty(): Boolean {
         return min() == 0
+    }
+
+    fun double(): DiceBlock {
+        return DiceBlock(d4*2, d6*2, d8*2, d10*2, d12*2)
     }
 }
