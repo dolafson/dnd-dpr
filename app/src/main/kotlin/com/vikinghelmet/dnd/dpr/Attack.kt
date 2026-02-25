@@ -1,6 +1,5 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.weapons.Weapon
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -8,7 +7,7 @@ data class Attack(
     val preconditions: Preconditions? = null,
     val monster: String, // after monster DB lookup, we will extract targetSaveBonus and isTargetEvasive
     val spell: String? = null,
-    val weapon: Weapon? = null,
+    val weapon: String? = null,
     val notes: List<String>? = null,
     val numTargets: Int? = 1
 ) {

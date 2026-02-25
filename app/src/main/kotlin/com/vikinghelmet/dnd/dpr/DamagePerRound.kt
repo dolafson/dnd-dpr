@@ -475,14 +475,18 @@ class DamagePerRound(var character: Character)
         val penaltyDiceToSaveBA = preconditions.penaltyDiceToSaveBA ?: DiceBlock(0, 0, 0, 0, 0)
 
         println()
+
         if (Globals.debug) {
             println("weapon damage:         " + weapon.getDamageDice())
             println()
         }
 
-        // TODO get these from character
-        val attackBonus = 8
-        val attackBonusBA = 8 // usually this will be the same as attackBonus
+        val attackBonus = character.getAttackBonus(weapon)
+        val attackBonusBA = attackBonus // usually these are the same; TODO: find out when they should be different
+
+        println("target AC:     "+monster.properties.dataAcNum)
+        println("attack Bonus:  "+attackBonus)
+        println()
 
         val normalAttackDPR = getAttackDPR(
             weapon, attack, monster, true, bonusDiceToSave, penaltyDiceToSave, attackBonus, bonusDamage,
@@ -552,12 +556,12 @@ class DamagePerRound(var character: Character)
         val numberOfTargets = attack.numTargets ?: 1
 
         // Normal Attack DPR (does not include bonus attack):          (B202, F202, J202)
-        val normalAttackDPR = AvgMinMax(
+        val attackDPR = AvgMinMax(
             numberOfTargets * ((chanceToHit.avg - critChance.avg) * fullDamage.avg + (critChance.avg * critDamage.avg)),
             numberOfTargets * ((chanceToHit.max - critChance.max) * fullDamage.max + (critChance.max * critDamage.max)),
             numberOfTargets * ((chanceToHit.min - critChance.min) * fullDamage.min + (critChance.min * critDamage.min)),
         )
-        normalAttackDPR.debug("Normal Attack DPR")
-        return normalAttackDPR
+        attackDPR.debug("Attack DPR (main="+mainAttack+")")
+        return attackDPR
     }
 }

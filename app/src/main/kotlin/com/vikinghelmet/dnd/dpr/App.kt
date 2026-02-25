@@ -6,6 +6,7 @@ package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.weapons.Weapon
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,7 +24,7 @@ class App {
 val spells = ArrayList<Spell>()
 val monsters = ArrayList<Monster>()
 val attacks = ArrayList<Attack>()
-var character: Character ?= null
+var character: Character? = null
 
 fun calculateSpellDPR(attack: Attack) {
     val monster = getMonster(attack.monster)
@@ -40,7 +41,7 @@ fun calculateSpellDPR(attack: Attack) {
         return
     }
 
-    val weapon = attack.weapon
+    val weapon = getWeapon(attack.weapon)
     if (weapon != null) {
         dpr.calculateWeaponDPR (weapon, attack, monster)
     }
@@ -71,6 +72,14 @@ fun getSpell(name: String?): Spell? {
     }
     return null
 }
+
+fun getWeapon(name: String?): Weapon? {
+    if (name == null || character == null || character!!.getWeaponList().isEmpty()) return null
+    for (weapon in character!!.getWeaponList()) if (weapon.name == name) return weapon
+    println("weapon $name not found; try one of these: \n"+character!!.getWeaponNames())
+    return null
+}
+
 
 fun getRequest(url: String): String? {
     val client = OkHttpClient() // TODO move?

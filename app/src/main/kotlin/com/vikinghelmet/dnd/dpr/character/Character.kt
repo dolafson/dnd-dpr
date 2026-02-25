@@ -102,6 +102,15 @@ data class Character(
         return isFeatEnabled(Feat.GreatWeaponFighting)
     }
 
+    fun getWeaponNames(): List<String> {
+        val list = mutableListOf<String>()
+        if (characterData.inventory == null) return list
+        for (item in characterData.inventory) {
+            if (item.definition.filterType == "Weapon") list.add(item.definition.name)
+        }
+        return list;
+    }
+
     fun getWeaponList(): List<Weapon> {
         val list = mutableListOf<Weapon>()
 
