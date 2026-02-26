@@ -88,7 +88,7 @@ fun getSpell(name: String?): Spell? {
 
     for (spell in spells) {
         if (spell.name == name) {
-            if (character!!.is2014() != spell.is2014()) {
+            if (!spell.isSameIn2014And2024() && character!!.is2014() != spell.is2014()) {
                 continue
             }
 
@@ -160,6 +160,7 @@ fun dump(arg: String) {
 }
 
 fun search(arg: String) {
+    /*
     val searchType = arg.split(":")[1]
     val searchValue = arg.split(":")[2]
     when (searchType) {
@@ -170,6 +171,10 @@ fun search(arg: String) {
             for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
         }
     }
+     */
+    val searchValue = arg.split(":")[1]
+    for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
+    for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
 }
 
 fun getResource(fileName: String): String? {
@@ -208,8 +213,9 @@ fun main(args : Array<String>) {
         System.err.println()
         System.err.println("Search:")
         System.err.println()
-        System.err.println("\t search:spells:NAME \t search for name in list of spells, and display details if found");
-        System.err.println("\t search:monsters:NAME \t search for name in list of spells, and display details if found");
+        System.err.println("\t search:NAME \t search for NAME in list of spells/monsters, and display details if found");
+//        System.err.println("\t search:spells:NAME \t search for name in list of spells, and display details if found");
+//        System.err.println("\t search:monsters:NAME \t search for name in list of spells, and display details if found");
         System.err.println()
         System.err.println("Attacks:")
         System.err.println()
@@ -251,6 +257,9 @@ fun main(args : Array<String>) {
 
     val spellResource = getResource("spells.json")
     if (spellResource != null)  spells.addAll(Json.decodeFromString(spellResource))
+
+    val spellResource2 = getResource("extra.spells.json")
+    if (spellResource2 != null)  spells.addAll(Json.decodeFromString(spellResource2))
 
     val monsterResource = getResource("monsters.json")
     if (monsterResource != null)  monsters.addAll(Json.decodeFromString(monsterResource))

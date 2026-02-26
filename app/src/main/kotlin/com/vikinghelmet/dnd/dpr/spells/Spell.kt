@@ -1,8 +1,8 @@
 package com.vikinghelmet.dnd.dpr.spells
 
+import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
-import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import kotlinx.serialization.Serializable
 
 // https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
@@ -16,7 +16,11 @@ data class Spell(
     val publisher: String
 ) {
     fun is2014(): Boolean {
-        return book == "Free Basic Rules (2014)"
+        return book.endsWith("(2014)")
+    }
+
+    fun isSameIn2014And2024(): Boolean {
+        return book.endsWith("(2014 and 2024)")
     }
 
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
