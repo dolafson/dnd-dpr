@@ -215,8 +215,6 @@ fun main(args : Array<String>) {
         System.err.println()
         System.err.println()
         System.err.println("\t optional notes and preconditions are also supported, for example:")
-
-//        System.err.println("""Note: turns.json also supports optional notes and preconditions.  For example:
         System.err.println("""
     [
       {

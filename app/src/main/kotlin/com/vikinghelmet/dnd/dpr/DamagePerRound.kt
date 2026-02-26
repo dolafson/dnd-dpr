@@ -477,12 +477,7 @@ class DamagePerRound(var character: Character)
         val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
         val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
-
-        // TODO: support diff bonus/penalty toHit for BA (this may be rare)
-
-        val bonusDamage   = character.getDamageBonus(weapon, false) + (preconditions.bonusDamage ?: 0)
-        val bonusDamageBA = character.getDamageBonus(weapon, true)  + (preconditions.bonusDamage ?: 0)
-
+        val bonusDamage   = character.getDamageBonus(weapon, attack.isBonusAction ?: false) + (preconditions.bonusDamage ?: 0)
         println()
 
         if (Globals.debug) {
@@ -496,12 +491,8 @@ class DamagePerRound(var character: Character)
         println("attack Bonus:  "+attackBonus)
         println()
 
-        val normalAttackDPR = getAttackDPR(
+        val attackDPR = getAttackDPR(
             weapon, attack, monster, true, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamage,
-        )
-
-        val bonusAttackDPR = getAttackDPR(
-            weapon, attack, monster, false, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamageBA,
         )
 
 /* Avg DPR:  (Y9, AC9, AG9) ->
@@ -513,17 +504,12 @@ class DamagePerRound(var character: Character)
             =F202+IF($G$42="Same as other attacks",U202,$AD$202)+AN211  +AN199
             =J202+IF($G$42="Same as other attacks",Y202,$AD$202)+AR211  +AR199
 */
-        val averageDPR = AvgMinMax(
-            normalAttackDPR.avg + bonusAttackDPR.avg,   // TODO: add GWM Crit, and OncePerRound DPR
-            normalAttackDPR.max + bonusAttackDPR.max,
-            normalAttackDPR.min + bonusAttackDPR.min,
-        )
-        averageDPR.debug("Average DPR")
+        attackDPR.debug("Attack DPR")
 
-        println(String.format("avg total damage:  %2.2f", averageDPR.avg))
+        println(String.format("avg total damage:  %2.2f", attackDPR.avg))
         println()
 
-        return averageDPR.avg
+        return attackDPR.avg
     }
 
     private fun getAttackDPR(
