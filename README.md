@@ -39,38 +39,38 @@ Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | t
 
 File:
 
-	 file.json 	 load spell or monster data; this is optional: program contains most 2014 and 2024 data
+     file.json   load spell or monster data; this is optional: program contains most 2014 and 2024 data
 
 Character:
 
-	 NumericID 	 read character from DND Beyond API (character must have public visibility)
-	 file.json 	 read character from a local file
+     NumericID   read character from DND Beyond API (character must have public visibility)
+     file.json   read character from a local file
 
 Dump:
 
-	 dump:spells 	 export all known spells
-	 dump:monsters 	 export all known monsters
-	 dump:attacks 	 export attacks from user input
-	 dump:character	 export (minimal) character data from DND Beyond
-	 dump 		 export all of the above
+     dump:spells     export all known spells
+     dump:monsters   export all known monsters
+     dump:attacks    export attacks from user input
+     dump:character  export (minimal) character data from DND Beyond
+     dump            export all of the above
 
 Search:
 
-	 search:spells:NAME 	 search for name in list of spells, and display details if found
-	 search:monsters:NAME 	 search for name in list of spells, and display details if found
+     search:spells:NAME      search for name in list of spells, and display details if found
+     search:monsters:NAME    search for name in list of spells, and display details if found
 
 Attacks:
 
-	 -a  <monster spellOrWeapon> ...    (multiple pairs allowed)
+     -a  <monster spellOrWeapon> ...    (multiple pairs allowed)
 
 Turns:
 
-	 an array turns, each with an array of attacks, for example:
+     an array turns, each with an array of attacks, for example:
 
-		 [ { "attacks": [ { "monster": "Goblin", "attack": "Longbow" } ] } ]
+         [ { "attacks": [ { "monster": "Goblin", "attack": "Longbow" } ] } ]
 
 
-	 optional notes and preconditions are also supported, for example:
+     optional notes and preconditions are also supported, for example:
 
     [
       {
