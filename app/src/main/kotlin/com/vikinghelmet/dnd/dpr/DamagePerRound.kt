@@ -1,9 +1,13 @@
 package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.weapons.Weapon
+import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.Preconditions
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -116,7 +120,8 @@ class DamagePerRound(var character: Character)
 // Compute the attack probability taking all variables into account:
 // attack bonus, AC, advantage, Elven Accuracy, and bonus dice (e.g. Bless).
     fun totalProb(atk: Int, ac: Int, isAdvan: String, isElven: Boolean, isLucky: Boolean, autohit: Int,
-                bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock): Float
+                  bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock
+): Float
     {
         val arr    = buffDist(bonusDiceToSave)
         val negArr = buffDist(penaltyDiceToSave)
@@ -312,10 +317,10 @@ class DamagePerRound(var character: Character)
     // ==========================================================
     // here is where the fun really begins
 
-    fun calculateSpellDPR(spell: Spell, attack: Attack, monster: Monster)
+    fun calculateSpellDPR(spell: Spell, attack: Attack, monster: Monster): Float
     {
         val isTargetEvasive = monster.properties.isEvasive()
-        var preconditions = attack.preconditions ?: Attack.Preconditions()
+        var preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
 
@@ -353,7 +358,7 @@ class DamagePerRound(var character: Character)
 
         if (spell.getDamage().isEmpty()) {
             println ("This spell never directly creates damage")
-            return
+            return 0f
         }
 
         // 6. Chance to Hit (Hit%)
@@ -458,21 +463,26 @@ class DamagePerRound(var character: Character)
         println(String.format("avg duration:     %2.2f", averageDuration.avg))
         println(String.format("avg total damage: %2.2f", averageTotalDamageOverTime.avg))
         println()
+
+        // TODO: resolve conflict between interest in
+        //  (a) calc damage for each round individually
+        //  (b) calc total damage across all rounds (some spells have multi-round impact)
+        return averageDPR.avg
     }
 
     // ==========================================================
-    fun calculateWeaponDPR(weapon: Weapon, attack: Attack, monster: Monster)
+    fun calculateWeaponDPR(weapon: Weapon, attack: Attack, monster: Monster): Float
     {
-        var preconditions = attack.preconditions ?: Attack.Preconditions()
+        val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
 
-        val bonusDamage = preconditions.bonusDamage ?: 0
-        val bonusDamageBA = preconditions.bonusDamageBA ?: 0
-        val bonusDamageOnFirstHit = preconditions.bonusDamageOnFirstHit ?: DiceBlock(0, 0, 0, 0, 0)
+        val bonusDamage = character.getDamageBonus(weapon, false) + (preconditions.bonusDamage ?: 0)
 
-        val bonusDiceToSaveBA = preconditions.bonusDiceToSaveBA ?: DiceBlock(0, 0, 0, 0, 0)
-        val penaltyDiceToSaveBA = preconditions.penaltyDiceToSaveBA ?: DiceBlock(0, 0, 0, 0, 0)
+// TODO: refactor
+        val bonusDiceToSaveBA = bonusDiceToSave
+        val penaltyDiceToSaveBA = penaltyDiceToSave
+        val bonusDamageBA = character.getDamageBonus(weapon, true) + (preconditions.bonusDamage ?: 0)
 
         println()
 
@@ -514,6 +524,8 @@ class DamagePerRound(var character: Character)
 
         println(String.format("avg total damage:  %2.2f", averageDPR.avg))
         println()
+
+        return averageDPR.avg
     }
 
     private fun getAttackDPR(

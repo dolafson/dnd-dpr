@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr
+package com.vikinghelmet.dnd.dpr.util
 import kotlinx.serialization.Serializable
 
 object DiceBlockHelper {

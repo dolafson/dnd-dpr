@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr.util
 
 object Constants {
     val levelToProficiencyMap: Map<Int, Int> = mapOf(

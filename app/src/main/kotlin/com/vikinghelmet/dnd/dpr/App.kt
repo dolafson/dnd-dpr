@@ -4,9 +4,12 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.weapons.Weapon
+import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,28 +26,50 @@ class App {
 
 val spells = ArrayList<Spell>()
 val monsters = ArrayList<Monster>()
-val attacks = ArrayList<Attack>()
+val turns = ArrayList<Turn>()
 var character: Character? = null
 
-fun calculateSpellDPR(attack: Attack) {
+fun calculateDPR(turn: Turn): Float {
+    var total = 0f
+    var count = 1
+
+    for (attack in turn.attacks) {
+        var damage = calculateDPR(attack)
+        println(String.format("attack $count, damage = %2.2f", damage))
+        total += damage
+        count++
+    }
+    println(String.format("\tattack total damage = %2.2f", total))
+    println()
+    return total
+}
+
+fun calculateDPR(attack: Attack): Float {
     val monster = getMonster(attack.monster)
     if (monster == null) {
         println("monster not found: "+attack.monster)
-        return
+        return 0f
     }
 
     val dpr = DamagePerRound(character!!)
 
-    val spell = getSpell(attack.spell)
+    val spell = getSpell(attack.attack)
     if (spell != null) {
-        dpr.calculateSpellDPR (spell, attack, monster)
-        return
+        return dpr.calculateSpellDPR (spell, attack, monster)
     }
 
-    val weapon = getWeapon(attack.weapon)
+    val weapon = getWeapon(attack.attack)
     if (weapon != null) {
-        dpr.calculateWeaponDPR (weapon, attack, monster)
+        return dpr.calculateWeaponDPR (weapon, attack, monster)
     }
+
+    println()
+    println("spell or weapon not found: "+attack.attack)
+    println()
+    println("character weapons: "+character!!.getWeaponNames())
+    println()
+
+    return 0f
 }
 
 fun getMonster(name: String): Monster? {
@@ -70,19 +95,12 @@ fun getSpell(name: String?): Spell? {
             return spell
         }
     }
-    println()
-    println("spell not found: $name")
-    println()
     return null
 }
 
 fun getWeapon(name: String?): Weapon? {
     if (name == null || character == null || character!!.getWeaponList().isEmpty()) return null
     for (weapon in character!!.getWeaponList()) if (weapon.name == name) return weapon
-    println()
-    println("weapon not found: $name ")
-    println("try one of these: "+character!!.getWeaponNames())
-    println()
     return null
 }
 
@@ -119,7 +137,7 @@ fun dump(arg: String) {
     if (!arg.contains(":")) {
         for (item in spells)    println(Json.encodeToString(item))
         for (item in monsters)  println(Json.encodeToString(item))
-        for (item in attacks)   println(Json.encodeToString(item))
+        for (item in turns)   println(Json.encodeToString(item))
         println(Json.encodeToString(character))
         return
     }
@@ -133,7 +151,7 @@ fun dump(arg: String) {
             for (item in monsters)  println(Json.encodeToString(item))
         }
         "attacks" -> {
-            for (item in attacks)  println(Json.encodeToString(item))
+            for (item in turns)  println(Json.encodeToString(item))
         }
         "character" -> {
             println(Json.encodeToString(character))
@@ -150,9 +168,6 @@ fun search(arg: String) {
         }
         "monsters" -> {
             for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-        }
-        "attacks" -> {
-//            for (item in attacks) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
         }
     }
 }
@@ -172,18 +187,18 @@ fun main(args : Array<String>) {
 
     if (args.isEmpty()) {
         System.err.println()
-        System.err.println("Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | attackOpt | attacks.json >");
+        System.err.println("Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >");
         System.err.println()
-        System.err.println("File options:")
+        System.err.println("File:")
         System.err.println()
-        System.err.println("\t file.json \t load spell or monster data from the given file; this is optional: program is prepackaged with 2024 data")
+        System.err.println("\t file.json \t load spell or monster data; this is optional: program contains most 2014 and 2024 data")
         System.err.println()
-        System.err.println("Character options:")
+        System.err.println("Character:")
         System.err.println()
         System.err.println("\t NumericID \t read character from DND Beyond API (character must have public visibility)")
-        System.err.println("\t file.json \t read character from a file")
+        System.err.println("\t file.json \t read character from a local file")
         System.err.println()
-        System.err.println("Dump (debug) options:")
+        System.err.println("Dump:")
         System.err.println()
         System.err.println("\t dump:spells \t export all known spells");
         System.err.println("\t dump:monsters \t export all known monsters");
@@ -191,37 +206,45 @@ fun main(args : Array<String>) {
         System.err.println("\t dump:character\t export (minimal) character data from DND Beyond");
         System.err.println("\t dump \t\t export all of the above");
         System.err.println()
-        System.err.println("Search commands:")
+        System.err.println("Search:")
         System.err.println()
         System.err.println("\t search:spells:NAME \t search for name in list of spells, and display details if found");
         System.err.println("\t search:monsters:NAME \t search for name in list of spells, and display details if found");
         System.err.println()
-        System.err.println("AttackOpt")
+        System.err.println("Attacks:")
         System.err.println()
-        System.err.println("\t -s  <spell>   <Goblin>")
-        System.err.println("\t -w  <weapon>  <Goblin>")
+        System.err.println("\t -a  <monster spellOrWeapon> ...    (multiple pairs allowed)")
         System.err.println()
-        System.err.println("Attacks.json")
+        System.err.println("Turns:")
         System.err.println()
-        System.err.println("\t json file: should contain an array of monster/spell pairs, for example:")
+        System.err.println("\t an array turns, each with an array of attacks, for example:")
         System.err.println()
-        System.err.println("\t\t [{\"monster\":\"Goblin\",\"spell\":\"Ensnaring Strike\"}]\n")
+        System.err.println("\t\t [ { \"attacks\": [ { \"monster\": \"Goblin\", \"attack\": \"Longbow\" } ] } ]")
         System.err.println()
-        System.err.println("\t ")
-        System.err.println("""Note: for more complex scenarios, the attack json also supports preconditions.  For example:
-            
+        System.err.println()
+        System.err.println("\t optional notes and preconditions are also supported, for example:")
+
+//        System.err.println("""Note: turns.json also supports optional notes and preconditions.  For example:
+        System.err.println("""
     [
-        {
-            "monster": "Goblin",
-            "spell": "Ensnaring Strike",
-            "preconditions": {
-                "bonusDiceToSave":       { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-                "penaltyDiceToSave":     { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-                "bonusDamageOnFirstHit": { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-                "bonusDamage": 0
-            }
-        }
-    ]            
+      {
+        "notes": [
+            "Turn 1: Assume Mind Sliver was cast prior to this turn",
+            "When MS is successful, in addition to 1d6 damage, it imposes a 1d4 penalty on the target's next saving throw"
+        ],
+        "preconditions": {
+            "bonusDiceToSave":       { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "penaltyDiceToSave":     { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDamageOnFirstHit": { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDamage": 0
+        },
+    
+        "attacks": [
+            { "monster": "Goblin", "attack": "Longbow" },
+            { "monster": "Goblin", "attack": "Ensnaring Strike", "isBonusAction": true }
+        ]    
+      } 
+    ]
         """)
         System.err.println()
     }
@@ -239,16 +262,14 @@ fun main(args : Array<String>) {
         if (arg.startsWith("-")) {
             when (arg) {
                 "-d" -> Globals.debug = true
-                "-w" -> {
-                    val weapon = args[i+1]
-                    val monster = args[i+2]
-                    attacks.add(Attack(null, monster, null, weapon, null, 1))
-                    break
-                }
-                "-s" -> {
-                    val spell = args[i+1]
-                    val monster = args[i+2]
-                    attacks.add(Attack(null, monster, spell, null, null, 1))
+                "-a" -> {
+                    val attackList = mutableListOf<Attack>()
+                    for (j in (i+1) until args.size step 2) {
+                        val monsterName = args[j]
+                        val attackName = args[j+1]
+                        attackList.add(Attack(monsterName, attackName))
+                    }
+                    turns.add(Turn(null, attackList, null))
                     break
                 }
                 else -> println("invalid argument: $arg")
@@ -266,7 +287,7 @@ fun main(args : Array<String>) {
                 monsters.addAll(Json.decodeFromString(jsonString))
             }
             else if (jsonString.contains("\"monster\"")) {
-                attacks.addAll(Json.decodeFromString(jsonString))
+                turns.addAll(Json.decodeFromString(jsonString))
             }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
@@ -304,12 +325,16 @@ fun main(args : Array<String>) {
     else if (character == null) {
         println("no character data")
     }
-    else if (attacks.isEmpty()) {
+    else if (turns.isEmpty()) {
         println("no attacks specified")
     }
     else {
-        for (attack in attacks) {
-            calculateSpellDPR(attack)
+        var turnId = 1
+        for (turn in turns) {
+            val dpr = calculateDPR(turn)
+            println(String.format("turn $turnId, dpr = %2.2f", dpr))
+            turnId++
         }
+        println()
     }
 }

@@ -1,7 +1,7 @@
-package com.vikinghelmet.dnd.dpr.weapons
+package com.vikinghelmet.dnd.dpr.character.inventory
 
-import com.vikinghelmet.dnd.dpr.DiceBlock
-import com.vikinghelmet.dnd.dpr.DiceBlockHelper
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import kotlinx.serialization.Serializable
 
 @Serializable

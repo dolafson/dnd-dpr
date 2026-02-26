@@ -1,7 +1,7 @@
 package com.vikinghelmet.dnd.dpr.spells
 
-import com.vikinghelmet.dnd.dpr.DiceBlock
-import com.vikinghelmet.dnd.dpr.DiceBlockHelper
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import kotlinx.serialization.Serializable
 

@@ -35,51 +35,62 @@ java -jar ./app/build/libs/app-standalone.jar
 
 ## Usage
 ```
-Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | attacks.json >
+Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >
 
-File options:
+File:
 
-	 file.json 	 load spell or monster data from the given file; this is optional: program is prepackaged with 2024 data
+	 file.json 	 load spell or monster data; this is optional: program contains most 2014 and 2024 data
 
-Character options:
+Character:
 
 	 NumericID 	 read character from DND Beyond API (character must have public visibility)
-	 file.json 	 read character from a file (useful for what-if analysis)
+	 file.json 	 read character from a local file
 
-Dump (debug) options:
+Dump:
 
-	 dump:spells     export all known spells
-	 dump:monsters   export all known monsters
-	 dump:attacks    export attacks from user input
-	 dump:character  export (minimal) character data from DND Beyond
-	 dump            export all of the above
+	 dump:spells 	 export all known spells
+	 dump:monsters 	 export all known monsters
+	 dump:attacks 	 export attacks from user input
+	 dump:character	 export (minimal) character data from DND Beyond
+	 dump 		 export all of the above
 
-Search commands:
+Search:
 
 	 search:spells:NAME 	 search for name in list of spells, and display details if found
-	 search:monsters:NAME 	 search for name in list of monsters, and display details if found
+	 search:monsters:NAME 	 search for name in list of spells, and display details if found
 
 Attacks:
 
-	 json file should contain an array of monster/spell pairs, for example:
+	 -a  <monster spellOrWeapon> ...    (multiple pairs allowed)
 
-		 [{"monster":"Goblin","spell":"Ensnaring Strike"}]
+Turns:
 
-	 
-Note: for more complex scenarios, the attack json also supports preconditions.  For example:
-            
+	 an array turns, each with an array of attacks, for example:
+
+		 [ { "attacks": [ { "monster": "Goblin", "attack": "Longbow" } ] } ]
+
+
+	 optional notes and preconditions are also supported, for example:
+
     [
-        {
-            "monster": "Goblin",
-            "spell": "Ensnaring Strike",
-            "preconditions": {
-                "bonusDiceToSave":       { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-                "penaltyDiceToSave":     { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-                "bonusDamageOnFirstHit": { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-                "bonusDamage": 0
-            }
-        }
-    ]            
+      {
+        "notes": [
+            "Turn 1: Assume Mind Sliver was cast prior to this turn",
+            "When MS is successful, in addition to 1d6 damage, it imposes a 1d4 penalty on the target's next saving throw"
+        ],
+        "preconditions": {
+            "bonusDiceToSave":       { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "penaltyDiceToSave":     { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDamageOnFirstHit": { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDamage": 0
+        },
+    
+        "attacks": [
+            { "monster": "Goblin", "attack": "Longbow" },
+            { "monster": "Goblin", "attack": "Ensnaring Strike", "isBonusAction": true }
+        ]    
+      } 
+    ]
 ```
 
 <br>
