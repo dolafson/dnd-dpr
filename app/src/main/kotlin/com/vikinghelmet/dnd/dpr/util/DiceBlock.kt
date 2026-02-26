@@ -19,6 +19,9 @@ object DiceBlockHelper {
         }
         return dice
     }
+    fun emptyBlock(): DiceBlock {
+        return DiceBlock(0, 0, 0, 0, 0)
+    }
 }
 
 @Serializable

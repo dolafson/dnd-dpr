@@ -39,8 +39,8 @@ fun calculateDPR(turn: Turn): Float {
         total += damage
         count++
     }
-    println(String.format("\tattack total damage = %2.2f", total))
-    println()
+    //println(String.format("\tattack total damage = %2.2f", total))
+    //println()
     return total
 }
 
@@ -332,6 +332,7 @@ fun main(args : Array<String>) {
         var turnId = 1
         for (turn in turns) {
             val dpr = calculateDPR(turn)
+            println()
             println(String.format("turn $turnId, dpr = %2.2f", dpr))
             turnId++
         }

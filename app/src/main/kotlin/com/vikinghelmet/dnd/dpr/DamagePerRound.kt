@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlin.math.max
 import kotlin.math.min
@@ -474,15 +475,13 @@ class DamagePerRound(var character: Character)
     fun calculateWeaponDPR(weapon: Weapon, attack: Attack, monster: Monster): Float
     {
         val preconditions = attack.preconditions ?: Preconditions()
-        val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
-        val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
+        val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
+        val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
 
-        val bonusDamage = character.getDamageBonus(weapon, false) + (preconditions.bonusDamage ?: 0)
+        // TODO: support diff bonus/penalty toHit for BA (this may be rare)
 
-// TODO: refactor
-        val bonusDiceToSaveBA = bonusDiceToSave
-        val penaltyDiceToSaveBA = penaltyDiceToSave
-        val bonusDamageBA = character.getDamageBonus(weapon, true) + (preconditions.bonusDamage ?: 0)
+        val bonusDamage   = character.getDamageBonus(weapon, false) + (preconditions.bonusDamage ?: 0)
+        val bonusDamageBA = character.getDamageBonus(weapon, true)  + (preconditions.bonusDamage ?: 0)
 
         println()
 
@@ -491,19 +490,18 @@ class DamagePerRound(var character: Character)
             println()
         }
 
-        val attackBonus = character.getAttackBonus(weapon)
-        val attackBonusBA = attackBonus // usually these are the same; TODO: find out when they should be different
+        val attackBonus = character.getAttackBonus(weapon) // TODO: support separate attack bonus for BonusAttack
 
         println("target AC:     "+monster.properties.dataAcNum)
         println("attack Bonus:  "+attackBonus)
         println()
 
         val normalAttackDPR = getAttackDPR(
-            weapon, attack, monster, true, bonusDiceToSave, penaltyDiceToSave, attackBonus, bonusDamage,
+            weapon, attack, monster, true, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamage,
         )
 
         val bonusAttackDPR = getAttackDPR(
-            weapon, attack, monster, false, bonusDiceToSaveBA, penaltyDiceToSaveBA, attackBonusBA, bonusDamageBA,
+            weapon, attack, monster, false, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamageBA,
         )
 
 /* Avg DPR:  (Y9, AC9, AG9) ->
@@ -530,7 +528,7 @@ class DamagePerRound(var character: Character)
 
     private fun getAttackDPR(
         weapon: Weapon, attack: Attack, monster: Monster, mainAttack: Boolean,
-        bonusDiceToSave: DiceBlock, penaltyDiceToSave: DiceBlock, attackBonus: Int, bonusDamage: Int,
+        bonusDiceToHit: DiceBlock, penaltyDiceToHit: DiceBlock, attackBonus: Int, bonusDamage: Int,
     ): AvgMinMax {
         val AC = monster.properties.dataAcNum
 
@@ -539,9 +537,9 @@ class DamagePerRound(var character: Character)
 
         // # Hit%:     (Y6, AC6, AG6) -> (B199, F199, J199)
         val chanceToHit = AvgMinMax(
-            totalProb(attackBonus, AC,"No Advantage", isElemental, isLucky, autoHit, bonusDiceToSave,penaltyDiceToSave),
-            totalProb(attackBonus, AC, "Advantage", isElemental, isLucky, autoHit, bonusDiceToSave, penaltyDiceToSave),
-            totalProb(attackBonus, AC,"Disadvantage", isElemental, isLucky,autoHit, bonusDiceToSave, penaltyDiceToSave),
+            totalProb(attackBonus, AC,"No Advantage", isElemental, isLucky, autoHit, bonusDiceToHit,penaltyDiceToHit),
+            totalProb(attackBonus, AC, "Advantage", isElemental, isLucky, autoHit, bonusDiceToHit, penaltyDiceToHit),
+            totalProb(attackBonus, AC,"Disadvantage", isElemental, isLucky,autoHit, bonusDiceToHit, penaltyDiceToHit),
         )
         chanceToHit.debug("Chance to Hit")
 
