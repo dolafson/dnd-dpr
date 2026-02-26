@@ -70,13 +70,19 @@ fun getSpell(name: String?): Spell? {
             return spell
         }
     }
+    println()
+    println("spell not found: $name")
+    println()
     return null
 }
 
 fun getWeapon(name: String?): Weapon? {
     if (name == null || character == null || character!!.getWeaponList().isEmpty()) return null
     for (weapon in character!!.getWeaponList()) if (weapon.name == name) return weapon
-    println("weapon $name not found; try one of these: \n"+character!!.getWeaponNames())
+    println()
+    println("weapon not found: $name ")
+    println("try one of these: "+character!!.getWeaponNames())
+    println()
     return null
 }
 
@@ -166,7 +172,7 @@ fun main(args : Array<String>) {
 
     if (args.isEmpty()) {
         System.err.println()
-        System.err.println("Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | attacks.json >");
+        System.err.println("Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | attackOpt | attacks.json >");
         System.err.println()
         System.err.println("File options:")
         System.err.println()
@@ -190,7 +196,12 @@ fun main(args : Array<String>) {
         System.err.println("\t search:spells:NAME \t search for name in list of spells, and display details if found");
         System.err.println("\t search:monsters:NAME \t search for name in list of spells, and display details if found");
         System.err.println()
-        System.err.println("Attacks")
+        System.err.println("AttackOpt")
+        System.err.println()
+        System.err.println("\t -s  <spell>   <Goblin>")
+        System.err.println("\t -w  <weapon>  <Goblin>")
+        System.err.println()
+        System.err.println("Attacks.json")
         System.err.println()
         System.err.println("\t json file: should contain an array of monster/spell pairs, for example:")
         System.err.println()
@@ -222,10 +233,25 @@ fun main(args : Array<String>) {
     if (monsterResource != null)  monsters.addAll(Json.decodeFromString(monsterResource))
 
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
-    for (arg in args) {
+    //     for (arg in args) {
+    for (i in args.indices) {
+        val arg = args[i]
         if (arg.startsWith("-")) {
             when (arg) {
                 "-d" -> Globals.debug = true
+                "-w" -> {
+                    val weapon = args[i+1]
+                    val monster = args[i+2]
+                    attacks.add(Attack(null, monster, null, weapon, null, 1))
+                    break
+                }
+                "-s" -> {
+                    val spell = args[i+1]
+                    val monster = args[i+2]
+                    attacks.add(Attack(null, monster, spell, null, null, 1))
+                    break
+                }
+                else -> println("invalid argument: $arg")
             }
         }
         else if (arg.endsWith(".json")) {
