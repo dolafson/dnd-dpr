@@ -53,4 +53,7 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
     fun double(): DiceBlock {
         return DiceBlock(d4*2, d6*2, d8*2, d10*2, d12*2)
     }
+    fun add(other: DiceBlock): DiceBlock {
+        return DiceBlock(d4 + other.d4, d6 + other.d6, d8 + other.d8, d10 + other.d10, d12 + other.d12)
+    }
 }

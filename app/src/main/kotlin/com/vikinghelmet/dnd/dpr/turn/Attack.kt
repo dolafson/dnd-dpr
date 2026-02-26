@@ -9,7 +9,7 @@ data class Attack(
     val attack: String, // name of spell or weapon
 
     // optional fields
-    val preconditions: Preconditions? = null,
+    var preconditions: Preconditions? = null,
     val isBonusAction: Boolean? = false,
     val notes: List<String>? = null,
     val numTargets: Int? = 1

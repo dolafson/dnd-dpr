@@ -34,7 +34,10 @@ fun calculateDPR(turn: Turn): Float {
     var count = 1
 
     for (attack in turn.attacks) {
-        var damage = calculateDPR(attack)
+        if (attack.preconditions == null) {
+            attack.preconditions = turn.preconditions
+        }
+        val damage = calculateDPR(attack)
         println(String.format("attack $count, damage = %2.2f", damage))
         total += damage
         count++
