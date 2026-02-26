@@ -187,7 +187,7 @@ fun main(args : Array<String>) {
 
     if (args.isEmpty()) {
         System.err.println()
-        System.err.println("Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >");
+        System.err.println("Usage: [-d]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >");
         System.err.println()
         System.err.println("File:")
         System.err.println()
