@@ -160,18 +160,6 @@ fun dump(arg: String) {
 }
 
 fun search(arg: String) {
-    /*
-    val searchType = arg.split(":")[1]
-    val searchValue = arg.split(":")[2]
-    when (searchType) {
-        "spells" -> {
-            for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-        }
-        "monsters" -> {
-            for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-        }
-    }
-     */
     val searchValue = arg.split(":")[1]
     for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
     for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
@@ -214,8 +202,6 @@ fun main(args : Array<String>) {
         System.err.println("Search:")
         System.err.println()
         System.err.println("\t search:NAME \t search for NAME in list of spells/monsters, and display details if found");
-//        System.err.println("\t search:spells:NAME \t search for name in list of spells, and display details if found");
-//        System.err.println("\t search:monsters:NAME \t search for name in list of spells, and display details if found");
         System.err.println()
         System.err.println("Attacks:")
         System.err.println()
