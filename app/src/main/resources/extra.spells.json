@@ -190,5 +190,123 @@
       },
       "publisher": "Wizards of the Coast",
       "book": "Hand Entered, Free Basic Rules (2024)"
+    },
+
+    {
+      "name": "Ice Knife",
+      "description": "Level 1 Conjuration (Wizard) Casting Time: Action Range: 60 feet Components: S, M (a drop of water or a piece of ice) Duration: Instantaneous You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage. Using a Higher-Level Spell Slot. The Cold damage increases by 1d6 for each spell slot level above 1.",
+      "properties": {
+        "Category": "Spells",
+        "School": "Conjuration",
+        "Classes": "Wizard",
+        "filter-Tags": "Inflict Damage, Dexterity Save, Cold Damage, Utility",
+        "data-datarecords": [
+          {
+            "name": "Ice Knife",
+            "level": "1",
+            "payload": {
+              "type": "Spell",
+              "name": "Ice Knife",
+              "description": "Level 1 Conjuration (Wizard) Casting Time: Action Range: 60 feet Components: S, M (a drop of water or a piece of ice) Duration: Instantaneous You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage. Using a Higher-Level Spell Slot. The Cold damage increases by 1d6 for each spell slot level above 1.",
+              "upcastText": "Using a Higher-Level Spell Slot. The Cold damage increases by 1d6 for each spell slot level above 1.",
+              "level": 6,
+              "school": "Conjuration",
+              "castingTime": "Action",
+              "range": "60 feet",
+              "duration": "Instantaneous",
+              "concentration": false,
+              "components": {
+                "verbal": false,
+                "somatic": true,
+                "material": true,
+                "materialDescription": "a drop of water or a piece of ice"
+              }
+            }
+          },
+          {
+            "name": "Ice Knife Piercing Attack",
+            "parent": "Ice Knife",
+            "payload": {
+              "type": "Attack",
+              "name": "Ice Knife - On Piercing",
+              "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage.",
+              "attack": {
+                  "type": "Spell Attack"
+              }
+            }
+          },
+          {
+            "name": "Ice Knife Piercing Damage",
+            "parent": "Ice Knife Piercing Attack",
+            "payload": {
+              "type": "Damage",
+              "ability": "none",
+              "damageType": "Piercing",
+              "diceCount": 1,
+              "diceSize": "d10"
+            }
+          },
+          {
+            "name": "Ice Knife Shard Explode Attack",
+            "parent": "Ice Knife",
+            "payload": {
+              "type": "Attack",
+              "name": "Ice Knife - Shard Explode",
+              "description": "Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage",
+              "save": {
+                "saveAbility": "Dexterity",
+                "onFail": "Takes 2d6 Cold damage.",
+                "onSucceed": "No damage."
+              },
+              "aoe": {
+                "shape": "Emanation",
+                "size": "5 foot"
+              }
+            }
+          },
+          {
+            "name": "Ice Knife Shard Explode Damage",
+            "parent": "Ice Knife Shard Explode Attack",
+            "payload": {
+              "type": "Damage",
+              "ability": "none",
+              "damageType": "Cold",
+              "diceCount": 2,
+              "diceSize": "d6"
+            }
+          },
+          {
+            "name": "Ice Knife Shard Explode Damage Upcast",
+            "parent": "Ice Knife Shard Explode Damage",
+            "payload": {
+              "type": "Upcasting",
+              "mode": "Per X Spell Level",
+              "startingLevel": 2,
+              "level": "1",
+              "target": "$.diceCount",
+              "value": "1",
+              "changeMode": "Add"
+            }
+          }
+        ],
+        "Name": "Ice Knife",
+        "data-description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage",
+        "Level": 6,
+        "Casting Time": "Action",
+        "Concentration": "No",
+        "Duration": "Instaneous",
+        "Range": "60 feet",
+        "Components": "S M",
+        "Material": "a drop of water or a piece of ice",
+        "Higher Spell Slot Desc": "Using a Higher-Level Spell Slot. The Cold damage increases by 1d6 for each spell slot level above 1.",
+        "data-CastNum": 2,
+        "data-RangeNum": 60,
+        "Save": "Dexterity",
+        "Damage": "1d10",
+        "Damage Type": "Piercing"
+      },
+      "publisher": "Wizards of the Coast",
+      "book": "Free Basic Rules (2024)"
     }
+
 ]

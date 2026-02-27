@@ -39,7 +39,7 @@ data class SpellAttack(
         else if (".*([Cc]ondition.*[Ee]nd|[Ee]nd.*[Ss]pell|no longer).*".toRegex().matches(onSucceed)) {
             SaveResult.CONDITION_ENDS
         }
-        else if (".*([Nn]o effect|unaffected|isn.t Restrained|resists your efforts|isn.t affected).*".toRegex().matches(onSucceed)) {
+        else if (".*([Nn]o damage|[Nn]o effect|unaffected|isn.t Restrained|resists your efforts|isn.t affected).*".toRegex().matches(onSucceed)) {
             SaveResult.NO_EFFECT
         }
         else {
@@ -53,8 +53,12 @@ data class SpellAttack(
 
         // first field in size is almost always numeric; for now, treat 2-digit size as big
         //return "[0-9][0-9].*".toRegex().matches(size)
-        
+
         // for now, always true ... ?
         return attackPayload.aoe != null // TODO
+    }
+
+    override fun toString(): String {
+        return attackPayload.name!!
     }
 }

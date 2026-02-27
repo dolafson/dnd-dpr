@@ -60,11 +60,15 @@ data class Character(
     }
 
     fun getSpellSaveDC(): Int {
+        return 8 + getSpellBonusToHit()
+    }
+
+    fun getSpellBonusToHit(): Int {
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
         val statBonus = if (abilityId == null) 0 else {
             Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
         }
-        return 8 + statBonus + getProficiencyBonus()
+        return statBonus + getProficiencyBonus()
     }
 
     fun isFeatEnabled(requested : Feat): Boolean {

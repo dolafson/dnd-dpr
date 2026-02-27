@@ -20,7 +20,7 @@ data class MeleeOrRangeAttack(
 
     fun getBonusToHit(isBonusAction: Boolean): Int {
         // TODO: support separate attack bonus for BonusAttack
-        return if (weapon != null) character.getAttackBonus(weapon) else 0
+        return if (weapon != null) character.getAttackBonus(weapon) else character.getSpellBonusToHit()
     }
 
     fun getDamageDice(): DiceBlock {
@@ -34,5 +34,9 @@ data class MeleeOrRangeAttack(
         }
         println("invalid attack: weapon/spell not found")
         return DiceBlockHelper.emptyBlock()
+    }
+
+    override fun toString(): String {
+        return if (spellAttack != null) spellAttack.toString() else if (weapon != null) return weapon.name else "unknown"
     }
 }

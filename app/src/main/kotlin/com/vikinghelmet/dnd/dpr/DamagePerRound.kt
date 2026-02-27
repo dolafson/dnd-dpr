@@ -20,7 +20,7 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
     }
     fun debug(label: String) {
         if (Globals.debug) {
-            println("$label, (avg, min, max) = ($avg, $min, $max)")
+            println(String.format("%s, (avg, min, max) = (%2.2f, %2.2f, %2.2f)", label, avg, min, max))
         }
     }
 }
@@ -320,6 +320,7 @@ class DamagePerRound(var character: Character)
 
     fun getSavingThrowSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster): Float
     {
+        if (Globals.debug) println("\n##### getSavingThrowSpellDPR: $spellAttack")
         val isTargetEvasive = monster.properties.isEvasive()
         val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
@@ -478,17 +479,14 @@ class DamagePerRound(var character: Character)
     // ==========================================================
     fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAttack, attack: Attack, monster: Monster): Float
     {
+        if (Globals.debug) println("\n##### getMeleeOrRangeDPR: $meleeOrRangeAttack")
+
         val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
         val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
         val isBonusAction = attack.isBonusAction ?: false
         val bonusDamage   = meleeOrRangeAttack.getBonusDamage(isBonusAction) + (preconditions.bonusDamage ?: 0)
         println()
-
-        if (Globals.debug) {
-            println("meleeOrRange damage: " + meleeOrRangeAttack.getDamageDice())
-            println()
-        }
 
         val attackBonus = meleeOrRangeAttack.getBonusToHit(isBonusAction)
 
@@ -501,10 +499,13 @@ class DamagePerRound(var character: Character)
 
         val damageDice = meleeOrRangeAttack.getDamageDice().add(bonusDamageDice)
 
+        if (Globals.debug) {
+            println("meleeOrRange damage: " + damageDice) // include bonusDamageDice ...
+            println()
+        }
 
         val attackDPR = getAttackDPR(
-            attack,
-            monster, damageDice, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamage,
+            attack, monster, damageDice, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamage,
         )
 
 /* Avg DPR:  (Y9, AC9, AG9) ->
@@ -551,7 +552,7 @@ class DamagePerRound(var character: Character)
 
         // DPC (damage per crit)          (B208, F208, J208)
         val critDamage = getAvgMinMax(damageDice.double(), bonusDamage)
-        fullDamage.debug("Crit Damage")
+        critDamage.debug("Crit Damage")
 
         if (Globals.debug) println("")
 
@@ -561,10 +562,14 @@ class DamagePerRound(var character: Character)
             critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
         )
-        fullDamage.debug("Crit %Hit")
+        critChance.debug("Crit %Hit")
 
         // Normal Attack DPR (does not include bonus attack):          (B202, F202, J202)
-        val numTargets = attack.numTargets ?: 1
+
+        // Melee or Range attack: 1 target per attack
+        // (ignore 'numTargets' in user input, that only applies to spells with AOE impact)
+
+        val numTargets = 1
         val attackDPR = AvgMinMax(
             numTargets * ((chanceToHit.avg - critChance.avg) * fullDamage.avg + (critChance.avg * critDamage.avg)),
             numTargets * ((chanceToHit.max - critChance.max) * fullDamage.max + (critChance.max * critDamage.max)),

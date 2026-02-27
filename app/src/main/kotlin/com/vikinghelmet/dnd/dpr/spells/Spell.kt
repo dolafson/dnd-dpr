@@ -61,7 +61,7 @@ data class Spell(
             }
         }
 
-        println("attackList = $attackList")
+        // println("attackList = $attackList")
         return attackList
     }
 }
