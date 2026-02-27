@@ -221,7 +221,7 @@ fun main(args : Array<String>) {
         System.err.println()
         System.err.println("Turns:")
         System.err.println()
-        System.err.println("\t an array turns, each with an array of attacks, for example:")
+        System.err.println("\t an array of turns, each with an array of attacks, for example:")
         System.err.println()
         System.err.println("\t\t [ { \"attacks\": [ { \"monster\": \"Goblin\", \"attack\": \"Longbow\" } ] } ]")
         System.err.println()
