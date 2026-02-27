@@ -2,7 +2,7 @@
 
 DND Damage Per Round Calculator 
 
-This tool calculates the average Damage Per Round for Spell Attacks.  Support for Weapon Attacks may be added in a future release.  Until then, consider using [DPR Calc](https://dprcalc.com/), which provides an excellent interface for Weapon DPR (but does not yet support spells)
+This tool calculates the average Damage Per Round for Spell and Weapon Attacks.  This program currently runs from a linux/mac commandline.  For a user-friendly web interface, consider using [DPR Calc](https://dprcalc.com/), which provides great support for Weapon DPR (but does not yet support spells)
 
 This tool reads spell and monster data originally from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  
 ```
@@ -65,7 +65,7 @@ Attacks:
 
 Turns:
 
-     an array turns, each with an array of attacks, for example:
+     an array of turns, each with an array of attacks, for example:
 
          [ { "attacks": [ { "monster": "Goblin", "attack": "Longbow" } ] } ]
 
@@ -153,7 +153,6 @@ In no particular order ...
   - then cast a different spell which requires a save roll, including the above penalty
 - add optional support for constraint checks
   - your character doesn't know that spell, can't cast it 100 times, etc 
-- add support for weapon attacks
 - add better support for levelling up / what-if scenarios
   - for now this is done by hand-editing a character file and re-runnimg the DPR calculation
 - add a web interface
