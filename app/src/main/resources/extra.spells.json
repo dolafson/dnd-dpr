@@ -19,6 +19,17 @@
             "name": "Mind Sliver",
             "save": { "saveAbility": "Intelligence", "onSucceed": "unaffected" }
           }
+        },
+        {
+          "name": "Hail of Thorns Damage",
+          "parent": "Mind Sliver Attack",
+          "payload": {
+            "type": "Damage",
+            "ability": "none",
+            "damageType": "Psychic",
+            "diceCount": 1,
+            "diceSize": "d6"
+          }
         }
       ],
       "Damage": "1d6",
