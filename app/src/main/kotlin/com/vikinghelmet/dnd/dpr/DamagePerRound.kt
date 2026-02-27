@@ -1,9 +1,9 @@
 package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
@@ -318,7 +318,7 @@ class DamagePerRound(var character: Character)
     // ==========================================================
     // here is where the fun really begins
 
-    fun calculateSpellDPR(spell: Spell, attack: Attack, monster: Monster): Float
+    fun getSavingThrowSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster): Float
     {
         val isTargetEvasive = monster.properties.isEvasive()
         val preconditions = attack.preconditions ?: Preconditions()
@@ -334,18 +334,18 @@ class DamagePerRound(var character: Character)
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
         // (this can be done manually via bonusDamageOnFirstHit, but more explicit support would be good)
 
-        val maxNumberOfTargets = if (spell.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
+        val maxNumberOfTargets = if (spellAttack.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
 
-        val numberOfTargets  = Math.min(attack.numTargets ?: 1, maxNumberOfTargets)
-        val spellSaveResults = spell.getSpellSaveResult()
+        val numberOfTargets = Math.min(attack.numTargets ?: 1, maxNumberOfTargets)
+        val saveResult = spellAttack.getSaveResult()
         println()
         println("spell duration (max): " + spell.getDuration())
-        println("spell damage:         " + spell.getDamage())
+        println("spell damage:         " + spellAttack.getDamageDice())
         println("num effects/targets:  $numberOfTargets")
         println()
 
         var targetSaveBonus = 0
-        val save = spell.getFirstAttackSave() // TODO: need something more flexible here
+        val save = spellAttack.attackPayload.save
 
         val ability = save?.saveAbility
         if (ability != null) {
@@ -353,13 +353,13 @@ class DamagePerRound(var character: Character)
             targetSaveBonus = monster.properties.getMod(ability)
             println("target save proficiency = $targetSaveBonus")
             println("spell caster save DC    = "+character.getSpellSaveDC())
-            println("spell save result:      = $spellSaveResults")
+            println("spell save result:      = $saveResult")
             println("")
         }
 
-        val noSave      = spellSaveResults.isEmpty()
-        val saveForHalf = spellSaveResults.contains(SaveResult.HALF_DAMAGE)
-        val saveEvery   = spellSaveResults.contains(SaveResult.SPELL_ENDS) // TODO: also condition ends ???
+        val noSave      = saveResult == SaveResult.NOT_APPLICABLE // TODO: null ?
+        val saveForHalf = saveResult == SaveResult.HALF_DAMAGE
+        val saveEvery   = saveResult == SaveResult.SPELL_ENDS // TODO: also condition ends ???
 
         // 6. Chance to Hit (Hit%)
         // Use saveProb to calculate the save probability for the target (monster),
@@ -374,15 +374,15 @@ class DamagePerRound(var character: Character)
 
         chanceToHit.debug("Chance to Hit")
 
-        if (spell.getDamage().isEmpty()) {
+        if (spellAttack.getDamageDice().isEmpty()) {
             println ("This spell never directly creates damage")
             return 0f
         }
 
-        val fullDamage: AvgMinMax = getAvgMinMax(spell.getDamage(), bonusDamage)
+        val fullDamage: AvgMinMax = getAvgMinMax(spellAttack.getDamageDice(), bonusDamage)
         fullDamage.debug("Full Damage")
 
-        val halfDamage = fullDamage.half(spell.getDamage())
+        val halfDamage = fullDamage.half(spellAttack.getDamageDice())
         halfDamage.debug("Half Damage")
         if (Globals.debug) println("")
 
@@ -476,27 +476,35 @@ class DamagePerRound(var character: Character)
     }
 
     // ==========================================================
-    fun calculateWeaponDPR(weapon: Weapon, attack: Attack, monster: Monster): Float
+    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAttack, attack: Attack, monster: Monster): Float
     {
         val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
         val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
-        val bonusDamage   = character.getDamageBonus(weapon, attack.isBonusAction ?: false) + (preconditions.bonusDamage ?: 0)
+        val isBonusAction = attack.isBonusAction ?: false
+        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(isBonusAction) + (preconditions.bonusDamage ?: 0)
         println()
 
         if (Globals.debug) {
-            println("weapon damage:         " + weapon.getDamageDice())
+            println("meleeOrRange damage: " + meleeOrRangeAttack.getDamageDice())
             println()
         }
 
-        val attackBonus = character.getAttackBonus(weapon) // TODO: support separate attack bonus for BonusAttack
+        val attackBonus = meleeOrRangeAttack.getBonusToHit(isBonusAction)
 
         println("target AC:     "+monster.properties.dataAcNum)
         println("attack Bonus:  "+attackBonus)
         println()
 
+        // bonus DD is how we cover effects like Hunters Mark
+        val bonusDamageDice = attack.preconditions?.bonusDamageDice ?: DiceBlock(0, 0, 0, 0, 0)
+
+        val damageDice = meleeOrRangeAttack.getDamageDice().add(bonusDamageDice)
+
+
         val attackDPR = getAttackDPR(
-            weapon, attack, monster, true, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamage,
+            attack,
+            monster, damageDice, bonusDiceToHit, penaltyDiceToHit, attackBonus, bonusDamage,
         )
 
 /* Avg DPR:  (Y9, AC9, AG9) ->
@@ -517,8 +525,9 @@ class DamagePerRound(var character: Character)
     }
 
     private fun getAttackDPR(
-        weapon: Weapon, attack: Attack, monster: Monster, mainAttack: Boolean,
-        bonusDiceToHit: DiceBlock, penaltyDiceToHit: DiceBlock, attackBonus: Int, bonusDamage: Int,
+        attack: Attack,
+        monster: Monster, damageDice: DiceBlock, bonusDiceToHit: DiceBlock, penaltyDiceToHit: DiceBlock,
+        attackBonus: Int, bonusDamage: Int,
     ): AvgMinMax {
         val AC = monster.properties.dataAcNum
 
@@ -533,12 +542,8 @@ class DamagePerRound(var character: Character)
         )
         chanceToHit.debug("Chance to Hit")
 
+        val mainAttack = !(attack.isBonusAction ?: false)
         println(String.format("avg %%hit (%s):   %2.2f",  (if (mainAttack) "main" else "bonus"), chanceToHit.avg))
-
-        // bonus DD is how we cover effects like Hunters Mark
-        val bonusDamageDice = attack.preconditions?.bonusDamageDice ?: DiceBlock(0, 0, 0, 0, 0)
-
-        val damageDice = weapon.getDamageDice().add(bonusDamageDice)
 
         // DPH:                             (B205, F205, J205)
         val fullDamage = getAvgMinMax(damageDice, bonusDamage)
@@ -558,13 +563,12 @@ class DamagePerRound(var character: Character)
         )
         fullDamage.debug("Crit %Hit")
 
-        val numberOfTargets = attack.numTargets ?: 1
-
         // Normal Attack DPR (does not include bonus attack):          (B202, F202, J202)
+        val numTargets = attack.numTargets ?: 1
         val attackDPR = AvgMinMax(
-            numberOfTargets * ((chanceToHit.avg - critChance.avg) * fullDamage.avg + (critChance.avg * critDamage.avg)),
-            numberOfTargets * ((chanceToHit.max - critChance.max) * fullDamage.max + (critChance.max * critDamage.max)),
-            numberOfTargets * ((chanceToHit.min - critChance.min) * fullDamage.min + (critChance.min * critDamage.min)),
+            numTargets * ((chanceToHit.avg - critChance.avg) * fullDamage.avg + (critChance.avg * critDamage.avg)),
+            numTargets * ((chanceToHit.max - critChance.max) * fullDamage.max + (critChance.max * critDamage.max)),
+            numTargets * ((chanceToHit.min - critChance.min) * fullDamage.min + (critChance.min * critDamage.min)),
         )
         attackDPR.debug("Attack DPR (main="+mainAttack+")")
         return attackDPR

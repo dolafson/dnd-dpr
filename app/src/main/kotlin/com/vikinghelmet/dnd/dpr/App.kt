@@ -58,12 +58,21 @@ fun calculateDPR(attack: Attack): Float {
 
     val spell = getSpell(attack.attack)
     if (spell != null) {
-        return dpr.calculateSpellDPR (spell, attack, monster)
+        var total = 0f
+        for (spellAttack in spell.getSpellAttacks()) {
+            total += if (spellAttack.isSavingThrowAttack()) {
+                dpr.getSavingThrowSpellDPR (spellAttack, spell, attack, monster)
+            } else {
+                dpr.getMeleeOrRangeDPR (MeleeOrRangeAttack (character!!, spellAttack, null), attack, monster)
+            }
+        }
+        return total
     }
 
     val weapon = getWeapon(attack.attack)
     if (weapon != null) {
-        return dpr.calculateWeaponDPR (weapon, attack, monster)
+        val meleeOrRangeAttack = MeleeOrRangeAttack(character!!, null, weapon)
+        return dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
     }
 
     println()

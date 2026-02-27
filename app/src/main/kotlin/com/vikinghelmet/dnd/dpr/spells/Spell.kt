@@ -1,8 +1,7 @@
 package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
-import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import kotlinx.serialization.Serializable
 
 // https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
@@ -45,55 +44,24 @@ data class Spell(
         }
     }
 
-    fun getDamage(): DiceBlock {
-        return DiceBlockHelper.getDiceBlock(properties.Damage)
-    }
-
-    fun getFirstAttackSave(): Attack.Save? {
-        val data = properties.dataDatarecords ?: return null
-        // println(dataRecordList)
+    fun getSpellAttacks(): List<SpellAttack> {
+        val attackList = mutableListOf<SpellAttack>()
+        val data = properties.dataDatarecords ?: return attackList
         for (d in data) {
             if (d.payload is Attack) {
-                return d.payload.save
-            }
-        }
-        return null
-    }
-
-    fun getSpellSaveResult(): List<SaveResult> {
-        val result = mutableListOf<SaveResult>()
-        val data = properties.dataDatarecords ?: return result
-        // println(dataRecordList)
-        for (d in data) {
-            if (d.payload is Attack) {
-                if (d.payload.save != null) {
-                    val attackResult = d.payload.save.getSaveResult()
-                    if (attackResult != SaveResult.NOT_APPLICABLE) {
-                        result.add(attackResult)
+                var damagePayload : Damage? = null
+                // attach Damage to Attack where applicable
+                for (d2 in data) {
+                    if (d2.payload is Damage && d2.parent == d.name) {
+                        damagePayload = d2.payload
+                        break
                     }
                 }
+                attackList.add(SpellAttack(d.payload, damagePayload))
             }
         }
 
-        return result
-    }
-
-
-    fun isAreaOfEffectBig(): Boolean {
-        val data = properties.dataDatarecords ?: return false
-        // println(dataRecordList)
-        for (d in data) {
-            //println(d)
-            if (d.payload is Attack) {
-                //println("attackPayload: "+attackPayload)
-                // println("aoe: " + d.payload.aoe)
-
-                if (d.payload.aoe != null) {
-                    return d.payload.aoe.isBig()
-                }
-            }
-        }
-
-        return false
+        println("attackList = $attackList")
+        return attackList
     }
 }
