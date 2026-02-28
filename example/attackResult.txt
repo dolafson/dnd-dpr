@@ -1,0 +1,41 @@
+#######################################################
+
+	level                2
+	characterName        Leif Lightfoot
+	spellBonusToHit      4
+	spellSaveDC          12
+	monsterName          Goblin
+	monsterAC            15
+	scenario             attack
+
+#######################################################
+
+	turn                 1
+	action               1
+	effect               1
+	attack               Longbow
+	weaponDamage         1d8
+	weaponDamageBonus    4
+	weaponAttackBonus    8
+	numTargets           1
+	chanceToHit          0.70
+	damagePerHit         12.00
+	duration             1.00
+	damageFullEffect     8.80
+
+	turn                 1
+	action               BA
+	effect               1
+	attack               Hail of Thorns
+	spellSaveAbility     Dexterity
+	targetSaveBonus      2
+	numTargets           3
+	chanceToHit          0.57
+	damagePerHit         4.22
+	duration             0.00
+	damageFullEffect     12.67
+
+	TURN TOTAL           21.47
+
+	SCENARIO TOTAL       21.47
+

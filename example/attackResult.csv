@@ -1,0 +1,5 @@
+level,characterName,spellBonusToHit,spellSaveDC,monsterName,monsterAC,scenario,turn,action,effect,attack,weaponDamageDice,weaponDamageBonus,weaponAttackBonus,spellSaveAbility,targetSaveBonus,numTargets,chanceToHit,damagePerHit,duration,fullEffectDamage,
+2,Leif Lightfoot,4,12,Goblin,15,attack,1,1,1,Longbow,1d8,4,8,,,1,0.70,12.00,1.00,8.80,
+2,Leif Lightfoot,4,12,Goblin,15,attack,1,BA,1,Hail of Thorns,,,,Dexterity,2,3,0.57,4.22,0.00,12.67,
+,,,,,,attack,1,TURN TOTAL,,,,,,,,,,,,21.47,
+,,,,,,attack,,SCENARIO TOTAL,,,,,,,,,,,,21.47,

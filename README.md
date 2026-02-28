@@ -150,7 +150,7 @@ While performing the Attack DPR calculation, several stats are calculated and di
 ```
 
 In this sample output, the key things to note are
-- this [character](https://www.dndbeyond.com/characters/156562617) has a high proficiency with the [Longbow](https://www.dndbeyond.com/equipment/37-longbow)
+- this [character](example/character.json) has a high proficiency with the [Longbow](https://www.dndbeyond.com/equipment/37-longbow)
   - with an attack bonus of 8, the chance to hit is 70%
   - on a successful hit, the average damage is 12 
     - 1d8 (weapon) + 1d6 ([Hunter's Mark](https://www.dndbeyond.com/spells/2619166-hunters-mark)) + 4 (proficiency)
@@ -170,6 +170,7 @@ In this sample output, the key things to note are
   - (Hail of Thorns has a **save** roll, not an **attack** roll)
 - spell full effect damage is 12.67 (across 3 targets)
 - total DPR is 21.47 (longbow + spell)
+- sample output in [TXT](example/attackResult.txt) and [CSV](example/attackResult.csv)
 
   
 ## Future Improvements
