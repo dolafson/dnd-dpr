@@ -105,46 +105,65 @@ Turns:
 While performing the Attack DPR calculation, several stats are calculated and displayed.  This output format is subject to change.  It currently looks like this: 
 
 ```
-spell duration:      10
-spell damage:        DiceBlock(d4=0, d6=1, d8=0, d10=0, d12=0)
-spell save result:   [SPELL_ENDS]
-num effects/targets: 1
+#######################################################
 
-spell save ability      = Strength
-target save proficiency = -1
-spell caster save DC    = 12
+	level                2
+	characterName        Leif Lightfoot
+	spellBonusToHit      4
+	spellSaveDC          12
+	monsterName          Goblin
+	monsterAC            15
+	scenario             goblin.longbow.hail.of.thorns
 
-Chance to Hit, (avg, min, max) = (0.6, 0.36, 0.84)
-Full Damage, (avg, min, max) = (3.5, 1.0, 6.0)
-Half Damage, (avg, min, max) = (1.5, 0.0, 3.0)
+#######################################################
 
-Full Damage (First Hit), (avg, min, max) = (0.0, 0.0, 0.0)
-Half Damage (First Hit), (avg, min, max) = (0.0, 0.0, 0.0)
-Chance of at least one hit, (avg, min, max) = (0.6, 0.36, 0.84)
+	turn                 1
+	action               1
+	effect               1
+	attack               Longbow
+	weaponDamage         1d8
+	weaponDamageBonus    4
+	weaponAttackBonus    8
+	numTargets           1
+	chanceToHit          0.70
+	damagePerHit         8.50
+	duration             1.00
+	damageFullEffect     6.17
 
-Damage Per Target, (avg, min, max) = (2.7, 2.22, 3.1799998)
-Damage Per Failed Save, (avg, min, max) = (3.5, 1.0, 6.0)
-Damage Per Successful Save, (avg, min, max) = (0.0, 0.0, 0.0)
-Damage Per Hit, (avg, min, max) = (2.1000001, 1.26, 2.9399998)
+	turn                 1
+	action               BA
+	effect               1
+	attack               Hail of Thorns
+	spellSaveAbility     Dexterity
+	targetSaveBonus      2
+	numTargets           3
+	chanceToHit          0.45
+	damagePerHit         3.85
+	duration             0.00
+	damageFullEffect     11.55
 
-Average Damage Per Round, (avg, min, max) = (2.1000001, 1.26, 2.9399998)
-Average Duration (In Rounds), (avg, min, max) = (1.4909303, 0.56247944, 4.331768)
-Average Total Damage Over Time, (avg, min, max) = (5.218256, 1.968678, 15.161188)
+	TURN TOTAL           17.72
+
+	SCENARIO TOTAL       17.72
+
 ```
 
 In this sample output, the key things to note are
-- the spell has a max duration of 1 minute (10 rounds)
-- each round it may trigger 1d6 damage
-- the number of effects/targets is 1 (this is a default)
-  - Note: some spells may impact more than 1 target; this needs to be made configurable
-- on a succesful hit, the spell requires the target to perform a Strength saving throw
-  - the monster (Goblin) is low on Strength, so for this spell it has a save proficiency of -1
+- the character has a high proficiency with the longbow
+  - with an attack bonus of 8, the chance to hit is 70%
+  - on a successful hit, the damage is 8.5 (1d8 + 4)
+  - the average damage for this attack is 6.17 (%hit * DPH)
+- the (bonus attack) spell requires the target to perform a Dexterity saving throw
+  - Goblins have above average Dexterity, so for this spell the target save proficiency is 2
   - the spellcaster has a save DC of 12
 - as a result ...
-  - the monster needs to roll a 13 or higher to avoid the spell effect
-  - the "chance to hit" is 60%
-- average duration is 1.49 rounds
-- average total damage (until spell ends) is 5.21
+  - the monster needs to roll a 10 or higher to avoid the spell effect
+  - the "chance to hit" is 45%
+- the number of spell effects/targets is 3 (the Goblin has 2 friends within 5 feet)
+  - Note: this number should be configurable
+- spell damage per target is 3.85 (%hit * (1d10 per hit))
+- full effect damage is 11.55 (across 3 targets)
+- total DPR is 17.72 (longbow + spell)
 
   
 ## Future Improvements

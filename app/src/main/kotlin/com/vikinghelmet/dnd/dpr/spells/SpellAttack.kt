@@ -16,6 +16,10 @@ data class SpellAttack(
         return attackPayload.save != null
     }
 
+    fun getSaveAbility(): String {
+        return if (attackPayload.save == null) "" else  attackPayload.save.saveAbility
+    }
+
     fun getDamageDice(): DiceBlock {
         if (damagePayload == null) return DiceBlockHelper.emptyBlock()
         val diceCount = damagePayload.diceCount?: 1 // TODO: if absent, usually a cantrip that increases based on char level ...

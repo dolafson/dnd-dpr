@@ -20,7 +20,8 @@ data class MeleeOrRangeAttack(
 
     fun getBonusToHit(isBonusAction: Boolean): Int {
         // TODO: support separate attack bonus for BonusAttack
-        return if (weapon != null) character.getAttackBonus(weapon) else character.getSpellBonusToHit()
+        return if (weapon != null) character.getAttackBonus(weapon) else character.
+        getSpellBonusToHit()
     }
 
     fun getDamageDice(): DiceBlock {
