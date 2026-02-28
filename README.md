@@ -153,7 +153,7 @@ In this sample output, the key things to note are
 - this [character](https://www.dndbeyond.com/characters/156562617) has a high proficiency with the [Longbow](https://www.dndbeyond.com/equipment/37-longbow)
   - with an attack bonus of 8, the chance to hit is 70%
   - on a successful hit, the average damage is 12 
-    - 1d8 (weapon) + 1d6 (Hunter's Mark) + 4 (proficiency)
+    - 1d8 (weapon) + 1d6 ([Hunter's Mark](https://www.dndbeyond.com/spells/2619166-hunters-mark)) + 4 (proficiency)
   - the average damage for this action is 8.8 (%hit * DPH)
 - the [Hail of Thorns](https://www.dndbeyond.com/spells/2618975-hail-of-thorns) (bonus attack spell) triggers a Dexterity saving throw
   - the [Goblin](https://www.dndbeyond.com/monsters/16907-goblin) has above average Dexterity, so their save bonus is 2
