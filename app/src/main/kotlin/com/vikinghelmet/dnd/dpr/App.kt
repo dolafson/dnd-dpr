@@ -3,12 +3,16 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.character
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.monsters
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.outputFormat
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.scenario
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.spells
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.turns
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -23,99 +27,6 @@ class App {
             return "Hello World!"
         }
 }
-
-val spells = ArrayList<Spell>()
-val monsters = ArrayList<Monster>()
-val turns = ArrayList<Turn>()
-var character: Character? = null
-
-fun calculateDPR(turn: Turn): Float {
-    var total = 0f
-    var count = 1
-
-    for (attack in turn.attacks) {
-        if (attack.preconditions == null) {
-            attack.preconditions = turn.preconditions
-        }
-        val damage = calculateDPR(attack)
-        println(String.format("attack $count, damage = %2.2f", damage))
-        total += damage
-        count++
-    }
-    //println(String.format("\tattack total damage = %2.2f", total))
-    //println()
-    return total
-}
-
-fun calculateDPR(attack: Attack): Float {
-    val monster = getMonster(attack.monster)
-    if (monster == null) {
-        println("monster not found: "+attack.monster)
-        return 0f
-    }
-
-    val dpr = DamagePerRound(character!!)
-
-    val spell = getSpell(attack.attack)
-    if (spell != null) {
-        var total = 0f
-        for (spellAttack in spell.getSpellAttacks()) {
-            total += if (spellAttack.isSavingThrowAttack()) {
-                dpr.getSavingThrowSpellDPR (spellAttack, spell, attack, monster)
-            } else {
-                dpr.getMeleeOrRangeDPR (MeleeOrRangeAttack (character!!, spellAttack, null), attack, monster)
-            }
-        }
-        return total
-    }
-
-    val weapon = getWeapon(attack.attack)
-    if (weapon != null) {
-        val meleeOrRangeAttack = MeleeOrRangeAttack(character!!, null, weapon)
-        return dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
-    }
-
-    println()
-    println("spell or weapon not found: "+attack.attack)
-    println()
-    println("character weapons: "+character!!.getWeaponNames())
-    println()
-
-    return 0f
-}
-
-fun getMonster(name: String): Monster? {
-    if (monsters.isEmpty()) return null
-
-    for (monster in monsters) {
-        if (monster.name == name) {
-            return monster
-        }
-    }
-    return null
-}
-
-fun getSpell(name: String?): Spell? {
-    if (name == null || spells.isEmpty()) return null
-
-    for (spell in spells) {
-        if (spell.name == name) {
-            if (!spell.isSameIn2014And2024() && character!!.is2014() != spell.is2014()) {
-                continue
-            }
-
-            return spell
-        }
-    }
-    return null
-}
-
-fun getWeapon(name: String?): Weapon? {
-    if (name == null || character == null || character!!.getWeaponList().isEmpty()) return null
-    for (weapon in character!!.getWeaponList()) if (weapon.name == name) return weapon
-    return null
-}
-
 
 fun getRequest(url: String): String? {
     val client = OkHttpClient() // TODO move?
@@ -145,38 +56,6 @@ fun getCharacter(arg: String): Character? {
     return Json.decodeFromString(charJson)
 }
 
-fun dump(arg: String) {
-    if (!arg.contains(":")) {
-        for (item in spells)    println(Json.encodeToString(item))
-        for (item in monsters)  println(Json.encodeToString(item))
-        for (item in turns)   println(Json.encodeToString(item))
-        println(Json.encodeToString(character))
-        return
-    }
-
-    val dumpType = arg.split(":")[1]
-    when (dumpType) {
-        "spells" -> {
-            for (item in spells)  println(Json.encodeToString(item))
-        }
-        "monsters" -> {
-            for (item in monsters)  println(Json.encodeToString(item))
-        }
-        "attacks" -> {
-            for (item in turns)  println(Json.encodeToString(item))
-        }
-        "character" -> {
-            println(Json.encodeToString(character))
-        }
-    }
-}
-
-fun search(arg: String) {
-    val searchValue = arg.split(":")[1]
-    for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-    for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-}
-
 fun getResource(fileName: String): String? {
     val inputStream: InputStream = object {}.javaClass.getResourceAsStream("/$fileName") ?: return null
     try {
@@ -192,7 +71,7 @@ fun main(args : Array<String>) {
 
     if (args.isEmpty()) {
         System.err.println()
-        System.err.println("Usage: [-d]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >");
+        System.err.println("Usage: [-d] [--csv] [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >");
         System.err.println()
         System.err.println("File:")
         System.err.println()
@@ -267,6 +146,7 @@ fun main(args : Array<String>) {
         if (arg.startsWith("-")) {
             when (arg) {
                 "-d" -> Globals.debug = true
+                "--csv" -> outputFormat = "csv"
                 "-a" -> {
                     val attackList = mutableListOf<Attack>()
                     for (j in (i+1) until args.size step 2) {
@@ -293,6 +173,7 @@ fun main(args : Array<String>) {
             }
             else if (jsonString.contains("\"monster\"")) {
                 turns.addAll(Json.decodeFromString(jsonString))
+                scenario = File(arg).nameWithoutExtension
             }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
@@ -305,11 +186,11 @@ fun main(args : Array<String>) {
             character = getCharacter(arg)
         }
         else if (arg.startsWith("dump")) {
-            dump(arg)
+            TurnCalculator.dump(arg)
             exitEarly = true
         }
         else if (arg.startsWith("search")) {
-            search(arg)
+            TurnCalculator.search(arg)
             exitEarly = true
         }
         else if (arg.startsWith("test")) {
@@ -334,13 +215,6 @@ fun main(args : Array<String>) {
         println("no attacks specified")
     }
     else {
-        var turnId = 1
-        for (turn in turns) {
-            val dpr = calculateDPR(turn)
-            println()
-            println(String.format("turn $turnId, dpr = %2.2f", dpr))
-            turnId++
-        }
-        println()
+        TurnCalculator.calculateDPRForAllTurns()
     }
 }

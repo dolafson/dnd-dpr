@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr
+package com.vikinghelmet.dnd.dpr.turn
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
