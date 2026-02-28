@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 
 data class AttackResult(
+    val numTargets: Int,
     val chanceToHit: AvgMinMax,
     val damagePerHit: AvgMinMax,
     val damagePerRound: AvgMinMax,
@@ -11,7 +12,7 @@ data class AttackResult(
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
 ) {
     fun output(format: String, character: Character, monster: Monster, scenario: String,
-               turn: Int, action: String, effect: Int, attackLabel: String, numTargets: Int)
+               turn: Int, action: String, effect: Int, attackLabel: String)
     {
         val buf = StringBuilder("")
 
@@ -57,8 +58,10 @@ object AttackResultFormatter {
 
     fun format(fmt: String, fieldName: String, value: Any): String {
         isTxtFirstResultDone = true
-        return if (fmt == "csv") "$value,"
-        else String.format("\t%-20s %s\n",fieldName, value)
+        val strValue = if (value is Float) String.format("%2.2f", value) else value
+
+        return if (fmt == "csv") "$strValue,"
+        else String.format("\t%-20s %s\n",fieldName, strValue)
     }
 
     fun footer(outputFormat: String, scenario: String, turnId: Any, actionLabel: String, totalDamage: Float) {

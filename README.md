@@ -35,7 +35,12 @@ java -jar ./app/build/libs/app-standalone.jar
 
 ## Usage
 ```
-Usage:  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >
+Usage:  [-d] [--csv]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >
+
+Options:
+
+    -d      debug
+    --csv   CSV output
 
 File:
 
@@ -95,7 +100,7 @@ Turns:
 
 <br>
 
-## Output Format
+## Output Format (TXT)
 
 While performing the Attack DPR calculation, several stats are calculated and displayed.  This output format is subject to change.  It currently looks like this: 
 
@@ -147,7 +152,6 @@ In this sample output, the key things to note are
 In no particular order ...
 
 - add unit tests
-- structured logging (log4j / logback)
 - add support for cascading conditions between attacks, for example:
   - cast Mind Sliver, which on a hit reduces the target's next save roll by 1d4
   - then cast a different spell which requires a save roll, including the above penalty

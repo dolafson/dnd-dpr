@@ -3,16 +3,16 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.character
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.monsters
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.outputFormat
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.scenario
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.spells
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.turns
-import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -66,47 +66,50 @@ fun getResource(fileName: String): String? {
     }
 }
 
-fun main(args : Array<String>) {
-    var exitEarly = false
+fun showUsage() {
+    System.err.println("""
+Usage:  [-d] [--csv]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >
 
-    if (args.isEmpty()) {
-        System.err.println()
-        System.err.println("Usage: [-d] [--csv] [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >");
-        System.err.println()
-        System.err.println("File:")
-        System.err.println()
-        System.err.println("\t file.json \t load spell or monster data; this is optional: program contains most 2014 and 2024 data")
-        System.err.println()
-        System.err.println("Character:")
-        System.err.println()
-        System.err.println("\t NumericID \t read character from DND Beyond API (character must have public visibility)")
-        System.err.println("\t file.json \t read character from a local file")
-        System.err.println()
-        System.err.println("Dump:")
-        System.err.println()
-        System.err.println("\t dump:spells \t export all known spells");
-        System.err.println("\t dump:monsters \t export all known monsters");
-        System.err.println("\t dump:attacks \t export attacks from user input");
-        System.err.println("\t dump:character\t export (minimal) character data from DND Beyond");
-        System.err.println("\t dump \t\t export all of the above");
-        System.err.println()
-        System.err.println("Search:")
-        System.err.println()
-        System.err.println("\t search:NAME \t search for NAME in list of spells/monsters, and display details if found");
-        System.err.println()
-        System.err.println("Attacks:")
-        System.err.println()
-        System.err.println("\t -a  <monster spellOrWeapon> ...    (multiple pairs allowed)")
-        System.err.println()
-        System.err.println("Turns:")
-        System.err.println()
-        System.err.println("\t an array of turns, each with an array of attacks, for example:")
-        System.err.println()
-        System.err.println("\t\t [ { \"attacks\": [ { \"monster\": \"Goblin\", \"attack\": \"Longbow\" } ] } ]")
-        System.err.println()
-        System.err.println()
-        System.err.println("\t optional notes and preconditions are also supported, for example:")
-        System.err.println("""
+Options:
+
+    -d      debug
+    --csv   CSV output
+
+File:
+
+     file.json   load spell or monster data; this is optional: program contains most 2014 and 2024 data
+
+Character:
+
+     NumericID   read character from DND Beyond API (character must have public visibility)
+     file.json   read character from a local file
+
+Dump:
+
+     dump:spells     export all known spells
+     dump:monsters   export all known monsters
+     dump:attacks    export attacks from user input
+     dump:character  export (minimal) character data from DND Beyond
+     dump            export all of the above
+
+Search:
+
+     search:spells:NAME      search for name in list of spells, and display details if found
+     search:monsters:NAME    search for name in list of spells, and display details if found
+
+Attacks:
+
+     -a  <monster spellOrWeapon> ...    (multiple pairs allowed)
+
+Turns:
+
+     an array of turns, each with an array of attacks, for example:
+
+         [ { "attacks": [ { "monster": "Goblin", "attack": "Longbow" } ] } ]
+
+
+     optional notes and preconditions are also supported, for example:
+
     [
       {
         "notes": [
@@ -125,22 +128,26 @@ fun main(args : Array<String>) {
             { "monster": "Goblin", "attack": "Ensnaring Strike", "isBonusAction": true }
         ]    
       } 
-    ]
-        """)
-        System.err.println()
+    ]            
+""")
+
+}
+
+fun main(args : Array<String>) {
+    var exitEarly = false
+
+    if (args.isEmpty()) {
+        showUsage()
+        System.exit(0)
     }
 
-    val spellResource = getResource("spells.json")
-    if (spellResource != null)  spells.addAll(Json.decodeFromString(spellResource))
+    for (filename in mutableListOf("spells.json","extra.spells.json")) {
+        spells.addAll (Json.decodeFromString (getResource(filename) ?: "[]"))
+    }
 
-    val spellResource2 = getResource("extra.spells.json")
-    if (spellResource2 != null)  spells.addAll(Json.decodeFromString(spellResource2))
-
-    val monsterResource = getResource("monsters.json")
-    if (monsterResource != null)  monsters.addAll(Json.decodeFromString(monsterResource))
+    monsters.addAll (Json.decodeFromString (getResource("monsters.json") ?: "[]"))
 
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
-    //     for (arg in args) {
     for (i in args.indices) {
         val arg = args[i]
         if (arg.startsWith("-")) {

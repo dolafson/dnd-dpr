@@ -378,7 +378,7 @@ class DamagePerRound(var character: Character)
 
         if (spellAttack.getDamageDice().isEmpty()) {
             debug ("This spell never directly creates damage")
-            return AttackResult(chanceToHit, AvgMinMax(0f,0f,0f),
+            return AttackResult(numberOfTargets, chanceToHit, AvgMinMax(0f,0f,0f),
                 AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f)
             )
         }
@@ -477,7 +477,7 @@ class DamagePerRound(var character: Character)
         //  (a) calc damage for each round individually
         //  (b) calc total damage across all rounds (some spells have multi-round impact)
 
-        return AttackResult(chanceToHit, damagePerHit, averageDPR, averageDuration, averageTotalDamageOverTime)
+        return AttackResult(numberOfTargets, chanceToHit, damagePerHit, averageDPR, averageDuration, averageTotalDamageOverTime)
     }
 
     // ==========================================================
@@ -563,6 +563,6 @@ class DamagePerRound(var character: Character)
                     =J202+IF($G$42="Same as other attacks",Y202,$AD$202)+AR211  +AR199
         */
 
-        return AttackResult(chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR)
+        return AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR)
     }
 }

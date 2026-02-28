@@ -68,12 +68,11 @@ object TurnCalculator {
                 } else {
                     dpr.getMeleeOrRangeDPR (MeleeOrRangeAttack (character!!, spellAttack, null), attack, monster)
                 }
-                val actionLabel = if (attack.isBonusAction ?: false) "BA" else ""+actionId
-                attackResult.output(outputFormat, character!!, monster, scenario, turnId, actionLabel, effectCount, spellAttack.toString(), attack.numTargets ?: 1)
+                val actionLabel = if (attack.isBonusAction == true) "BA" else ""+actionId
+                attackResult.output(outputFormat, character!!, monster, scenario, turnId, actionLabel, effectCount, spellAttack.toString())
 
                 totalDamage += attackResult.damagePerRound.avg
-
-                if (attack.isBonusAction ?: false) effectCount++
+                effectCount ++
             }
             return totalDamage
         }
@@ -83,7 +82,7 @@ object TurnCalculator {
             val meleeOrRangeAttack = MeleeOrRangeAttack(character!!, null, weapon)
             val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
 
-            attackResult.output(outputFormat, character!!, monster, scenario, turnId, ""+actionId, 1, weapon.name, 1)
+            attackResult.output(outputFormat, character!!, monster, scenario, turnId, ""+actionId, 1, weapon.name)
 
             return attackResult.damagePerRound.avg
         }
