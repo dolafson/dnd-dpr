@@ -152,7 +152,7 @@ In this sample output, the key things to note are
 - the character has a high proficiency with the longbow
   - with an attack bonus of 8, the chance to hit is 70%
   - on a successful hit, the damage is 8.5 (1d8 + 4)
-  - the average damage for this attack is 6.17 (%hit * DPH)
+  - the average damage for this action is 6.17 (%hit * DPH)
 - the (bonus attack) spell requires the target to perform a Dexterity saving throw
   - Goblins have above average Dexterity, so for this spell the target save proficiency is 2
   - the spellcaster has a save DC of 12
@@ -162,7 +162,7 @@ In this sample output, the key things to note are
 - the number of spell effects/targets is 3 (the Goblin has 2 friends within 5 feet)
   - Note: this number should be configurable
 - spell damage per target is 3.85 (%hit * (1d10 per hit))
-- full effect damage is 11.55 (across 3 targets)
+- spell full effect damage is 11.55 (across 3 targets)
 - total DPR is 17.72 (longbow + spell)
 
   
