@@ -113,19 +113,20 @@ Turns:
     [
       {
         "notes": [
-            "Turn 1: Assume Mind Sliver was cast prior to this turn",
-            "When MS is successful, in addition to 1d6 damage, it imposes a 1d4 penalty on the target's next saving throw"
+            "Assume Mind Sliver and HM were cast prior to this turn (following 2024 rules):",
+            "- MS adds a 1d4 penalty to the target's next saving throw",
+            "- HM adds 1d6 to each subsequent attack roll for 1 hour (including melee/range attacks)"
         ],
         "preconditions": {
-            "bonusDiceToSave":       { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "penaltyDiceToSave":     { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "bonusDamageOnFirstHit": { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDiceToSave":   { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "penaltyDiceToSave": { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDamageDice":   { "d4": 0, "d6": 1, "d8": 0, "d10": 0, "d12": 0 },
             "bonusDamage": 0
         },
     
         "attacks": [
             { "monster": "Goblin", "attack": "Longbow" },
-            { "monster": "Goblin", "attack": "Ensnaring Strike", "isBonusAction": true }
+            { "monster": "Goblin", "attack": "Hail of Thorns", "isBonusAction": true, "numTargets": 3 }
         ]    
       } 
     ]            

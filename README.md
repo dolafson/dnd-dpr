@@ -80,29 +80,30 @@ Turns:
     [
       {
         "notes": [
-            "Turn 1: Assume Mind Sliver was cast prior to this turn",
-            "When MS is successful, in addition to 1d6 damage, it imposes a 1d4 penalty on the target's next saving throw"
+            "Assume Mind Sliver and HM were cast prior to this turn (following 2024 rules):",
+            "- MS adds a 1d4 penalty to the target's next saving throw",
+            "- HM adds 1d6 to each subsequent attack roll for 1 hour (including melee/range attacks)"
         ],
         "preconditions": {
-            "bonusDiceToSave":       { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "penaltyDiceToSave":     { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "bonusDamageOnFirstHit": { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDiceToSave":   { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "penaltyDiceToSave": { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
+            "bonusDamageDice":   { "d4": 0, "d6": 1, "d8": 0, "d10": 0, "d12": 0 },
             "bonusDamage": 0
         },
     
         "attacks": [
             { "monster": "Goblin", "attack": "Longbow" },
-            { "monster": "Goblin", "attack": "Ensnaring Strike", "isBonusAction": true }
+            { "monster": "Goblin", "attack": "Hail of Thorns", "isBonusAction": true, "numTargets": 3 }
         ]    
       } 
-    ]
+    ]            
 ```
 
 <br>
 
 ## Output Format (TXT)
 
-While performing the Attack DPR calculation, several stats are calculated and displayed.  This output format is subject to change.  It currently looks like this: 
+While performing the Attack DPR calculation, several stats are calculated and displayed.  The output for the above example (with preconditions) looks like this: 
 
 ```
 #######################################################
@@ -113,7 +114,7 @@ While performing the Attack DPR calculation, several stats are calculated and di
 	spellSaveDC          12
 	monsterName          Goblin
 	monsterAC            15
-	scenario             goblin.longbow.hail.of.thorns
+	scenario             goblin.longbow.hail.of.thorns.with.MS.and.HM
 
 #######################################################
 
@@ -126,9 +127,9 @@ While performing the Attack DPR calculation, several stats are calculated and di
 	weaponAttackBonus    8
 	numTargets           1
 	chanceToHit          0.70
-	damagePerHit         8.50
+	damagePerHit         12.00
 	duration             1.00
-	damageFullEffect     6.17
+	damageFullEffect     8.80
 
 	turn                 1
 	action               BA
@@ -137,33 +138,38 @@ While performing the Attack DPR calculation, several stats are calculated and di
 	spellSaveAbility     Dexterity
 	targetSaveBonus      2
 	numTargets           3
-	chanceToHit          0.45
-	damagePerHit         3.85
+	chanceToHit          0.57
+	damagePerHit         4.22
 	duration             0.00
-	damageFullEffect     11.55
+	damageFullEffect     12.67
 
-	TURN TOTAL           17.72
+	TURN TOTAL           21.47
 
-	SCENARIO TOTAL       17.72
+	SCENARIO TOTAL       21.47
 
 ```
 
 In this sample output, the key things to note are
-- the character has a high proficiency with the longbow
+- this [character](https://www.dndbeyond.com/characters/156562617) has a high proficiency with the [Longbow](https://www.dndbeyond.com/equipment/37-longbow)
   - with an attack bonus of 8, the chance to hit is 70%
-  - on a successful hit, the damage is 8.5 (1d8 + 4)
-  - the average damage for this action is 6.17 (%hit * DPH)
-- the (bonus attack) spell requires the target to perform a Dexterity saving throw
-  - Goblins have above average Dexterity, so for this spell the target save proficiency is 2
-  - the spellcaster has a save DC of 12
+  - on a successful hit, the average damage is 12 
+    - 1d8 (weapon) + 1d6 (Hunter's Mark) + 4 (proficiency)
+  - the average damage for this action is 8.8 (%hit * DPH)
+- the [Hail of Thorns](https://www.dndbeyond.com/spells/2618975-hail-of-thorns) (bonus attack spell) triggers a Dexterity saving throw
+  - the [Goblin](https://www.dndbeyond.com/monsters/16907-goblin) has above average Dexterity, so their save bonus is 2
+  - the spell caster has a save DC of 12
 - as a result ...
-  - the monster needs to roll a 10 or higher to avoid the spell effect
-  - the "chance to hit" is 45%
-- the number of spell effects/targets is 3 (the Goblin has 2 friends within 5 feet)
+  - the Goblin would need to roll a 10 or higher to avoid the spell effect
+  - but in this case, [Mind Sliver](https://www.dndbeyond.com/spells/2619037-mind-sliver) causes the Goblin to add a 1d4 penalty
+  - MindSliver improves the "chance to hit" from 45% to 57%
+- the number of spell effects/targets is 3 (assume 2 friends within 5 feet)
   - Note: this number should be configurable
-- spell damage per target is 3.85 (%hit * (1d10 per hit))
-- spell full effect damage is 11.55 (across 3 targets)
-- total DPR is 17.72 (longbow + spell)
+- spell damage per hit is 4.22
+  - 1d10 on a failed save, or half that on a successful save 
+  - Note: Hunter's Mark damage does not apply here 
+  - (Hail of Thorns has a **save** roll, not an **attack** roll)
+- spell full effect damage is 12.67 (across 3 targets)
+- total DPR is 21.47 (longbow + spell)
 
   
 ## Future Improvements
