@@ -35,7 +35,7 @@ java -jar ./app/build/libs/app-standalone.jar
 
 ## Usage
 ```
-Usage:  [-d] [--csv]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >
+Usage:  [-d] [--csv]  [file.json ...]  [character]  < search<opt> | dump[:opt] | <attacks> | turns >
 
 Options:
 
@@ -51,6 +51,10 @@ Character:
      NumericID   read character from DND Beyond API (character must have public visibility)
      file.json   read character from a local file
 
+Search:
+
+     search:NAME     search for NAME in list of spells/monsters, and display details if found
+
 Dump:
 
      dump:spells     export all known spells
@@ -58,11 +62,6 @@ Dump:
      dump:attacks    export attacks from user input
      dump:character  export (minimal) character data from DND Beyond
      dump            export all of the above
-
-Search:
-
-     search:spells:NAME      search for name in list of spells, and display details if found
-     search:monsters:NAME    search for name in list of spells, and display details if found
 
 Attacks:
 
