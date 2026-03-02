@@ -171,7 +171,7 @@ data class Character(
         println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
 
         for (ability in AbilityType.entries) {
-            if (ability == AbilityType.unused) continue
+            if (ability == AbilityType.ALL) continue
             val base = getRawAbilityScore(ability)
             val withBonuses = getModifiedAbilityScore(ability)
             //println ("$ability: base=$base, withBonuses=$mod")

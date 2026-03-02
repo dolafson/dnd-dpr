@@ -66,6 +66,17 @@ fun getResource(fileName: String): String? {
     }
 }
 
+fun spellTest() {
+    for (spell in spells) {
+        if (spell.is2014()) continue // TODO ???
+
+        val effect = spell.getTargetEffect()
+        if (!effect.isEmpty()) {
+            println(String.format("%-30s %-20s %s", spell.name, spell.getSpellFailConditions(), effect))
+        }
+    }
+}
+
 fun showUsage() {
     System.err.println("""
 Usage:  [-d] [--csv]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >
@@ -203,6 +214,10 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("test")) {
             character?.test()
+            exitEarly = true
+        }
+        else if (arg.startsWith("spellTest")) {
+            spellTest()
             exitEarly = true
         }
     }

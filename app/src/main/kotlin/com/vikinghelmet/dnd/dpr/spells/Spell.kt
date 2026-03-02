@@ -2,6 +2,8 @@ package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
+import com.vikinghelmet.dnd.dpr.util.Condition
+import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import kotlinx.serialization.Serializable
 
 // https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
@@ -63,5 +65,35 @@ data class Spell(
 
         // println("attackList = $attackList")
         return attackList
+    }
+
+    fun getSpellFailConditions(): List<Condition> {
+        val result = mutableListOf<Condition>()
+        for (a in getSpellAttacks()) {
+            if (a.isSavingThrowAttack() && a.attackPayload.save?.onFail != null) {
+                val onFail = a.attackPayload.save.onFail
+                for (cond in Condition.entries) {
+                    if (onFail.contains(cond.name) && !result.contains(cond)) result.add(cond)
+                }
+            }
+
+            // also check spell description, in case details are missing form onFail
+            for (cond in Condition.entries) {
+                if (description.contains(cond.name) && !result.contains(cond)) result.add(cond)
+            }
+        }
+
+        return result
+    }
+
+    fun getTargetEffect(): TargetEffect {
+        val result = TargetEffect()
+        val conditions = getSpellFailConditions()
+        for (cond in conditions) {
+            result.applyCondition(cond)
+        }
+
+        result.applySpellName(name)
+        return result
     }
 }
