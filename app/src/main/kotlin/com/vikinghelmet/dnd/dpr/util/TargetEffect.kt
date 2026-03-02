@@ -15,10 +15,11 @@ data class TargetEffect (
 
     var savePenaltyFilter: MutableList<AbilityType> = mutableListOf(),
 
-    // penalties: 1d4", "1d6", etc
+    // penalties and extra damage: 1d4", "1d6", etc
     var savePenalty: MutableList<String> = mutableListOf(),
     var attackPenalty: MutableList<String> = mutableListOf(),
     var damagePenalty: MutableList<String> = mutableListOf(),
+    var attackerExtraDamageOnHit: MutableList<String> = mutableListOf(),
 ) {
     fun isEmpty(): Boolean {
         return !attackerHasAdvantage!! && !disadvantageOnAttacks!! && !noActionOrBA!! && !attackerAutoCrit!! &&
@@ -144,6 +145,13 @@ data class TargetEffect (
         else if (name == "Hex") {
             // choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability
             // TODO: user-selection ?
+        }
+        else if (name == "Hunter's Mark") { // 2024 rules // not sure if this belongs here or somewhere else
+            attackerExtraDamageOnHit.add("1d6")
+        }
+        else if (name == "Mind Sliver") {
+            // subtract 1d4 from the next saving throw it makes before the end of your next turn
+            savePenalty.add ("1d4")
         }
         else if (name == "Otto's Irresistible Dance") {
             // Disadvantage on Dexterity saving throws and attack rolls, and other creatures have Advantage on attack rolls against it
