@@ -12,6 +12,14 @@ import kotlinx.serialization.Serializable
 
 // https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
 
+object SpellHelper {
+    fun getSpellNames(list: List<Spell>): List<String> {
+        val result = mutableListOf<String>()
+        for (spell in list) result.add(spell.name)
+        return result
+    }
+}
+
 @Serializable
 data class Spell(
     val book: String,
@@ -22,6 +30,20 @@ data class Spell(
 ) {
     fun is2014(): Boolean {
         return book.endsWith("(2014)")
+    }
+
+    fun isBonusAction(): Boolean {
+        return properties.CastingTime == "Bonus Action"
+    }
+
+    fun isMeleeBonusAction(): Boolean { // only a few of these exist
+        val dd = properties.dataDescription ?: ""
+        return dd.startsWith("Bonus Action, which you take immediately after hitting") && dd.contains("Melee weapon")
+    }
+
+    fun isRangedBonusAction(): Boolean { // only a few of these exist
+        val dd = properties.dataDescription ?: ""
+        return dd.startsWith("Bonus Action, which you take immediately after hitting") && !dd.contains("Melee weapon")
     }
 
     fun isSameIn2014And2024(): Boolean {

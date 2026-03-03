@@ -10,6 +10,6 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class InventoryItem(
     val definition: Definition,
     val equipped: Boolean? = false,
-    //val id: Int,
+    val id: Int,
     //val quantity: Int
 )

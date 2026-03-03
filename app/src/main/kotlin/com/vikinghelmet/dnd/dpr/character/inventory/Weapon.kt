@@ -16,6 +16,7 @@ data class Weapon (
     val attackType: Int? = 1,    // 1=melee, 2=range
     val range: Int? = 5,
     val longRange: Int? = 5,
+    val nickname: String? = null,
 ) {
     fun getDamageDice(): DiceBlock {
         return DiceBlockHelper.getDiceBlock(damage)

@@ -8,7 +8,6 @@ import com.vikinghelmet.dnd.dpr.character.inventory.InventoryItem
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifiers
 import com.vikinghelmet.dnd.dpr.character.race.Race
 import com.vikinghelmet.dnd.dpr.character.spells.ClassSpell
-import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.SpellGroup
 import com.vikinghelmet.dnd.dpr.character.stats.Stat
 import kotlinx.serialization.Serializable
@@ -28,12 +27,4 @@ data class CharacterData(
     val race: Race,
     val classSpells: List<ClassSpell>?= emptyList(),
     val spells: SpellGroup
-) {
-    fun getPreparedSpells(): List<PreparedSpell> {
-        val result = mutableListOf<PreparedSpell>()
-        for (classSpellList in classSpells!!)  { result.addAll(classSpellList.spells) }
-        result.addAll(spells.classSpells)
-        result.addAll(spells.raceSpells)
-        return result
-    }
-}
+)

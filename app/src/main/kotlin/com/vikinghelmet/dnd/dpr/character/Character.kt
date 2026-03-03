@@ -6,7 +6,10 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
 import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,6 +30,15 @@ data class Character(
             if (value.notes?.endsWith(" 2014") == true) return true
         }
         return false
+    }
+
+    fun getWeaponNicknameMap(): Map<String,String> {
+        val result = mutableMapOf<String,String>()
+        if (characterData.characterValues == null) return result // default to 2024 rules
+        for (value in characterData.characterValues) {
+            if (value.typeId == 8 && value.valueId != null && value.value != null) result.put(value.valueId, ""+value.value)
+        }
+        return result
     }
 
     fun getRawAbilityScore(a: AbilityType): Int {
@@ -130,7 +142,10 @@ data class Character(
                     for (prop in def.properties) props.add(prop.name)
                 }
                 val diceString = def.damage?.diceString ?: "0d4"
-                list.add(Weapon (def.name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange))
+
+                val nickname = getWeaponNicknameMap().get(""+item.id)
+
+                list.add(Weapon (def.name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange, nickname))
             }
         }
         return list
@@ -166,6 +181,43 @@ data class Character(
 
     fun getDamageBonus(w: Weapon, isBA: Boolean): Int {
         return if (isBA) 0 else getAbilityWeaponBonus(w) // TODO: two-weapon fighting feat lets you add bonus damage even in BA
+    }
+
+    private fun transformSpellList(input: List<PreparedSpell>): List<Spell> {
+        val result = mutableListOf<Spell>()
+        for (preparedSpell in input) {
+            val spell = TurnCalculator.getSpell(preparedSpell.definition.name)
+            if (spell != null) result.add(spell)
+        }
+        return result
+    }
+
+    fun getPreparedSpells(): List<Spell> {
+        val result = mutableListOf<Spell>()
+        for (classSpellList in characterData.classSpells!!)  result.addAll (transformSpellList (classSpellList.spells))
+        result.addAll (transformSpellList (characterData.spells.classSpells))
+        result.addAll (transformSpellList (characterData.spells.raceSpells))
+        return result
+    }
+
+    fun getPreparedAttackSpells(): List<Spell> {
+        val result = mutableListOf<Spell>()
+        for (spell in getPreparedSpells()) {
+            if (spell.properties.filterTags?.contains("Healing") == true) continue // we only care about offensive spells for now
+            if (spell.isBonusAction()) continue // this list should only contain primary attacks
+            result.add(spell)
+        }
+        return result
+    }
+
+    fun getPreparedBonusActionSpells(melee: Boolean): List<Spell> {
+        val result = mutableListOf<Spell>()
+        for (spell in getPreparedSpells()) {
+            if (!spell.isBonusAction()) continue
+            if (spell.isMeleeBonusAction() && melee) result.add(spell)
+            if (spell.isRangedBonusAction() && !melee) result.add(spell)
+        }
+        return result
     }
 
     fun test() {
@@ -211,6 +263,8 @@ data class Character(
         for (feat in characterData.feats) {
             println("feat: "+feat.definition.name)
         }
+        println ("")
+        println ("weapon nickname map: "+getWeaponNicknameMap())
         println ("")
     }
 }
