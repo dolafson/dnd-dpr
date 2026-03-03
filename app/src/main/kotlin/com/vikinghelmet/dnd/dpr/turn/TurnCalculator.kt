@@ -72,7 +72,7 @@ object TurnCalculator {
 
             attackResult.output(character!!, monster, attack, turnId, actionId, weapon)
 
-            EffectManager.pruneSpellsWaitingForNextAttack()
+            EffectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)
         }
 
@@ -87,9 +87,11 @@ object TurnCalculator {
 
             attackResult.output(character!!, monster, attack, turnId, actionId, effectCount++, spellAttack)
 
-            if (spellAttack.isMeleeOrRangeAttack()) {
-                EffectManager.pruneSpellsWaitingForNextAttack() // do this pruning before adding current spell to the manager (below)
+            EffectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the manager (below)
+            if (attackResult.targetHadDisadvantageOnSave == true) {
+
             }
+
             resultList.add(attackResult)
         }
 

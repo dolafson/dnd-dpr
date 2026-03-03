@@ -196,18 +196,18 @@ data class TargetEffect (
 
     override fun toString(): String {
         val buf = StringBuilder()
-        if (attackerHasAdvantage!!) buf.append("attackerHasAdvantage").append(",")
-        if (disadvantageOnAttacks!!) buf.append("disadvantageOnAttacks").append(",")
-        if (noActionOrBA!!) buf.append("noActionOrBA").append(",")
-        if (attackerAutoCrit!!) buf.append("attackerAutoCrit").append(",")
+        if (attackerHasAdvantage!!) buf.append("attackerHasAdvantage").append(";")
+        if (disadvantageOnAttacks!!) buf.append("disadvantageOnAttacks").append(";")
+        if (noActionOrBA!!) buf.append("noActionOrBA").append(";")
+        if (attackerAutoCrit!!) buf.append("attackerAutoCrit").append(";")
 
-        if (!disadvantageOnAbilityChecks.isEmpty()) buf.append("disadvantageOnAbilityChecks="+disadvantageOnAbilityChecks).append(",")
-        if (!disadvantageOnSave.isEmpty()) buf.append("disadvantageOnSave="+disadvantageOnSave).append(",")
-        if (!autoFailSave.isEmpty()) buf.append("autoFailSave="+autoFailSave).append(",")
-        if (!savePenaltyFilter.isEmpty()) buf.append("savePenaltyFilter="+savePenaltyFilter).append(",")
-        if (!savePenalty.isEmpty()) buf.append("savePenalty="+savePenalty).append(",")
-        if (!attackPenalty.isEmpty()) buf.append("attackPenalty="+attackPenalty).append(",")
-        if (!damagePenalty.isEmpty()) buf.append("damagePenalty="+damagePenalty).append(",")
+        if (!disadvantageOnAbilityChecks.isEmpty()) buf.append("disadvantageOnAbilityChecks="+disadvantageOnAbilityChecks).append(";")
+        if (!disadvantageOnSave.isEmpty()) buf.append("disadvantageOnSave="+disadvantageOnSave).append(";")
+        if (!autoFailSave.isEmpty()) buf.append("autoFailSave="+autoFailSave).append(";")
+        if (!savePenaltyFilter.isEmpty()) buf.append("savePenaltyFilter="+savePenaltyFilter).append(";")
+        if (!savePenalty.isEmpty()) buf.append("savePenalty="+savePenalty).append(";")
+        if (!attackPenalty.isEmpty()) buf.append("attackPenalty="+attackPenalty).append(";")
+        if (!damagePenalty.isEmpty()) buf.append("damagePenalty="+damagePenalty).append(";")
         return buf.toString()
     }
 }

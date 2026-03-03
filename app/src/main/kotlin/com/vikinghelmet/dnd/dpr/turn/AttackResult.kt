@@ -85,8 +85,8 @@ data class AttackResult(
             buf.append(AttackResultFormatter.format("targetSaveBonus", targetSaveBonus))
         }
 
+        buf.append(AttackResultFormatter.format("startCondition", String.format("\"%s\"", EffectManager.toString())))
         buf.append(AttackResultFormatter.format("numTargets", numTargets))
-        // TODO: endCondition ?
 
         val selection = getAvgMinMaxSelection()
 
@@ -122,7 +122,7 @@ object AttackResultFormatter {
 
     fun footer(turnId: Any, actionLabel: String, totalDamage: Float) {
         if (isCSV) {
-            println(String.format(",,,,,,%s,%s,%s,,,,,,,,,,,,%2.2f,", AttackResultFormatter.scenario, turnId, actionLabel, totalDamage))
+            println(String.format(",,,,,,%s,%s,%s,,,,,,,,,,,,,%2.2f,", AttackResultFormatter.scenario, turnId, actionLabel, totalDamage))
         } else {
             println(format(actionLabel, totalDamage))
         }
@@ -159,8 +159,8 @@ object AttackResultFormatter {
         buf.append("spellSaveAbility").append(",")
         buf.append("targetSaveBonus").append(",")
 
+        buf.append("startCondition").append(",")
         buf.append("numTargets").append(",")
-        // TODO: endCondition ?
 
         buf.append("chanceToHit").append(",")
         buf.append("damagePerHit").append(",")

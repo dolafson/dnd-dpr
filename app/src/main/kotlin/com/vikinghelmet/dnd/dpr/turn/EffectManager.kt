@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.turn
 
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
 
@@ -33,14 +34,19 @@ object EffectManager {
         }
     }
 
-    fun pruneSpellsWaitingForNextAttack() {
+    fun pruneSpellsWaitingForNextAttack(spellAttack: SpellAttack?) {
         val iterator = runningSpellList.listIterator()
         while (iterator.hasNext()) {
             val running = iterator.next()
             val spell = running.spell
-            val duration = spell.getDuration() ?: 0  // is this the best representation ?
-            if (duration <= 0) {
-                Globals.debug("spell was waiting for next attack, removing it from running list: "+spell.name)
+
+            if (spell.appliesEffectToNextTargetSaveOnly() && spellAttack != null && spellAttack.isSavingThrowAttack()) {
+                Globals.debug("spell was waiting for next saving throw, removing it from running list: "+spell.name)
+                iterator.remove()
+            }
+
+            if (spell.appliesToNextMeleeOrRangeAttackOnly() && (spellAttack == null || spellAttack.isMeleeOrRangeAttack())) {
+                Globals.debug("spell was waiting for next melee/range attack, removing it from running list: "+spell.name)
                 iterator.remove()
             }
         }
@@ -80,5 +86,10 @@ object EffectManager {
             if (running.spell.getTargetEffect().attackerAutoCrit == true) return true
         }
         return false
+    }
+    override fun toString(): String {
+        val buf = StringBuilder()
+        for (running in runningSpellList) buf.append(running.spell.getTargetEffect())
+        return buf.toString()
     }
 }

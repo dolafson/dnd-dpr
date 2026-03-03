@@ -104,6 +104,24 @@ data class Spell(
         return null
     }
 
+    private fun appliesToNextAttackOnly(): Boolean {
+        return (getDuration() ?: 0) <= 1 // TODO: is this the best representation ?
+    }
+
+    fun appliesToNextMeleeOrRangeAttackOnly(): Boolean {
+        if (!appliesToNextAttackOnly()) return false
+        for (spellAttack in getSpellAttacks()) {
+            if (spellAttack.isMeleeOrRangeAttack()) return true
+        }
+        return false
+    }
+
+    fun appliesEffectToNextTargetSaveOnly(): Boolean {
+        val effect = getTargetEffect()
+        return appliesToNextAttackOnly() &&
+                (effect.disadvantageOnSave.isNotEmpty() || effect.savePenalty.isNotEmpty() || effect.autoFailSave.isNotEmpty())
+    }
+
     fun getTargetEffect(): TargetEffect {
         val result = TargetEffect()
         val conditions = getSpellFailConditions()
