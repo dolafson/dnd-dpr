@@ -181,6 +181,7 @@ In no particular order ...
 - add optional support for constraint checks
   - your character doesn't know that spell, can't cast it 100 times, etc 
 - add support for "show me all the attack combinations i can make at this range"
+- add support for weapon effects, similar to spell effects (eg [Vex](https://www.dndbeyond.com/sources/dnd/phb-2024/equipment#Vex) -> advantage on next attack)
 - when cascading spell effects, most effects only apply to a single target
   - take this into account when computing DPR for multi-target spell save (like Hail of Thorns, Ice Knife, ...)
 - add better support for levelling up / what-if scenarios
