@@ -329,14 +329,14 @@ class DamagePerRound(var character: Character)
     // ==========================================================
     // here is where the fun really begins
 
-    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster): AttackResult {
+    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster, character: Character): AttackResult {
         return if (spellAttack.isNoDamageAttack()) {
             getNoDamageSpellDPR (spell)
         }
         else if (spellAttack.isSavingThrowAttack()) {
             getSavingThrowSpellDPR (spellAttack, spell, attack, monster)
         } else {
-            getMeleeOrRangeDPR (MeleeOrRangeAttack (TurnCalculator.character!!, spellAttack, null), attack, monster)
+            getMeleeOrRangeDPR (MeleeOrRangeAttack (character, spellAttack, null), attack, monster)
         }
     }
 

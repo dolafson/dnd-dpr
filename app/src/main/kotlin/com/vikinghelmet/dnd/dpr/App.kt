@@ -3,19 +3,16 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+//import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.character
+//import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.turns
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.character
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.monsters
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.spells
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.turns
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.Globals.monsters
+import com.vikinghelmet.dnd.dpr.util.Globals.spells
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -66,70 +63,6 @@ fun getResource(fileName: String): String? {
         e.printStackTrace()
         return null
     }
-}
-
-fun spellTest() {
-    for (spell in spells) {
-        if (spell.is2014()) continue // TODO ???
-
-        val effect = spell.getTargetEffect()
-        if (!effect.isEmpty()) {
-            println(String.format("%-30s %-20s %s", spell.name, spell.getSpellFailConditions(), effect))
-        }
-    }
-}
-
-fun rangeTest() {
-    println()
-    val meleeBonusActions = SpellHelper.getSpellNames(character!!.getPreparedBonusActionSpells(true))
-    val rangedBonusActions = SpellHelper.getSpellNames(character!!.getPreparedBonusActionSpells(false))
-
-    val weaponList = mutableListOf<Weapon>()
-    val weaponListNames = mutableListOf<String>()
-
-    for (weapon in character!!.getWeaponList()) {
-        if (!weaponListNames.contains(weapon.name)) {
-            weaponListNames.add(weapon.name)
-            weaponList.add(weapon)
-        }
-        else {
-            // dups are most likely from a pair of light weapons for use in dual weapon fighting
-            // when this happens add it as a bonus action
-            meleeBonusActions.add(weapon.name)
-        }
-    }
-
-    val rangeWeaponMap = mutableMapOf<Int, MutableList<Weapon>>() // hashMapOf<Int,Weapon>()
-    for (weapon in weaponList) {
-        rangeWeaponMap.getOrPut(weapon.range ?: 0) { mutableListOf() }.add(weapon)
-    }
-
-    val rangePreparedSpellMap = hashMapOf<Int, MutableList<Spell>>()
-    for (spell in character!!.getPreparedAttackSpells()) {
-        rangePreparedSpellMap.getOrPut(spell.properties.dataRangeNum ?: 0) { mutableListOf() }.add(spell)
-    }
-
-    val rangeList = mutableListOf<Int>()
-    rangeList.addAll(rangeWeaponMap.keys)
-    rangeList.addAll(rangePreparedSpellMap.keys)
-    rangeList.sort()
-
-    println()
-
-    for (range in rangeList) {
-        println("range = " + range)
-        if (range in rangeWeaponMap.keys) {
-            for (weapon in rangeWeaponMap.get(range)!!)  println("\t " + weapon.name)
-        }
-        if (range in rangePreparedSpellMap.keys) {
-            for (spell in rangePreparedSpellMap.get(range)!!)  println("\t " + spell.name)
-        }
-        println()
-    }
-
-    println("Melee  Bonus Actions = $meleeBonusActions")
-    println("Ranged Bonus Actions = $rangedBonusActions")
-    println()
 }
 
 
@@ -203,6 +136,8 @@ Turns:
 
 fun main(args : Array<String>) {
     var exitEarly = false
+    var character: Character? = null
+    val turns = ArrayList<Turn>()
 
     if (args.isEmpty()) {
         showUsage()
@@ -261,23 +196,19 @@ fun main(args : Array<String>) {
             character = getCharacter(arg)
         }
         else if (arg.startsWith("dump")) {
-            TurnCalculator.dump(arg)
+            Globals.dump(arg)
             exitEarly = true
         }
         else if (arg.startsWith("search")) {
-            TurnCalculator.search(arg)
+            Globals.search(arg)
             exitEarly = true
         }
         else if (arg.startsWith("test")) {
             character?.test()
             exitEarly = true
         }
-        else if (arg.startsWith("spellTest")) {
-            spellTest()
-            exitEarly = true
-        }
         else if (arg.startsWith("rangeTest")) {
-            rangeTest()
+            if (character != null) character.rangeTest()
             exitEarly = true
         }
     }
@@ -298,6 +229,6 @@ fun main(args : Array<String>) {
         println("no attacks specified")
     }
     else {
-        TurnCalculator.calculateDPRForAllTurns()
+        TurnCalculator(turns, character).calculateDPRForAllTurns()
     }
 }

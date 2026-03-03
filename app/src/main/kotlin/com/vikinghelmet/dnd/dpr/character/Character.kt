@@ -9,8 +9,9 @@ import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
+import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
@@ -186,7 +187,7 @@ data class Character(
     private fun transformSpellList(input: List<PreparedSpell>): List<Spell> {
         val result = mutableListOf<Spell>()
         for (preparedSpell in input) {
-            val spell = TurnCalculator.getSpell(preparedSpell.definition.name)
+            val spell = Globals.getSpell(preparedSpell.definition.name, is2014())
             if (spell != null) result.add(spell)
         }
         return result
@@ -267,4 +268,65 @@ data class Character(
         println ("weapon nickname map: "+getWeaponNicknameMap())
         println ("")
     }
+
+
+    fun rangeTest() {
+        println()
+        val meleeBonusActions = SpellHelper.getSpellNames(getPreparedBonusActionSpells(true))
+        val rangedBonusActions = SpellHelper.getSpellNames(getPreparedBonusActionSpells(false))
+
+        val weaponList = mutableListOf<Weapon>()
+        val weaponListNames = mutableListOf<String>()
+
+        for (weapon in getWeaponList()) {
+            if (!weaponListNames.contains(weapon.name)) {
+                weaponListNames.add(weapon.name)
+                weaponList.add(weapon)
+            }
+            else {
+                // dups are most likely from a pair of light weapons for use in dual weapon fighting
+                // when this happens add it as a bonus action
+                meleeBonusActions.add(weapon.name)
+            }
+        }
+
+        val rangeWeaponMap = mutableMapOf<Int, MutableList<Weapon>>() // hashMapOf<Int,Weapon>()
+        for (weapon in weaponList) {
+            rangeWeaponMap.getOrPut(weapon.range ?: 0) { mutableListOf() }.add(weapon)
+        }
+
+        val rangePreparedSpellMap = hashMapOf<Int, MutableList<Spell>>()
+        for (spell in getPreparedAttackSpells()) {
+            rangePreparedSpellMap.getOrPut(spell.properties.dataRangeNum ?: 0) { mutableListOf() }.add(spell)
+        }
+
+        val rangeList = mutableListOf<Int>()
+        rangeList.addAll(rangeWeaponMap.keys)
+        rangeList.addAll(rangePreparedSpellMap.keys)
+        rangeList.sort()
+
+        println()
+
+        for (range in rangeList) {
+            println("range = " + range)
+            if (range in rangeWeaponMap.keys) {
+                for (weapon in rangeWeaponMap.get(range)!!)  println("\t " + weapon.name)
+            }
+            if (range in rangePreparedSpellMap.keys) {
+                for (spell in rangePreparedSpellMap.get(range)!!)  println("\t " + spell.name)
+            }
+            println()
+        }
+
+        println("Melee  Bonus Actions = $meleeBonusActions")
+        println("Ranged Bonus Actions = $rangedBonusActions")
+        println()
+    }
+
+    fun getWeapon(name: String?): Weapon? {
+        if (name == null) return null
+        for (weapon in getWeaponList()) if (weapon.name == name) return weapon
+        return null
+    }
+
 }

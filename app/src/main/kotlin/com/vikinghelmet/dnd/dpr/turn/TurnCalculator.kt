@@ -1,19 +1,17 @@
 package com.vikinghelmet.dnd.dpr.turn
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.Globals.monsters
+import com.vikinghelmet.dnd.dpr.util.Globals.spells
 import kotlinx.serialization.json.Json
 
-object TurnCalculator {
-
-    val spells = ArrayList<Spell>()
-    val monsters = ArrayList<Monster>()
-    val turns = ArrayList<Turn>()
-    var character: Character? = null
-
+class TurnCalculator(
+    val turns: ArrayList<Turn> = ArrayList(),
+    var character: Character
+) {
     fun calculateDPRForAllTurns() {
         var turnId = 1
         var scenarioTotalDamage = 0f
@@ -50,27 +48,27 @@ object TurnCalculator {
             return emptyList()
         }
 
-        val weapon = getWeapon(attack.attack)
-        val spell  = getSpell(attack.attack)
+        val weapon = character.getWeapon(attack.attack)
+        val spell  = Globals.getSpell(attack.attack, character.is2014())
 
         if (weapon == null && spell == null) {
             System.err.println()
             System.err.println("spell or weapon not found: "+attack.attack)
             System.err.println()
-            System.err.println("character weapons: "+ character!!.getWeaponNames())
+            System.err.println("character weapons: "+ character.getWeaponNames())
             System.err.println()
             return emptyList()
         }
 
         attack.preconditions = EffectManager.getPreconditions(turnId, actionId, turn, spell)
 
-        val dpr = DamagePerRound(character!!)
+        val dpr = DamagePerRound(character)
 
         if (weapon != null) {
-            val meleeOrRangeAttack = MeleeOrRangeAttack(character!!, null, weapon)
+            val meleeOrRangeAttack = MeleeOrRangeAttack(character, null, weapon)
             val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
 
-            attackResult.output(character!!, monster, attack, turnId, actionId, weapon)
+            attackResult.output(character, monster, attack, turnId, actionId, weapon)
 
             EffectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)
@@ -81,11 +79,11 @@ object TurnCalculator {
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
         for (spellAttack in spell.getSpellAttacks()) {
-            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster)
+            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster, character)
 
             spell.postProcessEffectsOfOldSpells(EffectManager.getRunningSpells(), attackResult)
 
-            attackResult.output(character!!, monster, attack, turnId, actionId, effectCount++, spellAttack)
+            attackResult.output(character, monster, attack, turnId, actionId, effectCount++, spellAttack)
 
             EffectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the manager (below)
             if (attackResult.targetHadDisadvantageOnSave == true) {
@@ -114,26 +112,6 @@ object TurnCalculator {
         return null
     }
 
-    fun getSpell(name: String?): Spell? {
-        if (name == null || spells.isEmpty()) return null
-
-        for (spell in spells) {
-            if (spell.name == name) {
-                if (!spell.isSameIn2014And2024() && character!!.is2014() != spell.is2014()) {
-                    continue
-                }
-
-                return spell
-            }
-        }
-        return null
-    }
-
-    fun getWeapon(name: String?): Weapon? {
-        if (name == null || character == null || character!!.getWeaponList().isEmpty()) return null
-        for (weapon in character!!.getWeaponList()) if (weapon.name == name) return weapon
-        return null
-    }
 
     fun dump(arg: String) {
         if (!arg.contains(":")) {
@@ -167,4 +145,9 @@ object TurnCalculator {
         for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
     }
 
+
+    fun enumerateScenarios(isMelee: Boolean) {
+        val bonusActions = SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(isMelee))
+
+    }
 }
