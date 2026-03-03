@@ -11,7 +11,17 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
+enum class AvgMinMaxSelection { avg, min, max }
+
 data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
+    fun select(choice: AvgMinMaxSelection): Float {
+        return when(choice) {
+            AvgMinMaxSelection.avg -> avg
+            AvgMinMaxSelection.min -> min
+            else -> max
+        }
+    }
+
     fun half(diceBlock: DiceBlock): AvgMinMax {
         val halfAvg = if (diceBlock.isEmpty()) avg/2 else avg/2 - 0.25f
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())

@@ -4,7 +4,6 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.util.D20Multiplier
 
 data class AttackResult(
     val numTargets: Int,
@@ -13,7 +12,7 @@ data class AttackResult(
     val damagePerRound: AvgMinMax,
     val duration: AvgMinMax,
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
-    var d20Multiplier: D20Multiplier? = D20Multiplier.Normal
+    var targetHadDisadvantageOnSave: Boolean? = false
 ) {
     fun output(character: Character, monster: Monster, attack: Attack, turn: Int, actionId: Int, weapon: Weapon) {
         output(character, monster, attack, turn, actionId,1, weapon,null)
@@ -88,20 +87,19 @@ data class AttackResult(
         buf.append(AttackResultFormatter.format("numTargets", numTargets))
         // TODO: endCondition ?
 
-        if (spellAttack != null && d20Multiplier == D20Multiplier.Disadvantage) {
-            buf.append(AttackResultFormatter.format("chanceToHit", chanceToHit.max))
-            buf.append(AttackResultFormatter.format("damagePerHit", damagePerHit.max))
-            buf.append(AttackResultFormatter.format("duration", duration.max))
-            buf.append(AttackResultFormatter.format("damageFullEffect", damageFullEffect.max))
-        }
-        else { // if (d20Multiplier == D20Multiplier.Normal) {
-            buf.append(AttackResultFormatter.format("chanceToHit", chanceToHit.avg))
-            buf.append(AttackResultFormatter.format("damagePerHit", damagePerHit.avg))
-            buf.append(AttackResultFormatter.format("duration", duration.avg))
-            buf.append(AttackResultFormatter.format("damageFullEffect", damageFullEffect.avg))
-        }
+        val selection = getAvgMinMaxSelection()
+
+        buf.append(AttackResultFormatter.format("chanceToHit", chanceToHit.select(selection)))
+        buf.append(AttackResultFormatter.format("damagePerHit", damagePerHit.select(selection)))
+        buf.append(AttackResultFormatter.format("duration", duration.select(selection)))
+        buf.append(AttackResultFormatter.format("damageFullEffect", damageFullEffect.select(selection)))
 
         println(buf)
+    }
+
+    fun getAvgMinMaxSelection(): AvgMinMaxSelection {
+        return if (EffectManager.attackerHasAdvantage() || targetHadDisadvantageOnSave == true)
+            AvgMinMaxSelection.max else AvgMinMaxSelection.avg
     }
 }
 

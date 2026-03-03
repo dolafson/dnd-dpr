@@ -24,8 +24,10 @@ object TurnCalculator {
             AttackResultFormatter.header()
 
             for (attack in turn.attacks) {
-                val damage = calculateDPR(turnId, actionCount, turn, attack)
-                dpr += damage
+                val resultList = calculateDPR(turnId, actionCount, turn, attack)
+                for (result in resultList) {
+                    dpr += result.damagePerRound.select (result.getAvgMinMaxSelection())
+                }
                 actionCount++
             }
 
@@ -40,53 +42,58 @@ object TurnCalculator {
         System.err.println()
     }
 
-    fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): Float {
+    fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>
+    {
         val monster = getMonster(attack.monster)
         if (monster == null) {
             println("monster not found: "+attack.monster)
-            return 0f
-        }
-
-        val dpr = DamagePerRound(character!!)
-
-        val spell = getSpell(attack.attack)
-        attack.preconditions = EffectManager.getPreconditions(turnId, actionId, turn, spell)
-
-        if (spell != null) {
-            var totalDamage = 0f
-            var effectCount = 1
-            for (spellAttack in spell.getSpellAttacks()) {
-                val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster)
-
-                spell.postProcessEffectsOfOldSpells(EffectManager.getRunningSpells(), attackResult)
-
-                attackResult.output(character!!, monster, attack, turnId, actionId, effectCount++, spellAttack)
-
-                totalDamage += attackResult.damagePerRound.avg
-            }
-            if (!spell.getTargetEffect().isEmpty()) { // we only track spells with a non-empty effect
-                EffectManager.add(turnId, spell)
-                Globals.debug("adding to running list: "+spell.name)
-            }
-            return totalDamage
+            return emptyList()
         }
 
         val weapon = getWeapon(attack.attack)
+        val spell  = getSpell(attack.attack)
+
+        if (weapon == null && spell == null) {
+            System.err.println()
+            System.err.println("spell or weapon not found: "+attack.attack)
+            System.err.println()
+            System.err.println("character weapons: "+ character!!.getWeaponNames())
+            System.err.println()
+            return emptyList()
+        }
+
+        attack.preconditions = EffectManager.getPreconditions(turnId, actionId, turn, spell)
+
+        val dpr = DamagePerRound(character!!)
+
         if (weapon != null) {
             val meleeOrRangeAttack = MeleeOrRangeAttack(character!!, null, weapon)
             val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
 
             attackResult.output(character!!, monster, attack, turnId, actionId, weapon)
-            return attackResult.damagePerRound.avg
+            return listOf(attackResult)
         }
 
-        System.err.println()
-        System.err.println("spell or weapon not found: "+attack.attack)
-        System.err.println()
-        System.err.println("character weapons: "+ character!!.getWeaponNames())
-        System.err.println()
+        if (spell == null) return emptyList() // should not get here due to if(w/s) above; this is just to make the compiler happy
 
-        return 0f
+        val resultList = mutableListOf<AttackResult>()
+        var effectCount = 1
+        for (spellAttack in spell.getSpellAttacks()) {
+            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster)
+
+            spell.postProcessEffectsOfOldSpells(EffectManager.getRunningSpells(), attackResult)
+
+            attackResult.output(character!!, monster, attack, turnId, actionId, effectCount++, spellAttack)
+
+            resultList.add(attackResult)
+        }
+
+        if (!spell.getTargetEffect().isEmpty()) { // we only track spells with a non-empty effect
+            EffectManager.add(turnId, spell)
+            Globals.debug("adding to running list: "+spell.name)
+        }
+
+        return resultList
     }
 
     fun getMonster(name: String): Monster? {

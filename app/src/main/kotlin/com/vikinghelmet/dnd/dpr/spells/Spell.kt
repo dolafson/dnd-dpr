@@ -6,7 +6,6 @@ import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.util.Condition
-import com.vikinghelmet.dnd.dpr.util.D20Multiplier
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import kotlinx.serialization.Serializable
@@ -122,7 +121,7 @@ data class Spell(
             val effect = oldSpell.getTargetEffect()
             for (ability in effect.disadvantageOnSave) {
                 if (ability == AbilityType.ALL  || ability == saveAbility) {
-                    attackResult.d20Multiplier = D20Multiplier.Disadvantage
+                    attackResult.targetHadDisadvantageOnSave = true
                 }
             }
         }

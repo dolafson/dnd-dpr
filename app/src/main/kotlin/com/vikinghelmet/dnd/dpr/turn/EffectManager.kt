@@ -18,6 +18,7 @@ object EffectManager {
         for (running in runningSpellList) result.add(running.spell)
         return result
     }
+
     fun pruneRunningSpells(turnId: Int) {
         val iterator = runningSpellList.listIterator()
         while (iterator.hasNext()) {
@@ -52,5 +53,12 @@ object EffectManager {
             }
         }
         return precondition
+    }
+
+    fun attackerHasAdvantage(): Boolean {
+        for (running in runningSpellList) {
+            if (running.spell.getTargetEffect().attackerHasAdvantage == true) return true
+        }
+        return false
     }
 }
