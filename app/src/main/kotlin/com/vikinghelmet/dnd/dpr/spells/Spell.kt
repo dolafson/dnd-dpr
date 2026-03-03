@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 // https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
 
 object SpellHelper {
-    fun getSpellNames(list: List<Spell>): List<String> {
+    fun getSpellNames(list: List<Spell>): MutableList<String> {
         val result = mutableListOf<String>()
         for (spell in list) result.add(spell.name)
         return result

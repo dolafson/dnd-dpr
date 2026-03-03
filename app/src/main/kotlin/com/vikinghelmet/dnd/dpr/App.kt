@@ -81,9 +81,26 @@ fun spellTest() {
 
 fun rangeTest() {
     println()
+    val meleeBonusActions = SpellHelper.getSpellNames(character!!.getPreparedBonusActionSpells(true))
+    val rangedBonusActions = SpellHelper.getSpellNames(character!!.getPreparedBonusActionSpells(false))
+
+    val weaponList = mutableListOf<Weapon>()
+    val weaponListNames = mutableListOf<String>()
+
+    for (weapon in character!!.getWeaponList()) {
+        if (!weaponListNames.contains(weapon.name)) {
+            weaponListNames.add(weapon.name)
+            weaponList.add(weapon)
+        }
+        else {
+            // dups are most likely from a pair of light weapons for use in dual weapon fighting
+            // when this happens add it as a bonus action
+            meleeBonusActions.add(weapon.name)
+        }
+    }
 
     val rangeWeaponMap = mutableMapOf<Int, MutableList<Weapon>>() // hashMapOf<Int,Weapon>()
-    for (weapon in character!!.getWeaponList()) {
+    for (weapon in weaponList) {
         rangeWeaponMap.getOrPut(weapon.range ?: 0) { mutableListOf() }.add(weapon)
     }
 
@@ -110,8 +127,8 @@ fun rangeTest() {
         println()
     }
 
-    println("Melee  Bonus Actions = " + SpellHelper.getSpellNames(character!!.getPreparedBonusActionSpells(true)))
-    println("Ranged Bonus Actions = " + SpellHelper.getSpellNames(character!!.getPreparedBonusActionSpells(false)))
+    println("Melee  Bonus Actions = $meleeBonusActions")
+    println("Ranged Bonus Actions = $rangedBonusActions")
     println()
 }
 
