@@ -15,9 +15,18 @@ data class AttackResult(
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
     var d20Multiplier: D20Multiplier? = D20Multiplier.Normal
 ) {
-    fun output(
-        format: String, character: Character, monster: Monster, attack: Attack,
-        scenario: String, turn: Int, action: String, effect: Int, weapon: Weapon?, spellAttack: SpellAttack?
+    fun output(character: Character, monster: Monster, attack: Attack, turn: Int, actionId: Int, weapon: Weapon) {
+        output(character, monster, attack, turn, actionId,1, weapon,null)
+    }
+
+    fun output(character: Character, monster: Monster, attack: Attack,turn: Int, actionId: Int, effect: Int, spellAttack: SpellAttack) {
+        output(character, monster, attack, turn, actionId, effect,null, spellAttack)
+    }
+
+    private fun output(
+        character: Character, monster: Monster, attack: Attack,
+        turn: Int, actionId: Int, effect: Int,
+        weapon: Weapon?, spellAttack: SpellAttack?
     ) {
 
         if (weapon == null && spellAttack == null) {
@@ -28,68 +37,68 @@ data class AttackResult(
 
         val buf = StringBuilder("")
 
-        if (format == "csv" || !AttackResultFormatter.isTxtFirstResultDone) {
-            buf.append(AttackResultFormatter.format(format, "level", character.getLevel()))
-            buf.append(AttackResultFormatter.format(format, "characterName", character.characterData.name))
-            buf.append(AttackResultFormatter.format(format, "spellBonusToHit", character.getSpellBonusToHit()))
-            buf.append(AttackResultFormatter.format(format, "spellSaveDC", character.getSpellSaveDC()))
+        if (AttackResultFormatter.isCSV || !AttackResultFormatter.isTxtFirstResultDone) {
+            buf.append(AttackResultFormatter.format("level", character.getLevel()))
+            buf.append(AttackResultFormatter.format("characterName", character.characterData.name))
+            buf.append(AttackResultFormatter.format("spellBonusToHit", character.getSpellBonusToHit()))
+            buf.append(AttackResultFormatter.format("spellSaveDC", character.getSpellSaveDC()))
 
             // TODO: abilities: Str, Dex, ... ?
 
-            buf.append(AttackResultFormatter.format(format, "monsterName", monster.name))
-            buf.append(AttackResultFormatter.format(format, "monsterAC", monster.properties.dataAcNum))
+            buf.append(AttackResultFormatter.format("monsterName", monster.name))
+            buf.append(AttackResultFormatter.format("monsterAC", monster.properties.dataAcNum))
             // TODO: abilities: Str, Dex, ... ?
 
-            buf.append(AttackResultFormatter.format(format, "scenario", scenario))
+            buf.append(AttackResultFormatter.format("scenario",AttackResultFormatter.scenario))
 
-            if (format != "csv") {
+            if (!AttackResultFormatter.isCSV) {
                 println(buf)
                 AttackResultFormatter.separate()
                 buf.clear()
             }
         }
 
-        buf.append(AttackResultFormatter.format(format, "turn", turn))
-        buf.append(AttackResultFormatter.format(format, "action", if (attack.isBonusAction == true) "BA" else action))
-        buf.append(AttackResultFormatter.format(format, "effect", effect))
-        buf.append(AttackResultFormatter.format(format, "attack", attackLabel))
+        buf.append(AttackResultFormatter.format("turn", turn))
+        buf.append(AttackResultFormatter.format("action", if (attack.isBonusAction == true) "BA" else ""+actionId))
+        buf.append(AttackResultFormatter.format("effect", effect))
+        buf.append(AttackResultFormatter.format("attack", attackLabel))
 
         if (weapon != null) {
             val damageBonus = character.getDamageBonus(weapon, attack.isBonusAction?:false)
-            buf.append(AttackResultFormatter.format(format, "weaponDamage", weapon.damage!!))
-            buf.append(AttackResultFormatter.format(format, "weaponDamageBonus", damageBonus))
-            buf.append(AttackResultFormatter.format(format, "weaponAttackBonus", character.getAttackBonus(weapon)))
+            buf.append(AttackResultFormatter.format("weaponDamage", weapon.damage!!))
+            buf.append(AttackResultFormatter.format("weaponDamageBonus", damageBonus))
+            buf.append(AttackResultFormatter.format("weaponAttackBonus", character.getAttackBonus(weapon)))
 
             // for weapons, if fmt=txt, do not dump save data
-            buf.append(AttackResultFormatter.formatCSVOnly(format, "spellSaveAbility", ""))
-            buf.append(AttackResultFormatter.formatCSVOnly(format, "targetSaveBonus", ""))
+            buf.append(AttackResultFormatter.formatCSVOnly("spellSaveAbility", ""))
+            buf.append(AttackResultFormatter.formatCSVOnly("targetSaveBonus", ""))
         } else {
             // for spells, if fmt=txt, do not dump weapon data
-            buf.append(AttackResultFormatter.formatCSVOnly(format, "weaponDamageDice", ""))
-            buf.append(AttackResultFormatter.formatCSVOnly(format, "weaponDamageBonus", ""))
-            buf.append(AttackResultFormatter.formatCSVOnly(format, "weaponAttackBonus", ""))
+            buf.append(AttackResultFormatter.formatCSVOnly("weaponDamageDice", ""))
+            buf.append(AttackResultFormatter.formatCSVOnly("weaponDamageBonus", ""))
+            buf.append(AttackResultFormatter.formatCSVOnly("weaponAttackBonus", ""))
 
             val spellSaveAbility = spellAttack!!.getSaveAbility()
             val targetSaveBonus = if (spellSaveAbility.isEmpty()) "" else monster.properties.getMod(spellSaveAbility)
 
-            buf.append(AttackResultFormatter.format(format, "spellSaveAbility", spellSaveAbility))
-            buf.append(AttackResultFormatter.format(format, "targetSaveBonus", targetSaveBonus))
+            buf.append(AttackResultFormatter.format("spellSaveAbility", spellSaveAbility))
+            buf.append(AttackResultFormatter.format("targetSaveBonus", targetSaveBonus))
         }
 
-        buf.append(AttackResultFormatter.format(format,"numTargets", numTargets))
+        buf.append(AttackResultFormatter.format("numTargets", numTargets))
         // TODO: endCondition ?
 
         if (spellAttack != null && d20Multiplier == D20Multiplier.Disadvantage) {
-            buf.append(AttackResultFormatter.format(format, "chanceToHit", chanceToHit.max))
-            buf.append(AttackResultFormatter.format(format, "damagePerHit", damagePerHit.max))
-            buf.append(AttackResultFormatter.format(format, "duration", duration.max))
-            buf.append(AttackResultFormatter.format(format, "damageFullEffect", damageFullEffect.max))
+            buf.append(AttackResultFormatter.format("chanceToHit", chanceToHit.max))
+            buf.append(AttackResultFormatter.format("damagePerHit", damagePerHit.max))
+            buf.append(AttackResultFormatter.format("duration", duration.max))
+            buf.append(AttackResultFormatter.format("damageFullEffect", damageFullEffect.max))
         }
         else { // if (d20Multiplier == D20Multiplier.Normal) {
-            buf.append(AttackResultFormatter.format(format, "chanceToHit", chanceToHit.avg))
-            buf.append(AttackResultFormatter.format(format, "damagePerHit", damagePerHit.avg))
-            buf.append(AttackResultFormatter.format(format, "duration", duration.avg))
-            buf.append(AttackResultFormatter.format(format, "damageFullEffect", damageFullEffect.avg))
+            buf.append(AttackResultFormatter.format("chanceToHit", chanceToHit.avg))
+            buf.append(AttackResultFormatter.format("damagePerHit", damagePerHit.avg))
+            buf.append(AttackResultFormatter.format("duration", duration.avg))
+            buf.append(AttackResultFormatter.format("damageFullEffect", damageFullEffect.avg))
         }
 
         println(buf)
@@ -98,32 +107,32 @@ data class AttackResult(
 
 object AttackResultFormatter {
     val txtLineSeparator = "#######################################################\n"
-
     var isTxtFirstResultDone = false
+    var isCSV: Boolean = false
+    var scenario = ""
 
-    fun format(fmt: String, fieldName: String, value: Any): String {
+    fun format(fieldName: String, value: Any): String {
         isTxtFirstResultDone = true
         val strValue = if (value is Float) String.format("%2.2f", value) else value
 
-        return if (fmt == "csv") "$strValue,"
-        else String.format("\t%-20s %s\n",fieldName, strValue)
+        return if (isCSV) "$strValue," else String.format("\t%-20s %s\n",fieldName, strValue)
     }
-    fun formatCSVOnly(fmt: String, fieldName: String, value: Any): String {
-        return if (fmt != "csv") "" else format(fmt,fieldName,value)
+    fun formatCSVOnly(fieldName: String, value: Any): String {
+        return if (isCSV) format(fieldName, value) else ""
     }
 
-    fun footer(outputFormat: String, scenario: String, turnId: Any, actionLabel: String, totalDamage: Float) {
-        if (outputFormat != "csv") {
-            println(format(outputFormat, actionLabel, totalDamage))
-            return
+    fun footer(turnId: Any, actionLabel: String, totalDamage: Float) {
+        if (isCSV) {
+            println(String.format(",,,,,,%s,%s,%s,,,,,,,,,,,,%2.2f,", AttackResultFormatter.scenario, turnId, actionLabel, totalDamage))
+        } else {
+            println(format(actionLabel, totalDamage))
         }
-        println(String.format(",,,,,,%s,%s,%s,,,,,,,,,,,,%2.2f,", scenario, turnId, actionLabel, totalDamage))
     }
 
     fun separate() { println(txtLineSeparator) }
 
-    fun header(fmt: String) {
-        if (fmt != "csv") { separate(); return }
+    fun header() {
+        if (!isCSV) { separate(); return }
 
         val buf = StringBuilder("")
 

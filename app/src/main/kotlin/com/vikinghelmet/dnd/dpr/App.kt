@@ -5,12 +5,11 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.character
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.monsters
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.outputFormat
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.scenario
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.spells
 import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.turns
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -165,7 +164,7 @@ fun main(args : Array<String>) {
         if (arg.startsWith("-")) {
             when (arg) {
                 "-d" -> Globals.debug = true
-                "--csv" -> outputFormat = "csv"
+                "--csv" -> AttackResultFormatter.isCSV = true;
                 "-a" -> {
                     val attackList = mutableListOf<Attack>()
                     for (j in (i+1) until args.size step 2) {
@@ -192,7 +191,7 @@ fun main(args : Array<String>) {
             }
             else if (jsonString.contains("\"monster\"")) {
                 turns.addAll(Json.decodeFromString(jsonString))
-                scenario = File(arg).nameWithoutExtension
+                AttackResultFormatter.scenario = File(arg).nameWithoutExtension
             }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
