@@ -139,9 +139,15 @@ data class Spell(
         }
 
         for (penalty in effect.savePenalty) {
-            for (ability in effect.savePenaltyFilter) {
-                if (ability == AbilityType.ALL || ability == saveAbility) {
-                    precondition.penaltyDiceToSave!!.add(DiceBlockHelper.getDiceBlock(penalty))
+            if (effect.savePenaltyFilter.isEmpty() ||
+                effect.savePenaltyFilter.contains(AbilityType.ALL) ||
+                effect.savePenaltyFilter.contains(saveAbility))
+            {
+                if (precondition.penaltyDiceToSave == null) {
+                    precondition.penaltyDiceToSave = DiceBlockHelper.getDiceBlock(penalty)
+                }
+                else {
+                    precondition.penaltyDiceToSave = precondition.penaltyDiceToSave!!.add(DiceBlockHelper.getDiceBlock(penalty))
                 }
             }
         }
