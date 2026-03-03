@@ -7,6 +7,8 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.json.Json
 
 object TurnCalculator {
@@ -18,38 +20,76 @@ object TurnCalculator {
     var outputFormat = "txt"
     var scenario = ""
 
+    data class RunningSpell (val startTurn: Int, val spell: Spell)
+    var runningSpellList = mutableListOf<RunningSpell>()
+    fun getRunningSpells(): MutableList<Spell> {
+        val result = mutableListOf<Spell>()
+        for (running in runningSpellList) result.add(running.spell)
+        return result
+    }
+    fun pruneRunningSpells(turnId: Int) {
+        val iterator = runningSpellList.listIterator()
+        while (iterator.hasNext()) {
+            val running = iterator.next()
+            val deltaT = turnId - running.startTurn
+            val spell = running.spell
+            val duration = spell.getDuration() ?: 0
+            if (deltaT >= duration) {
+                Globals.debug("spell is complete, remove from running list: "+spell.name)
+                iterator.remove()
+            }
+        }
+    }
+
+    fun getPreconditions(turnId: Int, actionCount: Int, turn: Turn, currentSpell: Spell?): Preconditions? {
+        if (turnId == 1 && actionCount == 1) return turn.preconditions
+        val precondition = Preconditions()
+
+        for (running in runningSpellList) {
+            val effect = running.spell.getTargetEffect()
+
+            // extra damage from old spells can be applied independently (does not depend on "currentSpell")
+            for (damage in effect.attackerExtraDamageOnHit) {
+                if (precondition.bonusDamageDice == null) {
+                    precondition.bonusDamageDice = DiceBlockHelper.emptyBlock()
+                }
+                precondition.bonusDamageDice = precondition.bonusDamageDice!!.add (DiceBlockHelper.getDiceBlock (damage))
+            }
+
+            if (currentSpell != null) {
+                currentSpell.preProcessEffectsOfOldSpell (running.spell, precondition)
+            }
+        }
+        return precondition
+    }
+
     fun calculateDPRForAllTurns() {
         var turnId = 1
         var scenarioTotalDamage = 0f
+
         for (turn in turns) {
-            val dpr = calculateDPR(turnId, turn)
+            var dpr = 0f
+            var actionCount = 1
+            AttackResultFormatter.header(outputFormat)
+
+            for (attack in turn.attacks) {
+                val damage = calculateDPR(turnId, actionCount, turn, attack)
+                dpr += damage
+                actionCount++
+            }
+
+            AttackResultFormatter.footer(outputFormat, scenario, turnId, "TURN TOTAL", dpr)
+
+            pruneRunningSpells(turnId)
             turnId++
             scenarioTotalDamage += dpr
         }
+
         AttackResultFormatter.footer(outputFormat, scenario, "", "SCENARIO TOTAL", scenarioTotalDamage)
         System.err.println()
     }
 
-    fun calculateDPR(turnId: Int, turn: Turn): Float {
-        var total = 0f
-        var actionCount = 1
-
-        AttackResultFormatter.header(outputFormat)
-
-        for (attack in turn.attacks) {
-            if (attack.preconditions == null) {
-                attack.preconditions = turn.preconditions
-            }
-            val damage = calculateDPR(turnId, actionCount, attack)
-            total += damage
-            actionCount++
-        }
-
-        AttackResultFormatter.footer(outputFormat, scenario, turnId, "TURN TOTAL", total)
-        return total
-    }
-
-    fun calculateDPR(turnId: Int, actionId: Int, attack: Attack): Float {
+    fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): Float {
         val monster = getMonster(attack.monster)
         if (monster == null) {
             println("monster not found: "+attack.monster)
@@ -59,21 +99,30 @@ object TurnCalculator {
         val dpr = DamagePerRound(character!!)
 
         val spell = getSpell(attack.attack)
+        attack.preconditions = getPreconditions(turnId, actionId, turn, spell)
+
         if (spell != null) {
             var totalDamage = 0f
             var effectCount = 1
             for (spellAttack in spell.getSpellAttacks()) {
-                val attackResult = if (spellAttack.isSavingThrowAttack()) {
+                val attackResult = if (spellAttack.attackPayload.description == null && spellAttack.damagePayload == null) { // hack
+                    dpr.getNoDamageSpellDPR (spell)
+                }
+                else if (spellAttack.isSavingThrowAttack()) {
                     dpr.getSavingThrowSpellDPR (spellAttack, spell, attack, monster)
                 } else {
                     dpr.getMeleeOrRangeDPR (MeleeOrRangeAttack (character!!, spellAttack, null), attack, monster)
                 }
-                val actionLabel = if (attack.isBonusAction == true) "BA" else ""+actionId
-                attackResult.output( outputFormat, character!!, monster, attack, scenario, turnId, actionLabel, effectCount, null, spellAttack
-                )
+
+                spell.postProcessEffectsOfOldSpells(getRunningSpells(), attackResult)
+                attackResult.output( outputFormat, character!!, monster, attack, scenario, turnId, ""+actionId, effectCount, null, spellAttack)
 
                 totalDamage += attackResult.damagePerRound.avg
                 effectCount ++
+            }
+            if (!spell.getTargetEffect().isEmpty()) { // we only track spells with a non-empty effect
+                runningSpellList.add(RunningSpell(turnId, spell))
+                Globals.debug("adding to running list: "+spell.name)
             }
             return totalDamage
         }
@@ -83,10 +132,7 @@ object TurnCalculator {
             val meleeOrRangeAttack = MeleeOrRangeAttack(character!!, null, weapon)
             val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
 
-            attackResult.output(
-                outputFormat, character!!, monster, attack, scenario, turnId,""+actionId,1, weapon,null
-            )
-
+            attackResult.output(outputFormat, character!!, monster, attack, scenario, turnId,""+actionId,1, weapon,null)
             return attackResult.damagePerRound.avg
         }
 

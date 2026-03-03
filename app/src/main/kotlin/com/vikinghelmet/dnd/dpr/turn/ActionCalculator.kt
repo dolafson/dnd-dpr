@@ -319,6 +319,16 @@ class DamagePerRound(var character: Character)
     // ==========================================================
     // here is where the fun really begins
 
+    fun getNoDamageSpellDPR(spell: Spell): AttackResult {
+        val duration = 1f * (spell.getDuration() ?: 0)
+        return AttackResult(1,
+            AvgMinMax(100f,100f,100f),
+            AvgMinMax(0f,0f,0f),
+            AvgMinMax(0f,0f,0f),
+            AvgMinMax(duration, duration, duration),
+            AvgMinMax(0f,0f,0f))
+    }
+
     fun getSavingThrowSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster): AttackResult
     {
         debug("\n##### getSavingThrowSpellDPR: $spellAttack")
@@ -344,6 +354,7 @@ class DamagePerRound(var character: Character)
         debug("spell duration (max): " + spell.getDuration())
         debug("spell damage:         " + spellAttack.getDamageDice())
         debug("num effects/targets:  $numberOfTargets")
+        debug("spell penalty dice:   $penaltyDiceToSave")
         debug()
 
         var targetSaveBonus = 0
@@ -368,11 +379,16 @@ class DamagePerRound(var character: Character)
         // then invert that prob to get our chance of "hitting" with the spell.  When
         // the monster rolls with advantage - eg has "Magic Resistance" - this yields
         // the player's minimum chance to hit
-        val chanceToHit = AvgMinMax(
+        var chanceToHit = AvgMinMax(
             1 - saveProb(targetSaveBonus,"No Advantage", bonusDiceToSave, penaltyDiceToSave),
             1 - saveProb(targetSaveBonus,"Advantage", bonusDiceToSave, penaltyDiceToSave),
             1 - saveProb(targetSaveBonus,"Disadvantage", bonusDiceToSave, penaltyDiceToSave)
         )
+
+        if (preconditions.autoFailSave == true) {
+            debug("autoFailSave is enabled, forcing chanceToHit to 100")
+            chanceToHit = AvgMinMax(100f, 100f, 100f)
+        }
 
         chanceToHit.debug("Chance to Hit")
 

@@ -1,8 +1,13 @@
 package com.vikinghelmet.dnd.dpr.spells
 
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
+import com.vikinghelmet.dnd.dpr.turn.AttackResult
+import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.util.Condition
+import com.vikinghelmet.dnd.dpr.util.D20Multiplier
+import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import kotlinx.serialization.Serializable
 
@@ -63,6 +68,10 @@ data class Spell(
             }
         }
 
+        if (attackList.isEmpty()) {
+            attackList.add(SpellAttack(Attack(name = this.name), null))
+        }
+
         // println("attackList = $attackList")
         return attackList
     }
@@ -86,6 +95,16 @@ data class Spell(
         return result
     }
 
+    fun getSpellSaveAbility(): AbilityType? {
+        for (spellAttack in getSpellAttacks()) {
+            val abilityName = spellAttack.getSaveAbility()
+            if (abilityName.isNotEmpty()) {
+                return AbilityType.valueOf(abilityName)
+            }
+        }
+        return null
+    }
+
     fun getTargetEffect(): TargetEffect {
         val result = TargetEffect()
         val conditions = getSpellFailConditions()
@@ -96,4 +115,36 @@ data class Spell(
         result.applySpellName(name)
         return result
     }
+
+    fun postProcessEffectsOfOldSpells(oldSpells: List<Spell>, attackResult: AttackResult) {
+        val saveAbility = getSpellSaveAbility()
+        for (oldSpell in oldSpells) {
+            val effect = oldSpell.getTargetEffect()
+            for (ability in effect.disadvantageOnSave) {
+                if (ability == AbilityType.ALL  || ability == saveAbility) {
+                    attackResult.d20Multiplier = D20Multiplier.Disadvantage
+                }
+            }
+        }
+    }
+
+    fun preProcessEffectsOfOldSpell(oldSpell: Spell, precondition: Preconditions) {
+        val effect = oldSpell.getTargetEffect()
+        val saveAbility = getSpellSaveAbility()
+
+        for (ability in effect.autoFailSave) {
+            if (ability == AbilityType.ALL || ability == saveAbility) {
+                precondition.autoFailSave = true
+            }
+        }
+
+        for (penalty in effect.savePenalty) {
+            for (ability in effect.savePenaltyFilter) {
+                if (ability == AbilityType.ALL || ability == saveAbility) {
+                    precondition.penaltyDiceToSave!!.add(DiceBlockHelper.getDiceBlock(penalty))
+                }
+            }
+        }
+    }
+
 }

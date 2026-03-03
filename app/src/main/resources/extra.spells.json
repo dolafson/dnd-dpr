@@ -10,6 +10,7 @@
       "Casting Time": "Action",
       "Components": "V",
       "Save": "Intelligence",
+      "filter-Duration": "1 turn",
 
       "data-datarecords": [
         {

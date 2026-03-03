@@ -18,9 +18,11 @@ data class Preconditions (
     val penaltyDiceToHit: DiceBlock? = null,
 
     val bonusDamage: Int? = 0,
-    val bonusDamageDice: DiceBlock? = null,
+    var bonusDamageDice: DiceBlock? = null,
 
     // If you get a bonus on only one hit or target, such as with the Evoker's "Empowered Evocation" ability, you can enter the bonus here.
     // we may be able to extract this from spell properties ?
     val bonusDamageOnFirstHit: DiceBlock? = null,
+
+    var autoFailSave: Boolean? = false, // target is paralyzed, petrified, stunned, or unconscious; fails all saves until condition ends
 )

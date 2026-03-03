@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.util.D20Multiplier
 
 data class AttackResult(
     val numTargets: Int,
@@ -12,6 +13,7 @@ data class AttackResult(
     val damagePerRound: AvgMinMax,
     val duration: AvgMinMax,
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
+    var d20Multiplier: D20Multiplier? = D20Multiplier.Normal
 ) {
     fun output(
         format: String, character: Character, monster: Monster, attack: Attack,
@@ -48,7 +50,7 @@ data class AttackResult(
         }
 
         buf.append(AttackResultFormatter.format(format, "turn", turn))
-        buf.append(AttackResultFormatter.format(format, "action", action))
+        buf.append(AttackResultFormatter.format(format, "action", if (attack.isBonusAction == true) "BA" else action))
         buf.append(AttackResultFormatter.format(format, "effect", effect))
         buf.append(AttackResultFormatter.format(format, "attack", attackLabel))
 
@@ -77,10 +79,19 @@ data class AttackResult(
         buf.append(AttackResultFormatter.format(format,"numTargets", numTargets))
         // TODO: endCondition ?
 
-        buf.append(AttackResultFormatter.format(format,"chanceToHit", chanceToHit.avg))
-        buf.append(AttackResultFormatter.format(format,"damagePerHit", damagePerHit.avg))
-        buf.append(AttackResultFormatter.format(format,"duration", duration.avg))
-        buf.append(AttackResultFormatter.format(format,"damageFullEffect", damageFullEffect.avg))
+        if (spellAttack != null && d20Multiplier == D20Multiplier.Disadvantage) {
+            buf.append(AttackResultFormatter.format(format, "chanceToHit", chanceToHit.max))
+            buf.append(AttackResultFormatter.format(format, "damagePerHit", damagePerHit.max))
+            buf.append(AttackResultFormatter.format(format, "duration", duration.max))
+            buf.append(AttackResultFormatter.format(format, "damageFullEffect", damageFullEffect.max))
+        }
+        else { // if (d20Multiplier == D20Multiplier.Normal) {
+            buf.append(AttackResultFormatter.format(format, "chanceToHit", chanceToHit.avg))
+            buf.append(AttackResultFormatter.format(format, "damagePerHit", damagePerHit.avg))
+            buf.append(AttackResultFormatter.format(format, "duration", duration.avg))
+            buf.append(AttackResultFormatter.format(format, "damageFullEffect", damageFullEffect.avg))
+        }
+
         println(buf)
     }
 }

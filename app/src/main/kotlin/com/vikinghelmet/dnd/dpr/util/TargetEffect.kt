@@ -3,23 +3,25 @@ package com.vikinghelmet.dnd.dpr.util
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 
 data class TargetEffect (
+
     var attackerHasAdvantage: Boolean? = false,
-    var disadvantageOnAttacks: Boolean? = false,
+    var attackerAutoCrit: Boolean? = false, // when target is hit, does attack automatically crit (double damage) ? // TODO ...
+    var attackerExtraDamageOnHit: MutableList<String> = mutableListOf(), // 1d4, 1d6, ...
 
-    var noActionOrBA: Boolean? = false,
-    var attackerAutoCrit: Boolean? = false, // when target is hit, attack automatically crits (double damage)
-
-    var disadvantageOnAbilityChecks: MutableList<AbilityType> = mutableListOf(),
+    // some effects are dependent on abilityType; these aren't modelled in Preconditions,
+    // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
     var disadvantageOnSave: MutableList<AbilityType> = mutableListOf(),
     var autoFailSave: MutableList<AbilityType> = mutableListOf(),
-
     var savePenaltyFilter: MutableList<AbilityType> = mutableListOf(),
+    var savePenalty: MutableList<String> = mutableListOf(),     //  1d4, 1d6, ... this effect depends on savePenaltyFilter above
 
-    // penalties and extra damage: 1d4", "1d6", etc
-    var savePenalty: MutableList<String> = mutableListOf(),
+    // remaining effects  only matter when monsters fight back ...
+    var disadvantageOnAttacks: Boolean? = false,
+    var noActionOrBA: Boolean? = false,
+    var disadvantageOnAbilityChecks: MutableList<AbilityType> = mutableListOf(), // this only matters when monsters fight back
     var attackPenalty: MutableList<String> = mutableListOf(),
     var damagePenalty: MutableList<String> = mutableListOf(),
-    var attackerExtraDamageOnHit: MutableList<String> = mutableListOf(),
+
 ) {
     fun isEmpty(): Boolean {
         return !attackerHasAdvantage!! && !disadvantageOnAttacks!! && !noActionOrBA!! && !attackerAutoCrit!! &&
@@ -29,7 +31,8 @@ data class TargetEffect (
                 savePenaltyFilter.isEmpty() &&
                 savePenalty.isEmpty() &&
                 attackPenalty.isEmpty() &&
-                damagePenalty.isEmpty()
+                damagePenalty.isEmpty() &&
+                attackerExtraDamageOnHit.isEmpty()
     }
     fun applyCondition(cond: Condition) {
         when (cond) {
@@ -111,6 +114,10 @@ data class TargetEffect (
 
     fun applySpellName(name: String)
     {
+        // unless otherwise specified ...
+        // - these one-off effects last for the spell duration, typically 1 min (also ends on a successful save)
+        // - these spells require concentration for the duration, and spell ends if concentration is broken
+
         if (name == "Bane") {
             // target must subtract 1d4 from the attack roll or save
             attackPenalty.add ("1d4")
@@ -139,18 +146,23 @@ data class TargetEffect (
             attackerHasAdvantage = true // TODO: only if attacker can see the target ?
         }
         else if (name == "Guiding Bolt") {
-            // next attack roll made against it before the end of your next turn has Advantage"
+            // duration = 1 turn
+            // does NOT require concentration
+            // next attack roll made against it before the end of your next turn has Advantage
             attackerHasAdvantage = true
         }
         else if (name == "Hex") {
+            // duration = 1 hour
             // choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability
             // TODO: user-selection ?
         }
         else if (name == "Hunter's Mark") { // 2024 rules // not sure if this belongs here or somewhere else
+            // duration = 1 hour
             attackerExtraDamageOnHit.add("1d6")
         }
         else if (name == "Mind Sliver") {
             // subtract 1d4 from the next saving throw it makes before the end of your next turn
+            // duration = 1 turn
             savePenalty.add ("1d4")
         }
         else if (name == "Otto's Irresistible Dance") {
@@ -176,6 +188,7 @@ data class TargetEffect (
             attackerHasAdvantage = true
         }
         else if (name == "Vicious Mockery") {
+            // spell duration is "instantaneous", but effect duration is 1 turn
             // Disadvantage on the next attack roll it makes before the end of its next turn
             disadvantageOnAttacks = true
         }
