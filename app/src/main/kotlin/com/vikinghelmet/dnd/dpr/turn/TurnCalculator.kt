@@ -71,6 +71,8 @@ object TurnCalculator {
             val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
 
             attackResult.output(character!!, monster, attack, turnId, actionId, weapon)
+
+            EffectManager.pruneSpellsWaitingForNextAttack()
             return listOf(attackResult)
         }
 
@@ -85,6 +87,9 @@ object TurnCalculator {
 
             attackResult.output(character!!, monster, attack, turnId, actionId, effectCount++, spellAttack)
 
+            if (spellAttack.isMeleeOrRangeAttack()) {
+                EffectManager.pruneSpellsWaitingForNextAttack() // do this pruning before adding current spell to the manager (below)
+            }
             resultList.add(attackResult)
         }
 

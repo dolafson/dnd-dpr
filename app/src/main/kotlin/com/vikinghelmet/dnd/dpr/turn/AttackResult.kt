@@ -12,7 +12,8 @@ data class AttackResult(
     val damagePerRound: AvgMinMax,
     val duration: AvgMinMax,
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
-    var targetHadDisadvantageOnSave: Boolean? = false
+    var targetHadDisadvantageOnSave: Boolean? = false,
+    var attackerHadAdvantage: Boolean? = false,
 ) {
     fun output(character: Character, monster: Monster, attack: Attack, turn: Int, actionId: Int, weapon: Weapon) {
         output(character, monster, attack, turn, actionId,1, weapon,null)
@@ -98,7 +99,7 @@ data class AttackResult(
     }
 
     fun getAvgMinMaxSelection(): AvgMinMaxSelection {
-        return if (EffectManager.attackerHasAdvantage() || targetHadDisadvantageOnSave == true)
+        return if (attackerHadAdvantage == true || targetHadDisadvantageOnSave == true)
             AvgMinMaxSelection.max else AvgMinMaxSelection.avg
     }
 }

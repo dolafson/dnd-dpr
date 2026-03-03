@@ -330,7 +330,7 @@ class DamagePerRound(var character: Character)
     // here is where the fun really begins
 
     fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster): AttackResult {
-        return if (spellAttack.attackPayload.description == null && spellAttack.damagePayload == null) { // hack
+        return if (spellAttack.isNoDamageAttack()) {
             getNoDamageSpellDPR (spell)
         }
         else if (spellAttack.isSavingThrowAttack()) {
@@ -602,6 +602,8 @@ class DamagePerRound(var character: Character)
                     =J202+IF($G$42="Same as other attacks",Y202,$AD$202)+AR211  +AR199
         */
 
-        return AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR)
+        var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR)
+        result.attackerHadAdvantage = EffectManager.attackerHasAdvantage() // stash this now, for future use
+        return result
     }
 }

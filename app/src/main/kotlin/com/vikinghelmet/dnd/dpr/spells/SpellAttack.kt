@@ -12,6 +12,14 @@ data class SpellAttack(
     val damagePayload: Damage? = null,
 )
 {
+    fun isMeleeOrRangeAttack(): Boolean {
+        return !isNoDamageAttack() && !isSavingThrowAttack()
+    }
+
+    fun isNoDamageAttack(): Boolean {
+        return (attackPayload.description == null && damagePayload == null) // TODO: find a cleaner way to represent this
+    }
+
     fun isSavingThrowAttack(): Boolean {
         return attackPayload.save != null
     }

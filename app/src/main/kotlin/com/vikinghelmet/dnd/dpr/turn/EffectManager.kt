@@ -33,6 +33,19 @@ object EffectManager {
         }
     }
 
+    fun pruneSpellsWaitingForNextAttack() {
+        val iterator = runningSpellList.listIterator()
+        while (iterator.hasNext()) {
+            val running = iterator.next()
+            val spell = running.spell
+            val duration = spell.getDuration() ?: 0  // is this the best representation ?
+            if (duration <= 0) {
+                Globals.debug("spell was waiting for next attack, removing it from running list: "+spell.name)
+                iterator.remove()
+            }
+        }
+    }
+
     fun getPreconditions(turnId: Int, actionCount: Int, turn: Turn, currentSpell: Spell?): Preconditions? {
         if (turnId == 1 && actionCount == 1) return turn.preconditions
         val precondition = Preconditions()
