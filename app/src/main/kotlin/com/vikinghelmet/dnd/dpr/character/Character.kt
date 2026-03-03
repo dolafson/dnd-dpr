@@ -121,6 +121,8 @@ data class Character(
 
         if (characterData.inventory == null) return list
         for (item in characterData.inventory) {
+            if (item.equipped != true) continue
+
             val def = item.definition
             if (def.filterType == "Weapon") {
                 var props = mutableListOf<String>()

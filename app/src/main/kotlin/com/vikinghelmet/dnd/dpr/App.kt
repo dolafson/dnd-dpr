@@ -4,6 +4,8 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
@@ -73,6 +75,43 @@ fun spellTest() {
         if (!effect.isEmpty()) {
             println(String.format("%-30s %-20s %s", spell.name, spell.getSpellFailConditions(), effect))
         }
+    }
+}
+
+fun rangeTest() {
+    println()
+    val rangeWeaponMap = mutableMapOf<Int,MutableList<Weapon>>() // hashMapOf<Int,Weapon>()
+    val rangePreparedSpellMap = hashMapOf<Int,MutableList<PreparedSpell>>()
+
+    for (weapon in character!!.getWeaponList()) {
+        rangeWeaponMap.getOrPut(weapon.range ?: 0) { mutableListOf() }.add(weapon)
+    }
+
+    for (preparedSpell in character!!.characterData.getPreparedSpells()) {
+        if (preparedSpell.definition.tags.contains("Healing")) continue // we only care about offensive spells for now
+        rangePreparedSpellMap.getOrPut(preparedSpell.definition.range.rangeValue ?: 0) { mutableListOf() }.add(preparedSpell)
+    }
+
+    val rangeList = mutableListOf<Int>()
+    rangeList.addAll(rangeWeaponMap.keys)
+    rangeList.addAll(rangePreparedSpellMap.keys)
+    rangeList.sort()
+
+    println()
+
+    for (range in rangeList) {
+        println ("range = "+range)
+        if (range in rangeWeaponMap.keys) {
+            for (weapon in rangeWeaponMap.get(range)!!) {
+                println ("\t "+weapon.name)
+            }
+        }
+        if (range in rangePreparedSpellMap.keys) {
+            for (preparedSpell in rangePreparedSpellMap.get(range)!!) {
+                println ("\t "+preparedSpell.definition.name)
+            }
+        }
+        println()
     }
 }
 
@@ -217,6 +256,10 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("spellTest")) {
             spellTest()
+            exitEarly = true
+        }
+        else if (arg.startsWith("rangeTest")) {
+            rangeTest()
             exitEarly = true
         }
     }
