@@ -61,4 +61,11 @@ object EffectManager {
         }
         return false
     }
+
+    fun isAutoCrit(): Boolean {
+        for (running in runningSpellList) {
+            if (running.spell.getTargetEffect().attackerAutoCrit == true) return true
+        }
+        return false
+    }
 }

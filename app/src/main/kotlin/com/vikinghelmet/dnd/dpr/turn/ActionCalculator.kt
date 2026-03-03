@@ -569,8 +569,10 @@ class DamagePerRound(var character: Character)
 
         debug()
 
+        // TODO: "autoCrit" from paralyzed/unconscious should only apply to melee attacks (not range)
+
         // Crit%:        (B211, F211, J211)
-        val critChance = AvgMinMax(
+        val critChance = if (EffectManager.isAutoCrit()) AvgMinMax(100f,100f,100f) else AvgMinMax(
             critChance(autoHit, "No Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
