@@ -162,7 +162,8 @@ In this sample output, the key things to note are
   - but in this case, [Mind Sliver](https://www.dndbeyond.com/spells/2619037-mind-sliver) causes the Goblin to add a 1d4 penalty
   - MindSliver improves the "chance to hit" from 45% to 57%
 - the number of spell effects/targets is 3 (assume 2 friends within 5 feet)
-  - Note: this number should be configurable
+  - Note 1: this number should be configurable
+  - Note 2: Mind Sliver should only apply to one of those 3 targets
 - spell damage per hit is 4.22
   - 1d10 on a failed save, or half that on a successful save 
   - Note: Hunter's Mark damage does not apply here 
@@ -177,11 +178,11 @@ In this sample output, the key things to note are
 In no particular order ...
 
 - add unit tests
-- add support for **automatically** cascading conditions between attacks, for example:
-  - cast Mind Sliver, which on a hit reduces the target's next save roll by 1d4
-  - then cast a different spell which requires a save roll, including the above penalty
+- add spell effects / conditions to output (txt and csv)
 - add optional support for constraint checks
   - your character doesn't know that spell, can't cast it 100 times, etc 
+- when cascading spell effects, most effects only apply to a single target
+  - take this into account when computing DPR for multi-target spell save (like Hail of Thorns, Ice Knife, ...)
 - add better support for levelling up / what-if scenarios
   - for now this is done by hand-editing a character file and re-runnimg the DPR calculation
 - add a web interface
