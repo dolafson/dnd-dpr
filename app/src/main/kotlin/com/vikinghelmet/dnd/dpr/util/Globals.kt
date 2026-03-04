@@ -1,7 +1,9 @@
 package com.vikinghelmet.dnd.dpr.util
 
+import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.turn.Turn
 import kotlinx.serialization.json.Json
 
 object Globals {
@@ -11,10 +13,12 @@ object Globals {
 
     fun debug(str: String) { if (debug) System.err.println(str) }
 
-    fun dump(arg: String) {
+    fun dump(arg: String, character: Character?, turns: List<Turn>) {
         if (!arg.contains(":")) {
             for (item in spells)    println(Json.encodeToString(item))
             for (item in monsters)  println(Json.encodeToString(item))
+            for (item in turns)     println(Json.encodeToString(item))
+            character?.dump()
             return
         }
 
@@ -25,6 +29,12 @@ object Globals {
             }
             "monsters" -> {
                 for (item in monsters)  println(Json.encodeToString(item))
+            }
+            "attacks" -> {
+                for (item in turns)  println(Json.encodeToString(item))
+            }
+            "character" -> {
+                character?.dump()
             }
         }
     }
@@ -46,6 +56,17 @@ object Globals {
                 }
 
                 return spell
+            }
+        }
+        return null
+    }
+
+    fun getMonster(name: String): Monster? {
+        if (monsters.isEmpty()) return null
+
+        for (monster in monsters) {
+            if (monster.name == name) {
+                return monster
             }
         }
         return null

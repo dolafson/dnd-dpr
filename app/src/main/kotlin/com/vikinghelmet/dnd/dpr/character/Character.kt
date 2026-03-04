@@ -15,6 +15,7 @@ import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
@@ -26,6 +27,10 @@ data class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
+    fun dump() {
+        println(Json.encodeToString(this))
+    }
+
     // ----------------------------------------------------------------------------------------
     // TRAITS, ABILITIES, and FEATS
 
@@ -245,6 +250,11 @@ data class Character(
         return result
     }
 
+    fun getSpellSlots(): List<Int> {
+        // TODO: support multi-class spell casters
+        return characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(getLevel()) ?: MutableList(20) { 0 }
+    }
+
     // ----------------------------------------------------------------------------------------
     // TESTS
 
@@ -293,6 +303,7 @@ data class Character(
         }
         println ("")
         println ("weapon nickname map: "+getWeaponNicknameMap())
+        println ("spell slots: "+getSpellSlots())
         println ("")
     }
 

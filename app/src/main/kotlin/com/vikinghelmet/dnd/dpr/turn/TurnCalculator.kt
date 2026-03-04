@@ -1,11 +1,7 @@
 package com.vikinghelmet.dnd.dpr.turn
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.Globals.monsters
-import com.vikinghelmet.dnd.dpr.util.Globals.spells
-import kotlinx.serialization.json.Json
 
 class TurnCalculator(
     val turns: ArrayList<Turn> = ArrayList(),
@@ -41,7 +37,7 @@ class TurnCalculator(
 
     fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>
     {
-        val monster = getMonster(attack.monster)
+        val monster = Globals.getMonster(attack.monster)
         if (monster == null) {
             println("monster not found: "+attack.monster)
             return emptyList()
@@ -98,49 +94,5 @@ class TurnCalculator(
         }
 
         return resultList
-    }
-
-    fun getMonster(name: String): Monster? {
-        if (monsters.isEmpty()) return null
-
-        for (monster in monsters) {
-            if (monster.name == name) {
-                return monster
-            }
-        }
-        return null
-    }
-
-
-    fun dump(arg: String) {
-        if (!arg.contains(":")) {
-            for (item in spells)    println(Json.encodeToString(item))
-            for (item in monsters)  println(Json.encodeToString(item))
-            for (item in turns)   println(Json.encodeToString(item))
-            println(Json.encodeToString(character))
-            return
-        }
-
-        val dumpType = arg.split(":")[1]
-        when (dumpType) {
-            "spells" -> {
-                for (item in spells)  println(Json.encodeToString(item))
-            }
-            "monsters" -> {
-                for (item in monsters)  println(Json.encodeToString(item))
-            }
-            "attacks" -> {
-                for (item in turns)  println(Json.encodeToString(item))
-            }
-            "character" -> {
-                println(Json.encodeToString(character))
-            }
-        }
-    }
-
-    fun search(arg: String) {
-        val searchValue = arg.split(":")[1]
-        for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-        for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
     }
 }

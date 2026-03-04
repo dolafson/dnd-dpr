@@ -48,7 +48,7 @@ data class Spell(
 
     fun isMeleeBonusAction(): Boolean { // only a few of these exist
         val dd = properties.dataDescription ?: ""
-        return takeImmediatelyAfterHitting() && dd.contains("Melee weapon")
+        return takeImmediatelyAfterHitting() && (dd.contains("Melee weapon") || dd.contains("with a weapon"))
     }
 
     fun isRangedBonusAction(): Boolean { // only a few of these exist

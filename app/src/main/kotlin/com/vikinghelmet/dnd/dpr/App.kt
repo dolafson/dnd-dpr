@@ -196,22 +196,22 @@ fun main(args : Array<String>) {
             character = getCharacter(arg)
         }
         else if (arg.startsWith("dump")) {
-            Globals.dump(arg)
+            Globals.dump(arg, character, turns)
             exitEarly = true
         }
         else if (arg.startsWith("search")) {
             Globals.search(arg)
             exitEarly = true
         }
-        else if (arg.startsWith("test")) {
+        else if (arg.startsWith("test:character")) {
             character?.test()
             exitEarly = true
         }
-        else if (arg.startsWith("rangeTest")) {
+        else if (arg.startsWith("test:range")) {
             if (character != null) character.rangeTest()
             exitEarly = true
         }
-        else if (arg.startsWith("enumerateActions")) {
+        else if (arg.startsWith("test:enumerateActions")) {
             if (character != null) character.enumerateActions()
             exitEarly = true
         }
