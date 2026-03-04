@@ -42,17 +42,17 @@ data class AttackResult(
         this.startCondition = startCondition
     }
 
-    fun output() {
+    fun output(scenarioName: String) {
         if (weapon == null && spellAttack == null) {
             throw IllegalArgumentException("either weapon or spell attack must be non-null")
         }
-        output(character!!, monster!!, attack!!, turnId, actionId, effect, weapon, spellAttack, startCondition!!)
+        output(character!!, monster!!, attack!!, turnId, actionId, effect, weapon, spellAttack, startCondition!!, scenarioName)
     }
 
     private fun output(
         character: Character, monster: Monster, attack: Attack,
         turn: Int, actionId: Int, effect: Int,
-        weapon: Weapon?, spellAttack: SpellAttack?,  startCondition: String
+        weapon: Weapon?, spellAttack: SpellAttack?,  startCondition: String, scenarioName: String
     ) {
         val attackLabel = weapon?.name ?: spellAttack.toString()
 
@@ -70,7 +70,7 @@ data class AttackResult(
             buf.append(AttackResultFormatter.format("monsterAC", monster.properties.dataAcNum))
             // TODO: abilities: Str, Dex, ... ?
 
-            buf.append(AttackResultFormatter.format("scenario",AttackResultFormatter.scenario))
+            buf.append(AttackResultFormatter.format("scenario",scenarioName))
 
             if (!AttackResultFormatter.isCSV) {
                 println(buf)
@@ -129,7 +129,6 @@ object AttackResultFormatter {
     val txtLineSeparator = "#######################################################\n"
     var isTxtFirstResultDone = false
     var isCSV: Boolean = false
-    var scenario = ""
 
     fun format(fieldName: String, value: Any): String {
         isTxtFirstResultDone = true
@@ -141,9 +140,9 @@ object AttackResultFormatter {
         return if (isCSV) format(fieldName, value) else ""
     }
 
-    fun footer(turnId: Any, actionLabel: String, totalDamage: Float) {
+    fun footer(turnId: Any, actionLabel: String, totalDamage: Float, scenarioName: String) {
         if (isCSV) {
-            println(String.format(",,,,,,%s,%s,%s,,,,,,,,,,,,,%2.2f,", AttackResultFormatter.scenario, turnId, actionLabel, totalDamage))
+            println(String.format(",,,,,,%s,%s,%s,,,,,,,,,,,,,%2.2f,", scenarioName, turnId, actionLabel, totalDamage))
         } else {
             println(format(actionLabel, totalDamage))
         }

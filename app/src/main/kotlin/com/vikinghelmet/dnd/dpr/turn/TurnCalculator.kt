@@ -34,7 +34,7 @@ class TurnCalculator(
             scenarioTotalDamage += dpr
         }
 
-        return ScenarioResult(attackResults, scenarioTotalDamage)
+        return ScenarioResult(scenario, attackResults, scenarioTotalDamage)
     }
 
     fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>

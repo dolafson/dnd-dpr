@@ -7,7 +7,7 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class Scenario(
     val character: Character,
-    val turns: List<Turn>,
+    val turns: List<Turn>
 )
 {
     fun getSpellsAcrossTurns(): List<Spell> {
@@ -35,6 +35,6 @@ data class Scenario(
             turn.attacks.map { attackNameList.add(it.attack) }
             buf.append(""+attackNameList)
         }
-        return buf.toString()
+        return String.format("\"%s\"", buf.toString())
     }
 }

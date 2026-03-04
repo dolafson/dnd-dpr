@@ -138,6 +138,7 @@ fun main(args : Array<String>) {
     var exitEarly = false
     var character: Character? = null
     val turns = ArrayList<Turn>()
+    var scenarioName = ""
 
     if (args.isEmpty()) {
         showUsage()
@@ -167,6 +168,11 @@ fun main(args : Array<String>) {
                     turns.add(Turn(null, attackList, null))
                     break
                 }
+                "-z" -> {
+                    val monster = args[i+1]
+                    val meleeOrRange = args[i+2]
+                    ScenarioBuilder(character!!,monster).runScenarios (meleeOrRange.equals("melee"))
+                }
                 else -> println("invalid argument: $arg")
             }
         }
@@ -183,7 +189,7 @@ fun main(args : Array<String>) {
             }
             else if (jsonString.contains("\"monster\"")) {
                 turns.addAll(Json.decodeFromString(jsonString))
-                AttackResultFormatter.scenario = File(arg).nameWithoutExtension
+                scenarioName = File(arg).nameWithoutExtension
             }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
@@ -215,10 +221,6 @@ fun main(args : Array<String>) {
             if (character != null) ScenarioBuilder(character, args[i+1]).testScenarios()
             exitEarly = true
         }
-        else if (arg.startsWith("test:run")) {
-            if (character != null) ScenarioBuilder(character, args[i+1]).runScenarios()
-            exitEarly = true
-        }
     }
 
     if (exitEarly) {
@@ -239,6 +241,6 @@ fun main(args : Array<String>) {
     else {
         val scenario = Scenario(character, turns)
         val scenarioResult = TurnCalculator(scenario).calculateDPRForAllTurns()
-        scenarioResult.output(scenario)
+        scenarioResult.output()
     }
 }

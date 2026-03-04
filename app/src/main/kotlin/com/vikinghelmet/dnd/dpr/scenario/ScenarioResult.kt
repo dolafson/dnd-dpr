@@ -4,24 +4,26 @@ import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 
 data class ScenarioResult(
+    val scenario: Scenario,
     val attackResults: List<AttackResult>,
-    val totalDPR: Float = 0f
+    val totalDPR: Float = 0f,
 ) {
-    fun output(scenario: Scenario) {
+    fun output() {
         var turnId = 1
+        AttackResultFormatter.header()
+        val scenarioName = scenario.getLabel()
 
         for (turn in scenario.turns) {
-            var turnDPR: Float = 0f
-            AttackResultFormatter.header()
+            var turnDPR = 0f
 
             for (result in attackResults) if (result.turnId == turnId) {
-                result.output()
+                result.output(scenarioName)
                 turnDPR += result.damagePerRound.select (result.getAvgMinMaxSelection())
             }
 
-            AttackResultFormatter.footer(turnId++, "TURN TOTAL", turnDPR)
+            AttackResultFormatter.footer(turnId++, "TURN TOTAL", turnDPR, scenarioName)
         }
 
-        AttackResultFormatter.footer("", "SCENARIO TOTAL", totalDPR)
+        AttackResultFormatter.footer("", "SCENARIO TOTAL", totalDPR, scenarioName)
     }
 }

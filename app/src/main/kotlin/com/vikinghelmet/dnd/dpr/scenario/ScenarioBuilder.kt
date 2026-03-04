@@ -139,25 +139,22 @@ class ScenarioBuilder(val character: Character, val monster: String) {
         println("ranged: scenarioList size = "+rangedScenarioList.size)
     }
 
-    fun runScenarios() {
+    fun runScenarios(isMelee: Boolean) {
         val actionsAvailable = character.getActionsAvailable()
-        /*
-                val meleeTurnOptions = possibleTurns(actionsAvailable, true)
-                val meleeScenarioList = ArrayList<Scenario>()
-                buildScenarios(6, meleeTurnOptions, Scenario(emptyList(), emptyList()), meleeScenarioList)
-                // System.err.println("melee: scenarioList size = "+meleeScenarioList.size)
-                for (scenario in meleeScenarioList) {
-                    val scenarioResult = TurnCalculator(scenario.turns, this,EffectManager(ArrayList())).calculateDPRForAllTurns()
-                    System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenario.getLabel()))
-                }
-        */
-        val rangedTurnOptions = possibleTurns(actionsAvailable, false)
-        val rangedScenarioList = ArrayList<Scenario>()
-        buildScenarios(6, rangedTurnOptions, Scenario(character, emptyList()), rangedScenarioList)
-        // System.err.println("ranged: scenarioList size = "+rangedScenarioList.size)
-        for (scenario in rangedScenarioList) {
+        val turnOptions = possibleTurns(actionsAvailable, isMelee)
+        val scenarioList = ArrayList<Scenario>()
+        buildScenarios(6, turnOptions, Scenario(character, emptyList()), scenarioList)
+
+        val resultList = ArrayList<ScenarioResult>()
+        for (scenario in scenarioList) {
             val scenarioResult = TurnCalculator(scenario).calculateDPRForAllTurns()
-            System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenario.getLabel()))
+            resultList.add(scenarioResult)
+        }
+
+        val sortedResults = resultList.sortedByDescending { it.totalDPR }
+        for (scenarioResult in sortedResults) {
+            System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenarioResult.scenario.getLabel()))
+            scenarioResult.output()
         }
     }
 
