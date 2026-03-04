@@ -6,10 +6,7 @@ package com.vikinghelmet.dnd.dpr
 //import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.character
 //import com.vikinghelmet.dnd.dpr.turn.TurnCalculator.turns
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
-import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
+import com.vikinghelmet.dnd.dpr.turn.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
@@ -219,6 +216,10 @@ fun main(args : Array<String>) {
             if (character != null) character.testScenarios()
             exitEarly = true
         }
+        else if (arg.startsWith("test:run")) {
+            if (character != null) character.runScenarios()
+            exitEarly = true
+        }
     }
 
     if (exitEarly) {
@@ -237,6 +238,6 @@ fun main(args : Array<String>) {
         println("no attacks specified")
     }
     else {
-        TurnCalculator(turns, character).calculateDPRForAllTurns()
+        TurnCalculator(turns, character, EffectManager(ArrayList())).calculateDPRForAllTurns()
     }
 }

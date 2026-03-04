@@ -34,6 +34,7 @@
           }
         }
       ],
+      "Concentration": "No",
       "Damage": "1d6",
       "Damage Type": "Psychic"
     },
@@ -187,12 +188,12 @@
         ],
         "filter-Components": "Verbal",
         "filter-Casting Time": "Bonus Action",
-        "filter-Concentration": "Yes",
+        "filter-Concentration": "No",
         "Name": "Hail of Thorns",
         "data-description": "Bonus Action, which you take immediately after hitting a creature with a Ranged weapon. As you hit the creature, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal effect of the attack, the target of the attack and each creature within 5 feet of it must make a Dexterity saving throw. A creature takes 1d10 piercing damage on a failed save, or half as much damage on a successful one.",
         "Level": 1,
         "Casting Time": "Bonus Action",
-        "Concentration": "Yes",
+        "Concentration": "No",
         "Duration": "Instaneous",
         "Range": "Self",
         "Components": "V",

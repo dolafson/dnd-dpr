@@ -4,12 +4,14 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 class TurnCalculator(
-    val turns: ArrayList<Turn> = ArrayList(),
-    var character: Character
+    val turns: List<Turn> = ArrayList(),
+    var character: Character,
+    val effectManager: EffectManager
 ) {
-    fun calculateDPRForAllTurns() {
+    fun calculateDPRForAllTurns(): ScenarioResult {
         var turnId = 1
         var scenarioTotalDamage = 0f
+        val attackResults = ArrayList<AttackResult>()
 
         for (turn in turns) {
             var dpr = 0f
@@ -17,22 +19,25 @@ class TurnCalculator(
             AttackResultFormatter.header()
 
             for (attack in turn.attacks) {
-                val resultList = calculateDPR(turnId, actionCount, turn, attack)
-                for (result in resultList) {
+                val resultsForAttack = calculateDPR(turnId, actionCount, turn, attack)
+                for (result in resultsForAttack) {
                     dpr += result.damagePerRound.select (result.getAvgMinMaxSelection())
                 }
                 actionCount++
+
+                attackResults.addAll(resultsForAttack)
             }
 
             AttackResultFormatter.footer(turnId, "TURN TOTAL", dpr)
 
-            EffectManager.pruneRunningSpells(turnId)
+            effectManager.pruneRunningSpells(turnId)
             turnId++
             scenarioTotalDamage += dpr
         }
 
         AttackResultFormatter.footer("", "SCENARIO TOTAL", scenarioTotalDamage)
         System.err.println()
+        return ScenarioResult(attackResults, scenarioTotalDamage)
     }
 
     fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>
@@ -55,17 +60,17 @@ class TurnCalculator(
             return emptyList()
         }
 
-        attack.preconditions = EffectManager.getPreconditions(turnId, actionId, turn, spell)
+        attack.preconditions = effectManager.getPreconditions(turnId, actionId, turn, spell)
 
         val dpr = DamagePerRound(character)
 
         if (weapon != null) {
             val meleeOrRangeAttack = MeleeOrRangeAttack(character, null, weapon)
-            val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster)
+            val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster, effectManager)
 
-            attackResult.output(character, monster, attack, turnId, actionId, weapon)
+            attackResult.output(character, monster, attack, turnId, actionId, weapon, effectManager)
 
-            EffectManager.pruneSpellsWaitingForNextAttack(null)
+            effectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)
         }
 
@@ -74,22 +79,19 @@ class TurnCalculator(
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
         for (spellAttack in spell.getSpellAttacks()) {
-            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster, character)
+            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster, character, effectManager)
 
-            spell.postProcessEffectsOfOldSpells(EffectManager.getRunningSpells(), attackResult)
+            spell.postProcessEffectsOfOldSpells(effectManager.getRunningSpells(), attackResult)
 
-            attackResult.output(character, monster, attack, turnId, actionId, effectCount++, spellAttack)
+            attackResult.output(character, monster, attack, turnId, actionId, effectCount++, spellAttack, effectManager)
 
-            EffectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the manager (below)
-            if (attackResult.targetHadDisadvantageOnSave == true) {
-
-            }
+            effectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the manager (below)
 
             resultList.add(attackResult)
         }
 
         if (!spell.getTargetEffect().isEmpty()) { // we only track spells with a non-empty effect
-            EffectManager.add(turnId, spell)
+            effectManager.add(turnId, spell)
             Globals.debug("adding to running list: "+spell.name)
         }
 

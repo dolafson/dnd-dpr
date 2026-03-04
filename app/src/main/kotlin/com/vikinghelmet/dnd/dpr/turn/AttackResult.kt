@@ -15,18 +15,18 @@ data class AttackResult(
     var targetHadDisadvantageOnSave: Boolean? = false,
     var attackerHadAdvantage: Boolean? = false,
 ) {
-    fun output(character: Character, monster: Monster, attack: Attack, turn: Int, actionId: Int, weapon: Weapon) {
-        output(character, monster, attack, turn, actionId,1, weapon,null)
+    fun output(character: Character, monster: Monster, attack: Attack, turn: Int, actionId: Int, weapon: Weapon, effectManager: EffectManager) {
+        output(character, monster, attack, turn, actionId, 1, weapon, null, effectManager)
     }
 
-    fun output(character: Character, monster: Monster, attack: Attack,turn: Int, actionId: Int, effect: Int, spellAttack: SpellAttack) {
-        output(character, monster, attack, turn, actionId, effect,null, spellAttack)
+    fun output(character: Character, monster: Monster, attack: Attack,turn: Int, actionId: Int, effect: Int, spellAttack: SpellAttack, effectManager: EffectManager) {
+        output(character, monster, attack, turn, actionId, effect, null, spellAttack, effectManager)
     }
 
     private fun output(
         character: Character, monster: Monster, attack: Attack,
         turn: Int, actionId: Int, effect: Int,
-        weapon: Weapon?, spellAttack: SpellAttack?
+        weapon: Weapon?, spellAttack: SpellAttack?, effectManager: EffectManager
     ) {
 
         if (weapon == null && spellAttack == null) {
@@ -85,7 +85,7 @@ data class AttackResult(
             buf.append(AttackResultFormatter.format("targetSaveBonus", targetSaveBonus))
         }
 
-        buf.append(AttackResultFormatter.format("startCondition", String.format("\"%s\"", EffectManager.toString())))
+        buf.append(AttackResultFormatter.format("startCondition", String.format("\"%s\"", effectManager.toString())))
         buf.append(AttackResultFormatter.format("numTargets", numTargets))
 
         val selection = getAvgMinMaxSelection()

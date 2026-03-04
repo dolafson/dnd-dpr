@@ -7,9 +7,10 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class RunningSpell (val startTurn: Int, val spell: Spell)
 
-object EffectManager {
-    var runningSpellList = mutableListOf<RunningSpell>()
-
+data class EffectManager(
+    val runningSpellList: ArrayList<RunningSpell>
+)
+{
     fun add(turnId: Int, spell: Spell) {
         runningSpellList.add(RunningSpell(turnId, spell))
     }

@@ -10,9 +10,7 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellHelper
-import com.vikinghelmet.dnd.dpr.turn.ActionsAvailable
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.turn.*
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.SerialName
@@ -390,8 +388,12 @@ data class Character(
                     if (w1 == w2) continue // if you have 2 shortswords, hopefully they vary by nickname ...
                     if (w2.isLight()) {
                         turn = Turn(attacks = listOf(
+                            /*
                             Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
                             Attack(monster = monster, attack = (w2.nickname ?: w2.name), isBonusAction = true),
+                             */
+                            Attack(monster = monster, attack = w1.name),
+                            Attack(monster = monster, attack = w2.name, isBonusAction = true),
                         ))
                         break
                     }
@@ -407,7 +409,8 @@ data class Character(
             // bonus action spells: mostly for ranger and paladin
             for (bonus in bonusActions) {
                 turnOptions.add(Turn(attacks = listOf(
-                    Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
+                    //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
+                    Attack(monster = monster, attack = w1.name),
                     Attack(monster = monster, attack = bonus),
                 )))
             }
@@ -442,7 +445,26 @@ data class Character(
         println()
     }
 
-    data class Scenario(val turns: List<Turn>, val spellsUsed: List<Spell>)
+    data class Scenario(val turns: List<Turn>, val spellsUsed: List<Spell>) {
+        fun isSlotAvailable(character: Character, spell: Spell): Boolean {
+            val level = spell.properties.Level
+            if (level == 0) return true // cantrip
+
+            val maxSlots = character.getSpellSlots()[level - 1]
+            val slotsUsed = spellsUsed.count { it.properties.Level == spell.properties.Level }
+            return (slotsUsed < maxSlots)
+        }
+
+        fun getLabel(): String {
+            val buf = StringBuilder()
+            for (turn in turns) {
+                val attackNameList = mutableListOf<String>()
+                turn.attacks.map { attackNameList.add(it.attack) }
+                buf.append(""+attackNameList)
+            }
+            return buf.toString()
+        }
+    }
 
     fun buildScenarios(rounds: Int, turnOptions: List<Turn>, currentScenario: Scenario, scenarioList: ArrayList<Scenario>) {
         if (rounds == 0) {
@@ -451,19 +473,37 @@ data class Character(
         }
 
         for (turn in turnOptions) {
-            val spell = Globals.getSpell(turn.attacks.first().attack, this.is2014())
+            val spellsUsedThisTurn = ArrayList<Spell>()
 
-            if (spell != null) {
-                if (currentScenario.spellsUsed.isNotEmpty()) {
-                    val dur = currentScenario.spellsUsed.last().getDuration() ?: 0
-                    // if the last spell may still be running, do not cast another spell
-                    if (dur > 6) return
+            // for each spell in the proposed turn, check if it would conflict with a prior running spell,
+            // due to either (a) concentration required, or (b) insufficient remaining spell slots ...
+            // if either of these are true, abandon this turn option
+
+            for (a in turn.attacks) {
+                val spell = Globals.getSpell(a.attack, this.is2014())
+                if (spell == null) continue // not a spell
+
+                if (currentScenario.spellsUsed.isEmpty()) { // no spells used, no conflict, just add it
+                    spellsUsedThisTurn.add(spell)
+                    continue
                 }
-                // TODO: check upper limits on spellsUsed
+
+                // if the last spell is still running, and new spell requires concentration, do not cast it ... TODO: refine this logic
+                val lastSpell = currentScenario.spellsUsed.last()
+                if ((lastSpell.getDuration() ?: 0) > 6 && spell.properties.Concentration == "Yes") {
+//                    println("last spell = "+lastSpell.name+" dur = "+lastSpell.getDuration()
+//                            +"skip spell: "+spell.name+", conc = "+spell.properties.Concentration)
+                    return
+                }
+                if (!currentScenario.isSlotAvailable(this,spell)) {
+                    // println("no slots available, skip: "+spell.name)
+                    return
+                }
+                spellsUsedThisTurn.add(spell)
             }
 
-            val spellsUsed = if (spell == null) currentScenario.spellsUsed
-                             else currentScenario.spellsUsed.map { it.copy() } + spell
+            val spellsUsed = if (spellsUsedThisTurn.isEmpty()) currentScenario.spellsUsed
+                             else currentScenario.spellsUsed.map { it.copy() } + spellsUsedThisTurn
 
             val nextScenario = Scenario (currentScenario.turns.map { it.copy() } + turn, spellsUsed)
 
@@ -483,6 +523,28 @@ data class Character(
         val rangedScenarioList = ArrayList<Scenario>()
         buildScenarios(6, rangedTurnOptions, Scenario(emptyList(), emptyList()), rangedScenarioList)
         println("ranged: scenarioList size = "+rangedScenarioList.size)
+    }
+
+    fun runScenarios() {
+        val actionsAvailable = getActionsAvailable()
+/*
+        val meleeTurnOptions = possibleTurns(actionsAvailable, true)
+        val meleeScenarioList = ArrayList<Scenario>()
+        buildScenarios(6, meleeTurnOptions, Scenario(emptyList(), emptyList()), meleeScenarioList)
+        // System.err.println("melee: scenarioList size = "+meleeScenarioList.size)
+        for (scenario in meleeScenarioList) {
+            val scenarioResult = TurnCalculator(scenario.turns, this,EffectManager(ArrayList())).calculateDPRForAllTurns()
+            System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenario.getLabel()))
+        }
+*/
+        val rangedTurnOptions = possibleTurns(actionsAvailable, false)
+        val rangedScenarioList = ArrayList<Scenario>()
+        buildScenarios(6, rangedTurnOptions, Scenario(emptyList(), emptyList()), rangedScenarioList)
+        // System.err.println("ranged: scenarioList size = "+rangedScenarioList.size)
+        for (scenario in rangedScenarioList) {
+            val scenarioResult = TurnCalculator(scenario.turns, this, EffectManager(ArrayList())).calculateDPRForAllTurns()
+            System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenario.getLabel()))
+        }
     }
 
 }

@@ -329,14 +329,14 @@ class DamagePerRound(var character: Character)
     // ==========================================================
     // here is where the fun really begins
 
-    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster, character: Character): AttackResult {
+    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster, character: Character, effectManager: EffectManager): AttackResult {
         return if (spellAttack.isNoDamageAttack()) {
             getNoDamageSpellDPR (spell)
         }
         else if (spellAttack.isSavingThrowAttack()) {
             getSavingThrowSpellDPR (spellAttack, spell, attack, monster)
         } else {
-            getMeleeOrRangeDPR (MeleeOrRangeAttack (character, spellAttack, null), attack, monster)
+            getMeleeOrRangeDPR (MeleeOrRangeAttack (character, spellAttack, null), attack, monster, effectManager)
         }
     }
 
@@ -518,7 +518,7 @@ class DamagePerRound(var character: Character)
     }
 
     // ==========================================================
-    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAttack, attack: Attack, monster: Monster): AttackResult
+    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAttack, attack: Attack, monster: Monster, effectManager: EffectManager): AttackResult
     {
         debug("\n##### getMeleeOrRangeDPR: $meleeOrRangeAttack")
 
@@ -572,7 +572,7 @@ class DamagePerRound(var character: Character)
         // TODO: "autoCrit" from paralyzed/unconscious should only apply to melee attacks (not range)
 
         // Crit%:        (B211, F211, J211)
-        val critChance = if (EffectManager.isAutoCrit()) AvgMinMax(100f,100f,100f) else AvgMinMax(
+        val critChance = if (effectManager.isAutoCrit()) AvgMinMax(100f,100f,100f) else AvgMinMax(
             critChance(autoHit, "No Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
@@ -603,7 +603,7 @@ class DamagePerRound(var character: Character)
         */
 
         var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR)
-        result.attackerHadAdvantage = EffectManager.attackerHasAdvantage() // stash this now, for future use
+        result.attackerHadAdvantage = effectManager.attackerHasAdvantage() // stash this now, for future use
         return result
     }
 }
