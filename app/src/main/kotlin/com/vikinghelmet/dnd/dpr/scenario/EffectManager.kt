@@ -1,7 +1,9 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.turn.Preconditions
+import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
 

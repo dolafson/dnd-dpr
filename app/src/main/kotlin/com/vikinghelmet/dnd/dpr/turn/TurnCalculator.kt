@@ -1,22 +1,23 @@
 package com.vikinghelmet.dnd.dpr.turn
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.scenario.EffectManager
+import com.vikinghelmet.dnd.dpr.scenario.Scenario
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 class TurnCalculator(
-    val turns: List<Turn> = ArrayList(),
-    var character: Character,
-    val effectManager: EffectManager
-) {
+    val scenario: Scenario,    
+    val effectManager: EffectManager = EffectManager(ArrayList())
+)
+{
     fun calculateDPRForAllTurns(): ScenarioResult {
         var turnId = 1
         var scenarioTotalDamage = 0f
         val attackResults = ArrayList<AttackResult>()
 
-        for (turn in turns) {
+        for (turn in scenario.turns) {
             var dpr = 0f
             var actionCount = 1
-            AttackResultFormatter.header()
 
             for (attack in turn.attacks) {
                 val resultsForAttack = calculateDPR(turnId, actionCount, turn, attack)
@@ -28,15 +29,11 @@ class TurnCalculator(
                 attackResults.addAll(resultsForAttack)
             }
 
-            AttackResultFormatter.footer(turnId, "TURN TOTAL", dpr)
-
             effectManager.pruneRunningSpells(turnId)
             turnId++
             scenarioTotalDamage += dpr
         }
 
-        AttackResultFormatter.footer("", "SCENARIO TOTAL", scenarioTotalDamage)
-        System.err.println()
         return ScenarioResult(attackResults, scenarioTotalDamage)
     }
 
@@ -48,27 +45,28 @@ class TurnCalculator(
             return emptyList()
         }
 
-        val weapon = character.getWeapon(attack.attack)
-        val spell  = Globals.getSpell(attack.attack, character.is2014())
+        val weapon = scenario.character.getWeapon(attack.attack)
+        val spell  = Globals.getSpell(attack.attack, scenario.character.is2014())
 
         if (weapon == null && spell == null) {
             System.err.println()
             System.err.println("spell or weapon not found: "+attack.attack)
             System.err.println()
-            System.err.println("character weapons: "+ character.getWeaponNames())
+            System.err.println("character weapons: "+ scenario.character.getWeaponNames())
             System.err.println()
             return emptyList()
         }
 
         attack.preconditions = effectManager.getPreconditions(turnId, actionId, turn, spell)
 
-        val dpr = DamagePerRound(character)
+        val dpr = DamagePerRound(scenario.character)
 
         if (weapon != null) {
-            val meleeOrRangeAttack = MeleeOrRangeAttack(character, null, weapon)
+            val meleeOrRangeAttack = MeleeOrRangeAttack(scenario.character, null, weapon)
             val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster, effectManager)
 
-            attackResult.output(character, monster, attack, turnId, actionId, weapon, effectManager)
+            //attackResult.output(scenario.character, monster, attack, turnId, actionId, weapon, effectManager.toString())
+            attackResult.update(scenario.character, monster, attack, turnId, actionId, 1, weapon, null, effectManager.toString())
 
             effectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)
@@ -79,11 +77,12 @@ class TurnCalculator(
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
         for (spellAttack in spell.getSpellAttacks()) {
-            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster, character, effectManager)
+            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster, scenario.character, effectManager)
 
             spell.postProcessEffectsOfOldSpells(effectManager.getRunningSpells(), attackResult)
 
-            attackResult.output(character, monster, attack, turnId, actionId, effectCount++, spellAttack, effectManager)
+            //attackResult.output(scenar            //attackResult.output(scenario.character, monster, attack, turnId, actionId, effectCount++, spellAttack, effectManager.toString())io.character, monster, attack, turnId, actionId, effectCount++, spellAttack, effectManager.toString())
+            attackResult.update(scenario.character, monster, attack, turnId, actionId, effectCount++, null, spellAttack, effectManager.toString())
 
             effectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the manager (below)
 

@@ -14,25 +14,46 @@ data class AttackResult(
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
     var targetHadDisadvantageOnSave: Boolean? = false,
     var attackerHadAdvantage: Boolean? = false,
+
+    // fields that get updated via post-processing ...
+    var character: Character? = null,
+    var monster: Monster? = null,
+    var attack: Attack? = null,
+    var turnId: Int = -1,
+    var actionId: Int = -1,
+    var effect: Int = -1,
+    var weapon: Weapon? = null,
+    var spellAttack: SpellAttack? = null,
+    var startCondition: String? = null
 ) {
-    fun output(character: Character, monster: Monster, attack: Attack, turn: Int, actionId: Int, weapon: Weapon, effectManager: EffectManager) {
-        output(character, monster, attack, turn, actionId, 1, weapon, null, effectManager)
+    fun update(
+        character: Character, monster: Monster, attack: Attack,
+        turnId: Int, actionId: Int, effect: Int,
+        weapon: Weapon?, spellAttack: SpellAttack?,  startCondition: String
+    ) {
+        this.character = character
+        this.monster=monster
+        this.attack = attack
+        this.turnId = turnId
+        this.actionId = actionId
+        this.effect = effect
+        this.weapon = weapon
+        this.spellAttack = spellAttack
+        this.startCondition = startCondition
     }
 
-    fun output(character: Character, monster: Monster, attack: Attack,turn: Int, actionId: Int, effect: Int, spellAttack: SpellAttack, effectManager: EffectManager) {
-        output(character, monster, attack, turn, actionId, effect, null, spellAttack, effectManager)
+    fun output() {
+        if (weapon == null && spellAttack == null) {
+            throw IllegalArgumentException("either weapon or spell attack must be non-null")
+        }
+        output(character!!, monster!!, attack!!, turnId, actionId, effect, weapon, spellAttack, startCondition!!)
     }
 
     private fun output(
         character: Character, monster: Monster, attack: Attack,
         turn: Int, actionId: Int, effect: Int,
-        weapon: Weapon?, spellAttack: SpellAttack?, effectManager: EffectManager
+        weapon: Weapon?, spellAttack: SpellAttack?,  startCondition: String
     ) {
-
-        if (weapon == null && spellAttack == null) {
-            throw IllegalArgumentException("either weapon or spell attack must be non-null")
-        }
-
         val attackLabel = weapon?.name ?: spellAttack.toString()
 
         val buf = StringBuilder("")
@@ -85,7 +106,7 @@ data class AttackResult(
             buf.append(AttackResultFormatter.format("targetSaveBonus", targetSaveBonus))
         }
 
-        buf.append(AttackResultFormatter.format("startCondition", String.format("\"%s\"", effectManager.toString())))
+        buf.append(AttackResultFormatter.format("startCondition", String.format("\"%s\"", startCondition)))
         buf.append(AttackResultFormatter.format("numTargets", numTargets))
 
         val selection = getAvgMinMaxSelection()
