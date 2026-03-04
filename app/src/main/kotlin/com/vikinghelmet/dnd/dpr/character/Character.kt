@@ -10,6 +10,7 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellHelper
+import com.vikinghelmet.dnd.dpr.turn.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.SerialName
@@ -25,21 +26,15 @@ data class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
+    // ----------------------------------------------------------------------------------------
+    // TRAITS, ABILITIES, and FEATS
+
     fun is2014(): Boolean {
         if (characterData.characterValues == null) return false // default to 2024 rules
         for (value in characterData.characterValues) {
             if (value.notes?.endsWith(" 2014") == true) return true
         }
         return false
-    }
-
-    fun getWeaponNicknameMap(): Map<String,String> {
-        val result = mutableMapOf<String,String>()
-        if (characterData.characterValues == null) return result // default to 2024 rules
-        for (value in characterData.characterValues) {
-            if (value.typeId == 8 && value.valueId != null && value.value != null) result.put(value.valueId, ""+value.value)
-        }
-        return result
     }
 
     fun getRawAbilityScore(a: AbilityType): Int {
@@ -70,18 +65,6 @@ data class Character(
 
     fun getProficiencyBonus(): Int {
         return Constants.levelToProficiencyMap[getLevel()] ?: 0
-    }
-
-    fun getSpellSaveDC(): Int {
-        return 8 + getSpellBonusToHit()
-    }
-
-    fun getSpellBonusToHit(): Int {
-        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
-        val statBonus = if (abilityId == null) 0 else {
-            Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
-        }
-        return statBonus + getProficiencyBonus()
     }
 
     fun isFeatEnabled(requested : Feat): Boolean {
@@ -120,38 +103,20 @@ data class Character(
         return isFeatEnabled(Feat.GreatWeaponFighting)
     }
 
-    fun getWeaponNames(): List<String> {
-        val list = mutableListOf<String>()
-        if (characterData.inventory == null) return list
-        for (item in characterData.inventory) {
-            if (item.definition.filterType == "Weapon") list.add(item.definition.name)
-        }
-        return list;
+    // ----------------------------------------------------------------------------------------
+    // COMBAT MODIFIERS
+
+    fun getSpellSaveDC(): Int {
+        return 8 + getSpellBonusToHit()
     }
 
-    fun getWeaponList(): List<Weapon> {
-        val list = mutableListOf<Weapon>()
-
-        if (characterData.inventory == null) return list
-        for (item in characterData.inventory) {
-            if (item.equipped != true) continue
-
-            val def = item.definition
-            if (def.filterType == "Weapon") {
-                var props = mutableListOf<String>()
-                if (def.properties != null) {
-                    for (prop in def.properties) props.add(prop.name)
-                }
-                val diceString = def.damage?.diceString ?: "0d4"
-
-                val nickname = getWeaponNicknameMap().get(""+item.id)
-
-                list.add(Weapon (def.name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange, nickname))
-            }
+    fun getSpellBonusToHit(): Int {
+        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
+        val statBonus = if (abilityId == null) 0 else {
+            Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
         }
-        return list
+        return statBonus + getProficiencyBonus()
     }
-
     fun getRangeAttackModifiers(): Int {
         var mod = 0
         for (modifier in characterData.modifiers.feat) {
@@ -184,6 +149,60 @@ data class Character(
         return if (isBA) 0 else getAbilityWeaponBonus(w) // TODO: two-weapon fighting feat lets you add bonus damage even in BA
     }
 
+    // ----------------------------------------------------------------------------------------
+    // WEAPONS
+
+    fun getWeaponNicknameMap(): Map<String,String> {
+        val result = mutableMapOf<String,String>()
+        if (characterData.characterValues == null) return result // default to 2024 rules
+        for (value in characterData.characterValues) {
+            if (value.typeId == 8 && value.valueId != null && value.value != null) result.put(value.valueId, ""+value.value)
+        }
+        return result
+    }
+
+
+    fun getWeaponNames(): List<String> {
+        val list = mutableListOf<String>()
+        if (characterData.inventory == null) return list
+        for (item in characterData.inventory) {
+            if (item.definition.filterType == "Weapon") list.add(item.definition.name)
+        }
+        return list;
+    }
+
+    fun getWeaponList(): List<Weapon> {
+        val list = mutableListOf<Weapon>()
+
+        if (characterData.inventory == null) return list
+        for (item in characterData.inventory) {
+            if (item.equipped != true) continue
+
+            val def = item.definition
+            if (def.filterType == "Weapon") {
+                var props = mutableListOf<String>()
+                if (def.properties != null) {
+                    for (prop in def.properties) props.add(prop.name)
+                }
+                val diceString = def.damage?.diceString ?: "0d4"
+
+                val nickname = getWeaponNicknameMap().get(""+item.id)
+
+                list.add(Weapon (def.name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange, nickname))
+            }
+        }
+        return list
+    }
+
+    fun getWeapon(name: String?): Weapon? {
+        if (name == null) return null
+        for (weapon in getWeaponList()) if (weapon.name == name) return weapon
+        return null
+    }
+
+    // ----------------------------------------------------------------------------------------
+    // SPELLS
+
     private fun transformSpellList(input: List<PreparedSpell>): List<Spell> {
         val result = mutableListOf<Spell>()
         for (preparedSpell in input) {
@@ -215,11 +234,19 @@ data class Character(
         val result = mutableListOf<Spell>()
         for (spell in getPreparedSpells()) {
             if (!spell.isBonusAction()) continue
-            if (spell.isMeleeBonusAction() && melee) result.add(spell)
-            if (spell.isRangedBonusAction() && !melee) result.add(spell)
+
+            if (!spell.takeImmediatelyAfterHitting() ||
+                (spell.isMeleeBonusAction() && melee) ||
+                (spell.isRangedBonusAction() && !melee))
+            {
+                result.add(spell)
+            }
         }
         return result
     }
+
+    // ----------------------------------------------------------------------------------------
+    // TESTS
 
     fun test() {
         println ("")
@@ -323,10 +350,71 @@ data class Character(
         println()
     }
 
-    fun getWeapon(name: String?): Weapon? {
-        if (name == null) return null
-        for (weapon in getWeaponList()) if (weapon.name == name) return weapon
-        return null
+    fun enumerateActions(actionsAvailable: ActionsAvailable, isMelee: Boolean) {
+        val actionList = actionsAvailable.getFullList(isMelee)
+        // val nameList = actionsAvailable.getNameList(isMelee)
+        // println("enumerateActions: isMelee=$isMelee, actionList=$nameList")
+        /*
+# MELEE
+
+    (Shortsword, HM)
+    (Shortsword, Shortsword)
+    (Mind Sliver)
+    (Entangle)
+
+# RANGED
+
+    (Longbow, HM)
+    (Longbow, Hail of Thorns)
+    (Mind Sliver)
+    (Entangle)
+         */
+
+        val bonusActions = SpellHelper.getSpellNames(getPreparedBonusActionSpells(isMelee))
+
+        for (action in actionList) {
+            if (action.spell != null) { // generally bonus actions do not apply ...
+                println(String.format("\t (%s)", action.getName()))
+            }
+            else if (action.weapon != null) {
+                val w1 = action.weapon
+                // bonus action: light weapon ?  see if you have a 2nd one ...
+                if (w1.isLight()) {
+                    for (w2 in getWeaponList()) {
+                        if (w1 == w2) continue // if you have 2 shortswords, hopefully they vary by nickname ...
+                        if (w2.isLight()) {
+                            println(String.format("\t (%s, %s)", (w1.nickname ?: w1.name), (w2.nickname ?: w2.name)))
+                        }
+                    }
+                }
+
+                // bonus action spells: mostly for ranger and paladin
+                for (bonus in bonusActions) {
+                    println(String.format("\t (%s, %s)", (w1.nickname ?: w1.name), bonus))
+                }
+            }
+        }
+        println()
     }
 
+    fun enumerateActions() {
+        val actionsAvailable = ActionsAvailable()
+        val weaponListNames = mutableListOf<String>()
+
+        for (weapon in getWeaponList()) {
+            if (weaponListNames.contains(weapon.name)) continue // avoid dups
+            weaponListNames.add(weapon.name)
+            actionsAvailable.add(weapon.range ?: 0, weapon)
+        }
+
+        for (spell in getPreparedAttackSpells()) {
+            actionsAvailable.add(spell.properties.dataRangeNum ?: 0, spell)
+        }
+
+        println("\n# MELEE ATTACKS\n\n")
+        enumerateActions(actionsAvailable, true)
+
+        println("\n# RANGED ATTACKS\n\n")
+        enumerateActions(actionsAvailable, false)
+    }
 }

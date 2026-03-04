@@ -36,14 +36,24 @@ data class Spell(
         return properties.CastingTime == "Bonus Action"
     }
 
+    fun triggersSavingThrow(): Boolean {
+        for (a in getSpellAttacks()) if (a.isSavingThrowAttack()) return true
+        return false
+    }
+
+    fun takeImmediatelyAfterHitting(): Boolean {
+        val dd = properties.dataDescription ?: ""
+        return dd.startsWith("Bonus Action, which you take immediately after hitting")
+    }
+
     fun isMeleeBonusAction(): Boolean { // only a few of these exist
         val dd = properties.dataDescription ?: ""
-        return dd.startsWith("Bonus Action, which you take immediately after hitting") && dd.contains("Melee weapon")
+        return takeImmediatelyAfterHitting() && dd.contains("Melee weapon")
     }
 
     fun isRangedBonusAction(): Boolean { // only a few of these exist
         val dd = properties.dataDescription ?: ""
-        return dd.startsWith("Bonus Action, which you take immediately after hitting") && !dd.contains("Melee weapon")
+        return takeImmediatelyAfterHitting() && !dd.contains("Melee weapon")
     }
 
     fun isSameIn2014And2024(): Boolean {

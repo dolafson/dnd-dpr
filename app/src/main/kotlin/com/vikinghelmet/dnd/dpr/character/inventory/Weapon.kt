@@ -21,4 +21,8 @@ data class Weapon (
     fun getDamageDice(): DiceBlock {
         return DiceBlockHelper.getDiceBlock(damage)
     }
+
+    fun isLight(): Boolean { // this may get used often,
+        return properties?.contains("Light") == true
+    }
 }

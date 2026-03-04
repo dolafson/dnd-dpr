@@ -2,7 +2,6 @@ package com.vikinghelmet.dnd.dpr.turn
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
@@ -143,11 +142,5 @@ class TurnCalculator(
         val searchValue = arg.split(":")[1]
         for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
         for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-    }
-
-
-    fun enumerateScenarios(isMelee: Boolean) {
-        val bonusActions = SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(isMelee))
-
     }
 }

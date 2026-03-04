@@ -211,6 +211,10 @@ fun main(args : Array<String>) {
             if (character != null) character.rangeTest()
             exitEarly = true
         }
+        else if (arg.startsWith("enumerateActions")) {
+            if (character != null) character.enumerateActions()
+            exitEarly = true
+        }
     }
 
     if (exitEarly) {
