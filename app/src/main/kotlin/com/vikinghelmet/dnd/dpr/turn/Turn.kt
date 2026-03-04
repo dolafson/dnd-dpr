@@ -8,4 +8,9 @@ data class Turn(
     val attacks: List<Attack>,
     val notes: List<String>? = null,
 ) {
+    fun shortString(): String {
+        val result = ArrayList<String>()
+        for (a in attacks)  result.add(a.attack)
+        return result.toString()
+    }
 }

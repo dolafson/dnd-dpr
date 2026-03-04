@@ -11,6 +11,8 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.turn.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.SerialName
@@ -361,54 +363,59 @@ data class Character(
         println()
     }
 
-    fun enumerateActions(actionsAvailable: ActionsAvailable, isMelee: Boolean) {
+    fun possibleTurns(actionsAvailable: ActionsAvailable, isMelee: Boolean): List<Turn> {
         val actionList = actionsAvailable.getFullList(isMelee)
-        // val nameList = actionsAvailable.getNameList(isMelee)
-        // println("enumerateActions: isMelee=$isMelee, actionList=$nameList")
-        /*
-# MELEE
-
-    (Shortsword, HM)
-    (Shortsword, Shortsword)
-    (Mind Sliver)
-    (Entangle)
-
-# RANGED
-
-    (Longbow, HM)
-    (Longbow, Hail of Thorns)
-    (Mind Sliver)
-    (Entangle)
-         */
-
         val bonusActions = SpellHelper.getSpellNames(getPreparedBonusActionSpells(isMelee))
 
+        val monster = "Goblin" // TODO
+        val turnOptions = ArrayList<Turn>()
+
         for (action in actionList) {
-            if (action.spell != null) { // generally bonus actions do not apply ...
-                println(String.format("\t (%s)", action.getName()))
+            if (action.spell != null) { // generally spell attacks do not get bonus actions
+                turnOptions.add(Turn(attacks = listOf(Attack(monster = monster, attack = action.getName()))))
+                continue
             }
-            else if (action.weapon != null) {
-                val w1 = action.weapon
-                // bonus action: light weapon ?  see if you have a 2nd one ...
-                if (w1.isLight()) {
-                    for (w2 in getWeaponList()) {
-                        if (w1 == w2) continue // if you have 2 shortswords, hopefully they vary by nickname ...
-                        if (w2.isLight()) {
-                            println(String.format("\t (%s, %s)", (w1.nickname ?: w1.name), (w2.nickname ?: w2.name)))
-                        }
+            if (action.weapon == null) {
+                Globals.debug("error: action without a spell or a weapon")
+                continue
+            }
+
+            // remainder pertains to weapon attacks
+            val w1 = action.weapon
+            var turn: Turn? = null
+
+            // light weapon ?  see if you have a 2nd one to use in a BA
+            if (w1.isLight()) {
+                for (w2 in getWeaponList()) {
+                    if (w1 == w2) continue // if you have 2 shortswords, hopefully they vary by nickname ...
+                    if (w2.isLight()) {
+                        turn = Turn(attacks = listOf(
+                            Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
+                            Attack(monster = monster, attack = (w2.nickname ?: w2.name), isBonusAction = true),
+                        ))
+                        break
                     }
                 }
+            }
 
-                // bonus action spells: mostly for ranger and paladin
-                for (bonus in bonusActions) {
-                    println(String.format("\t (%s, %s)", (w1.nickname ?: w1.name), bonus))
-                }
+            // if you didn't find a 2nd light weapon, just use the first weapon w/out a BA
+            if (turn == null) {
+                turn = Turn(attacks = listOf(Attack(monster = monster, attack = action.getName())))
+            }
+            turnOptions.add(turn)
+
+            // bonus action spells: mostly for ranger and paladin
+            for (bonus in bonusActions) {
+                turnOptions.add(Turn(attacks = listOf(
+                    Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
+                    Attack(monster = monster, attack = bonus),
+                )))
             }
         }
-        println()
+        return turnOptions
     }
 
-    fun enumerateActions() {
+    fun getActionsAvailable(): ActionsAvailable {
         val actionsAvailable = ActionsAvailable()
         val weaponListNames = mutableListOf<String>()
 
@@ -421,11 +428,57 @@ data class Character(
         for (spell in getPreparedAttackSpells()) {
             actionsAvailable.add(spell.properties.dataRangeNum ?: 0, spell)
         }
-
-        println("\n# MELEE ATTACKS\n\n")
-        enumerateActions(actionsAvailable, true)
-
-        println("\n# RANGED ATTACKS\n\n")
-        enumerateActions(actionsAvailable, false)
+        return actionsAvailable
     }
+
+    fun testPossibleTurns() {
+        val actionsAvailable = getActionsAvailable()
+
+        println("\n# MELEE ATTACKS\n")
+        for (turn in possibleTurns(actionsAvailable, true))  println("\t "+turn.shortString())
+
+        println("\n# RANGED ATTACKS\n")
+        for (turn in possibleTurns(actionsAvailable, false))  println("\t "+turn.shortString())
+        println()
+    }
+
+    data class Scenario(val turns: List<Turn>, val spellsUsed: List<Spell>)
+
+    fun buildScenarios(rounds: Int, turnOptions: List<Turn>, currentScenario: Scenario, scenarioList: ArrayList<Scenario>) {
+        if (rounds == 0) {
+            scenarioList.add(currentScenario)
+            return
+        }
+
+        for (turn in turnOptions) {
+            val spell = Globals.getSpell(turn.attacks.first().attack, this.is2014())
+
+            // TODO: check upper limits on spellsUsed
+            val spellsUsed = if (spell == null) {
+                currentScenario.spellsUsed.map { it.copy() }
+            }
+            else {
+                currentScenario.spellsUsed.map { it.copy() } + spell
+            }
+
+            val nextScenario = Scenario (currentScenario.turns.map { it.copy() } + turn, spellsUsed)
+
+            buildScenarios(rounds - 1, turnOptions, nextScenario, scenarioList)
+        }
+    }
+
+    fun testScenarios() {
+        val actionsAvailable = getActionsAvailable()
+        val meleeTurnOptions = possibleTurns(actionsAvailable, true)
+        val rangedTurnOptions = possibleTurns(actionsAvailable, false)
+
+        val meleeScenarioList = ArrayList<Scenario>()
+        buildScenarios(6, meleeTurnOptions, Scenario(emptyList(), emptyList()), meleeScenarioList)
+        println("melee: scenarioList size = "+meleeScenarioList.size)
+
+        val rangedScenarioList = ArrayList<Scenario>()
+        buildScenarios(6, rangedTurnOptions, Scenario(emptyList(), emptyList()), rangedScenarioList)
+        println("ranged: scenarioList size = "+rangedScenarioList.size)
+    }
+
 }

@@ -211,8 +211,12 @@ fun main(args : Array<String>) {
             if (character != null) character.rangeTest()
             exitEarly = true
         }
-        else if (arg.startsWith("test:enumerateActions")) {
-            if (character != null) character.enumerateActions()
+        else if (arg.startsWith("test:possibleTurns")) {
+            if (character != null) character.testPossibleTurns()
+            exitEarly = true
+        }
+        else if (arg.startsWith("test:scenarios")) {
+            if (character != null) character.testScenarios()
             exitEarly = true
         }
     }
