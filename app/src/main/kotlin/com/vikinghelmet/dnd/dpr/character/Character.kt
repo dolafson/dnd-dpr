@@ -453,13 +453,17 @@ data class Character(
         for (turn in turnOptions) {
             val spell = Globals.getSpell(turn.attacks.first().attack, this.is2014())
 
-            // TODO: check upper limits on spellsUsed
-            val spellsUsed = if (spell == null) {
-                currentScenario.spellsUsed.map { it.copy() }
+            if (spell != null) {
+                if (currentScenario.spellsUsed.isNotEmpty()) {
+                    val dur = currentScenario.spellsUsed.last().getDuration() ?: 0
+                    // if the last spell may still be running, do not cast another spell
+                    if (dur > 6) return
+                }
+                // TODO: check upper limits on spellsUsed
             }
-            else {
-                currentScenario.spellsUsed.map { it.copy() } + spell
-            }
+
+            val spellsUsed = if (spell == null) currentScenario.spellsUsed
+                             else currentScenario.spellsUsed.map { it.copy() } + spell
 
             val nextScenario = Scenario (currentScenario.turns.map { it.copy() } + turn, spellsUsed)
 
