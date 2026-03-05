@@ -6,10 +6,10 @@ package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
@@ -217,10 +217,6 @@ fun main(args : Array<String>) {
             if (character != null) ScenarioBuilder(character, args[i+1]).testPossibleTurns()
             exitEarly = true
         }
-        else if (arg.startsWith("test:scenarios")) {
-            if (character != null) ScenarioBuilder(character, args[i+1]).testScenarios()
-            exitEarly = true
-        }
     }
 
     if (exitEarly) {
@@ -240,7 +236,7 @@ fun main(args : Array<String>) {
     }
     else {
         val scenario = Scenario(character, turns)
-        val scenarioResult = TurnCalculator(scenario).calculateDPRForAllTurns()
+        val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
         scenarioResult.output()
     }
 }

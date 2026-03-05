@@ -1,11 +1,9 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.scenario.EffectManager
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.turn.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 
-class TurnCalculator(
+class ScenarioCalculator(
     val scenario: Scenario,    
     val effectManager: EffectManager = EffectManager(ArrayList())
 )
@@ -65,7 +63,6 @@ class TurnCalculator(
             val meleeOrRangeAttack = MeleeOrRangeAttack(scenario.character, null, weapon)
             val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster, effectManager)
 
-            //attackResult.output(scenario.character, monster, attack, turnId, actionId, weapon, effectManager.toString())
             attackResult.update(scenario.character, monster, attack, turnId, actionId, 1, weapon, null, effectManager.toString())
 
             effectManager.pruneSpellsWaitingForNextAttack(null)
@@ -81,11 +78,9 @@ class TurnCalculator(
 
             spell.postProcessEffectsOfOldSpells(effectManager.getRunningSpells(), attackResult)
 
-            //attackResult.output(scenar            //attackResult.output(scenario.character, monster, attack, turnId, actionId, effectCount++, spellAttack, effectManager.toString())io.character, monster, attack, turnId, actionId, effectCount++, spellAttack, effectManager.toString())
             attackResult.update(scenario.character, monster, attack, turnId, actionId, effectCount++, null, spellAttack, effectManager.toString())
 
-            effectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the manager (below)
-
+            effectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
             resultList.add(attackResult)
         }
 

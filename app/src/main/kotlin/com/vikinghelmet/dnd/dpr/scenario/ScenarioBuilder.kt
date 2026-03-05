@@ -5,7 +5,6 @@ import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.turn.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.turn.TurnCalculator
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 class ScenarioBuilder(val character: Character, val monster: String) {
@@ -59,9 +58,8 @@ class ScenarioBuilder(val character: Character, val monster: String) {
                     Turn(attacks = listOf(
                     //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
                     Attack(monster = monster, attack = w1.name),
-                    Attack(monster = monster, attack = bonus),
-                ))
-                )
+                    Attack(monster = monster, attack = bonus, isBonusAction = true),
+                )))
             }
         }
         return turnOptions
@@ -125,20 +123,6 @@ class ScenarioBuilder(val character: Character, val monster: String) {
         }
     }
 
-    fun testScenarios() {
-        val actionsAvailable = character.getActionsAvailable()
-        val meleeTurnOptions = possibleTurns(actionsAvailable, true)
-        val rangedTurnOptions = possibleTurns(actionsAvailable, false)
-
-        val meleeScenarioList = ArrayList<Scenario>()
-        buildScenarios(6, meleeTurnOptions, Scenario(character, emptyList()), meleeScenarioList)
-        println("melee: scenarioList size = "+meleeScenarioList.size)
-
-        val rangedScenarioList = ArrayList<Scenario>()
-        buildScenarios(6, rangedTurnOptions, Scenario(character, emptyList()), rangedScenarioList)
-        println("ranged: scenarioList size = "+rangedScenarioList.size)
-    }
-
     fun runScenarios(isMelee: Boolean) {
         val actionsAvailable = character.getActionsAvailable()
         val turnOptions = possibleTurns(actionsAvailable, isMelee)
@@ -147,7 +131,7 @@ class ScenarioBuilder(val character: Character, val monster: String) {
 
         val resultList = ArrayList<ScenarioResult>()
         for (scenario in scenarioList) {
-            val scenarioResult = TurnCalculator(scenario).calculateDPRForAllTurns()
+            val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
             resultList.add(scenarioResult)
         }
 
