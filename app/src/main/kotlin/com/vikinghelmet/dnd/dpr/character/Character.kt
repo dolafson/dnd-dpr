@@ -322,6 +322,14 @@ data class Character(
         println ("")
         println ("weapon nickname map: "+getWeaponNicknameMap())
         println ("spell slots: "+getSpellSlots())
+
+        val actionNames = (
+                characterData.actions.race.map { it.name } +
+                characterData.actions.feat.map { it.name } +
+                characterData.actions.classActions.map { it.name }
+                ).filter { s -> !s.contains("Circle Spell") } // circle spell is garbage data, not really usable
+
+        println ("actions: "+actionNames)
         println ("")
     }
 }

@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class Action(
+data class ActionAdded(
     val name: String,
     val snippet: String,
     val limitedUse: LimitedUse? = null,

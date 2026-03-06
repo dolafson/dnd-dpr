@@ -9,7 +9,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class Actions(
-    val race: List<Action>,
-    val feat: List<Action>,
-    @SerialName("class") val classMod: List<Action>,
+    val race: List<ActionAdded>,
+    val feat: List<ActionAdded>,
+    @SerialName("class") val classActions: List<ActionAdded>,
 )
