@@ -2,6 +2,7 @@
 
 package com.vikinghelmet.dnd.dpr.character
 
+import com.vikinghelmet.dnd.dpr.character.actions.Actions
 import com.vikinghelmet.dnd.dpr.character.classes.CharacterClass
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.InventoryItem
@@ -22,6 +23,7 @@ data class CharacterData(
     val classes: List<CharacterClass>,
     val inventory: ArrayList<InventoryItem>? = null,
     val modifiers: Modifiers,
+    val actions: Actions,
     val stats: List<Stat>,
     val feats: List<FeatAdded>,
     val race: Race,
