@@ -33,7 +33,7 @@ data class AttackResult(
     }
 
     fun output(scenarioName: String) {
-        val attackLabel = attack.getLabel()
+        val attackLabel = if (spellAttack != null) spellAttack.toString() else attack.getLabel()
         val buf = StringBuilder("")
 
         if (AttackResultFormatter.isCSV || !AttackResultFormatter.isTxtFirstResultDone) {
