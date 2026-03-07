@@ -2,7 +2,6 @@ package com.vikinghelmet.dnd.dpr.turn
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 
 data class AttackResult(
@@ -17,7 +16,6 @@ data class AttackResult(
 
     // fields that get updated via post-processing ...
     var character: Character? = null,
-    var monster: Monster? = null,
     var attack: Attack? = null,
     var turnId: Int = -1,
     var actionId: Int = -1,
@@ -27,12 +25,11 @@ data class AttackResult(
     var startCondition: String? = null
 ) {
     fun update(
-        character: Character, monster: Monster, attack: Attack,
-        turnId: Int, actionId: Int, effect: Int,
-        weapon: Weapon?, spellAttack: SpellAttack?,  startCondition: String
+        character: Character, attack: Attack, turnId: Int,
+        actionId: Int, effect: Int, weapon: Weapon?,
+        spellAttack: SpellAttack?, startCondition: String
     ) {
         this.character = character
-        this.monster=monster
         this.attack = attack
         this.turnId = turnId
         this.actionId = actionId
@@ -46,13 +43,13 @@ data class AttackResult(
         if (weapon == null && spellAttack == null) {
             throw IllegalArgumentException("either weapon or spell attack must be non-null")
         }
-        output(character!!, monster!!, attack!!, turnId, actionId, effect, weapon, spellAttack, startCondition!!, scenarioName)
+        output(character!!, attack!!, turnId, actionId, effect, weapon, spellAttack, startCondition!!, scenarioName)
     }
 
     private fun output(
-        character: Character, monster: Monster, attack: Attack,
-        turn: Int, actionId: Int, effect: Int,
-        weapon: Weapon?, spellAttack: SpellAttack?,  startCondition: String, scenarioName: String
+        character: Character, attack: Attack, turn: Int,
+        actionId: Int, effect: Int, weapon: Weapon?,
+        spellAttack: SpellAttack?, startCondition: String, scenarioName: String
     ) {
         var attackLabel = attack.getLabel()
         val buf = StringBuilder("")
@@ -65,8 +62,8 @@ data class AttackResult(
 
             // TODO: abilities: Str, Dex, ... ?
 
-            buf.append(AttackResultFormatter.format("monsterName", monster.name))
-            buf.append(AttackResultFormatter.format("monsterAC", monster.properties.dataAcNum))
+            buf.append(AttackResultFormatter.format("monsterName", attack.monster.name))
+            buf.append(AttackResultFormatter.format("monsterAC", attack.monster.properties.dataAcNum))
             // TODO: abilities: Str, Dex, ... ?
 
             buf.append(AttackResultFormatter.format("scenario",scenarioName))
@@ -99,7 +96,7 @@ data class AttackResult(
             buf.append(AttackResultFormatter.formatCSVOnly("weaponAttackBonus", ""))
 
             val spellSaveAbility = spellAttack!!.getSaveAbility()
-            val targetSaveBonus = if (spellSaveAbility.isEmpty()) "" else monster.properties.getMod(spellSaveAbility)
+            val targetSaveBonus = if (spellSaveAbility.isEmpty()) "" else attack.monster.properties.getMod(spellSaveAbility)
 
             buf.append(AttackResultFormatter.format("spellSaveAbility", spellSaveAbility))
             buf.append(AttackResultFormatter.format("targetSaveBonus", targetSaveBonus))

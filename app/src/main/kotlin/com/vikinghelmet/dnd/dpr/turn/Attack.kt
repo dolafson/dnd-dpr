@@ -1,12 +1,13 @@
 package com.vikinghelmet.dnd.dpr.turn
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Attack(
     // required fields
-    val monster: String,
+    val monster: Monster,
     val attack: String, // name of spell or weapon
 
     val actionModifiers: ArrayList<ActionModifier> = ArrayList(), // named, non-spell preconditions (eg Colossus Slayer)

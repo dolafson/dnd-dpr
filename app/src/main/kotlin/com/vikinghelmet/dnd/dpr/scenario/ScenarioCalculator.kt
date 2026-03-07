@@ -40,12 +40,6 @@ class ScenarioCalculator(
 
     fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>
     {
-        val monster = Globals.getMonster(attack.monster)
-        if (monster == null) {
-            println("monster not found: "+attack.monster)
-            return emptyList()
-        }
-
         val weapon = scenario.character.getWeapon(attack.attack)
         val spell  = Globals.getSpell(attack.attack, scenario.character.is2014())
 
@@ -63,9 +57,9 @@ class ScenarioCalculator(
         val dpr = DamagePerRound(scenario.character)
 
         if (weapon != null) {
-            val attackResult = dpr.getMeleeOrRangeDPR (weapon, attack, monster, effectManager)
+            val attackResult = dpr.getMeleeOrRangeDPR (weapon, attack, attack.monster, effectManager)
 
-            attackResult.update(scenario.character, monster, attack, turnId, actionId, 1, weapon, null, effectManager.toString())
+            attackResult.update(scenario.character, attack, turnId, actionId, 1, weapon, null, effectManager.toString())
 
             effectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)
@@ -76,11 +70,20 @@ class ScenarioCalculator(
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
         for (spellAttack in spell.getSpellAttacks()) {
-            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, monster, scenario.character, effectManager)
+            val attackResult = dpr.getSpellDPR(spellAttack, spell, attack, attack.monster, scenario.character, effectManager)
 
             spell.postProcessEffectsOfOldSpells(effectManager.getRunningSpells(), attackResult)
 
-            attackResult.update(scenario.character, monster, attack, turnId, actionId, effectCount++, null, spellAttack, effectManager.toString())
+            attackResult.update(
+                scenario.character,
+                attack,
+                turnId,
+                actionId,
+                effectCount++,
+                null,
+                spellAttack,
+                effectManager.toString()
+            )
 
             effectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
             resultList.add(attackResult)

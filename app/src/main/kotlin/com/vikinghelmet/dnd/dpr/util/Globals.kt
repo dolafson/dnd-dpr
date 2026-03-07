@@ -61,14 +61,12 @@ object Globals {
         return null
     }
 
-    fun getMonster(name: String): Monster? {
-        if (monsters.isEmpty()) return null
-
+    fun getMonster(name: String): Monster {
         for (monster in monsters) {
             if (monster.name == name) {
                 return monster
             }
         }
-        return null
+        throw IllegalArgumentException("monster not found: "+name)
     }
 }

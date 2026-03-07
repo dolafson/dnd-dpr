@@ -132,7 +132,7 @@ fun main(args : Array<String>) {
                 "-a" -> {
                     val attackList = mutableListOf<Attack>()
                     for (j in (i+1) until args.size step 2) {
-                        val monsterName = args[j]
+                        val monsterName = Globals.getMonster(args[j])
                         val attackName = args[j+1]
                         attackList.add(Attack(monsterName, attackName))
                     }
@@ -140,7 +140,7 @@ fun main(args : Array<String>) {
                     break
                 }
                 "-z" -> {
-                    val monster = args[i+1]
+                    val monster = Globals.getMonster(args[i+1])
                     val meleeOrRange = args[i+2]
                     ScenarioBuilder(character!!,monster).runScenarios (meleeOrRange.equals("melee"))
                 }
