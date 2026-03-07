@@ -11,47 +11,29 @@ data class AttackResult(
     val damagePerRound: AvgMinMax,
     val duration: AvgMinMax,
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
+
+    var character: Character,
+    var attack: Attack,
+    var startCondition: String,
+
     var targetHadDisadvantageOnSave: Boolean? = false,
     var attackerHadAdvantage: Boolean? = false,
 
     // fields that get updated via post-processing ...
-    var character: Character? = null,
-    var attack: Attack? = null,
     var turnId: Int = -1,
     var actionId: Int = -1,
-    var effect: Int = -1,
-    var weapon: Weapon? = null,
+    var effectId: Int = -1,
     var spellAttack: SpellAttack? = null,
-    var startCondition: String? = null
 ) {
-    fun update(
-        character: Character, attack: Attack, turnId: Int,
-        actionId: Int, effect: Int, weapon: Weapon?,
-        spellAttack: SpellAttack?, startCondition: String
-    ) {
-        this.character = character
-        this.attack = attack
+    fun update(turnId: Int, actionId: Int, effectId: Int, spellAttack: SpellAttack? = null) {
         this.turnId = turnId
         this.actionId = actionId
-        this.effect = effect
-        this.weapon = weapon
+        this.effectId = effectId
         this.spellAttack = spellAttack
-        this.startCondition = startCondition
     }
 
     fun output(scenarioName: String) {
-        if (weapon == null && spellAttack == null) {
-            throw IllegalArgumentException("either weapon or spell attack must be non-null")
-        }
-        output(character!!, attack!!, turnId, actionId, effect, weapon, spellAttack, startCondition!!, scenarioName)
-    }
-
-    private fun output(
-        character: Character, attack: Attack, turn: Int,
-        actionId: Int, effect: Int, weapon: Weapon?,
-        spellAttack: SpellAttack?, startCondition: String, scenarioName: String
-    ) {
-        var attackLabel = attack.getLabel()
+        val attackLabel = attack.getLabel()
         val buf = StringBuilder("")
 
         if (AttackResultFormatter.isCSV || !AttackResultFormatter.isTxtFirstResultDone) {
@@ -75,12 +57,13 @@ data class AttackResult(
             }
         }
 
-        buf.append(AttackResultFormatter.format("turn", turn))
+        buf.append(AttackResultFormatter.format("turn", turnId))
         buf.append(AttackResultFormatter.format("action", if (attack.isBonusAction == true) "BA" else ""+actionId))
-        buf.append(AttackResultFormatter.format("effect", effect))
+        buf.append(AttackResultFormatter.format("effect", effectId))
         buf.append(AttackResultFormatter.format("attack", attackLabel))
 
-        if (weapon != null) {
+        if (attack.action is Weapon) {
+            val weapon = attack.action as Weapon
             val damageBonus = character.getDamageBonus(weapon, attack.isBonusAction?:false)
             buf.append(AttackResultFormatter.format("weaponDamage", weapon.damage!!))
             buf.append(AttackResultFormatter.format("weaponDamageBonus", damageBonus))

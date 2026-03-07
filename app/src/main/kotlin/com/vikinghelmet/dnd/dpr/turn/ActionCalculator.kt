@@ -1,6 +1,5 @@
 package com.vikinghelmet.dnd.dpr.turn
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -38,7 +37,7 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
 //    https://docs.google.com/document/d/11eTMZPPxWXHY0rQEhK1msO-40BcCGrzArSl4GX4CiJE/edit?tab=t.0
 
 
-class DamagePerRound(var character: Character)
+class DamagePerRound(var character: Character, val effectManager: EffectManager)
 {
     val effectSaveDC = character.getSpellSaveDC()
     val isLucky = character.isLucky()
@@ -328,20 +327,20 @@ class DamagePerRound(var character: Character)
     }
 
     // ==========================================================
-    // here is where the fun really begins
+    // this is where the fun really begins
 
-    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster, character: Character, effectManager: EffectManager): AttackResult {
+    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack): AttackResult {
         return if (spellAttack.isNoDamageAttack()) {
-            getNoDamageSpellDPR (spell)
+            getNoDamageSpellDPR (spell, attack)
         }
         else if (spellAttack.isSavingThrowAttack()) {
-            getSavingThrowSpellDPR (spellAttack, spell, attack, monster)
+            getSavingThrowSpellDPR (spellAttack, spell, attack)
         } else {
-            getMeleeOrRangeDPR (spellAttack, attack, monster, effectManager)
+            getMeleeOrRangeDPR (spellAttack, attack)
         }
     }
 
-    fun getNoDamageSpellDPR(spell: Spell): AttackResult {
+    fun getNoDamageSpellDPR(spell: Spell, attack: Attack): AttackResult {
         val duration = 1f * (spell.getDuration() ?: 0)
         return AttackResult(
             1,
@@ -349,14 +348,15 @@ class DamagePerRound(var character: Character)
             AvgMinMax(0f,0f,0f),
             AvgMinMax(0f,0f,0f),
             AvgMinMax(duration, duration, duration),
-            AvgMinMax(0f,0f,0f)
+            AvgMinMax(0f,0f,0f),
+            character = character, attack = attack, startCondition = effectManager.toString()
         )
     }
 
-    fun getSavingThrowSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, monster: Monster): AttackResult
+    fun getSavingThrowSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack): AttackResult
     {
         debug("\n##### getSavingThrowSpellDPR: $spellAttack")
-        val isTargetEvasive = monster.properties.isEvasive()
+        val isTargetEvasive = attack.monster.properties.isEvasive()
         val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
@@ -387,7 +387,7 @@ class DamagePerRound(var character: Character)
         val ability = save?.saveAbility
         if (ability != null) {
             debug("spell save ability      = $ability")
-            targetSaveBonus = monster.properties.getMod(ability)
+            targetSaveBonus = attack.monster.properties.getMod(ability)
             debug("target save proficiency = $targetSaveBonus")
             debug("spell caster save DC    = "+character.getSpellSaveDC())
             debug("spell save result:      = $saveResult")
@@ -420,7 +420,8 @@ class DamagePerRound(var character: Character)
             debug ("This spell never directly creates damage")
             return AttackResult(
                 numberOfTargets, chanceToHit, AvgMinMax(0f,0f,0f),
-                AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f)
+                AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f),
+                character = character, attack = attack, startCondition = effectManager.toString()
             )
         }
 
@@ -524,12 +525,15 @@ class DamagePerRound(var character: Character)
             damagePerHit,
             averageDPR,
             averageDuration,
-            averageTotalDamageOverTime
+            averageTotalDamageOverTime,
+            character = character,
+            attack = attack,
+            startCondition = effectManager.toString()
         )
     }
 
     // ==========================================================
-    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAction, attack: Attack, monster: Monster, effectManager: EffectManager): AttackResult
+    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAction, attack: Attack): AttackResult
     {
         // debug("\n##### getMeleeOrRangeDPR: $meleeOrRangeAttack")
         debug("\n##### getMeleeOrRangeDPR: "+attack.getLabel())
@@ -543,7 +547,7 @@ class DamagePerRound(var character: Character)
 
         val attackBonus = meleeOrRangeAttack.getBonusToHit(character, isBonusAction)
 
-        debug("target AC:     "+monster.properties.dataAcNum)
+        debug("target AC:     "+attack.monster.properties.dataAcNum)
         debug("attack Bonus:  "+attackBonus)
         debug()
 
@@ -556,7 +560,7 @@ class DamagePerRound(var character: Character)
         debug("meleeOrRange damage: " + damageDice) // include bonusDamageDice ...
         debug()
 
-        val AC = monster.properties.dataAcNum
+        val AC = attack.monster.properties.dataAcNum
 
         val autoHit = 20 // for a champion, this could be 19 or 18      // E13
         val isElemental = character.isElementalAdept()
@@ -615,7 +619,8 @@ class DamagePerRound(var character: Character)
                     =J202+IF($G$42="Same as other attacks",Y202,$AD$202)+AR211  +AR199
         */
 
-        var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR)
+        var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR,
+            character = character, attack = attack, startCondition = effectManager.toString())
         result.attackerHadAdvantage = effectManager.attackerHasAdvantage() // stash this now, for future use
         return result
     }

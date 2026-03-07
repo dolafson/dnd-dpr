@@ -31,6 +31,10 @@ data class Spell(
 ) : AttackAction {
     // override fun getActionName(): String { return name }
 
+    override fun toString(): String {
+        return name
+    }
+
     fun is2014(): Boolean {
         return book.endsWith("(2014)")
     }
