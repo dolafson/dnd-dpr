@@ -31,7 +31,7 @@ data class SpellAttack(
     fun getDamageDice(): DiceBlock {
         if (damagePayload == null) return DiceBlockHelper.emptyBlock()
         val diceCount = damagePayload.diceCount?: 1 // TODO: if absent, usually a cantrip that increases based on char level ...
-        return DiceBlockHelper.getDiceBlock(""+diceCount+damagePayload.diceSize)
+        return DiceBlockHelper.get(""+diceCount+damagePayload.diceSize)
     }
 
     fun getSaveResult(): SaveResult {

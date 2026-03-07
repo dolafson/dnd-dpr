@@ -54,8 +54,7 @@ data class AttackResult(
         turn: Int, actionId: Int, effect: Int,
         weapon: Weapon?, spellAttack: SpellAttack?,  startCondition: String, scenarioName: String
     ) {
-        val attackLabel = weapon?.name ?: spellAttack.toString()
-
+        var attackLabel = attack.getLabel()
         val buf = StringBuilder("")
 
         if (AttackResultFormatter.isCSV || !AttackResultFormatter.isTxtFirstResultDone) {

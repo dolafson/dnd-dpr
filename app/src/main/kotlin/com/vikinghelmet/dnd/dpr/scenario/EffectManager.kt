@@ -1,7 +1,9 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
@@ -55,19 +57,27 @@ data class EffectManager(
         }
     }
 
-    fun getPreconditions(turnId: Int, actionCount: Int, turn: Turn, currentSpell: Spell?): Preconditions? {
+    fun getPreconditions(attack: Attack, turnId: Int, actionCount: Int, turn: Turn, currentSpell: Spell?): Preconditions? {
         if (turnId == 1 && actionCount == 1) return turn.preconditions
         val precondition = Preconditions()
+        precondition.bonusDamageDice = DiceBlockHelper.emptyBlock()
+
+        for (action in attack.actionModifiers) {
+            when (action) {
+                ActionModifier.ColossusSlayer -> precondition.bonusDamageDice!! += DiceBlockHelper.get("1d8")
+                ActionModifier.DreadfulStrike -> precondition.bonusDamageDice!! += DiceBlockHelper.get("2d6")
+                ActionModifier.PolarStrikes   -> precondition.bonusDamageDice!! += DiceBlockHelper.get("1d4")
+                else -> Globals.debug("action does not modify attack preconditions: $action")
+            }
+        }
 
         for (running in runningSpellList) {
             val effect = running.spell.getTargetEffect()
 
             // extra damage from old spells can be applied independently (does not depend on "currentSpell")
             for (damage in effect.attackerExtraDamageOnHit) {
-                if (precondition.bonusDamageDice == null) {
-                    precondition.bonusDamageDice = DiceBlockHelper.emptyBlock()
-                }
-                precondition.bonusDamageDice = precondition.bonusDamageDice!!.add (DiceBlockHelper.getDiceBlock (damage))
+//                precondition.bonusDamageDice = precondition.bonusDamageDice!!.add (DiceBlockHelper.getDiceBlock (damage))
+                precondition.bonusDamageDice!! += DiceBlockHelper.get (damage)
             }
 
             if (currentSpell != null) {

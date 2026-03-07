@@ -193,10 +193,10 @@ data class Spell(
                 effect.savePenaltyFilter.contains(saveAbility))
             {
                 if (precondition.penaltyDiceToSave == null) {
-                    precondition.penaltyDiceToSave = DiceBlockHelper.getDiceBlock(penalty)
+                    precondition.penaltyDiceToSave = DiceBlockHelper.get(penalty)
                 }
                 else {
-                    precondition.penaltyDiceToSave = precondition.penaltyDiceToSave!!.add(DiceBlockHelper.getDiceBlock(penalty))
+                    precondition.penaltyDiceToSave = precondition.penaltyDiceToSave!!.add(DiceBlockHelper.get(penalty))
                 }
             }
         }

@@ -2,6 +2,7 @@
 
 package com.vikinghelmet.dnd.dpr.character
 
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
@@ -110,17 +111,19 @@ data class Character(
     // ----------------------------------------------------------------------------------------
     // COMBAT MODIFIERS
 
+    fun getSpellAbilityBonusWithoutPB(): Int {
+        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
+        return if (abilityId == null) 0 else {
+            Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
+        }
+    }
+    fun getSpellBonusToHit(): Int {
+        return getSpellAbilityBonusWithoutPB() + getProficiencyBonus()
+    }
     fun getSpellSaveDC(): Int {
         return 8 + getSpellBonusToHit()
     }
 
-    fun getSpellBonusToHit(): Int {
-        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
-        val statBonus = if (abilityId == null) 0 else {
-            Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
-        }
-        return statBonus + getProficiencyBonus()
-    }
     fun getRangeAttackModifiers(): Int {
         var mod = 0
         for (modifier in characterData.modifiers.feat) {
@@ -271,6 +274,26 @@ data class Character(
             actionsAvailable.add(spell.properties.dataRangeNum ?: 0, spell)
         }
         return actionsAvailable
+    }
+
+    fun getActionModifiersAvailable(): List<ActionModifier> {
+        val result = mutableListOf<ActionModifier>()
+        val nameList = (
+            characterData.actions.race.map { it.name } +
+            characterData.actions.feat.map { it.name } +
+            characterData.actions.classActions.map { it.name }
+        ).filter { s -> !s.contains("Circle Spell") } // circle spell is garbage data, not really usable
+
+        for (name in nameList) {
+            try {
+                val mod = ActionModifier.fromName(name)
+                if (mod != null) result.add(mod)
+            }
+            catch (e: IllegalArgumentException) {
+                Globals.debug("action is unsupported: " + name)
+            }
+        }
+        return result
     }
 
     // ----------------------------------------------------------------------------------------

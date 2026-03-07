@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr.util
 import kotlinx.serialization.Serializable
 
 object DiceBlockHelper {
-    fun getDiceBlock(diceString: String?): DiceBlock {
+    fun get(diceString: String?): DiceBlock {
         val dice = DiceBlock(0, 0, 0, 0, 0)
 
         //  "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
@@ -56,4 +56,13 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
     fun add(other: DiceBlock): DiceBlock {
         return DiceBlock(d4 + other.d4, d6 + other.d6, d8 + other.d8, d10 + other.d10, d12 + other.d12)
     }
+
+    operator fun plusAssign(other: DiceBlock) {
+        d4 += other.d4
+        d6 += other.d6
+        d8 += other.d8
+        d10 += other.d10
+        d12 += other.d12
+    }
+
 }

@@ -521,7 +521,8 @@ class DamagePerRound(var character: Character)
     // ==========================================================
     fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAttack, attack: Attack, monster: Monster, effectManager: EffectManager): AttackResult
     {
-        debug("\n##### getMeleeOrRangeDPR: $meleeOrRangeAttack")
+        // debug("\n##### getMeleeOrRangeDPR: $meleeOrRangeAttack")
+        debug("\n##### getMeleeOrRangeDPR: "+attack.getLabel())
 
         val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
@@ -541,6 +542,7 @@ class DamagePerRound(var character: Character)
 
         val damageDice = meleeOrRangeAttack.getDamageDice().add(bonusDamageDice)
 
+        debug("bonus damageDice: " + (attack.preconditions?.bonusDamageDice)) // include bonusDamageDice ...
         debug("meleeOrRange damage: " + damageDice) // include bonusDamageDice ...
         debug()
 

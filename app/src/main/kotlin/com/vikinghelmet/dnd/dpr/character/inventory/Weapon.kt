@@ -19,7 +19,7 @@ data class Weapon (
     val nickname: String? = null,
 ) {
     fun getDamageDice(): DiceBlock {
-        return DiceBlockHelper.getDiceBlock(damage)
+        return DiceBlockHelper.get(damage)
     }
 
     fun isLight(): Boolean { // this may get used often,

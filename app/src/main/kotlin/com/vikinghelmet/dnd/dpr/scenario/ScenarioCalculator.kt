@@ -55,7 +55,7 @@ class ScenarioCalculator(
             return emptyList()
         }
 
-        attack.preconditions = effectManager.getPreconditions(turnId, actionId, turn, spell)
+        attack.preconditions = effectManager.getPreconditions(attack, turnId, actionId, turn, spell)
 
         val dpr = DamagePerRound(scenario.character)
 
