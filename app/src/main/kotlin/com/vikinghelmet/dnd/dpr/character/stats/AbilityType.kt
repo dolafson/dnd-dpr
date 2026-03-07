@@ -7,5 +7,11 @@ enum class AbilityType {
     Constitution,
     Intelligence,
     Wisdom,
-    Charisma,
+    Charisma;
+
+    companion object {
+        fun fromShortName(shortName: String): AbilityType? {
+            return entries.firstOrNull { it.name.lowercase().startsWith(shortName.lowercase()) }
+        }
+    }
 }

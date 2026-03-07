@@ -49,6 +49,12 @@ data class Character(
         return 0 // should not get here
     }
 
+    fun updateAbilityScore(a: AbilityType, increment: Int) {
+        for (stat in characterData.stats) {
+            if (stat.id == a.ordinal) stat.value += increment
+        }
+    }
+
     fun getBonusModifierSum(a: AbilityType, list: List<Modifier>): Int {
         var mod = 0
         for (modifier in list) {

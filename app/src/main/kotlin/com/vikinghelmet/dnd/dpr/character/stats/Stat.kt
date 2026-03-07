@@ -10,5 +10,5 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class Stat(
     val id: Int,
     val name: String? = null,
-    val value: Int
+    var value: Int // for quick what-if assessments, it's useful for this to be editable
 )

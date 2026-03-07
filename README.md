@@ -35,12 +35,13 @@ java -jar ./app/build/libs/app-standalone.jar
 
 ## Usage
 ```
-Usage:  [-d] [--csv]  [file.json ...]  [character]  < search<opt> | dump[:opt] | <attacks> >
+Usage:  [-d] [--csv] [+aaa=N]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> >
 
 Options:
 
     -d      debug
     --csv   CSV output
+    +aaa=N  increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
 
 File:
 
