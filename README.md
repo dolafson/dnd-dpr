@@ -35,7 +35,7 @@ java -jar ./app/build/libs/app-standalone.jar
 
 ## Usage
 ```
-Usage:  [-d] [--csv]  [file.json ...]  [character]  < search<opt> | dump[:opt] | <attacks> | turns >
+Usage:  [-d] [--csv]  [file.json ...]  [character]  < search<opt> | dump[:opt] | <attacks> >
 
 Options:
 
@@ -65,37 +65,9 @@ Dump:
 
 Attacks:
 
-     -a  <monster spellOrWeapon> ...    (multiple pairs allowed)
+     -a  <monster spellOrWeapon> ...        run selected attack (multiple pairs allowed)
+     -z  <monster <"melee" or "range">>     run all possible 5-turn scenarios, then sort by total damage
 
-Turns:
-
-     an array of turns, each with an array of attacks, for example:
-
-         [ { "attacks": [ { "monster": "Goblin", "attack": "Longbow" } ] } ]
-
-
-     optional notes and preconditions are also supported, for example:
-
-    [
-      {
-        "notes": [
-            "Assume Mind Sliver and HM were cast prior to this turn (following 2024 rules):",
-            "- MS adds a 1d4 penalty to the target's next saving throw",
-            "- HM adds 1d6 to each subsequent attack roll for 1 hour (including melee/range attacks)"
-        ],
-        "preconditions": {
-            "bonusDiceToSave":   { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "penaltyDiceToSave": { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "bonusDamageDice":   { "d4": 0, "d6": 1, "d8": 0, "d10": 0, "d12": 0 },
-            "bonusDamage": 0
-        },
-    
-        "attacks": [
-            { "monster": "Goblin", "attack": "Longbow" },
-            { "monster": "Goblin", "attack": "Hail of Thorns", "isBonusAction": true, "numTargets": 3 }
-        ]    
-      } 
-    ]            
 ```
 
 <br>
@@ -178,14 +150,14 @@ In this sample output, the key things to note are
 In no particular order ...
 
 - add unit tests
-- add optional support for constraint checks
+- fix 2024 Hunter's Mark - can be used WIS+ times per day without a spell slot
+- add more constraint checks
   - your character doesn't know that spell, can't cast it 100 times, etc 
-- add support for "show me all the attack combinations i can make at this range"
 - add support for weapon effects, similar to spell effects (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
 - when cascading spell effects, most effects only apply to a single target
   - take this into account when computing DPR for multi-target spell save (like Hail of Thorns, Ice Knife, ...)
 - add better support for levelling up / what-if scenarios
-  - for now this is done by hand-editing a character file and re-runnimg the DPR calculation
+  - for now this is done by hand-editing a character file and re-running the DPR calculation
 - add a web interface
   - i'll probably never use it, but someone else might
 - add simulated battles

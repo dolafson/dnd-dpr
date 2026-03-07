@@ -6,6 +6,7 @@ import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.turn.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 class ScenarioBuilder(val character: Character, val monster: String) {
@@ -64,17 +65,6 @@ class ScenarioBuilder(val character: Character, val monster: String) {
             }
         }
         return turnOptions
-    }
-
-    fun testPossibleTurns() {
-        val actionsAvailable = character.getActionsAvailable()
-
-        println("\n# MELEE ATTACKS\n")
-        for (turn in possibleTurns(actionsAvailable, true))  println("\t "+turn.shortString())
-
-        println("\n# RANGED ATTACKS\n")
-        for (turn in possibleTurns(actionsAvailable, false))  println("\t "+turn.shortString())
-        println()
     }
 
     fun isAttackValidForScenario(proposedAttack: Attack, currentScenario: Scenario): Boolean
@@ -174,7 +164,7 @@ class ScenarioBuilder(val character: Character, val monster: String) {
 
     fun addActionModifiers(scenarioList: List<Scenario>) {
         val actionModifiersAvailable = character.getActionModifiersAvailable()
-        System.err.println("modifiers available=$actionModifiersAvailable")
+        //System.err.println("modifiers available=$actionModifiersAvailable")
 
         for (scenario in scenarioList) {
             var turnId = 0
@@ -182,7 +172,7 @@ class ScenarioBuilder(val character: Character, val monster: String) {
                 for (attack in turn.attacks) {
                     for (mod in actionModifiersAvailable) {
                         val isValid = isActionModifierValidForTurn (mod, scenario, turnId, turn, attack)
-                        System.err.println("turnId=$turnId, mod=$mod, isValid=$isValid")
+                        // System.err.println("turnId=$turnId, mod=$mod, isValid=$isValid")
                         if (isValid) {
                             attack.actionModifiers.add(mod)
                         }
@@ -197,15 +187,16 @@ class ScenarioBuilder(val character: Character, val monster: String) {
         val actionsAvailable = character.getActionsAvailable()
         val turnOptions = possibleTurns(actionsAvailable, isMelee)
         val scenarioList = ArrayList<Scenario>()
-        buildScenarios(6, turnOptions, Scenario(character, emptyList()), scenarioList)
+        buildScenarios(Constants.DEFAULT_NUM_TURNS_PER_SCENARIO, turnOptions, Scenario(character, emptyList()), scenarioList)
 
         addActionModifiers(scenarioList)
+/*
         for (scenario in scenarioList) for (turnId in scenario.turns.indices) for (actionId in scenario.turns[turnId].attacks.indices) {
             //for (turn in scenario.turns) for (a in turn.attacks) {
             val mods = scenario.turns[turnId].attacks[actionId].actionModifiers
             System.err.println("turnId=$turnId, actionId=$actionId, mods=$mods")
         }
-
+*/
         val resultList = ArrayList<ScenarioResult>()
         for (scenario in scenarioList) {
             val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()

@@ -68,7 +68,7 @@ fun getResource(fileName: String): String? {
 
 fun showUsage() {
     System.err.println("""
-Usage:  [-d] [--csv]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> | turns >
+Usage:  [-d] [--csv]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> >
 
 Options:
 
@@ -99,37 +99,9 @@ Search:
 
 Attacks:
 
-     -a  <monster spellOrWeapon> ...    (multiple pairs allowed)
-
-Turns:
-
-     an array of turns, each with an array of attacks, for example:
-
-         [ { "attacks": [ { "monster": "Goblin", "attack": "Longbow" } ] } ]
-
-
-     optional notes and preconditions are also supported, for example:
-
-    [
-      {
-        "notes": [
-            "Assume Mind Sliver and HM were cast prior to this turn (following 2024 rules):",
-            "- MS adds a 1d4 penalty to the target's next saving throw",
-            "- HM adds 1d6 to each subsequent attack roll for 1 hour (including melee/range attacks)"
-        ],
-        "preconditions": {
-            "bonusDiceToSave":   { "d4": 0, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "penaltyDiceToSave": { "d4": 1, "d6": 0, "d8": 0, "d10": 0, "d12": 0 },
-            "bonusDamageDice":   { "d4": 0, "d6": 1, "d8": 0, "d10": 0, "d12": 0 },
-            "bonusDamage": 0
-        },
-    
-        "attacks": [
-            { "monster": "Goblin", "attack": "Longbow" },
-            { "monster": "Goblin", "attack": "Hail of Thorns", "isBonusAction": true, "numTargets": 3 }
-        ]    
-      } 
-    ]            
+     -a  <monster spellOrWeapon> ...        run attack(s) (multiple pairs allowed)
+     -z  <monster <"melee" or "range">>     run all possible 5-turn scenarios, then sort by total damage
+  
 """)
 
 }
@@ -138,7 +110,6 @@ fun main(args : Array<String>) {
     var exitEarly = false
     var character: Character? = null
     val turns = ArrayList<Turn>()
-    var scenarioName = ""
 
     if (args.isEmpty()) {
         showUsage()
@@ -187,10 +158,6 @@ fun main(args : Array<String>) {
             else if (jsonString.contains("\"Monsters\"")){
                 monsters.addAll(Json.decodeFromString(jsonString))
             }
-            else if (jsonString.contains("\"monster\"")) {
-                turns.addAll(Json.decodeFromString(jsonString))
-                scenarioName = File(arg).nameWithoutExtension
-            }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
             }
@@ -211,10 +178,6 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("test:character")) {
             character?.test()
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:possibleTurns")) {
-            if (character != null) ScenarioBuilder(character, args[i+1]).testPossibleTurns()
             exitEarly = true
         }
     }
