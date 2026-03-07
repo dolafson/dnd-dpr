@@ -23,8 +23,4 @@ data class Attack(
             actionModifiers
         )
     }
-
-    fun copyProposedAttack(): Attack {
-        return Attack(this.monster, this.attack, ArrayList(), null, isBonusAction)
-    }
 }
