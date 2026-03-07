@@ -150,14 +150,15 @@ In this sample output, the key things to note are
 In no particular order ...
 
 - add unit tests
-- fix 2024 Hunter's Mark - can be used WIS+ times per day without a spell slot
-- add more constraint checks
-  - your character doesn't know that spell, can't cast it 100 times, etc 
-- add support for weapon effects, similar to spell effects (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
+- fix 2024 Hunter's Mark - can be used WIS+ times per day **without a spell slot**
+- add support for damage types, and Resistance / Immunity
+- add support for more class features / feats
+- add support for weapon effects, similar to spell effects
+  - (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
 - when cascading spell effects, most effects only apply to a single target
   - take this into account when computing DPR for multi-target spell save (like Hail of Thorns, Ice Knife, ...)
 - add better support for levelling up / what-if scenarios
-  - for now this is done by hand-editing a character file and re-running the DPR calculation
+  - for now this is done by hand-editing a character file and re-running attacks
 - add a web interface
   - i'll probably never use it, but someone else might
 - add simulated battles
