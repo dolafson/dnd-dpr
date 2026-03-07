@@ -3,7 +3,6 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class Scenario(
     val character: Character,
@@ -13,8 +12,7 @@ data class Scenario(
     fun getSpellsAcrossTurns(): List<Spell> {
         val result = ArrayList<Spell>()
         for (turn in turns) for (a in turn.attacks) {
-            val spell = Globals.getSpell(a.attack, character.is2014())
-            if (spell != null) result.add(spell)
+            if (a.attack is Spell) result.add(a.attack)
         }
         return result;
     }
@@ -32,7 +30,7 @@ data class Scenario(
         val buf = StringBuilder()
         for (turn in turns) {
             val attackNameList = mutableListOf<String>()
-            turn.attacks.map { attackNameList.add(it.attack) }
+            turn.attacks.map { attackNameList.add(it.attack.toString()) }
             buf.append(""+attackNameList)
         }
         return String.format("\"%s\"", buf.toString())

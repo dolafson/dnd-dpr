@@ -9,8 +9,8 @@ import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.SerialName
@@ -201,10 +201,9 @@ data class Character(
         return list
     }
 
-    fun getWeapon(name: String?): Weapon? {
-        if (name == null) return null
+    fun getWeapon(name: String): Weapon {
         for (weapon in getWeaponList()) if (weapon.name == name) return weapon
-        return null
+        throw IllegalArgumentException("weapon not found: $name")
     }
 
     // ----------------------------------------------------------------------------------------
@@ -214,7 +213,7 @@ data class Character(
         val result = mutableListOf<Spell>()
         for (preparedSpell in input) {
             val spell = Globals.getSpell(preparedSpell.definition.name, is2014())
-            if (spell != null) result.add(spell)
+            result.add(spell)
         }
         return result
     }

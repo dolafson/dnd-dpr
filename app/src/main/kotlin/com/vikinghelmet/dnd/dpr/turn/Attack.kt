@@ -8,17 +8,23 @@ import kotlinx.serialization.Serializable
 data class Attack(
     // required fields
     val monster: Monster,
-    val attack: String, // name of spell or weapon
+    val attack: AttackAction, // weapon or spell
 
     val actionModifiers: ArrayList<ActionModifier> = ArrayList(), // named, non-spell preconditions (eg Colossus Slayer)
 
     // optional fields
     var preconditions: Preconditions? = null,
-    val isBonusAction: Boolean? = false,
-    val notes: List<String>? = null,
-    val numTargets: Int? = 1
+    val isBonusAction: Boolean? = false
 ) {
     fun getLabel(): String {
-        return if (actionModifiers.isEmpty()) attack else String.format("%s%s", attack, actionModifiers)
+        return if (actionModifiers.isEmpty()) attack.toString() else String.format(
+            "%s%s",
+            attack.toString(),
+            actionModifiers
+        )
+    }
+
+    fun copyProposedAttack(): Attack {
+        return Attack(this.monster, this.attack, ArrayList(), null, isBonusAction)
     }
 }

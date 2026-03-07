@@ -134,9 +134,14 @@ fun main(args : Array<String>) {
                     for (j in (i+1) until args.size step 2) {
                         val monsterName = Globals.getMonster(args[j])
                         val attackName = args[j+1]
-                        attackList.add(Attack(monsterName, attackName))
+                        try {
+                            attackList.add (Attack (monsterName, character!!.getWeapon(attackName)))
+                        }
+                        catch (e: Exception) {
+                            attackList.add (Attack (monsterName, Globals.getSpell(attackName, character!!.is2014())))
+                        }
                     }
-                    turns.add(Turn(null, attackList, null))
+                    turns.add(Turn(attackList))
                     break
                 }
                 "-z" -> {

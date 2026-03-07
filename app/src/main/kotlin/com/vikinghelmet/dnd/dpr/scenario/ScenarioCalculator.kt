@@ -1,5 +1,7 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.turn.DamagePerRound
@@ -40,26 +42,15 @@ class ScenarioCalculator(
 
     fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>
     {
-        val weapon = scenario.character.getWeapon(attack.attack)
-        val spell  = Globals.getSpell(attack.attack, scenario.character.is2014())
-
-        if (weapon == null && spell == null) {
-            System.err.println()
-            System.err.println("spell or weapon not found: "+attack.attack)
-            System.err.println()
-            System.err.println("character weapons: "+ scenario.character.getWeaponNames())
-            System.err.println()
-            return emptyList()
-        }
-
+        val spell = if (attack.attack is Spell) attack.attack else null
         attack.preconditions = effectManager.getPreconditions(attack, turnId, actionId, turn, spell)
 
         val dpr = DamagePerRound(scenario.character)
 
-        if (weapon != null) {
-            val attackResult = dpr.getMeleeOrRangeDPR (weapon, attack, attack.monster, effectManager)
+        if (attack.attack is Weapon) {
+            val attackResult = dpr.getMeleeOrRangeDPR (attack.attack, attack, attack.monster, effectManager)
 
-            attackResult.update(scenario.character, attack, turnId, actionId, 1, weapon, null, effectManager.toString())
+            attackResult.update(scenario.character, attack, turnId, actionId, 1, attack.attack, null, effectManager.toString())
 
             effectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)

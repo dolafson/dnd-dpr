@@ -2,7 +2,9 @@ package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
@@ -13,36 +15,37 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
     fun possibleTurns(actionsAvailable: ActionsAvailable, isMelee: Boolean): List<Turn> {
         val actionList = actionsAvailable.getFullList(isMelee)
-        val bonusActions = SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(isMelee))
+        val bonusActionNames = SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(isMelee))
         val turnOptions = ArrayList<Turn>()
 
         for (action in actionList) {
-            if (action.spell != null) { // generally spell attacks do not get bonus actions
-                turnOptions.add(Turn(attacks = listOf(Attack(monster = monster, attack = action.getName()))))
+            if (action is Spell) { // generally spell attacks do not get bonus actions
+                turnOptions.add(Turn(attacks = listOf(Attack(monster = monster, attack = action))))
                 continue
             }
-            if (action.weapon == null) {
+            if (action !is Weapon) {
                 Globals.debug("error: action without a spell or a weapon")
                 continue
             }
 
             // remainder pertains to weapon attacks
-            val w1 = action.weapon
             var turn: Turn? = null
 
             // light weapon ?  see if you have a 2nd one to use in a BA
-            if (w1.isLight()) {
+            if (action.isLight()) {
                 for (w2 in character.getWeaponList()) {
-                    if (w1 == w2) continue // if you have 2 shortswords, hopefully they vary by nickname ...
+                    if (action == w2) continue // if you have 2 shortswords, hopefully they vary by nickname ...
                     if (w2.isLight()) {
-                        turn = Turn(attacks = listOf(
-                            /*
-                            Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
-                            Attack(monster = monster, attack = (w2.nickname ?: w2.name), isBonusAction = true),
-                             */
-                            Attack(monster = monster, attack = w1.name),
-                            Attack(monster = monster, attack = w2.name, isBonusAction = true),
-                        ))
+                        turn = Turn(
+                            attacks = listOf(
+                                /*
+                                Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
+                                Attack(monster = monster, attack = (w2.nickname ?: w2.name), isBonusAction = true),
+                                 */
+                                Attack(monster = monster, attack = action),
+                                Attack(monster = monster, attack = w2, isBonusAction = true),
+                            )
+                        )
                         break
                     }
                 }
@@ -50,18 +53,21 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
             // if you didn't find a 2nd light weapon, just use the first weapon w/out a BA
             if (turn == null) {
-                turn = Turn(attacks = listOf(Attack(monster = monster, attack = action.getName())))
+                turn = Turn(attacks = listOf(Attack(monster = monster, attack = action)))
             }
             turnOptions.add(turn)
 
             // bonus action spells: mostly for ranger and paladin
-            for (bonus in bonusActions) {
+            for (bonusName in bonusActionNames) {
+                val bonus = Globals.getSpell(bonusName, character.is2014())
                 turnOptions.add(
-                    Turn(attacks = listOf(
-                    //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
-                    Attack(monster = monster, attack = w1.name),
-                    Attack(monster = monster, attack = bonus, isBonusAction = true),
-                )))
+                    Turn(
+                        attacks = listOf(
+                        //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
+                        Attack(monster = monster, attack = action),
+                        Attack(monster = monster, attack = bonus, isBonusAction = true),
+                    )
+                    ))
             }
         }
         return turnOptions
@@ -69,8 +75,8 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
     fun isAttackValidForScenario(proposedAttack: Attack, currentScenario: Scenario): Boolean
     {
-        val spell = Globals.getSpell(proposedAttack.attack, character.is2014())
-        if (spell == null) return true // not a spell
+        if (proposedAttack.attack !is Spell) return true
+        val spell = proposedAttack.attack
 
         if (currentScenario.getSpellsAcrossTurns().isEmpty()) { // no spells used, no conflict, just add it
             return true
@@ -100,7 +106,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
             if (! isAttackValidForScenario(a, currentScenario)) return null
         }
         // make a deep copy of proposed turn, as turn can be modified later (when we add action mods)
-        return Scenario (character, currentScenario.turns.map { it.copy() } + proposedTurn.deepCopy())
+        return Scenario (character, currentScenario.turns.map { it.copy() } + proposedTurn.copyProposedTurn())
     }
 
     fun buildScenarios(rounds: Int, turnOptions: List<Turn>, currentScenario: Scenario, scenarioList: ArrayList<Scenario>) {
@@ -123,8 +129,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
     fun isActionModifierValidForTurn(mod: ActionModifier, scenario: Scenario, turnId: Int, turn: Turn, attack: Attack): Boolean
     {
-        val weapon = character.getWeapon(attack.attack)
-        if (weapon == null) {
+        if (attack.attack !is Weapon) {
             Globals.debug("for now, all modifiers apply only to weapon attacks")
             return false
         }

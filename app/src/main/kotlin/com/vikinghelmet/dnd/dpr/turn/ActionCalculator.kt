@@ -372,7 +372,7 @@ class DamagePerRound(var character: Character)
 
         val maxNumberOfTargets = if (spellAttack.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
 
-        val numberOfTargets = Math.min(attack.numTargets ?: 1, maxNumberOfTargets)
+        val numberOfTargets = maxNumberOfTargets // Math.min(attack.numTargets ?: 1, maxNumberOfTargets)
         val saveResult = spellAttack.getSaveResult()
         debug()
         debug("spell duration (max): " + spell.getDuration())

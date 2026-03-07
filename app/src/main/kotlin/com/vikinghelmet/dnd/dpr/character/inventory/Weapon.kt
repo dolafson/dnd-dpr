@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.character.inventory
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.turn.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
@@ -19,7 +20,7 @@ data class Weapon (
     val longRange: Int? = 5,
     val nickname: String? = null,
 
-) : MeleeOrRangeAction {
+) : MeleeOrRangeAction, AttackAction {
     override fun getBonusDamage(character: Character, isBonusAction: Boolean): Int {
         return character.getDamageBonus(this, isBonusAction)
     }
@@ -40,4 +41,5 @@ data class Weapon (
     override fun toString(): String {
         return name
     }
+    // override fun getActionName(): String { return name }
 }

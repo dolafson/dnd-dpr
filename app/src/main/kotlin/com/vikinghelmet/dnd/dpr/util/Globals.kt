@@ -46,19 +46,11 @@ object Globals {
     }
 
 
-    fun getSpell(name: String?, is2014: Boolean): Spell? { //  character!!.is2014()
-        if (name == null || spells.isEmpty()) return null
-
+    fun getSpell(name: String, is2014: Boolean): Spell { //  character!!.is2014()
         for (spell in spells) {
-            if (spell.name == name) {
-                if (!spell.isSameIn2014And2024() && is2014 != spell.is2014()) {
-                    continue
-                }
-
-                return spell
-            }
+            if (spell.name == name && (spell.isSameIn2014And2024() || (is2014 == spell.is2014()))) return spell
         }
-        return null
+        throw IllegalArgumentException("spell not found: "+name)
     }
 
     fun getMonster(name: String): Monster {

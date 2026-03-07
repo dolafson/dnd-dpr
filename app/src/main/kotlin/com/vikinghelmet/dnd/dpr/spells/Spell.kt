@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.spells
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
+import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.util.Condition
@@ -27,7 +28,9 @@ data class Spell(
     val name: String,
     val properties: Properties,
     val publisher: String
-) {
+) : AttackAction {
+    // override fun getActionName(): String { return name }
+
     fun is2014(): Boolean {
         return book.endsWith("(2014)")
     }
