@@ -84,13 +84,24 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
         // if the last spell is still running, and new spell requires concentration, do not cast it ... TODO: refine this logic
         val lastSpell = currentScenario.getSpellsAcrossTurns().last()
-        if ((lastSpell.getDuration() ?: 0) > 6 && spell.properties.Concentration == "Yes") {
-//                    println("last spell = "+lastSpell.name+" dur = "+lastSpell.getDuration()
-//                            +"skip spell: "+spell.name+", conc = "+spell.properties.Concentration)
+
+        // System.err.println("lastSpell = $lastSpell, new spell = "+proposedAttack.action.name)
+
+        var iceAfterMark=false
+        if (proposedAttack.action.name == "Ice Knife" && lastSpell.name == "Hunter's Mark") {
+            Globals.debug("ice after mark")
+            iceAfterMark=true
+        }
+
+        if ((lastSpell.getDuration() ?: 0) > Constants.DEFAULT_NUM_TURNS_PER_SCENARIO && spell.properties.Concentration == "Yes") {
+            if (iceAfterMark) {
+                Globals.debug("last spell = "+lastSpell.name+" dur = "+lastSpell.getDuration()
+                            +"skip spell: "+spell.name+", conc = "+spell.properties.Concentration)
+            }
             return false
         }
         if (!currentScenario.isSlotAvailable(spell)) {
-            // println("no slots available, skip: "+spell.name)
+            if (iceAfterMark) Globals.debug("no slots available, skip: "+spell.name)
             return false
         }
 
@@ -103,6 +114,11 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
     fun addTurnToScenarioIfValid(proposedTurn: Turn, currentScenario: Scenario): Scenario?
     {
         for (a in proposedTurn.attacks) {
+            if (a.action is Spell) {
+                val lastSpell = currentScenario.getSpellsAcrossTurns().lastOrNull()
+                //System.err.println("lastSpell = $lastSpell, proposed spell = " + a.action.name)
+            }
+
             if (! isAttackValidForScenario(a, currentScenario)) return null
         }
 
@@ -119,9 +135,22 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
             scenarioList.add(currentScenario)
             return
         }
-
+/*
+        val lastSpell = currentScenario.getSpellsAcrossTurns().lastOrNull()
+        if (lastSpell != null) {
+            val turnLabels = turnOptions.map { t -> t.attacks.map { a -> a.action.toString() } }
+            System.err.println("lastSpell = $lastSpell, turnOptions = " + turnLabels)
+        }
+*/
         for (turn in turnOptions) {
-            val nextScenario = addTurnToScenarioIfValid(turn, currentScenario) ?: return
+/*
+            if (lastSpell != null) {
+                val turnLabels = turn.attacks.map { a -> a.action.toString() }
+                System.err.println("lastSpell = $lastSpell, turn = " + turnLabels)
+            }
+*/
+            val nextScenario = addTurnToScenarioIfValid(turn, currentScenario) ?: continue // if this one didn't work, try the next option
+
             buildScenarios(rounds - 1, turnOptions, nextScenario, scenarioList) // note: recursion
         }
     }
@@ -153,7 +182,6 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
                 // only applies if creature is missing HP
                 // - for now, only alternating turns (1,3,...) to simulate changing to a fresh target
                 val odd = ((turnId % 2) != 0)
-                System.err.println("turnId=$turnId, odd="+odd)
                 return odd
             }
             ActionModifier.DreadfulStrike -> {
@@ -213,7 +241,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
             resultList.add(scenarioResult)
         }
 
-        val sortedResults = resultList.sortedByDescending { it.totalDPR }
+        val sortedResults = resultList.sortedByDescending { it.totalDPR }.take(Constants.DEFAULT_SCENARIO_OUTPUT_MAX)
         for (scenarioResult in sortedResults) {
             System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenarioResult.scenario.getLabel()))
             scenarioResult.output()

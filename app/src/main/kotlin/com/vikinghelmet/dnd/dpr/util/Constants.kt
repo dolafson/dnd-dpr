@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr.util
 
 object Constants {
     const val DEFAULT_NUM_TURNS_PER_SCENARIO = 5
+    const val DEFAULT_SCENARIO_OUTPUT_MAX = 30
 
     val levelToProficiencyMap: Map<Int, Int> = mapOf(
         1 to 2,

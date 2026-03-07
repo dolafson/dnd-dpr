@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class Scenario(
     val character: Character,
@@ -23,6 +24,7 @@ data class Scenario(
 
         val maxSlots = character.getSpellSlots()[level - 1]
         val slotsUsed = getSpellsAcrossTurns().count { it.properties.Level == spell.properties.Level }
+        if (slotsUsed >= maxSlots) Globals.  debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = "+getSpellsAcrossTurns())
         return (slotsUsed < maxSlots)
     }
 
