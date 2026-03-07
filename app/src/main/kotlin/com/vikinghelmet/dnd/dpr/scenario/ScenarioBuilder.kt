@@ -216,7 +216,7 @@ class ScenarioBuilder(val character: Character, val monster: String) {
         for (scenarioResult in sortedResults) {
             System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenarioResult.scenario.getLabel()))
             scenarioResult.output()
-            System.exit(0)
+            //System.exit(0)
         }
     }
 

@@ -58,7 +58,7 @@ data class EffectManager(
     }
 
     fun getPreconditions(attack: Attack, turnId: Int, actionCount: Int, turn: Turn, currentSpell: Spell?): Preconditions? {
-        if (turnId == 1 && actionCount == 1) return turn.preconditions
+        if (turnId == 1 && actionCount == 1 && turn.preconditions != null) return turn.preconditions
         val precondition = Preconditions()
         precondition.bonusDamageDice = DiceBlockHelper.emptyBlock()
 
