@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 data class SpellAttack(
     val attackPayload: Attack,
     val damagePayload: Damage? = null,
+    var maxNumberOfTargets: Int? = 1,
 
 ) : MeleeOrRangeAction {
     override fun getBonusDamage(character: Character, isBonusAction: Boolean): Int {

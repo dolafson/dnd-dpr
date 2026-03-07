@@ -103,12 +103,15 @@ data class Spell(
                         break
                     }
                 }
-                attackList.add(SpellAttack(d.payload, damagePayload))
+
+                val maxNumberOfTargets = if (d.payload.aoe != null) 3 else 1 // TODO: improve this
+
+                attackList.add(SpellAttack(d.payload, damagePayload, maxNumberOfTargets))
             }
         }
 
         if (attackList.isEmpty()) {
-            attackList.add(SpellAttack(Attack(name = this.name), null))
+            attackList.add(SpellAttack(Attack(name = this.name), null, 1))
         }
 
         // println("attackList = $attackList")

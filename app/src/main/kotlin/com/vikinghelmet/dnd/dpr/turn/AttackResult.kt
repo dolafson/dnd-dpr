@@ -48,14 +48,14 @@ data class AttackResult(
             buf.append(AttackResultFormatter.format("monsterAC", attack.monster.properties.dataAcNum))
             // TODO: abilities: Str, Dex, ... ?
 
-            buf.append(AttackResultFormatter.format("scenario",scenarioName))
-
             if (!AttackResultFormatter.isCSV) {
                 println(buf)
                 AttackResultFormatter.separate()
                 buf.clear()
             }
         }
+
+        buf.append(AttackResultFormatter.format("scenario",scenarioName))
 
         buf.append(AttackResultFormatter.format("turn", turnId))
         buf.append(AttackResultFormatter.format("action", if (attack.isBonusAction == true) "BA" else ""+actionId))
@@ -129,8 +129,14 @@ object AttackResultFormatter {
 
     fun separate() { println(txtLineSeparator) }
 
-    fun header() {
-        if (!isCSV) { separate(); return }
+    fun header(scenarioName: String) {
+        if (!isCSV) {
+            separate();
+            //println(format("scenario",scenarioName))
+            //println(String.format("\t%-20s %s\n","scenario",scenarioName))
+            //println()
+            return
+        }
 
         val buf = StringBuilder("")
 

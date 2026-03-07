@@ -12,6 +12,7 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
@@ -74,10 +75,14 @@ Usage:  [-d] [--csv] [+feat=name] [+aaa=N]  [file.json ...]  [character]  < dump
 
 Options:
 
-    -d          debug
-    --csv       CSV output
-    +feat=name  add feat
-    +aaa=N      increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
+    -d              debug logging
+    --csv           CSV output
+    
+    --maxTurns=N    number of turns per scenario (default = 5)
+    --maxResults=N  number of results in final output (default = 30), sorted by totalDamage (descending)
+    
+    +feat=name      add feat
+    +aaa=N          increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
 
 File:
 
@@ -98,12 +103,11 @@ Dump:
 
 Search:
 
-     search:spells:NAME      search for name in list of spells, and display details if found
-     search:monsters:NAME    search for name in list of spells, and display details if found
+     search:NAME     search for NAME in list of spells/monsters, and display details if found
 
 Attacks:
 
-     -a  <monster spellOrWeapon> ...        run attack(s) (multiple pairs allowed)
+     -a  <monster turn[;turn...] >          one/more turns, each a comma-separated list of spell or weapon name
      -z  <monster <"melee" or "range">>     run all possible 5-turn scenarios, then sort by total damage
   
 """)
@@ -138,23 +142,32 @@ fun main(args : Array<String>) {
             val ability = AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
             character!!.updateAbilityScore(ability, split[1].toInt())
         }
+        else if (arg.startsWith("--maxTurns")) {
+            Constants.NUM_TURNS_PER_SCENARIO = arg.split("=")[1].toInt()
+        }
+        else if (arg.startsWith("--maxResults")) {
+            Constants.SCENARIO_OUTPUT_MAX = arg.split("=")[1].toInt()
+        }
         else if (arg.startsWith("-")) {
             when (arg) {
                 "-d" -> Globals.debug = true
                 "--csv" -> AttackResultFormatter.isCSV = true;
                 "-a" -> {
-                    val attackList = mutableListOf<Attack>()
-                    for (j in (i+1) until args.size step 2) {
-                        val monsterName = Globals.getMonster(args[j])
-                        val attackName = args[j+1]
-                        try {
-                            attackList.add (Attack (monsterName, character!!.getWeapon(attackName)))
+                    val monster = Globals.getMonster(args[i+1])
+
+                    for (turn in args[i+2].split(";")) {
+                        val attackList = mutableListOf<Attack>()
+                        for (attackName in turn.split(",")) {
+                            try {
+                                attackList.add (Attack (monster, character!!.getWeapon(attackName)))
+                            }
+                            catch (e: Exception) {
+                                attackList.add (Attack (monster, Globals.getSpell(attackName, character!!.is2014())))
+                            }
                         }
-                        catch (e: Exception) {
-                            attackList.add (Attack (monsterName, Globals.getSpell(attackName, character!!.is2014())))
-                        }
+                        turns.add(Turn(attackList))
                     }
-                    turns.add(Turn(attackList))
+
                     break
                 }
                 "-z" -> {
@@ -198,6 +211,10 @@ fun main(args : Array<String>) {
             character?.test()
             exitEarly = true
         }
+        else if (arg.startsWith("test:available")) {
+            ScenarioBuilder(character!!, Globals.getMonster("Goblin")).testActionsAvailable() // hack
+            exitEarly = true
+        }
     }
 
     if (exitEarly) {
@@ -212,10 +229,7 @@ fun main(args : Array<String>) {
     else if (character == null) {
         println("no character data")
     }
-    else if (turns.isEmpty()) {
-        println("no attacks specified")
-    }
-    else {
+    else if (turns.isNotEmpty()) {
         val scenario = Scenario(character, turns)
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
         scenarioResult.output()

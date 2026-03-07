@@ -370,7 +370,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
         // (this can be done manually via bonusDamageOnFirstHit, but more explicit support would be good)
 
-        val maxNumberOfTargets = if (spellAttack.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
+        val maxNumberOfTargets = spellAttack.maxNumberOfTargets!! // if (spellAttack.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
 
         val numberOfTargets = maxNumberOfTargets // Math.min(attack.numTargets ?: 1, maxNumberOfTargets)
         val saveResult = spellAttack.getSaveResult()

@@ -6,36 +6,69 @@
 	spellSaveDC          12
 	monsterName          Goblin
 	monsterAC            15
-	scenario             attack
 
 #######################################################
 
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
 	turn                 1
+	action               1
+	effect               1
+	attack               Mind Sliver
+	spellSaveAbility     Intelligence
+	targetSaveBonus      0
+	startCondition       ""
+	numTargets           1
+	chanceToHit          0.55
+	damagePerHit         1.93
+	duration             0.55
+	damageFullEffect     1.93
+
+	TURN TOTAL           1.93
+
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
+	turn                 2
 	action               1
 	effect               1
 	attack               Longbow
 	weaponDamage         1d8
 	weaponDamageBonus    4
 	weaponAttackBonus    8
+	startCondition       "savePenalty=[1d4];"
 	numTargets           1
 	chanceToHit          0.70
-	damagePerHit         12.00
+	damagePerHit         8.50
 	duration             1.00
-	damageFullEffect     8.80
+	damageFullEffect     6.17
 
-	turn                 1
-	action               BA
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
+	turn                 2
+	action               2
 	effect               1
 	attack               Hail of Thorns
 	spellSaveAbility     Dexterity
 	targetSaveBonus      2
-	numTargets           3
+	startCondition       "savePenalty=[1d4];"
+	numTargets           1
 	chanceToHit          0.57
 	damagePerHit         4.22
 	duration             0.00
-	damageFullEffect     12.67
+	damageFullEffect     4.22
 
-	TURN TOTAL           21.47
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
+	turn                 2
+	action               2
+	effect               2
+	attack               Hail of Thorns
+	spellSaveAbility     Dexterity
+	targetSaveBonus      2
+	startCondition       ""
+	numTargets           2
+	chanceToHit          0.45
+	damagePerHit         3.85
+	duration             0.00
+	damageFullEffect     7.70
 
-	SCENARIO TOTAL       21.47
+	TURN TOTAL           18.10
+
+	SCENARIO TOTAL       20.02
 

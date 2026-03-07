@@ -82,26 +82,17 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
             return true
         }
 
-        // if the last spell is still running, and new spell requires concentration, do not cast it ... TODO: refine this logic
-        val lastSpell = currentScenario.getSpellsAcrossTurns().last()
-
-        // System.err.println("lastSpell = $lastSpell, new spell = "+proposedAttack.action.name)
-
-        var iceAfterMark=false
-        if (proposedAttack.action.name == "Ice Knife" && lastSpell.name == "Hunter's Mark") {
-            Globals.debug("ice after mark")
-            iceAfterMark=true
-        }
-
-        if ((lastSpell.getDuration() ?: 0) > Constants.DEFAULT_NUM_TURNS_PER_SCENARIO && spell.properties.Concentration == "Yes") {
-            if (iceAfterMark) {
-                Globals.debug("last spell = "+lastSpell.name+" dur = "+lastSpell.getDuration()
-                            +"skip spell: "+spell.name+", conc = "+spell.properties.Concentration)
+        if (spell.properties.Concentration == "Yes") {
+            // check spells across all turns in current scenario to determine if any of them might still be running
+            for (priorSpell in currentScenario.getSpellsAcrossTurns()) {
+                if ((priorSpell.getDuration() ?: 0) > Constants.NUM_TURNS_PER_SCENARIO) {
+                    Globals.debug("prior spell still running, new spell requires concentration, so skip it; prior = $priorSpell; skip = $spell")
+                    return false
+                }
             }
-            return false
         }
+
         if (!currentScenario.isSlotAvailable(spell)) {
-            if (iceAfterMark) Globals.debug("no slots available, skip: "+spell.name)
             return false
         }
 
@@ -221,11 +212,21 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         }
     }
 
+    fun testActionsAvailable() {
+        val actionsAvailable = character.getActionsAvailable()
+
+        System.err.println()
+        System.err.println("MELEE:  "+actionsAvailable.meleeActionList)
+        System.err.println()
+        System.err.println("RANGE:  "+actionsAvailable.rangedActionList)
+        System.err.println()
+    }
+
     fun runScenarios(isMelee: Boolean) {
         val actionsAvailable = character.getActionsAvailable()
         val turnOptions = possibleTurns(actionsAvailable, isMelee)
         val scenarioList = ArrayList<Scenario>()
-        buildScenarios(Constants.DEFAULT_NUM_TURNS_PER_SCENARIO, turnOptions, Scenario(character, emptyList()), scenarioList)
+        buildScenarios(Constants.NUM_TURNS_PER_SCENARIO, turnOptions, Scenario(character, emptyList()), scenarioList)
 
         addActionModifiers(scenarioList)
 /*
@@ -241,7 +242,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
             resultList.add(scenarioResult)
         }
 
-        val sortedResults = resultList.sortedByDescending { it.totalDPR }.take(Constants.DEFAULT_SCENARIO_OUTPUT_MAX)
+        val sortedResults = resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
         for (scenarioResult in sortedResults) {
             System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenarioResult.scenario.getLabel()))
             scenarioResult.output()

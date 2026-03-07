@@ -10,8 +10,8 @@ data class ScenarioResult(
 ) {
     fun output() {
         var turnId = 1
-        AttackResultFormatter.header()
         val scenarioName = scenario.getLabel()
+        AttackResultFormatter.header(scenarioName)
 
         for (turn in scenario.turns) {
             var turnDPR = 0f

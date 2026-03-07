@@ -39,9 +39,14 @@ Usage:  [-d] [--csv] [+aaa=N]  [file.json ...]  [character]  < dump[:opt] | sear
 
 Options:
 
-    -d      debug
-    --csv   CSV output
-    +aaa=N  increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
+    -d              debug logging
+    --csv           CSV output
+    
+    --maxTurns=N    number of turns per scenario (default = 5)
+    --maxResults=N  number of results in final output (default = 30), sorted by totalDamage (descending)
+    
+    +feat=name      add feat
+    +aaa=N          increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
 
 File:
 
@@ -52,10 +57,6 @@ Character:
      NumericID   read character from DND Beyond API (character must have public visibility)
      file.json   read character from a local file
 
-Search:
-
-     search:NAME     search for NAME in list of spells/monsters, and display details if found
-
 Dump:
 
      dump:spells     export all known spells
@@ -64,9 +65,13 @@ Dump:
      dump:character  export (minimal) character data from DND Beyond
      dump            export all of the above
 
+Search:
+
+     search:NAME     search for NAME in list of spells/monsters, and display details if found
+
 Attacks:
 
-     -a  <monster spellOrWeapon> ...        run selected attack (multiple pairs allowed)
+     -a  <monster turn[;turn...] >          one/more turns, each a comma-separated list of spell or weapon name
      -z  <monster <"melee" or "range">>     run all possible 5-turn scenarios, then sort by total damage
 
 ```
@@ -75,7 +80,14 @@ Attacks:
 
 ## Output Format (TXT)
 
-While performing the Attack DPR calculation, several stats are calculated and displayed.  The output for the above example (with preconditions) looks like this: 
+While performing the Attack DPR calculation, several stats are calculated and displayed.  
+
+To demonstrate, run the following command
+
+`java -jar ./app/build/libs/app-standalone.jar ./example/character.json  -a Goblin "Mind Sliver;Longbow,Hail of Thorns"
+`
+
+Output for this command looks like this: 
 
 ```
 #######################################################
@@ -86,64 +98,100 @@ While performing the Attack DPR calculation, several stats are calculated and di
 	spellSaveDC          12
 	monsterName          Goblin
 	monsterAC            15
-	scenario             goblin.longbow.hail.of.thorns.with.MS.and.HM
 
 #######################################################
 
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
 	turn                 1
+	action               1
+	effect               1
+	attack               Mind Sliver
+	spellSaveAbility     Intelligence
+	targetSaveBonus      0
+	startCondition       ""
+	numTargets           1
+	chanceToHit          0.55
+	damagePerHit         1.93
+	duration             0.55
+	damageFullEffect     1.93
+
+	TURN TOTAL           1.93
+
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
+	turn                 2
 	action               1
 	effect               1
 	attack               Longbow
 	weaponDamage         1d8
 	weaponDamageBonus    4
 	weaponAttackBonus    8
+	startCondition       "savePenalty=[1d4];"
 	numTargets           1
 	chanceToHit          0.70
-	damagePerHit         12.00
+	damagePerHit         8.50
 	duration             1.00
-	damageFullEffect     8.80
+	damageFullEffect     6.17
 
-	turn                 1
-	action               BA
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
+	turn                 2
+	action               2
 	effect               1
 	attack               Hail of Thorns
 	spellSaveAbility     Dexterity
 	targetSaveBonus      2
-	numTargets           3
+	startCondition       "savePenalty=[1d4];"
+	numTargets           1
 	chanceToHit          0.57
 	damagePerHit         4.22
 	duration             0.00
-	damageFullEffect     12.67
+	damageFullEffect     4.22
 
-	TURN TOTAL           21.47
+	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
+	turn                 2
+	action               2
+	effect               2
+	attack               Hail of Thorns
+	spellSaveAbility     Dexterity
+	targetSaveBonus      2
+	startCondition       ""
+	numTargets           2
+	chanceToHit          0.45
+	damagePerHit         3.85
+	duration             0.00
+	damageFullEffect     7.70
 
-	SCENARIO TOTAL       21.47
+	TURN TOTAL           18.10
 
+	SCENARIO TOTAL       20.02
 ```
 
 In this sample output, the key things to note are
-- this [character](example/character.json) has a high proficiency with the [Longbow](https://www.dndbeyond.com/equipment/37-longbow)
+- The first attack is [Mind Sliver](https://www.dndbeyond.com/spells/2619037-mind-sliver)
+  - this has a small initial impact, due to a low proficiency combined with 1d6 damage
+  - however, the spell does produce a savePenalty that is carried forward to the next spell save
+  - No bonus actions occur in this first turn
+- The second turn starts with [Longbow](https://www.dndbeyond.com/equipment/37-longbow) 
+  - this [character](example/character.json) has a high proficiency with Longbow
   - with an attack bonus of 8, the chance to hit is 70%
-  - on a successful hit, the average damage is 12 
-    - 1d8 (weapon) + 1d6 ([Hunter's Mark](https://www.dndbeyond.com/spells/2619166-hunters-mark)) + 4 (proficiency)
-  - the average damage for this action is 8.8 (%hit * DPH)
-- the [Hail of Thorns](https://www.dndbeyond.com/spells/2618975-hail-of-thorns) (bonus attack spell) triggers a Dexterity saving throw
+  - on a successful hit, the average damage is 8.5 
+    - this includes the average of a 1d8 (= 4.5) plus a proficiency bonus (4)
+  - the average damage for this action is 6.17 (%hit * DPH)
+- The second turn includes a bonus action: [Hail of Thorns](https://www.dndbeyond.com/spells/2618975-hail-of-thorns) 
+  - This spell triggers a Dexterity saving throw
   - the [Goblin](https://www.dndbeyond.com/monsters/16907-goblin) has above average Dexterity, so their save bonus is 2
   - the spell caster has a save DC of 12
-- as a result ...
+- As a result ...
   - the Goblin would need to roll a 10 or higher to avoid the spell effect
-  - but in this case, [Mind Sliver](https://www.dndbeyond.com/spells/2619037-mind-sliver) causes the Goblin to add a 1d4 penalty
+  - but in this case, Mind Sliver causes the Goblin to add a 1d4 penalty
   - MindSliver improves the "chance to hit" from 45% to 57%
-- the number of spell effects/targets is 3 (assume 2 friends within 5 feet)
-  - Note 1: this number should be configurable
-  - Note 2: Mind Sliver should only apply to one of those 3 targets
-- spell damage per hit is 4.22
-  - 1d10 on a failed save, or half that on a successful save 
-  - Note: Hunter's Mark damage does not apply here 
-  - (Hail of Thorns has a **save** roll, not an **attack** roll)
-- spell full effect damage is 12.67 (across 3 targets)
-- total DPR is 21.47 (longbow + spell)
-- sample output in [TXT](example/attackResult.txt) and [CSV](example/attackResult.csv)
+  - the additional damage is 4.22 
+- Hail of Thorns may also impact other targets within 5 feet of the first
+  - Note: the number of additional targets should be configurable (for now = 2)
+  - Mind Sliver does not apply to these targets; "chance to hit" is 45%
+  - the average damage for these targets is 3.85 each
+- total DPR for the second round is 18.10 (longbow + spell)
+- total DPR for the entire scenario is 20.02
+- sample output in [CSV](example/attackResult.csv)
 
   
 ## Future Improvements

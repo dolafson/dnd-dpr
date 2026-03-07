@@ -14,7 +14,11 @@ data class ActionsAvailable(
     fun add(range: Int, attackAction: AttackAction) {
         val both = (attackAction is Spell) && attackAction.triggersSavingThrow()
 
-        if (both || range <= 5) {
+        if (both) {
+            meleeActionList.add(attackAction)
+            rangedActionList.add(attackAction)
+        }
+        else if (range <= 5) {
             meleeActionList.add(attackAction)
         }
         else {
