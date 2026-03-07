@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.EffectWithDuration
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
@@ -28,7 +29,7 @@ data class Spell(
     val name: String,
     val properties: Properties,
     val publisher: String
-) : AttackAction {
+) : AttackAction, EffectWithDuration {
     // override fun getActionName(): String { return name }
 
     override fun toString(): String {
@@ -70,7 +71,7 @@ data class Spell(
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage
     // note, in 2024 the spell was changed to Instantaneous (Bonus Action)
-    fun getDuration(): Int? {
+    override fun getDuration(): Int? {
         val dur = properties.filterDuration ?: return null
 
         when (dur) {
@@ -147,7 +148,7 @@ data class Spell(
         return (getDuration() ?: 0) <= 1 // TODO: is this the best representation ?
     }
 
-    fun appliesToNextMeleeOrRangeAttackOnly(): Boolean {
+    override fun appliesToNextMeleeOrRangeAttackOnly(): Boolean {
         if (!appliesToNextAttackOnly()) return false
         for (spellAttack in getSpellAttacks()) {
             if (spellAttack.isMeleeOrRangeAttack()) return true
@@ -155,13 +156,13 @@ data class Spell(
         return false
     }
 
-    fun appliesEffectToNextTargetSaveOnly(): Boolean {
+    override fun appliesEffectToNextTargetSaveOnly(): Boolean {
         val effect = getTargetEffect()
         return appliesToNextAttackOnly() &&
                 (effect.disadvantageOnSave.isNotEmpty() || effect.savePenalty.isNotEmpty() || effect.autoFailSave.isNotEmpty())
     }
 
-    fun getTargetEffect(): TargetEffect {
+    override fun getTargetEffect(): TargetEffect {
         val result = TargetEffect()
         val conditions = getSpellFailConditions()
         for (cond in conditions) {
@@ -184,7 +185,7 @@ data class Spell(
         }
     }
 
-    fun preProcessEffectsOfOldSpell(oldSpell: Spell, precondition: Preconditions) {
+    fun preProcessEffectsOfOldSpell(oldSpell: EffectWithDuration, precondition: Preconditions) {
         val effect = oldSpell.getTargetEffect()
         val saveAbility = getSpellSaveAbility()
 
@@ -203,7 +204,7 @@ data class Spell(
                     precondition.penaltyDiceToSave = DiceBlockHelper.get(penalty)
                 }
                 else {
-                    precondition.penaltyDiceToSave = precondition.penaltyDiceToSave!!.add(DiceBlockHelper.get(penalty))
+                    precondition.penaltyDiceToSave!! += DiceBlockHelper.get(penalty)
                 }
             }
         }

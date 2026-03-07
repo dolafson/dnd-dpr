@@ -25,7 +25,7 @@ data class CharacterData(
     val modifiers: Modifiers,
     val actions: Actions,
     val stats: List<Stat>,
-    val feats: List<FeatAdded>,
+    val feats: ArrayList<FeatAdded>,
     val race: Race,
     val classSpells: List<ClassSpell>?= emptyList(),
     val spells: SpellGroup

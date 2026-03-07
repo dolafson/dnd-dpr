@@ -3,7 +3,9 @@
 package com.vikinghelmet.dnd.dpr.character
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
@@ -80,9 +82,13 @@ data class Character(
 
     fun isFeatEnabled(requested : Feat): Boolean {
         for (feat in characterData.feats) {
-            if (feat.definition.name == requested.traitName) return true
+            if (feat.definition.name == requested.featName) return true
         }
         return false
+    }
+
+    fun addFeat(requested : Feat) {
+        characterData.feats.add(FeatAdded(definition = Definition(name = requested.featName)))
     }
 
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean {

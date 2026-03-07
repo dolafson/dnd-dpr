@@ -1,6 +1,8 @@
 package com.vikinghelmet.dnd.dpr.character.feats
 
-enum class Feat(val traitName: String) {
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+
+enum class Feat(val featName: String) {
     // https://www.dndbeyond.com/sources/dnd/phb-2024/feats#GreatWeaponFighting
     GreatWeaponFighting("Great Weapon Fighting"),
 
@@ -16,5 +18,11 @@ enum class Feat(val traitName: String) {
     Telekinetic("Telekinetic"),
     MerchantAbilityScoreImprovements("Merchant Ability Score Improvements"),
 
-    ColdCaster("Cold Caster")
+    ColdCaster("Cold Caster");
+
+    companion object {
+        fun fromShortName(shortName: String): AbilityType? {
+            return AbilityType.entries.firstOrNull { it.name.lowercase().startsWith(shortName.lowercase()) } // TODO: featName instead of name ?
+        }
+    }
 }

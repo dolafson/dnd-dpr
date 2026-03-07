@@ -1,12 +1,14 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.feats.FeatWithDuration
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.turn.DamagePerRound
-import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
 class ScenarioCalculator(
     val scenario: Scenario,    
@@ -23,7 +25,7 @@ class ScenarioCalculator(
             var actionCount = 1
 
             for (attack in turn.attacks) {
-                val resultsForAttack = calculateDPR(turnId, actionCount, turn, attack)
+                val resultsForAttack = calculateDPR(turnId, actionCount, attack)
                 for (result in resultsForAttack) {
                     dpr += result.damagePerRound.select (result.getAvgMinMaxSelection())
                 }
@@ -40,10 +42,10 @@ class ScenarioCalculator(
         return ScenarioResult(scenario, attackResults, scenarioTotalDamage)
     }
 
-    fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>
+    fun calculateDPR(turnId: Int, actionId: Int, attack: Attack): List<AttackResult>
     {
         val spell = if (attack.action is Spell) attack.action else null
-        attack.preconditions = effectManager.getPreconditions(attack, turnId, actionId, turn, spell)
+        attack.preconditions = effectManager.getPreconditions(attack, spell)
 
         val dpr = DamagePerRound(scenario.character, effectManager)
 
@@ -51,6 +53,15 @@ class ScenarioCalculator(
             val attackResult = dpr.getMeleeOrRangeDPR (attack.action, attack)
 
             attackResult.update(turnId, actionId, 1)
+
+            if (scenario.character.isFeatEnabled(Feat.ColdCaster)) {
+                // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons)
+                effectManager.add(turnId,
+                    FeatWithDuration(Feat.ColdCaster, 1,
+                        TargetEffect(savePenalty = mutableListOf("1d4"))))
+
+                Globals.debug("after adding CC feat, effects = "+effectManager)
+            }
 
             effectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)

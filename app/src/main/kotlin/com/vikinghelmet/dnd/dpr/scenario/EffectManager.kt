@@ -1,65 +1,79 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.feats.FeatWithDuration
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
-import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
-data class RunningSpell (val startTurn: Int, val spell: Spell)
+interface EffectWithDuration {
+    fun getDuration(): Int?
+    fun getTargetEffect(): TargetEffect
+    fun appliesEffectToNextTargetSaveOnly(): Boolean
+    fun appliesToNextMeleeOrRangeAttackOnly(): Boolean
+}
+
+data class RunningEffect (val startTurn: Int, val effect: EffectWithDuration)
 
 data class EffectManager(
-    val runningSpellList: ArrayList<RunningSpell>
+    val runningEffectList: ArrayList<RunningEffect>
 )
 {
-    fun add(turnId: Int, spell: Spell) {
-        runningSpellList.add(RunningSpell(turnId, spell))
+    fun add(turnId: Int, effect: EffectWithDuration) {
+        if (effect is FeatWithDuration) {
+            for (runningEffect in runningEffectList) {
+                if (runningEffect.effect is FeatWithDuration && runningEffect.effect.feat == effect.feat) {
+                    Globals.debug("no double dipping on feat->effects")
+                    return
+                }
+            }
+        }
+        runningEffectList.add(RunningEffect(turnId, effect))
     }
 
-    fun getRunningSpells(): MutableList<Spell> {
-        val result = mutableListOf<Spell>()
-        for (running in runningSpellList) result.add(running.spell)
-        return result
+    fun getRunningSpells(): List<Spell> {
+        return runningEffectList.filter { it.effect is Spell }.map { it.effect as Spell }
     }
 
     fun pruneRunningSpells(turnId: Int) {
-        val iterator = runningSpellList.listIterator()
+        val iterator = runningEffectList.listIterator()
         while (iterator.hasNext()) {
             val running = iterator.next()
             val deltaT = turnId - running.startTurn
-            val spell = running.spell
-            val duration = spell.getDuration() ?: 0
+            val effect = running.effect
+            val duration = effect.getDuration() ?: 0
             if (deltaT >= duration) {
-                Globals.debug("spell is complete, remove from running list: "+spell.name)
+                Globals.debug("spell is complete, remove from running list: "+effect.toString())
                 iterator.remove()
             }
         }
     }
 
     fun pruneSpellsWaitingForNextAttack(spellAttack: SpellAttack?) {
-        val iterator = runningSpellList.listIterator()
+        val iterator = runningEffectList.listIterator()
         while (iterator.hasNext()) {
             val running = iterator.next()
-            val spell = running.spell
 
-            if (spell.appliesEffectToNextTargetSaveOnly() && spellAttack != null && spellAttack.isSavingThrowAttack()) {
-                Globals.debug("spell was waiting for next saving throw, removing it from running list: "+spell.name)
+            if (running.effect.appliesEffectToNextTargetSaveOnly() && spellAttack != null && spellAttack.isSavingThrowAttack()) {
+                Globals.debug("spell was waiting for next saving throw, removing it from running list: "+running.effect.toString())
                 iterator.remove()
             }
 
-            if (spell.appliesToNextMeleeOrRangeAttackOnly() && (spellAttack == null || spellAttack.isMeleeOrRangeAttack())) {
-                Globals.debug("spell was waiting for next melee/range attack, removing it from running list: "+spell.name)
+            if (running.effect.appliesToNextMeleeOrRangeAttackOnly() && (spellAttack == null || spellAttack.isMeleeOrRangeAttack())) {
+                Globals.debug("spell was waiting for next melee/range attack, removing it from running list: "+running.effect.toString())
                 iterator.remove()
             }
         }
     }
 
-    fun getPreconditions(attack: Attack, turnId: Int, actionCount: Int, turn: Turn, currentSpell: Spell?): Preconditions? {
+    fun getPreconditions(attack: Attack, currentSpell: Spell?): Preconditions? {
         val precondition = Preconditions()
         precondition.bonusDamageDice = DiceBlockHelper.emptyBlock()
+        precondition.penaltyDiceToSave = DiceBlockHelper.emptyBlock()
 
         for (action in attack.actionModifiers) {
             when (action) {
@@ -70,8 +84,20 @@ data class EffectManager(
             }
         }
 
-        for (running in runningSpellList) {
-            val effect = running.spell.getTargetEffect()
+        for (running in runningEffectList) {
+            val effect = running.effect.getTargetEffect()
+
+            if (running.effect is FeatWithDuration) {
+                Globals.debug("getPreconditions: running effect is a feat: "+running.effect)
+            }
+
+            if (effect.savePenalty.isNotEmpty() && running.effect is FeatWithDuration) { // TODO: would this also work for spells ?
+                Globals.debug("adding CC savePenalty  = "+effect.savePenalty)
+
+                for (penalty in effect.savePenalty) {
+                    precondition.penaltyDiceToSave!! += DiceBlockHelper.get(penalty)
+                }
+            }
 
             // extra damage from old spells can be applied independently (does not depend on "currentSpell")
             for (damage in effect.attackerExtraDamageOnHit) {
@@ -80,28 +106,28 @@ data class EffectManager(
             }
 
             if (currentSpell != null) {
-                currentSpell.preProcessEffectsOfOldSpell (running.spell, precondition)
+                currentSpell.preProcessEffectsOfOldSpell (running.effect, precondition)
             }
         }
         return precondition
     }
 
     fun attackerHasAdvantage(): Boolean {
-        for (running in runningSpellList) {
-            if (running.spell.getTargetEffect().attackerHasAdvantage == true) return true
+        for (running in runningEffectList) {
+            if (running.effect.getTargetEffect().attackerHasAdvantage == true) return true
         }
         return false
     }
 
     fun isAutoCrit(): Boolean {
-        for (running in runningSpellList) {
-            if (running.spell.getTargetEffect().attackerAutoCrit == true) return true
+        for (running in runningEffectList) {
+            if (running.effect.getTargetEffect().attackerAutoCrit == true) return true
         }
         return false
     }
     override fun toString(): String {
         val buf = StringBuilder()
-        for (running in runningSpellList) buf.append(running.spell.getTargetEffect())
+        for (running in runningEffectList) buf.append(running.effect.getTargetEffect())
         return buf.toString()
     }
 }

@@ -4,6 +4,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
@@ -69,13 +70,14 @@ fun getResource(fileName: String): String? {
 
 fun showUsage() {
     System.err.println("""
-Usage:  [-d] [--csv] [+aaa=N]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> >
+Usage:  [-d] [--csv] [+feat=name] [+aaa=N]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> >
 
 Options:
 
-    -d      debug
-    --csv   CSV output
-    +aaa=N  increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
+    -d          debug
+    --csv       CSV output
+    +feat=name  add feat
+    +aaa=N      increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
 
 File:
 
@@ -127,7 +129,11 @@ fun main(args : Array<String>) {
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
     for (i in args.indices) {
         val arg = args[i]
-        if (arg.startsWith("+")) {
+        if (arg.startsWith("+feat")) {
+            val split = arg.split("=")
+            character!!.addFeat(Feat.valueOf(split[1]))
+        }
+        else if (arg.startsWith("+")) {
             val split = arg.substringAfter("+").split("=")
             val ability = AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
             character!!.updateAbilityScore(ability, split[1].toInt())
