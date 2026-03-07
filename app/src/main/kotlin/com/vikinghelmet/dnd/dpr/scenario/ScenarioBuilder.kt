@@ -3,7 +3,6 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.spells.SpellHelper
-import com.vikinghelmet.dnd.dpr.turn.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants

@@ -1,6 +1,9 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.turn.*
+import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.AttackResult
+import com.vikinghelmet.dnd.dpr.turn.DamagePerRound
+import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 class ScenarioCalculator(
@@ -60,8 +63,7 @@ class ScenarioCalculator(
         val dpr = DamagePerRound(scenario.character)
 
         if (weapon != null) {
-            val meleeOrRangeAttack = MeleeOrRangeAttack(scenario.character, null, weapon)
-            val attackResult = dpr.getMeleeOrRangeDPR (meleeOrRangeAttack, attack, monster, effectManager)
+            val attackResult = dpr.getMeleeOrRangeDPR (weapon, attack, monster, effectManager)
 
             attackResult.update(scenario.character, monster, attack, turnId, actionId, 1, weapon, null, effectManager.toString())
 

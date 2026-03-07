@@ -1,7 +1,9 @@
 package com.vikinghelmet.dnd.dpr.spells
 
+import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
+import com.vikinghelmet.dnd.dpr.turn.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import kotlinx.serialization.Serializable
@@ -10,8 +12,24 @@ import kotlinx.serialization.Serializable
 data class SpellAttack(
     val attackPayload: Attack,
     val damagePayload: Damage? = null,
-)
-{
+
+) : MeleeOrRangeAction {
+    override fun getBonusDamage(character: Character, isBonusAction: Boolean): Int {
+        return 0
+    }
+
+    override fun getBonusToHit(character: Character, isBonusAction: Boolean): Int {
+        return character.getSpellBonusToHit()
+    }
+
+    override fun getDamageDice(): DiceBlock {
+        if (damagePayload == null) return DiceBlockHelper.emptyBlock()
+        val diceCount = damagePayload.diceCount?: 1 // TODO: if absent, usually a cantrip that increases based on char level ...
+        return DiceBlockHelper.get(""+diceCount+damagePayload.diceSize)
+    }
+
+    // non-interface methods
+
     fun isMeleeOrRangeAttack(): Boolean {
         return !isNoDamageAttack() && !isSavingThrowAttack()
     }
@@ -26,12 +44,6 @@ data class SpellAttack(
 
     fun getSaveAbility(): String {
         return if (attackPayload.save == null) "" else  attackPayload.save.saveAbility
-    }
-
-    fun getDamageDice(): DiceBlock {
-        if (damagePayload == null) return DiceBlockHelper.emptyBlock()
-        val diceCount = damagePayload.diceCount?: 1 // TODO: if absent, usually a cantrip that increases based on char level ...
-        return DiceBlockHelper.get(""+diceCount+damagePayload.diceSize)
     }
 
     fun getSaveResult(): SaveResult {

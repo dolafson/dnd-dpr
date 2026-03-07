@@ -337,7 +337,7 @@ class DamagePerRound(var character: Character)
         else if (spellAttack.isSavingThrowAttack()) {
             getSavingThrowSpellDPR (spellAttack, spell, attack, monster)
         } else {
-            getMeleeOrRangeDPR (MeleeOrRangeAttack (character, spellAttack, null), attack, monster, effectManager)
+            getMeleeOrRangeDPR (spellAttack, attack, monster, effectManager)
         }
     }
 
@@ -519,7 +519,7 @@ class DamagePerRound(var character: Character)
     }
 
     // ==========================================================
-    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAttack, attack: Attack, monster: Monster, effectManager: EffectManager): AttackResult
+    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAction, attack: Attack, monster: Monster, effectManager: EffectManager): AttackResult
     {
         // debug("\n##### getMeleeOrRangeDPR: $meleeOrRangeAttack")
         debug("\n##### getMeleeOrRangeDPR: "+attack.getLabel())
@@ -528,10 +528,10 @@ class DamagePerRound(var character: Character)
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
         val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
         val isBonusAction = attack.isBonusAction ?: false
-        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(isBonusAction) + (preconditions.bonusDamage ?: 0)
+        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(character, isBonusAction) + (preconditions.bonusDamage ?: 0)
         debug()
 
-        val attackBonus = meleeOrRangeAttack.getBonusToHit(isBonusAction)
+        val attackBonus = meleeOrRangeAttack.getBonusToHit(character, isBonusAction)
 
         debug("target AC:     "+monster.properties.dataAcNum)
         debug("attack Bonus:  "+attackBonus)

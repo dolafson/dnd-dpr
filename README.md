@@ -155,6 +155,7 @@ In no particular order ...
 - add support for more class features / feats
 - add support for weapon effects, similar to spell effects
   - (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
+- add support for spell damage upcasting (by character level, or spell level) 
 - when cascading spell effects, most effects only apply to a single target
   - take this into account when computing DPR for multi-target spell save (like Hail of Thorns, Ice Knife, ...)
 - add better support for levelling up / what-if scenarios

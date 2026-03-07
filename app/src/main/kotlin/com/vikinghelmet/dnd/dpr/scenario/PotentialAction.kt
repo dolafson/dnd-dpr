@@ -1,19 +1,19 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.Spell
 
-data class AttackAction(val spell: Spell? = null, val weapon: Weapon? = null) {
+data class PotentialAction(val spell: Spell? = null, val weapon: Weapon? = null) {
     fun getName(): String {
         return if (spell != null) spell.name else if (weapon != null) weapon.name else ""
     }
 }
 
 data class ActionsAvailable(
-    val meleeActionList: MutableList<AttackAction> = mutableListOf(),
-    val rangedActionList: MutableList<AttackAction> = mutableListOf()
+    val meleeActionList: MutableList<PotentialAction> = mutableListOf(),
+    val rangedActionList: MutableList<PotentialAction> = mutableListOf()
 ) {
-    fun getFullList(isMelee: Boolean): List<AttackAction> {
+    fun getFullList(isMelee: Boolean): List<PotentialAction> {
         return if (isMelee) meleeActionList else rangedActionList
     }
 
@@ -26,8 +26,8 @@ data class ActionsAvailable(
 
     fun add(range: Int, spell: Spell) {
         if (spell.triggersSavingThrow()) { // this type of spell is added to both lists ...
-            meleeActionList.add(AttackAction(spell,null))
-            rangedActionList.add(AttackAction(spell,null))
+            meleeActionList.add(PotentialAction(spell,null))
+            rangedActionList.add(PotentialAction(spell,null))
         }
         else {
             add(range, spell, null)
@@ -40,10 +40,10 @@ data class ActionsAvailable(
 
     fun add(range: Int, spell: Spell?, weapon: Weapon?) {
         if (range <= 5) {
-            meleeActionList.add(AttackAction(spell, weapon))
+            meleeActionList.add(PotentialAction(spell, weapon))
         }
         else {
-            rangedActionList.add(AttackAction (spell, weapon))
+            rangedActionList.add(PotentialAction (spell, weapon))
         }
     }
 }
