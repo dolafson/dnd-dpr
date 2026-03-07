@@ -42,15 +42,15 @@ class ScenarioCalculator(
 
     fun calculateDPR(turnId: Int, actionId: Int, turn: Turn, attack: Attack): List<AttackResult>
     {
-        val spell = if (attack.attack is Spell) attack.attack else null
+        val spell = if (attack.action is Spell) attack.action else null
         attack.preconditions = effectManager.getPreconditions(attack, turnId, actionId, turn, spell)
 
         val dpr = DamagePerRound(scenario.character)
 
-        if (attack.attack is Weapon) {
-            val attackResult = dpr.getMeleeOrRangeDPR (attack.attack, attack, attack.monster, effectManager)
+        if (attack.action is Weapon) {
+            val attackResult = dpr.getMeleeOrRangeDPR (attack.action, attack, attack.monster, effectManager)
 
-            attackResult.update(scenario.character, attack, turnId, actionId, 1, attack.attack, null, effectManager.toString())
+            attackResult.update(scenario.character, attack, turnId, actionId, 1, attack.action, null, effectManager.toString())
 
             effectManager.pruneSpellsWaitingForNextAttack(null)
             return listOf(attackResult)

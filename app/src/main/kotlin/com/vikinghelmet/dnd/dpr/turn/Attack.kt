@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Attack(
     // required fields
     val monster: Monster,
-    val attack: AttackAction, // weapon or spell
+    val action: AttackAction, // weapon or spell
 
     val actionModifiers: ArrayList<ActionModifier> = ArrayList(), // named, non-spell preconditions (eg Colossus Slayer)
 
@@ -17,9 +17,9 @@ data class Attack(
     val isBonusAction: Boolean? = false
 ) {
     fun getLabel(): String {
-        return if (actionModifiers.isEmpty()) attack.toString() else String.format(
+        return if (actionModifiers.isEmpty()) action.toString() else String.format(
             "%s%s",
-            attack.toString(),
+            action.toString(),
             actionModifiers
         )
     }

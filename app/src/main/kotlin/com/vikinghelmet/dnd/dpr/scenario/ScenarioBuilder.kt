@@ -20,7 +20,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
         for (action in actionList) {
             if (action is Spell) { // generally spell attacks do not get bonus actions
-                turnOptions.add(Turn(attacks = listOf(Attack(monster = monster, attack = action))))
+                turnOptions.add(Turn(attacks = listOf(Attack(monster = monster, action = action))))
                 continue
             }
             if (action !is Weapon) {
@@ -42,8 +42,8 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
                                 Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
                                 Attack(monster = monster, attack = (w2.nickname ?: w2.name), isBonusAction = true),
                                  */
-                                Attack(monster = monster, attack = action),
-                                Attack(monster = monster, attack = w2, isBonusAction = true),
+                                Attack(monster = monster, action = action),
+                                Attack(monster = monster, action = w2, isBonusAction = true),
                             )
                         )
                         break
@@ -53,7 +53,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
             // if you didn't find a 2nd light weapon, just use the first weapon w/out a BA
             if (turn == null) {
-                turn = Turn(attacks = listOf(Attack(monster = monster, attack = action)))
+                turn = Turn(attacks = listOf(Attack(monster = monster, action = action)))
             }
             turnOptions.add(turn)
 
@@ -64,8 +64,8 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
                     Turn(
                         attacks = listOf(
                         //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
-                        Attack(monster = monster, attack = action),
-                        Attack(monster = monster, attack = bonus, isBonusAction = true),
+                        Attack(monster = monster, action = action),
+                        Attack(monster = monster, action = bonus, isBonusAction = true),
                     )
                     ))
             }
@@ -75,8 +75,8 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
     fun isAttackValidForScenario(proposedAttack: Attack, currentScenario: Scenario): Boolean
     {
-        if (proposedAttack.attack !is Spell) return true
-        val spell = proposedAttack.attack
+        if (proposedAttack.action !is Spell) return true
+        val spell = proposedAttack.action
 
         if (currentScenario.getSpellsAcrossTurns().isEmpty()) { // no spells used, no conflict, just add it
             return true
@@ -108,7 +108,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
         // make a deep copy of proposed turn, as turn can be modified later (when we add action mods)
         val copy = Turn (proposedTurn.attacks.map {
-            a -> Attack(a.monster, a.attack, ArrayList(), null, a.isBonusAction)
+            a -> Attack(a.monster, a.action, ArrayList(), null, a.isBonusAction)
         }.toMutableList())
 
         return Scenario (character, currentScenario.turns.map { it.copy() } + copy)
@@ -134,7 +134,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
     fun isActionModifierValidForTurn(mod: ActionModifier, scenario: Scenario, turnId: Int, turn: Turn, attack: Attack): Boolean
     {
-        if (attack.attack !is Weapon) {
+        if (attack.action !is Weapon) {
             Globals.debug("for now, all modifiers apply only to weapon attacks")
             return false
         }

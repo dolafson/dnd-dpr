@@ -12,7 +12,7 @@ data class Scenario(
     fun getSpellsAcrossTurns(): List<Spell> {
         val result = ArrayList<Spell>()
         for (turn in turns) for (a in turn.attacks) {
-            if (a.attack is Spell) result.add(a.attack)
+            if (a.action is Spell) result.add(a.action)
         }
         return result;
     }
@@ -30,7 +30,7 @@ data class Scenario(
         val buf = StringBuilder()
         for (turn in turns) {
             val attackNameList = mutableListOf<String>()
-            turn.attacks.map { attackNameList.add(it.attack.toString()) }
+            turn.attacks.map { attackNameList.add(it.action.toString()) }
             buf.append(""+attackNameList)
         }
         return String.format("\"%s\"", buf.toString())
