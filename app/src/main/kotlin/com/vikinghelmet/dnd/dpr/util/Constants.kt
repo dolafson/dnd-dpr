@@ -59,4 +59,27 @@ object Constants {
         29 to 9,
         30 to 10,
     )
+
+    val levelToFavoredEnemyMap: Map<Int, Int> = mapOf(
+    1 to 2,
+    2 to 2,
+    3 to 2,
+    4 to 2,
+    5 to 3,
+    6 to 3,
+    7 to 3,
+    8 to 3,
+    9 to 4,
+    10 to 4,
+    11 to 4,
+    12 to 4,
+    13 to 5,
+    14 to 5,
+    15 to 5,
+    16 to 5,
+    17 to 6,
+    18 to 6,
+    19 to 6,
+    20 to 6,
+    )
 }

@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class Scenario(
@@ -22,8 +23,16 @@ data class Scenario(
         val level = spell.properties.Level
         if (level == 0) return true // cantrip
 
+        if (spell.name == "Hunter's Mark") {
+            val maxSlots = levelToFavoredEnemyMap[character.getLevel()] ?: return false
+            val slotsUsed = getSpellsAcrossTurns().count { it.name == spell.name }
+            //if (slotsUsed >= maxSlots) Globals.debug("not enough slots: HM, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = "+getSpellsAcrossTurns())
+            //System.err.println("HM slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = "+getSpellsAcrossTurns())
+            return (slotsUsed < maxSlots)
+        }
+
         val maxSlots = character.getSpellSlots()[level - 1]
-        val slotsUsed = getSpellsAcrossTurns().count { it.properties.Level == spell.properties.Level }
+        val slotsUsed = getSpellsAcrossTurns().count { it.properties.Level == spell.properties.Level && it.name != "Hunter's Mark"}
         if (slotsUsed >= maxSlots) Globals.  debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = "+getSpellsAcrossTurns())
         return (slotsUsed < maxSlots)
     }

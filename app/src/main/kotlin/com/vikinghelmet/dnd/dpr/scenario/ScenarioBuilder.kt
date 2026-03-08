@@ -216,9 +216,11 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         val actionsAvailable = character.getActionsAvailable()
 
         System.err.println()
-        System.err.println("MELEE:  "+actionsAvailable.meleeActionList)
+        System.err.println("MELEE:  actions       = "+actionsAvailable.meleeActionList)
+        System.err.println("MELEE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(true)))
         System.err.println()
-        System.err.println("RANGE:  "+actionsAvailable.rangedActionList)
+        System.err.println("RANGE:  actions       = "+actionsAvailable.rangedActionList)
+        System.err.println("RANGE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(false)))
         System.err.println()
     }
 
