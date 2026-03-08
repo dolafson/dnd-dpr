@@ -1,9 +1,13 @@
 package com.vikinghelmet.dnd.dpr.util
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 object Globals {
@@ -13,12 +17,27 @@ object Globals {
 
     fun debug(str: String) { if (debug) System.err.println(str) }
 
+    @Serializable data class FeatureSet(
+        val racialTraits: List<String>,
+        val actionModifiers: List<String>,
+        val feats: List<String>,
+    )
+
+    fun dumpFeatures() {
+        println(Json.encodeToString(FeatureSet(
+            RacialTrait.entries.map { e -> e.name },
+            ActionModifier.entries.map { e -> e.name },
+            Feat.entries.map { e -> e.name }
+        )))
+    }
+
     fun dump(arg: String, character: Character?, turns: List<Turn>) {
         if (!arg.contains(":")) {
             for (item in spells)    println(Json.encodeToString(item))
             for (item in monsters)  println(Json.encodeToString(item))
             for (item in turns)     println(Json.encodeToString(item))
             character?.dump()
+            dumpFeatures()
             return
         }
 
@@ -32,6 +51,9 @@ object Globals {
             }
             "attacks" -> {
                 for (item in turns)  println(Json.encodeToString(item))
+            }
+            "features" -> {
+                dumpFeatures()
             }
             "character" -> {
                 character?.dump()

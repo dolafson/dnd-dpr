@@ -79,7 +79,7 @@ Options:
     --csv           CSV output
     
     --maxTurns=N    number of turns per scenario (default = 5)
-    --maxResults=N  number of results in final output (default = 30), sorted by totalDamage (descending)
+    --maxResults=N  number of results in final output (default = 30), sorted by totalDamage (see -z below)
     
     +feat=name      add feat
     +aaa=N          increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
@@ -99,6 +99,7 @@ Dump:
      dump:monsters   export all known monsters
      dump:attacks    export attacks from user input
      dump:character  export (minimal) character data from DND Beyond
+     dump:features   export supported features: racialTraits, actionModifiers, feats
      dump            export all of the above
 
 Search:

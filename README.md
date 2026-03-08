@@ -63,6 +63,7 @@ Dump:
      dump:monsters   export all known monsters
      dump:attacks    export attacks from user input
      dump:character  export (minimal) character data from DND Beyond
+     dump:features   export supported features: racialTraits, actionModifiers, feats
      dump            export all of the above
 
 Search:

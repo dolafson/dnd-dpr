@@ -9,16 +9,19 @@ enum class Feat(val featName: String) {
     // https://www.dndbeyond.com/sources/dnd/phb-2024/feats#ElementalAdept
     ElementalAdept("Elemental Adept"),
 
-    Archery("Archery"),
+    // Archery("Archery"), // this is only used implicitly, via Character.getRangeAttackModifiers()
 
-    // others found along the way
-    GreatWeaponMaster("Great Weapon Master"),
-    WeaponMastery("Weapon Mastery"),
-    Lucky("Lucky"),
-    Telekinetic("Telekinetic"),
-    MerchantAbilityScoreImprovements("Merchant Ability Score Improvements"),
+    ColdCaster("Cold Caster"),
 
-    ColdCaster("Cold Caster");
+    /* for future use ?
+
+        GreatWeaponMaster("Great Weapon Master"),
+        WeaponMastery("Weapon Mastery"),
+        Lucky("Lucky"),
+        Telekinetic("Telekinetic"),
+        MerchantAbilityScoreImprovements("Merchant Ability Score Improvements"),
+     */
+    ;
 
     companion object {
         fun fromShortName(shortName: String): AbilityType? {

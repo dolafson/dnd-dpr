@@ -1,7 +1,7 @@
 package com.vikinghelmet.dnd.dpr.character.race
 
 enum class RacialTrait(val id: Int, val traitName: String) {
-    // https://www.dndbeyond.com/sources/dnd/phb-2014/races#HalflingTraits
+    // https://www.dndbeyond.com/sources/dnd/phb-2024/character-origins#HalflingTraits
     // https://www.dndbeyond.com/sources/dnd/phb-2024/character-origins#Halfling
     Luck(13856136, "Luck"),
 
