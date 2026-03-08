@@ -82,18 +82,18 @@ data class Character(
 
     fun isFeatEnabled(requested : Feat): Boolean {
         for (feat in characterData.feats) {
-            if (feat.definition.name == requested.featName) return true
+            if (feat.definition.name == requested.nameWithWS) return true
         }
         return false
     }
 
     fun addFeat(requested : Feat) {
-        characterData.feats.add(FeatAdded(definition = Definition(name = requested.featName)))
+        characterData.feats.add(FeatAdded(definition = Definition(name = requested.nameWithWS)))
     }
 
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean {
         for (trait in characterData.race.racialTraits) {
-            if (trait.definition.name == requested.traitName) return true
+            if (trait.definition.name == requested.nameWithWS) return true
         }
         return false
     }

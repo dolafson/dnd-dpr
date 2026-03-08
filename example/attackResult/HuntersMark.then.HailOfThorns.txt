@@ -1,0 +1,89 @@
+#######################################################
+
+	level                2
+	characterName        Leif Lightfoot
+	spellBonusToHit      4
+	spellSaveDC          12
+	monsterName          Goblin
+	monsterAC            15
+
+#######################################################
+
+	scenario             "[Longbow, Hunter's Mark][Longbow, Hail of Thorns]"
+	turn                 1
+	action               1
+	effect               1
+	attack               Longbow
+	weaponDamage         1d8
+	weaponDamageBonus    4
+	weaponAttackBonus    8
+	startCondition       ""
+	numTargets           1
+	chanceToHit          0.70
+	damagePerHit         8.50
+	duration             1.00
+	damageFullEffect     6.17
+
+	scenario             "[Longbow, Hunter's Mark][Longbow, Hail of Thorns]"
+	turn                 1
+	action               2
+	effect               1
+	attack               Hunter's Mark
+	spellSaveAbility     
+	targetSaveBonus      
+	startCondition       ""
+	numTargets           1
+	chanceToHit          100.00
+	damagePerHit         0.00
+	duration             600.00
+	damageFullEffect     0.00
+
+	TURN TOTAL           6.17
+
+	scenario             "[Longbow, Hunter's Mark][Longbow, Hail of Thorns]"
+	turn                 2
+	action               1
+	effect               1
+	attack               Longbow
+	weaponDamage         1d8
+	weaponDamageBonus    4
+	weaponAttackBonus    8
+	startCondition       "extraDamageOnHit=[1d6];"
+	numTargets           1
+	chanceToHit          0.70
+	damagePerHit         12.00
+	duration             1.00
+	damageFullEffect     8.80
+
+	scenario             "[Longbow, Hunter's Mark][Longbow, Hail of Thorns]"
+	turn                 2
+	action               2
+	effect               1
+	attack               Hail of Thorns
+	spellSaveAbility     Dexterity
+	targetSaveBonus      2
+	startCondition       "extraDamageOnHit=[1d6];"
+	numTargets           1
+	chanceToHit          0.45
+	damagePerHit         3.85
+	duration             0.00
+	damageFullEffect     3.85
+
+	scenario             "[Longbow, Hunter's Mark][Longbow, Hail of Thorns]"
+	turn                 2
+	action               2
+	effect               2
+	attack               Hail of Thorns
+	spellSaveAbility     Dexterity
+	targetSaveBonus      2
+	startCondition       "extraDamageOnHit=[1d6];"
+	numTargets           2
+	chanceToHit          0.45
+	damagePerHit         3.85
+	duration             0.00
+	damageFullEffect     7.70
+
+	TURN TOTAL           20.35
+
+	SCENARIO TOTAL       26.52
+

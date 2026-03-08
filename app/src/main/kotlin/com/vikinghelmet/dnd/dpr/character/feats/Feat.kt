@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr.character.feats
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 
-enum class Feat(val featName: String) {
+enum class Feat(val nameWithWS: String) {
     // https://www.dndbeyond.com/sources/dnd/phb-2024/feats#GreatWeaponFighting
     GreatWeaponFighting("Great Weapon Fighting"),
 

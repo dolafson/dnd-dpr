@@ -88,89 +88,12 @@ To demonstrate, run the following command
 `java -jar ./app/build/libs/app-standalone.jar ./example/character.json  -a Goblin "Mind Sliver;Longbow,Hail of Thorns"
 `
 
-Output for this command looks like this: 
-
-```
-#######################################################
-
-	level                2
-	characterName        Leif Lightfoot
-	spellBonusToHit      4
-	spellSaveDC          12
-	monsterName          Goblin
-	monsterAC            15
-
-#######################################################
-
-	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
-	turn                 1
-	action               1
-	effect               1
-	attack               Mind Sliver
-	spellSaveAbility     Intelligence
-	targetSaveBonus      0
-	startCondition       ""
-	numTargets           1
-	chanceToHit          0.55
-	damagePerHit         1.93
-	duration             0.55
-	damageFullEffect     1.93
-
-	TURN TOTAL           1.93
-
-	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
-	turn                 2
-	action               1
-	effect               1
-	attack               Longbow
-	weaponDamage         1d8
-	weaponDamageBonus    4
-	weaponAttackBonus    8
-	startCondition       "savePenalty=[1d4];"
-	numTargets           1
-	chanceToHit          0.70
-	damagePerHit         8.50
-	duration             1.00
-	damageFullEffect     6.17
-
-	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
-	turn                 2
-	action               2
-	effect               1
-	attack               Hail of Thorns
-	spellSaveAbility     Dexterity
-	targetSaveBonus      2
-	startCondition       "savePenalty=[1d4];"
-	numTargets           1
-	chanceToHit          0.57
-	damagePerHit         4.22
-	duration             0.00
-	damageFullEffect     4.22
-
-	scenario             "[Mind Sliver][Longbow, Hail of Thorns]"
-	turn                 2
-	action               2
-	effect               2
-	attack               Hail of Thorns
-	spellSaveAbility     Dexterity
-	targetSaveBonus      2
-	startCondition       ""
-	numTargets           2
-	chanceToHit          0.45
-	damagePerHit         3.85
-	duration             0.00
-	damageFullEffect     7.70
-
-	TURN TOTAL           18.10
-
-	SCENARIO TOTAL       20.02
-```
-
-In this sample output, the key things to note are
+Output for this scenario can be found here in [TXT](example/attackResult/MindSliver.then.HailOfThorns.txt) and [CSV](example/attackResult/MindSliver.then.HailOfThorns.csv).  Key things to note in the output are:
 - The first attack is [Mind Sliver](https://www.dndbeyond.com/spells/2619037-mind-sliver)
-  - this has a small initial impact, due to a low proficiency combined with 1d6 damage
-  - however, the spell does produce a savePenalty that is carried forward to the next spell save
-  - No bonus actions occur in this first turn
+  - this has a small initial impact, due to a low chanceToHit and damagePerHit (1d6)
+  - since Mind Sliver is a cantrip, no bonus actions occur in this first turn
+  - however, the spell does produce a savePenalty that is carried forward to the end of the next round
+  - DPR for this first round is only 1.93
 - The second turn starts with [Longbow](https://www.dndbeyond.com/equipment/37-longbow) 
   - this [character](example/character.json) has a high proficiency with Longbow
   - with an attack bonus of 8, the chance to hit is 70%
@@ -190,9 +113,17 @@ In this sample output, the key things to note are
   - Note: the number of additional targets should be configurable (for now = 2)
   - Mind Sliver does not apply to these targets; "chance to hit" is 45%
   - the average damage for these targets is 3.85 each
-- total DPR for the second round is 18.10 (longbow + spell)
-- total DPR for the entire scenario is 20.02
-- sample output in [CSV](example/attackResult.csv)
+- DPR for the second round is 18.10
+- total damage for the entire scenario is 20.02
+
+While [Mind Sliver](https://www.dndbeyond.com/spells/2619037-mind-sliver) is 
+an interesting spell mechanic, it is overall a poor choice for this character. A 
+better choice would have been to start with Longbow and a bonus action of 
+[Hunter's Mark](https://www.dndbeyond.com/spells/2619166-hunters-mark).  That 
+ ends with total damage = 26.52, which is 6.5 higher than the first scenario 
+(on average).  The full results for this second scenario can be found here 
+in [TXT](example/attackResult/HuntersMark.then.HailOfThorns.txt) 
+and [CSV](example/attackResult/HuntersMark.then.HailOfThorns.csv)
 
   
 ## Future Improvements

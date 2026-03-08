@@ -60,6 +60,22 @@ object Constants {
         30 to 10,
     )
 
+    // note: this can be computed dynamically from the dndbeyond character sheet
+    //
+    //  jq -c '.data.classes[]
+    //      | select (.definition.name == "Ranger")
+    //      | .classFeatures[]
+    //      | select (.definition.name == "Favored Enemy")
+    //      | .definition.levelScales[]
+    //      | { level, fixedValue } '
+    //
+    // -->
+    //      {"level":1,"fixedValue":2}
+    //      {"level":5,"fixedValue":3}
+    //      {"level":9,"fixedValue":4}
+    //      {"level":13,"fixedValue":5}
+    //      {"level":17,"fixedValue":6}
+    //
     val levelToFavoredEnemyMap: Map<Int, Int> = mapOf(
     1 to 2,
     2 to 2,

@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.character.actions
 
-enum class ActionModifier(val actionName: String) {
+enum class ActionModifier(val nameWithWS: String) {
     HuntersLore("Hunter's Lore"),
     HordeBreaker("Horde Breaker"),
     ColossusSlayer("Colossus Slayer"),
@@ -9,7 +9,7 @@ enum class ActionModifier(val actionName: String) {
 
     companion object {
         fun fromName(name: String): ActionModifier? {
-            return entries.firstOrNull { it.actionName == name }
+            return entries.firstOrNull { it.nameWithWS == name }
         }
     }
 }
