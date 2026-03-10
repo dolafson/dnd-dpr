@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.util
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.*
+import com.vikinghelmet.dnd.dprlib.util.Condition
 
 data class TargetEffect (
 
@@ -38,7 +39,7 @@ data class TargetEffect (
     }
     fun applyCondition(cond: Condition) {
         when (cond) {
-            Condition.Blinded -> // Attack rolls against you have Advantage, and your attack rolls have Disadvantage. 
+            Condition.Blinded -> // Attack rolls against you have Advantage, and your attack rolls have Disadvantage.
             {
                 attackerHasAdvantage = true
                 disadvantageOnAttacks = true

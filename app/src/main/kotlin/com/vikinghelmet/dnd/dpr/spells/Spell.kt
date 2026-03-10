@@ -7,7 +7,7 @@ import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
-import com.vikinghelmet.dnd.dpr.util.Condition
+import com.vikinghelmet.dnd.dprlib.util.Condition
 import com.vikinghelmet.dnd.dprlib.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import kotlinx.serialization.Serializable
