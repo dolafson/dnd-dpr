@@ -3,8 +3,6 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dprlib.util.Constants
-
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -12,11 +10,12 @@ import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
+import com.vikinghelmet.dnd.dprlib.util.Constants
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -29,6 +28,21 @@ class App {
         get() {
             return "Hello World!"
         }
+}
+
+fun prettyPrintCharacter(character: Character) {
+    println ("")
+    println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
+
+    for (ability in AbilityType.entries) {
+        if (ability == AbilityType.ALL) continue
+        val base = character.getRawAbilityScore(ability)
+        val withBonuses = character.getModifiedAbilityScore(ability)
+        //println ("$ability: base=$base, withBonuses=$mod")
+        println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
+    }
+
+    character.test() // remainder of that method is portable, does not use String.format
 }
 
 fun getRequest(url: String): String? {
@@ -71,7 +85,7 @@ fun getResource(fileName: String): String? {
 
 
 fun showUsage() {
-    System.err.println("""
+    println("""
 Usage:  [-d] [--csv] [+feat=name] [+aaa=N]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> >
 
 Options:
@@ -114,7 +128,7 @@ Attacks:
   
 """)
 
-     System.err.println("test fibi = "+ Constants)
+     println("test dprlib = "+ Constants)
 }
 
 fun main(args : Array<String>) {
@@ -211,7 +225,7 @@ fun main(args : Array<String>) {
             exitEarly = true
         }
         else if (arg.startsWith("test:character")) {
-            character?.test()
+            prettyPrintCharacter(character!!)
             exitEarly = true
         }
         else if (arg.startsWith("test:available")) {

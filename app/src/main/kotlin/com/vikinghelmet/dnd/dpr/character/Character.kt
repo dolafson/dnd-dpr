@@ -311,17 +311,6 @@ data class Character(
     // TESTS
 
     fun test() {
-        println ("")
-        println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
-
-        for (ability in AbilityType.entries) {
-            if (ability == AbilityType.ALL) continue
-            val base = getRawAbilityScore(ability)
-            val withBonuses = getModifiedAbilityScore(ability)
-            //println ("$ability: base=$base, withBonuses=$mod")
-            println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
-        }
-
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
         val spellAbilityType = if (abilityId == null) "n/a" else AbilityType.entries[abilityId]
 

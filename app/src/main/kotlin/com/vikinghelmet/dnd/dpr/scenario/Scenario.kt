@@ -43,6 +43,6 @@ data class Scenario(
             turn.attacks.map { attackNameList.add(it.action.toString()) }
             buf.append(""+attackNameList)
         }
-        return String.format("\"%s\"", buf.toString())
+        return Globals.wrapWithQuotes(buf.toString())
     }
 }

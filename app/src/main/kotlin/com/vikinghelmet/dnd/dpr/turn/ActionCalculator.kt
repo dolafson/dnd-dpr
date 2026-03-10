@@ -4,9 +4,9 @@ import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprlib.util.DiceBlock
 import com.vikinghelmet.dnd.dprlib.util.DiceBlockHelper
-import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -26,9 +26,13 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
         val halfAvg = if (diceBlock.isEmpty()) avg/2 else avg/2 - 0.25f
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())
     }
+
     fun debug(label: String) {
         if (Globals.debug) {
-            System.err.println(String.format("%s, (avg, min, max) = (%2.2f, %2.2f, %2.2f)", label, avg, min, max))
+            val avgPct = Globals.getPercent(avg)
+            val minPct = Globals.getPercent(min)
+            val maxPct = Globals.getPercent(max)
+            println("# $label, (avg, min, max) = ($avgPct, $minPct, $maxPct)")
         }
     }
 }
@@ -42,8 +46,8 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
     val effectSaveDC = character.getSpellSaveDC()
     val isLucky = character.isLucky()
 
-    fun debug() { if (Globals.debug) System.err.println() }
-    fun debug(str:String) { if (Globals.debug) System.err.println(str) }
+    fun debug() { if (Globals.debug) println() }
+    fun debug(str:String) { if (Globals.debug) println("# "+str) }
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
         val avg = averageDamage(diceBlock, bonusDamage, character.isGreatWeaponFighting(), character.isElementalAdept())
@@ -510,9 +514,9 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
 
         averageTotalDamageOverTime.debug("Average Total Damage Over Time")
 
-        debug(String.format("avg %%hit:         %2.2f", chanceToHit.avg))
-        debug(String.format("avg duration:     %2.2f", averageDuration.avg))
-        debug(String.format("avg total damage: %2.2f", averageTotalDamageOverTime.avg))
+        debug("avg %hit:         "+Globals.getPercent(chanceToHit.avg))
+        debug("avg duration:     "+Globals.getPercent(averageDuration.avg))
+        debug("avg total damage: "+Globals.getPercent(averageTotalDamageOverTime.avg))
         debug()
 
         // TODO: resolve conflict between interest in
@@ -574,7 +578,8 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
         chanceToHit.debug("Chance to Hit")
 
         val mainAttack = !(attack.isBonusAction ?: false)
-        debug(String.format("avg %%hit (%s):   %2.2f",  (if (mainAttack) "main" else "bonus"), chanceToHit.avg))
+        val mainOrBonus = if (mainAttack) "main" else "bonus"
+        debug("avg %hit ($mainOrBonus):   " + Globals.getPercent(chanceToHit.avg))
 
         // DPH:                             (B205, F205, J205)
         val damagePerHit = getAvgMinMax(damageDice, bonusDamage)

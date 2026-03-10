@@ -107,7 +107,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         for (a in proposedTurn.attacks) {
             if (a.action is Spell) {
                 val lastSpell = currentScenario.getSpellsAcrossTurns().lastOrNull()
-                //System.err.println("lastSpell = $lastSpell, proposed spell = " + a.action.name)
+                Globals.debug("lastSpell = $lastSpell, proposed spell = " + a.action.name)
             }
 
             if (! isAttackValidForScenario(a, currentScenario)) return null
@@ -130,14 +130,14 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         val lastSpell = currentScenario.getSpellsAcrossTurns().lastOrNull()
         if (lastSpell != null) {
             val turnLabels = turnOptions.map { t -> t.attacks.map { a -> a.action.toString() } }
-            System.err.println("lastSpell = $lastSpell, turnOptions = " + turnLabels)
+            Globals.debug("lastSpell = $lastSpell, turnOptions = " + turnLabels)
         }
 */
         for (turn in turnOptions) {
 /*
             if (lastSpell != null) {
                 val turnLabels = turn.attacks.map { a -> a.action.toString() }
-                System.err.println("lastSpell = $lastSpell, turn = " + turnLabels)
+                Globals.debug("lastSpell = $lastSpell, turn = " + turnLabels)
             }
 */
             val nextScenario = addTurnToScenarioIfValid(turn, currentScenario) ?: continue // if this one didn't work, try the next option
@@ -193,7 +193,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
     fun addActionModifiers(scenarioList: List<Scenario>) {
         val actionModifiersAvailable = character.getActionModifiersAvailable()
-        //System.err.println("modifiers available=$actionModifiersAvailable")
+        //Globals.debug("modifiers available=$actionModifiersAvailable")
 
         for (scenario in scenarioList) {
             var turnId = 0
@@ -201,7 +201,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
                 for (attack in turn.attacks) {
                     for (mod in actionModifiersAvailable) {
                         val isValid = isActionModifierValidForTurn (mod, scenario, turnId, turn, attack)
-                        // System.err.println("turnId=$turnId, mod=$mod, isValid=$isValid")
+                        // Globals.debug("turnId=$turnId, mod=$mod, isValid=$isValid")
                         if (isValid) {
                             attack.actionModifiers.add(mod)
                         }
@@ -215,13 +215,13 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
     fun testActionsAvailable() {
         val actionsAvailable = character.getActionsAvailable()
 
-        System.err.println()
-        System.err.println("MELEE:  actions       = "+actionsAvailable.meleeActionList)
-        System.err.println("MELEE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(true)))
-        System.err.println()
-        System.err.println("RANGE:  actions       = "+actionsAvailable.rangedActionList)
-        System.err.println("RANGE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(false)))
-        System.err.println()
+        println()
+        println("MELEE:  actions       = "+actionsAvailable.meleeActionList)
+        println("MELEE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(true)))
+        println()
+        println("RANGE:  actions       = "+actionsAvailable.rangedActionList)
+        println("RANGE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(false)))
+        println()
     }
 
     fun runScenarios(isMelee: Boolean) {
@@ -235,7 +235,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         for (scenario in scenarioList) for (turnId in scenario.turns.indices) for (actionId in scenario.turns[turnId].attacks.indices) {
             //for (turn in scenario.turns) for (a in turn.attacks) {
             val mods = scenario.turns[turnId].attacks[actionId].actionModifiers
-            System.err.println("turnId=$turnId, actionId=$actionId, mods=$mods")
+            println("turnId=$turnId, actionId=$actionId, mods=$mods")
         }
 */
         val resultList = ArrayList<ScenarioResult>()
@@ -246,7 +246,11 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
         val sortedResults = resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
         for (scenarioResult in sortedResults) {
-            System.err.println(String.format("%2.2f \t%s", scenarioResult.totalDPR, scenarioResult.scenario.getLabel()))
+            val buf = StringBuilder()
+                .append(Globals.getPercent(scenarioResult.totalDPR))
+                .append(" \t")
+                .append(scenarioResult.scenario.getLabel())
+            println(buf.toString())
             scenarioResult.output()
             //System.exit(0)
         }

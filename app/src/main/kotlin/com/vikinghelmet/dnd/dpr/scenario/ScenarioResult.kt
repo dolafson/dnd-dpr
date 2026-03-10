@@ -1,7 +1,7 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
-import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.AttackResultFormatter
 
 data class ScenarioResult(
     val scenario: Scenario,

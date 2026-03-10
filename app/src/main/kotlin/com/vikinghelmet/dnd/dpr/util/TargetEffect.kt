@@ -110,7 +110,7 @@ data class TargetEffect (
                 attackerAutoCrit = true // TODO: within 5 feet
             }
             else -> {
-//                System.err.println("condition does not currently impact target effect: "+cond)
+//                println("# condition does not currently impact target effect: "+cond)
             }
         }
     }

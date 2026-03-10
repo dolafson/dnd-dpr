@@ -15,13 +15,21 @@ object Globals {
     val spells = ArrayList<Spell>()
     val monsters = ArrayList<Monster>()
 
-    fun debug(str: String) { if (debug) System.err.println(str) }
+    fun debug(str: String) { if (debug) println("# "+str) }
 
     @Serializable data class FeatureSet(
         val racialTraits: List<String>,
         val actionModifiers: List<String>,
         val feats: List<String>,
     )
+
+    fun getPercent(float: Float): String {
+        return ""+((float*100).toInt()/100)
+    }
+
+    fun wrapWithQuotes(input: String): String {
+        return StringBuilder().append("\"").append(input).append("\"").toString()
+    }
 
     fun dumpFeatures() {
         println(Json.encodeToString(FeatureSet(

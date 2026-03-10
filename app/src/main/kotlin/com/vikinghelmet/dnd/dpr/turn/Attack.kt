@@ -17,10 +17,7 @@ data class Attack(
     val isBonusAction: Boolean? = false
 ) {
     fun getLabel(): String {
-        return if (actionModifiers.isEmpty()) action.toString() else String.format(
-            "%s%s",
-            action.toString(),
-            actionModifiers
-        )
+        return if (actionModifiers.isEmpty()) action.toString() else
+            action.toString()+actionModifiers
     }
 }
