@@ -19,6 +19,7 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -28,6 +29,7 @@ dependencies {
     // prefer an older version of serialization lib, to avoid conflicts with loading in intellij ...
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.vikinghelmet.dnd:dprlib:1.0.0")
 }
 
 testing {

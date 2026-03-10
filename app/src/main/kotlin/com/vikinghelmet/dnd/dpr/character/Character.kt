@@ -13,8 +13,8 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dprlib.util.Constants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

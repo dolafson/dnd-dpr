@@ -4,8 +4,8 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dprlib.util.Constants.levelToFavoredEnemyMap
 
 data class Scenario(
     val character: Character,

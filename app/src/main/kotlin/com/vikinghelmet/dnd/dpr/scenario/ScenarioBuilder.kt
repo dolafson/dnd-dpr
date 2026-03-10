@@ -8,8 +8,8 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dprlib.util.Constants
 
 class ScenarioBuilder(val character: Character, val monster: Monster) {
 

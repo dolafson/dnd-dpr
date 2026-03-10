@@ -3,6 +3,8 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dprlib.util.Constants
+
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -12,7 +14,6 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
@@ -113,6 +114,7 @@ Attacks:
   
 """)
 
+     System.err.println("test fibi = "+ Constants)
 }
 
 fun main(args : Array<String>) {
