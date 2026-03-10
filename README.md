@@ -38,7 +38,7 @@ gradle build
 ```
 
 ## Run
-java -jar ./app/build/libs/app-standalone.jar 
+java -jar ./dprcmd/build/libs/dprcmd-standalone.jar 
 
 ## Usage
 ```
@@ -92,7 +92,7 @@ While performing the Attack DPR calculation, several stats are calculated and di
 
 To demonstrate, run the following command
 
-`java -jar ./app/build/libs/app-standalone.jar ./example/character.json  -a Goblin "Mind Sliver;Longbow,Hail of Thorns"
+`java -jar ./dprcmd/build/libs/dprcmd-standalone.jar ./example/character.json  -a Goblin "Mind Sliver;Longbow,Hail of Thorns"
 `
 
 Output for this scenario can be found here in [TXT](example/attackResult/MindSliver.then.HailOfThorns.txt) and [CSV](example/attackResult/MindSliver.then.HailOfThorns.csv).  Key things to note in the output are:

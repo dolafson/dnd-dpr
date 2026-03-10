@@ -6,5 +6,5 @@ cat ~/dnd/git/5e-database/src/2014/5e-SRD-Spells.json \
     sed -e 's+"Higher Spell Slot Die":10,+"Higher Spell Slot Die":"10",+g' |
     bin/transform.spells.py  | 
     jq -s | 
-    jq . > app/src/main/resources/spells.json
+    jq . > dprcmd/src/main/resources/spells.json
 

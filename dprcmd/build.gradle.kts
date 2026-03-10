@@ -9,7 +9,7 @@
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     //alias(libs.plugins.kotlin.jvm)
-    kotlin("jvm") version "2.1.20" // Use your desired Kotlin version
+    kotlin("jvm") // version "2.1.20" // Use your desired Kotlin version
     kotlin("plugin.serialization") version "2.1.20" // Use the same Kotlin version
 
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -29,7 +29,9 @@ dependencies {
     // prefer an older version of serialization lib, to avoid conflicts with loading in intellij ...
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.vikinghelmet.dnd:dprlib:1.0.0")
+
+    //implementation("com.vikinghelmet.dnd:dprlib:1.0.0")
+    implementation(project(":dprlib"))
 }
 
 testing {
@@ -51,7 +53,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "com.vikinghelmet.dnd.dpr.AppKt"
+    mainClass = "com.vikinghelmet.dnd.dpr.DprCmdKt"
 }
 
 tasks {

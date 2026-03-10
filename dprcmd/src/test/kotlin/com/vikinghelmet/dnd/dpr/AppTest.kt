@@ -6,9 +6,9 @@ package com.vikinghelmet.dnd.dpr
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
-class AppTest {
+class DprCmdTest {
     @Test fun appHasAGreeting() {
-        val classUnderTest = App()
+        val classUnderTest = DprCmd()
         assertNotNull(classUnderTest.greeting, "app should have a greeting")
     }
 }

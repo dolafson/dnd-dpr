@@ -23,7 +23,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 
-class App {
+class DprCmd {
     val greeting: String
         get() {
             return "Hello World!"
