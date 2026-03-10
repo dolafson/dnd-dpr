@@ -33,6 +33,7 @@ kotlin {
             }
         }
     }
+    /*
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser()
@@ -43,14 +44,13 @@ kotlin {
         browser()
         binaries.executable()
     }
+    */
     iosX64()
     iosArm64()
     iosSimulatorArm64()
     linuxX64()
 
     sourceSets {
-//        wasmJsMain.dependencies {
-//        }
         commonMain.dependencies {
             //put your multiplatform dependencies here
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
