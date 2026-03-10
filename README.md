@@ -28,17 +28,14 @@ Spell attack hit (and damage) probabilities are calculated using formulas borrow
 <br>
   
 ## Build
-- First, build the KMP library
-```
-(cd ..; git clone git@github.com:dolafson/dnd-dprlib.git ; cd dnd-dprlib; ./build.sh )
-```
-- Once the library is ready, you can now build the app
 ```
 gradle build 
 ```
 
 ## Run
+```
 java -jar ./dprcmd/build/libs/dprcmd-standalone.jar 
+```
 
 ## Usage
 ```

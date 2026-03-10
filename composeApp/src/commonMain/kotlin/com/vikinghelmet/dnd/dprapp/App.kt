@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 // import com.vikinghelmet.dnd.dprlib.CustomFibi
-import com.vikinghelmet.dnd.dprlib.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Constants
 
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone

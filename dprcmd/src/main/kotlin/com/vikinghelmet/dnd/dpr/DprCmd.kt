@@ -3,19 +3,16 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.feats.Feat
-import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
-import com.vikinghelmet.dnd.dprlib.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,12 +27,12 @@ class DprCmd {
         }
 }
 
-fun prettyPrintCharacter(character: Character) {
+fun prettyPrintCharacter(character: com.vikinghelmet.dnd.dpr.character.Character) {
     println ("")
     println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
 
-    for (ability in AbilityType.entries) {
-        if (ability == AbilityType.ALL) continue
+    for (ability in _root_ide_package_.com.vikinghelmet.dnd.dpr.character.stats.AbilityType.entries) {
+        if (ability == _root_ide_package_.com.vikinghelmet.dnd.dpr.character.stats.AbilityType.ALL) continue
         val base = character.getRawAbilityScore(ability)
         val withBonuses = character.getModifiedAbilityScore(ability)
         //println ("$ability: base=$base, withBonuses=$mod")
@@ -65,7 +62,7 @@ fun getFileOrURL(fileOrUrl: String): String? {
     }
 }
 
-fun getCharacter(arg: String): Character? {
+fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
     if (!arg.contains(":")) return null
     val id = arg.split(":")[1]
     val charJson = getFileOrURL("https://character-service.dndbeyond.com/character/v5/character/"+id) ?: "{}"
@@ -133,7 +130,7 @@ Attacks:
 
 fun main(args : Array<String>) {
     var exitEarly = false
-    var character: Character? = null
+    var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     val turns = ArrayList<Turn>()
 
     if (args.isEmpty()) {
@@ -152,11 +149,11 @@ fun main(args : Array<String>) {
         val arg = args[i]
         if (arg.startsWith("+feat")) {
             val split = arg.split("=")
-            character!!.addFeat(Feat.valueOf(split[1]))
+            character!!.addFeat(_root_ide_package_.com.vikinghelmet.dnd.dpr.character.feats.Feat.valueOf(split[1]))
         }
         else if (arg.startsWith("+")) {
             val split = arg.substringAfter("+").split("=")
-            val ability = AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
+            val ability = _root_ide_package_.com.vikinghelmet.dnd.dpr.character.stats.AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
             character!!.updateAbilityScore(ability, split[1].toInt())
         }
         else if (arg.startsWith("--maxTurns")) {
