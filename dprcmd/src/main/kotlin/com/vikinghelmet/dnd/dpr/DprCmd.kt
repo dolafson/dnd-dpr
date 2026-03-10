@@ -9,15 +9,13 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
-import com.vikinghelmet.dnd.dpr.util.Constants
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
 
 class DprCmd {
@@ -28,21 +26,36 @@ class DprCmd {
 }
 
 fun prettyPrintCharacter(character: com.vikinghelmet.dnd.dpr.character.Character) {
+    character.prettyPrintCharacter()
+    /*
     println ("")
-    println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
 
-    for (ability in _root_ide_package_.com.vikinghelmet.dnd.dpr.character.stats.AbilityType.entries) {
-        if (ability == _root_ide_package_.com.vikinghelmet.dnd.dpr.character.stats.AbilityType.ALL) continue
+//    println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
+    println (StringBuffer()
+        .append(Globals.rightPad("ability",15)).append(" ")
+        .append(Globals.rightPad("base",5)).append(" ")
+        .append(" withBonusesAdded").toString())
+
+    for (ability in com.vikinghelmet.dnd.dpr.character.stats.AbilityType.entries) {
+        if (ability == com.vikinghelmet.dnd.dpr.character.stats.AbilityType.ALL) continue
         val base = character.getRawAbilityScore(ability)
         val withBonuses = character.getModifiedAbilityScore(ability)
         //println ("$ability: base=$base, withBonuses=$mod")
-        println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
+
+        // println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
+        println (StringBuffer("  ")
+            .append(Globals.rightPad("$ability",15)).append(" ")
+            .append(Globals.rightPad("$base",5)).append(" ")
+            .append(" $withBonuses").toString())
     }
 
     character.test() // remainder of that method is portable, does not use String.format
+
+     */
 }
 
 fun getRequest(url: String): String? {
+    /*
     val client = OkHttpClient() // TODO move?
     val request = Request.Builder().url(url).build()
 
@@ -51,11 +64,24 @@ fun getRequest(url: String): String? {
         throw IOException("request failed, response code = "+response.code)
     }
     return response.body?.string() ?: "{}"
+     */
+    var responseBody = ""
+
+    runBlocking { // This makes the main thread block until the coroutine finishes
+        responseBody = CmdTest.getRequest(url)
+    }
+
+    return responseBody
 }
 
 fun getFileOrURL(fileOrUrl: String): String? {
     return if (fileOrUrl.startsWith("http")) {
-        getRequest(fileOrUrl)
+        var body = ""
+        runBlocking {
+            body = CmdTest.getRequest(fileOrUrl)
+        }
+        //getRequest(fileOrUrl)
+        body
     }
     else {
         File(fileOrUrl).readText()
@@ -63,11 +89,25 @@ fun getFileOrURL(fileOrUrl: String): String? {
 }
 
 fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
-    if (!arg.contains(":")) return null
-    val id = arg.split(":")[1]
+    /*
+    // extract ID from either a dndbeyond char url (.../ID), or simply "character:ID"
+    val id = if (arg.contains("/")) arg.substringAfter("/characters/")
+            else if (arg.contains(":")) arg.split(":")[1] else return null
+
     val charJson = getFileOrURL("https://character-service.dndbeyond.com/character/v5/character/"+id) ?: "{}"
+
+    debug("getCharacter json length = "+ charJson.length)
+
     //println ("charJson = "+charJson)
     return Json.decodeFromString(charJson)
+
+     */
+    var character: com.vikinghelmet.dnd.dpr.character.Character? = null
+    runBlocking {
+        character = CmdTest.getCharacter(arg)
+    }
+    //getRequest(fileOrUrl)
+    return character
 }
 
 fun getResource(fileName: String): String? {
@@ -149,11 +189,11 @@ fun main(args : Array<String>) {
         val arg = args[i]
         if (arg.startsWith("+feat")) {
             val split = arg.split("=")
-            character!!.addFeat(_root_ide_package_.com.vikinghelmet.dnd.dpr.character.feats.Feat.valueOf(split[1]))
+            character!!.addFeat(com.vikinghelmet.dnd.dpr.character.feats.Feat.valueOf(split[1]))
         }
         else if (arg.startsWith("+")) {
             val split = arg.substringAfter("+").split("=")
-            val ability = _root_ide_package_.com.vikinghelmet.dnd.dpr.character.stats.AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
+            val ability = com.vikinghelmet.dnd.dpr.character.stats.AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
             character!!.updateAbilityScore(ability, split[1].toInt())
         }
         else if (arg.startsWith("--maxTurns")) {
@@ -210,7 +250,7 @@ fun main(args : Array<String>) {
         else if (arg.endsWith(".json")){
             println("unknown file type: $arg")
         }
-        else if (arg.startsWith("character")) {
+        else if (arg.startsWith("character") || arg.startsWith("https://www.dndbeyond.com/characters")) {
             character = getCharacter(arg)
         }
         else if (arg.startsWith("dump")) {
@@ -232,7 +272,6 @@ fun main(args : Array<String>) {
     }
 
     if (exitEarly) {
-        // quietly go away
     }
     else if (spells.isEmpty()) {
         println("no spell data")
@@ -248,4 +287,6 @@ fun main(args : Array<String>) {
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
         scenarioResult.output()
     }
+
+    CmdTest.closeHttpClient() // don't forget to do this, otherwise the program may run forever
 }

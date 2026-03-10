@@ -30,6 +30,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.kotlinx.coroutines.core)
+
     //implementation("com.vikinghelmet.dnd:dprlib:1.0.0")
     implementation(project(":dprlib"))
 }

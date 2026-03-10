@@ -32,6 +32,21 @@ object Globals {
         return StringBuilder().append("\"").append(input).append("\"").toString()
     }
 
+    fun rightPad(input: String, pad: Int): String {
+        val result = StringBuilder()
+        result.append(input)
+        while (result.length < pad) { result.append(" ") }
+        return result.toString()
+    }
+
+    fun leftPad(input: String, pad: Int): String {
+        val result = StringBuilder()
+        repeat(pad - input.length) { result.append(" ") }
+        result.append(input)
+        return result.toString()
+    }
+
+
     fun dumpFeatures() {
         println(Json.encodeToString(FeatureSet(
             RacialTrait.entries.map { e -> e.name },
@@ -65,6 +80,7 @@ object Globals {
                 dumpFeatures()
             }
             "character" -> {
+                debug("dump:character")
                 character?.dump()
             }
         }

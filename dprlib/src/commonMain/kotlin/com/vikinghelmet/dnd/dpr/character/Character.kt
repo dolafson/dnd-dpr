@@ -13,15 +13,13 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
-import kotlin.collections.get
-import kotlin.text.iterator
 
 @JsonIgnoreUnknownKeys
 @Serializable
@@ -156,7 +154,7 @@ data class Character(
         val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
 
         val props = w.properties ?: emptyList()
-        return if (props.contains("Finesse")) Math.max(strBonus, dexBonus)
+        return if (props.contains("Finesse")) kotlin.math.max(strBonus, dexBonus)
         else if (w.attackType == 1) strBonus
         else dexBonus
     }
@@ -313,41 +311,67 @@ data class Character(
     // ----------------------------------------------------------------------------------------
     // TESTS
 
-    fun test() {
+    fun prettyPrintCharacter() {
+        println(toHumanReadableString())
+    }
+
+    fun toHumanReadableString(): String {
+        val buf = StringBuilder("\n")
+
+//    println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
+        buf.append(Globals.rightPad("ability",15)).append(" ")
+            .append(Globals.leftPad("base",5)).append(" ")
+            .append(Globals.leftPad("withBonusesAdded",5))
+            .append("\n")
+
+        for (ability in AbilityType.entries) {
+            if (ability == AbilityType.ALL) continue
+            val base = getRawAbilityScore(ability)
+            val withBonusesAdded = getModifiedAbilityScore(ability)
+            //println ("$ability: base=$base, withBonuses=$mod")
+
+            // println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
+            buf.append(Globals.rightPad("$ability",15)).append(" ")
+                .append(Globals.leftPad("$base",5)).append(" ")
+                .append(Globals.leftPad("$withBonusesAdded",5))
+                .append("\n")
+        }
+
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
         val spellAbilityType = if (abilityId == null) "n/a" else AbilityType.entries[abilityId]
 
-        println ("")
-        println ("level         = "+getLevel())
-        println ("PB            = "+getProficiencyBonus())
-        println ("spell ability = "+spellAbilityType)
-        println ("spellSaveDC   = "+getSpellSaveDC())
-        println ("")
-        println ("isLucky       = "+isLucky())
-        println ("isEA          = "+isElvenAccuracy())
-        println ("isGWF         = "+isGreatWeaponFighting())
-        println ("is2014        = "+is2014())
-        println ("")
+        buf.append ("\n")
+        buf.append ("level         = "+getLevel()).append("\n")
+        buf.append ("PB            = "+getProficiencyBonus()).append("\n")
+        buf.append ("spell ability = "+spellAbilityType).append("\n")
+        buf.append ("spellSaveDC   = "+getSpellSaveDC()).append("\n")
+        buf.append ("\n")
+        buf.append ("isLucky       = "+isLucky()).append("\n")
+        buf.append ("isEA          = "+isElvenAccuracy()).append("\n")
+        buf.append ("isGWF         = "+isGreatWeaponFighting()).append("\n")
+        buf.append ("is2014        = "+is2014()).append("\n")
+        buf.append ("\n")
+
         for (item in getWeaponList()) {
             val attackHitBonus      = getAttackBonus(item)
             val attackDamageBonus   = getDamageBonus(item, false)
             //val baDamageBonus       = getDamageBonus(item, true) // for now, this is always 0
             //println("$item, attackHitBonus=$attackHitBonus, attackDamageBonus=$attackDamageBonus, baDamageBonus=$baDamageBonus")
-            println("$item, attackHitBonus=$attackHitBonus, attackDamageBonus=$attackDamageBonus")
+            buf.append("$item, attackHitBonus=$attackHitBonus, attackDamageBonus=$attackDamageBonus").append("\n")
         }
 
-        println ("")
+        buf.append ("\n")
         for (trait in characterData.race.racialTraits) {
-            println("racial trait: "+trait.definition.name)
+            buf.append ("racial trait: "+trait.definition.name).append("\n")
         }
 
-        println ("")
+        buf.append ("\n")
         for (feat in characterData.feats) {
-            println("feat: "+feat.definition.name)
+            buf.append ("feat: "+feat.definition.name).append("\n")
         }
-        println ("")
-        println ("weapon nickname map: "+getWeaponNicknameMap())
-        println ("spell slots: "+getSpellSlots())
+        buf.append ("\n")
+        buf.append  ("weapon nickname map: "+getWeaponNicknameMap()).append("\n")
+        buf.append  ("spell slots: "+getSpellSlots()).append("\n")
 
         val actionNames = (
                 characterData.actions.race.map { it.name } +
@@ -355,7 +379,9 @@ data class Character(
                 characterData.actions.classActions.map { it.name }
                 ).filter { s -> !s.contains("Circle Spell") } // circle spell is garbage data, not really usable
 
-        println ("actions: "+actionNames)
-        println ("")
+        buf.append ("actions: $actionNames\n")
+        buf.append ("\n")
+        return buf.toString()
     }
+
 }

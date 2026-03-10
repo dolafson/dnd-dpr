@@ -7,19 +7,13 @@ object AttackResultFormatter {
     var isTxtFirstResultDone = false
     var isCSV: Boolean = false
 
-    fun rightPad(input: String, pad: Int): String {
-        val result = StringBuilder()
-        result.append(input)
-        while (result.length < pad) { result.append(" ") }
-        return result.toString()
-    }
 
     fun format(fieldName: String, value: Any): String {
         isTxtFirstResultDone = true
         val strValue = if (value is Float) Globals.getPercent(value) else value.toString()
 
 //            String.format("\t%-20s %s\n",fieldName, strValue)
-        return if (isCSV) "$strValue," else "\t"+rightPad(fieldName,20)+" $strValue\n"
+        return if (isCSV) "$strValue," else "\t"+Globals.rightPad(fieldName,20)+" $strValue\n"
     }
     fun formatCSVOnly(fieldName: String, value: Any): String {
         return if (isCSV) format(fieldName, value) else ""

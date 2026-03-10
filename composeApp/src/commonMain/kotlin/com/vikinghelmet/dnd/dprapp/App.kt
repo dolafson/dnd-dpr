@@ -1,26 +1,19 @@
 package com.vikinghelmet.dnd.dprapp
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
+// import com.vikinghelmet.dnd.dprlib.CustomFibi
 
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-// import com.vikinghelmet.dnd.dprlib.CustomFibi
+import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.util.Constants
-
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -44,6 +37,14 @@ fun countries() = listOf(
     Country("Indonesia", TimeZone.of("Asia/Jakarta")),
     Country("Egypt", TimeZone.of("Africa/Cairo")),
 )
+
+fun getCharacter(characterID: String): String {
+    var character: com.vikinghelmet.dnd.dpr.character.Character? = null
+    runBlocking {
+        character = CmdTest.getCharacter(characterID)
+    }
+    return character!!.toHumanReadableString()
+}
 
 @Composable
 @Preview
@@ -81,7 +82,7 @@ fun App(countries: List<Country> = countries()) {
 
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                    onClick = { outputText = characterId }) {
+                    onClick = { outputText = getCharacter(characterId) }) {
                     Text("C")
                 }
             }
