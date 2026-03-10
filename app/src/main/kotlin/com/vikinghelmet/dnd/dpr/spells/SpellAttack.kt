@@ -4,8 +4,8 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.turn.MeleeOrRangeAction
-import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dprlib.util.DiceBlock
+import com.vikinghelmet.dnd.dprlib.util.DiceBlockHelper
 import kotlinx.serialization.Serializable
 
 @Serializable

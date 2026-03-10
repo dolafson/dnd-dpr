@@ -6,7 +6,7 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Preconditions
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dprlib.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 

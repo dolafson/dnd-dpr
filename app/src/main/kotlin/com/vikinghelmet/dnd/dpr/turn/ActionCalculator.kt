@@ -4,8 +4,8 @@ import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dprlib.util.DiceBlock
+import com.vikinghelmet.dnd.dprlib.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlin.math.max
 import kotlin.math.min

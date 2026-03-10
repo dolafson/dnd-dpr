@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.turn
 
-import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import com.vikinghelmet.dnd.dprlib.util.DiceBlock
 import kotlinx.serialization.Serializable
 
 @Serializable
