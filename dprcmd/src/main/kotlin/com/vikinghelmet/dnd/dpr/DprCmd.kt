@@ -226,7 +226,8 @@ fun main(args : Array<String>) {
                 }
                 "-z" -> {
                     val monster = Globals.getMonster(args[i+1])
-                    ScenarioBuilder(character!!,monster).runScenarios (args[i+2].toInt())
+                    val builder = ScenarioBuilder(character!!,monster)
+                    builder.showResults(builder.runScenarios (args[i+2].toInt()))
                 }
                 else -> println("invalid argument: $arg")
             }

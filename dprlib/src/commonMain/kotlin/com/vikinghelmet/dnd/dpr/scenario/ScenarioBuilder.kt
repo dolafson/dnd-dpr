@@ -226,7 +226,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         println()
     }
 
-    fun runScenarios(targetProximity: Int) {
+    fun runScenarios(targetProximity: Int): List<ScenarioResult> {
         val actionsAvailable = character.getActionsAvailable()
         val turnOptions = possibleTurns(actionsAvailable, targetProximity)
         val scenarioList = ArrayList<Scenario>()
@@ -246,16 +246,26 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
             resultList.add(scenarioResult)
         }
 
-        val sortedResults = resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
-        for (scenarioResult in sortedResults) {
-            val buf = StringBuilder()
-                .append("# ")
+        return resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
+    }
+
+    fun getResultSummary(scenarioResults: List<ScenarioResult>): String { // previously, stderr ...
+        val buf = StringBuilder()
+        for (scenarioResult in scenarioResults) {
+            buf.append("# ")
                 .append(Globals.getPercent(scenarioResult.totalDPR))
                 .append(" \t")
                 .append(scenarioResult.scenario.getLabel())
-            println(buf.toString())
-            scenarioResult.output()
-            //System.exit(0)
+                .append("\n")
+        }
+        return buf.toString()
+    }
+
+    fun showResults(scenarioResults: List<ScenarioResult>) {
+        println(getResultSummary(scenarioResults))
+
+        for (scenarioResult in scenarioResults) {
+            scenarioResult.output() // TODO: return string, ...
         }
     }
 

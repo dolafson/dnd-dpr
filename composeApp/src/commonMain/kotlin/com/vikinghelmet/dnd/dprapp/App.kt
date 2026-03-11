@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.CmdTest
+import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dpr.composeapp.generated.resources.Res
 import kotlinx.coroutines.runBlocking
@@ -38,7 +41,8 @@ fun countries() = listOf(
     Country("Egypt", TimeZone.of("Africa/Cairo")),
 )
 
-var character: com.vikinghelmet.dnd.dpr.character.Character? = null
+var character: Character? = null
+var monster: Monster? = null
 
 fun getCharacter(characterID: String): String {
     runBlocking {
@@ -55,6 +59,7 @@ fun App(countries: List<Country> = countries()) {
         var characterId by rememberSaveable { mutableStateOf("") }
         var monsterName by rememberSaveable { mutableStateOf("") }
         var spellName   by rememberSaveable { mutableStateOf("") }
+        var proximity   by rememberSaveable { mutableStateOf("") }
 
         var outputText by remember { mutableStateOf("") }
 
@@ -110,7 +115,8 @@ fun App(countries: List<Country> = countries()) {
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
                     onClick = {
                         try {
-                            val monsterText = Globals.getMonster(monsterName).toString() //.description
+                            monster = Globals.getMonster(monsterName)
+                            val monsterText = monster.toString() //.description
                             outputText = monsterText
                         }
                         catch (e: Exception) {
@@ -119,7 +125,7 @@ fun App(countries: List<Country> = countries()) {
                     }
                 ) { Text("M") }
             }
-
+/*********************
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 OutlinedTextField(
                     value = spellName,
@@ -146,6 +152,36 @@ fun App(countries: List<Country> = countries()) {
                         }
                     }
                 ) { Text("S") }
+            }
+ *********************/
+
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                OutlinedTextField(
+                    value = proximity,
+                    onValueChange = { proximity = it },
+                    label = { Text("Target Proximity (feet)") },
+                    readOnly = false,
+                    enabled = true,
+                    singleLine = true
+                )
+                Button(
+                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
+                    onClick = {
+                        if (character == null || monster == null) {
+                            outputText = "select a character and monster before attacking"
+                        }
+                        else {
+                            try {
+                                val builder = ScenarioBuilder(character!!,monster!!)
+                                val result = builder.runScenarios (proximity.toInt())
+                                outputText = builder.getResultSummary(result)
+                            }
+                            catch (e: Exception) {
+                                outputText = "Invalid spell name"
+                            }
+                        }
+                    }
+                ) { Text("A") }
             }
 
 
