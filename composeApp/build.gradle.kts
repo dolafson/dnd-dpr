@@ -63,6 +63,8 @@ kotlin {
             // implementation("io.github.kotlin:library:1.0.0")
             // implementation("com.vikinghelmet.dnd:dprlib:1.0.0")
             implementation(project(":dprlib"))
+
+            implementation(compose.components.resources)
         }
         webMain.dependencies {
             implementation(npm("@js-joda/timezone", "2.22.0"))

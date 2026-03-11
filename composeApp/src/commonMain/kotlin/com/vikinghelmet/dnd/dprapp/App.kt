@@ -1,7 +1,5 @@
 package com.vikinghelmet.dnd.dprapp
 
-// import com.vikinghelmet.dnd.dprlib.CustomFibi
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +11,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Globals
+import dpr.composeapp.generated.resources.Res
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -38,8 +38,9 @@ fun countries() = listOf(
     Country("Egypt", TimeZone.of("Africa/Cairo")),
 )
 
+var character: com.vikinghelmet.dnd.dpr.character.Character? = null
+
 fun getCharacter(characterID: String): String {
-    var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     runBlocking {
         character = CmdTest.getCharacter(characterID)
     }
@@ -54,6 +55,7 @@ fun App(countries: List<Country> = countries()) {
         var timeAtLocation by remember { mutableStateOf("No location selected") }
         var characterId by remember { mutableStateOf("") }
         var monsterName by remember { mutableStateOf("") }
+        var spellName by remember { mutableStateOf("") }
 
         val foo = Constants.toString() // CustomFibi.toString()
         val buf = StringBuilder()
@@ -63,12 +65,27 @@ fun App(countries: List<Country> = countries()) {
         //var outputText by remember { mutableStateOf(buf.toString()) }
         var outputText by remember { mutableStateOf(foo) }
 
+        LaunchedEffect(Unit) {
+            for (filename in mutableListOf("files/spells.json","files/extra.spells.json")) {
+                Globals.addSpells(Res.readBytes(filename).decodeToString())
+            }
+            Globals.addMonsters(Res.readBytes("files/monsters.json").decodeToString())
+        }
+
         Column(
             modifier = Modifier
                 .padding(20.dp)
                 .safeContentPadding()
                 .fillMaxSize(),
         ) {
+            /*
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                OutlinedTextField(
+                    value = monsterString, onValueChange = {},
+                    label = { Text(monsterString) }, readOnly = true, singleLine = false,
+                    maxLines = 5
+                    )
+            }*/
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
                 OutlinedTextField(
@@ -98,11 +115,37 @@ fun App(countries: List<Country> = countries()) {
                 )
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                    onClick = { outputText += ("\n"+monsterName) }) {
-                    Text("M")
-                }
-
+                    onClick = {
+                        val monsterText = Globals.getMonster(monsterName).toString() //.description
+                        outputText = monsterText
+                    }
+                ) { Text("M") }
             }
+
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                OutlinedTextField(
+                    value = spellName,
+                    onValueChange = { spellName = it },
+                    label = { Text("Spell Name") },
+                    readOnly = false,
+                    enabled = true,
+                    singleLine = true
+                )
+                Button(
+                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
+                    onClick = {
+                        if (character == null) {
+                            outputText = "select a character before a spell"
+                        }
+                        else {
+                            val spellText = Globals.getSpell(spellName, character!!.is2014()).description
+                            outputText = spellText
+                        }
+                    }
+                ) { Text("S") }
+            }
+
+
             /*
             Text(
                 timeAtLocation,

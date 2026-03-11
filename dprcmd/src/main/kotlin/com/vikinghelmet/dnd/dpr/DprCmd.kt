@@ -179,10 +179,10 @@ fun main(args : Array<String>) {
     }
 
     for (filename in mutableListOf("spells.json","extra.spells.json")) {
-        spells.addAll (Json.decodeFromString (getResource(filename) ?: "[]"))
+        Globals.addSpells(getResource(filename) ?: "[]")
     }
 
-    monsters.addAll (Json.decodeFromString (getResource("monsters.json") ?: "[]"))
+    Globals.addMonsters(getResource("monsters.json") ?: "[]")
 
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
     for (i in args.indices) {

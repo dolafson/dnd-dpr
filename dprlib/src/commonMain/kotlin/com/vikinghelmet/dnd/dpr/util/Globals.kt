@@ -92,6 +92,13 @@ object Globals {
         for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
     }
 
+    fun addSpells(jsonArrayAsString: String) {
+        spells.addAll (Json.decodeFromString (jsonArrayAsString))
+    }
+
+    fun addMonsters(jsonArrayAsString: String) {
+        monsters.addAll (Json.decodeFromString (jsonArrayAsString))
+    }
 
     fun getSpell(name: String, is2014: Boolean): Spell { //  character!!.is2014()
         for (spell in spells) {
