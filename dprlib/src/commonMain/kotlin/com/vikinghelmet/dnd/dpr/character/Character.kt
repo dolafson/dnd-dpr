@@ -249,15 +249,20 @@ data class Character(
         return result
     }
 
-    fun getPreparedBonusActionSpells(melee: Boolean): List<Spell> {
+    fun getPreparedBonusActionSpells(targetProximity: Int): List<Spell> {
         val result = mutableListOf<Spell>()
         for (spell in getPreparedSpells()) {
             if (!spell.isBonusAction()) continue
 
-            if (!spell.takeImmediatelyAfterHitting() ||
-                (spell.isMeleeBonusAction() && melee) ||
-                (spell.isRangedBonusAction() && !melee))
-            {
+            // special cases ... these spells don't specify range, as it is implied by the weapon type
+            if (spell.takeImmediatelyAfterHitting()) {
+                if (!spell.isMeleeWeaponBonusAction() || (targetProximity <= Constants.MELEE_RANGE)) {
+                    result.add(spell)
+                }
+            }
+
+            // all other spells, include on the basis of range
+            if (targetProximity <= spell.getRange()) {
                 result.add(spell)
             }
         }
@@ -283,7 +288,7 @@ data class Character(
         }
 
         for (spell in getPreparedAttackSpells()) {
-            actionsAvailable.add(spell.properties.dataRangeNum ?: 0, spell)
+            actionsAvailable.add(spell.getRange(), spell)
         }
         return actionsAvailable
     }

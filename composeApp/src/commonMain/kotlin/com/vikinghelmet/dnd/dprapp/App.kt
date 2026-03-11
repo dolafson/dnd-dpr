@@ -6,11 +6,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.CmdTest
-import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dpr.composeapp.generated.resources.Res
 import kotlinx.coroutines.runBlocking
@@ -51,19 +51,12 @@ fun getCharacter(characterID: String): String {
 @Preview
 fun App(countries: List<Country> = countries()) {
     MaterialTheme {
-        var showCountries by remember { mutableStateOf(false) }
-        var timeAtLocation by remember { mutableStateOf("No location selected") }
-        var characterId by remember { mutableStateOf("") }
-        var monsterName by remember { mutableStateOf("") }
-        var spellName by remember { mutableStateOf("") }
 
-        val foo = Constants.toString() // CustomFibi.toString()
-        val buf = StringBuilder()
-        //for (i in 1..30) buf.append(". \n") // .append(" ").append(i).append("\n")
-        //for (i in 1..30) buf.append(" ").append(i).append("\n")
+        var characterId by rememberSaveable { mutableStateOf("") }
+        var monsterName by rememberSaveable { mutableStateOf("") }
+        var spellName   by rememberSaveable { mutableStateOf("") }
 
-        //var outputText by remember { mutableStateOf(buf.toString()) }
-        var outputText by remember { mutableStateOf(foo) }
+        var outputText by remember { mutableStateOf("") }
 
         LaunchedEffect(Unit) {
             for (filename in mutableListOf("files/spells.json","files/extra.spells.json")) {
@@ -116,8 +109,13 @@ fun App(countries: List<Country> = countries()) {
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
                     onClick = {
-                        val monsterText = Globals.getMonster(monsterName).toString() //.description
-                        outputText = monsterText
+                        try {
+                            val monsterText = Globals.getMonster(monsterName).toString() //.description
+                            outputText = monsterText
+                        }
+                        catch (e: Exception) {
+                            outputText = "Invalid monster name"
+                        }
                     }
                 ) { Text("M") }
             }
@@ -138,8 +136,13 @@ fun App(countries: List<Country> = countries()) {
                             outputText = "select a character before a spell"
                         }
                         else {
-                            val spellText = Globals.getSpell(spellName, character!!.is2014()).description
-                            outputText = spellText
+                            try {
+                                val spellText = Globals.getSpell(spellName, character!!.is2014()).description
+                                outputText = spellText
+                            }
+                            catch (e: Exception) {
+                                outputText = "Invalid spell name"
+                            }
                         }
                     }
                 ) { Text("S") }

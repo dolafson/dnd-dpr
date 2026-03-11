@@ -4,6 +4,8 @@ object Constants {
     var NUM_TURNS_PER_SCENARIO = 5
     var SCENARIO_OUTPUT_MAX = 30
 
+    const val MELEE_RANGE = 5
+
     val levelToProficiencyMap: Map<Int, Int> = mapOf(
         1 to 2,
         2 to 2,

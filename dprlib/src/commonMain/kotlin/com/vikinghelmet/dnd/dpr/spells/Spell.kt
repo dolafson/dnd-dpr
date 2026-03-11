@@ -54,14 +54,26 @@ data class Spell(
         return dd.startsWith("Bonus Action, which you take immediately after hitting")
     }
 
-    fun isMeleeBonusAction(): Boolean { // only a few of these exist
+    fun isMeleeWeaponBonusAction(): Boolean { // only a few of these exist
         val dd = properties.dataDescription ?: ""
         return takeImmediatelyAfterHitting() && (dd.contains("Melee weapon") || dd.contains("with a weapon"))
     }
 
-    fun isRangedBonusAction(): Boolean { // only a few of these exist
-        val dd = properties.dataDescription ?: ""
-        return takeImmediatelyAfterHitting() && !dd.contains("Melee weapon")
+    /* notes on RANGE data
+
+        2024 spells:
+            {"Range":"10 feet","filter-Range":"Close (30 feet or less)","data-RangeNum":10}
+            {"Range":"120 feet","filter-Range":"Far (more than 60 feet)","data-RangeNum":120}
+            {"Range":"Self","filter-Range":"Self","data-RangeNum":null}
+
+        2014 spells:
+            {"Range":"10 feet","filter-Range":null,"data-RangeNum":10}
+            {"Range":"120 feet","filter-Range":null,"data-RangeNum":120}
+            {"Range":"Self (10-foot radius)","filter-Range":null,"data-RangeNum":-6}
+     */
+
+    fun getRange(): Int {
+        return properties.dataRangeNum ?: 0
     }
 
     fun isSameIn2014And2024(): Boolean {
@@ -82,7 +94,7 @@ data class Spell(
         val durList = dur.split(" ")
 
         return durList[0].toInt() * when (durList[1]) {
-            "com/vikinghelmet/dnd/dpr/turn" -> 1
+            "turn" -> 1
             "min" -> 10
             "hour", "hours", "Hours" -> 600
             "Days" -> 600 * 24

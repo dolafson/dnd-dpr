@@ -52,8 +52,8 @@ object AttackResultFormatter {
         buf.append("monsterAC").append(",")
         // TODO: abilities: Str, Dex, ... ?
 
-        buf.append("com/vikinghelmet/dnd/dpr/scenario").append(",")
-        buf.append("com/vikinghelmet/dnd/dpr/turn").append(",")
+        buf.append("scenario").append(",")
+        buf.append("turn").append(",")
         buf.append("action").append(",")
         buf.append("effect").append(",")
         buf.append("attack").append(",")

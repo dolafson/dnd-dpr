@@ -1,28 +1,26 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
+import com.vikinghelmet.dnd.dpr.util.Constants
 
-data class ActionsAvailable(
-    val meleeActionList: MutableList<AttackAction> = mutableListOf(),
-    val rangedActionList: MutableList<AttackAction> = mutableListOf()
-) {
-    fun getFullList(isMelee: Boolean): List<AttackAction> {
-        return if (isMelee) meleeActionList else rangedActionList
+class ActionsAvailable {
+    val mapOfLists = mutableMapOf<Int, MutableList<AttackAction>>()
+
+    fun getList(targetProximity: Int): List<AttackAction> {
+        val result = mutableListOf<AttackAction>()
+
+        for (key in mapOfLists.keys) {
+            if (targetProximity <= Constants.MELEE_RANGE) {
+                if (key <= Constants.MELEE_RANGE) result.addAll(mapOfLists[key]!!)
+            }
+            else {
+                if (Constants.MELEE_RANGE < targetProximity && targetProximity <= key) result.addAll(mapOfLists[key]!!)
+            }
+        }
+        return result
     }
 
     fun add(range: Int, attackAction: AttackAction) {
-        val both = (attackAction is Spell) && attackAction.triggersSavingThrow()
-
-        if (both) {
-            meleeActionList.add(attackAction)
-            rangedActionList.add(attackAction)
-        }
-        else if (range <= 5) {
-            meleeActionList.add(attackAction)
-        }
-        else {
-            rangedActionList.add(attackAction)
-        }
+        mapOfLists.getOrPut(range) { mutableListOf() }.add(attackAction)
     }
 }

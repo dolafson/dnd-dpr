@@ -56,9 +56,9 @@ data class AttackResult(
             }
         }
 
-        buf.append(AttackResultFormatter.format("com/vikinghelmet/dnd/dpr/scenario",scenarioName))
+        buf.append(AttackResultFormatter.format("scenario",scenarioName))
 
-        buf.append(AttackResultFormatter.format("com/vikinghelmet/dnd/dpr/turn", turnId))
+        buf.append(AttackResultFormatter.format("turn", turnId))
         buf.append(AttackResultFormatter.format("action", if (attack.isBonusAction == true) "BA" else ""+actionId))
         buf.append(AttackResultFormatter.format("effect", effectId))
         buf.append(AttackResultFormatter.format("attack", attackLabel))

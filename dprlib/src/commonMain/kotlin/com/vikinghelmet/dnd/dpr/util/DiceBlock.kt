@@ -20,7 +20,6 @@ object DiceBlockHelper {
         return dice
     }
     fun emptyBlock(): DiceBlock {
-        println("empty block")
         return DiceBlock(0, 0, 0, 0, 0)
     }
 }
