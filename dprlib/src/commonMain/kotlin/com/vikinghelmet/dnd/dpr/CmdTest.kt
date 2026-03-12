@@ -7,6 +7,9 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import kotlinx.io.*
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.json.Json
 
 object CmdTest {
@@ -38,6 +41,34 @@ object CmdTest {
         val charJson = getRequest("https://character-service.dndbeyond.com/character/v5/character/" + id) ?: "{}"
         //println ("charJson = "+charJson)
         return Json.decodeFromString(charJson)
+    }
+
+    fun writeToFile(data: String, filename: String) {
+        try {
+            val filePath = Path(filename)
+
+            SystemFileSystem.sink(filePath).buffered().use { sink: Sink ->
+                sink.writeString(data)
+                sink.flush()
+            }
+            println("Data written to $filename")
+        } catch (e: Exception) {
+            println("Error writing file: $e")
+        }
+    }
+
+    fun readFromFile(filename: String): String {
+        try {
+            val filePath = Path(filename)
+
+            SystemFileSystem.source(filePath).buffered().use { source: Source ->
+                val content = source.readString()
+                return content
+            }
+        } catch (e: Exception) {
+            println("Error writing file: $e")
+            return ""
+        }
     }
 
 }

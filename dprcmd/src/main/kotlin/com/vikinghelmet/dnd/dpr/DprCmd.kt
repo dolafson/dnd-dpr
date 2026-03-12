@@ -269,6 +269,15 @@ fun main(args : Array<String>) {
             ScenarioBuilder(character!!, Globals.getMonster("Goblin")).testActionsAvailable() // hack
             exitEarly = true
         }
+        else if (arg.startsWith("test:file:write")) {
+            CmdTest.writeToFile("this is a test", "example.txt")
+            exitEarly = true
+        }
+        else if (arg.startsWith("test:file:read")) {
+            val result = CmdTest.readFromFile("example.txt")
+            println("read result = $result")
+            exitEarly = true
+        }
     }
 
     if (exitEarly) {

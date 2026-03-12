@@ -30,8 +30,11 @@ data class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
+    fun getJson(): String {
+        return Json.encodeToString(this)
+    }
     fun dump() {
-        println(Json.encodeToString(this))
+        println(getJson())
     }
 
     // ----------------------------------------------------------------------------------------

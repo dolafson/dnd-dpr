@@ -48,6 +48,11 @@ fun getCharacter(characterID: String): String {
     runBlocking {
         character = CmdTest.getCharacter(characterID)
     }
+
+    if (character != null) {
+        CmdTest.writeToFile(character!!.getJson(), "example.txt")
+    }
+
     return character!!.toHumanReadableString()
 }
 
