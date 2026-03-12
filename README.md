@@ -2,7 +2,17 @@
 
 DND Damage Per Round Calculator 
 
-This tool calculates the average Damage Per Round for Spell and Weapon Attacks.  This program currently runs from a linux/mac commandline.  For a user-friendly web interface, consider using [DPR Calc](https://dprcalc.com/), which provides great support for Weapon DPR (but does not yet support spells)
+This tool calculates the average Damage Per Round for Spell and Weapon 
+Attacks.  It supports this calculation for both single round and 
+multi-round scenarios.  For example, the tool may suggest casting 
+Hunter's Mark as a first round Bonus Action.  This may yield a smaller 
+first round damage, but maximize total damage across rounds.
+
+The tool can be run as a mobile app, or from a Linux / Mac 
+commandline.  The mobile app is currently very primitive.  For a more 
+user-friendly web interface, consider using [DPR Calc](https://dprcalc.com/), which 
+provides great support for single turn Weapon DPR.  It does not yet 
+support spells or multi-turn scenarios
 
 This tool reads spell and monster data originally from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  
 ```
@@ -140,8 +150,11 @@ In no particular order ...
 - add support for weapon effects, similar to spell effects
   - (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
 - add support for spell damage upcasting (by character level, or spell level) 
-- add a web interface
-  - i'll probably never use it, but someone else might
+- in the mobile app, add support for minor character edits
+  - increase level or ability bonuses
+  - add spells and feats
+  - save/retrieve modified character to/from app storage 
+  - (... or local file for cmdline tool)
 - add simulated battles
   - give the monster(s) a chance to fight back
   - calculate probability of character death
