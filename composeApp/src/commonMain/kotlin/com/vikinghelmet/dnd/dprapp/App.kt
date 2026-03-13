@@ -50,7 +50,9 @@ fun getCharacter(characterID: String): String {
     }
 
     if (character != null) {
-        CmdTest.writeToFile(character!!.getJson(), "example.txt")
+        val path = getDocumentsDirPath()+"/characterTest.json"
+        println("path = $path")
+        CmdTest.writeToFile(character!!.getJson(), path)
     }
 
     return character!!.toHumanReadableString()
