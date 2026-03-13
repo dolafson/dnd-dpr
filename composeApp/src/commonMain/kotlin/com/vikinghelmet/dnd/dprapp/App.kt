@@ -10,75 +10,34 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.DprFiles
-import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Settings
 import dpr.composeapp.generated.resources.Res
-import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
-
-data class Country(val name: String, val zone: TimeZone)
-
-fun currentTimeAt(location: String, zone: TimeZone): String {
-    fun LocalTime.formatted() = "$hour:$minute:$second"
-
-    val time = Clock.System.now()
-    val localTime = time.toLocalDateTime(zone).time
-
-    return "The time in $location is ${localTime.formatted()}"
-}
-
-fun countries() = listOf(
-    Country("Japan", TimeZone.of("Asia/Tokyo")),
-    Country("France", TimeZone.of("Europe/Paris")),
-    Country("Mexico", TimeZone.of("America/Mexico_City")),
-    Country("Indonesia", TimeZone.of("Asia/Jakarta")),
-    Country("Egypt", TimeZone.of("Africa/Cairo")),
-)
 
 val dprFiles = DprFiles(getDocumentsDirPath())
-var character: Character? = null
-var monster: Monster? = null
-
-fun getCharacter(characterID: String): String {
-    runBlocking {
-        character = CmdTest.getCharacter(characterID)
-    }
-
-    if (character != null) {
-//        val path = getDocumentsDirPath()+"/characterTest.json"
-//        println("path = $path")
-        dprFiles.saveCharacter(character!!, characterID)
-    }
-    else {
-        println("unable to save character, null")
-    }
-
-    return character!!.toHumanReadableString()
-}
+val settings = Settings()
 
 fun saveSettings(characterId: String, monsterName: String, proximity: String) {
-    DprFiles(getDocumentsDirPath()).saveSettings(Settings(characterId, monsterName, proximity.toInt()))
+    settings.characterId = characterId
+    settings.monsterName = monsterName
+    settings.proximity = proximity.toInt()
+    DprFiles(getDocumentsDirPath()).saveSettings(settings)
 }
 
 @Composable
 @Preview
-fun App(countries: List<Country> = countries()) {
+fun App() {
     MaterialTheme {
+        var showCharacterDialog by remember { mutableStateOf(false) }
+        var showMonsterDialog   by remember { mutableStateOf(false) }
 
-        var characterId by rememberSaveable { mutableStateOf("") }
         var monsterName by rememberSaveable { mutableStateOf("") }
-        var spellName   by rememberSaveable { mutableStateOf("") }
+        var characterId by rememberSaveable { mutableStateOf("") }
         var proximity   by rememberSaveable { mutableStateOf("") }
 
-        var outputText by remember { mutableStateOf("") }
+        var outputText  by remember { mutableStateOf("") }
 
         LaunchedEffect(Unit) {
             for (filename in mutableListOf("files/spells.json","files/extra.spells.json")) {
@@ -86,20 +45,12 @@ fun App(countries: List<Country> = countries()) {
             }
             Globals.addMonsters(Res.readBytes("files/monsters.json").decodeToString())
 
-            //val dprFiles = DprFiles(getDocumentsDirPath())
             dprFiles.init()
+            settings.copy (other = dprFiles.getSettings())
 
-            val settings = dprFiles.getSettings()
-            println("settings: $settings")
-            if (settings.characterId != null) {
-                characterId = settings.characterId!!
-            }
-            if (settings.monsterName != null) {
-                monsterName = settings.monsterName!!
-            }
-            if (settings.targetProximity != null) {
-                proximity = settings.targetProximity!!.toString()
-            }
+            characterId = settings.characterId ?: ""
+            monsterName = settings.monsterName ?: ""
+            proximity = settings.proximity?.toString() ?: ""
         }
 
         Column(
@@ -108,88 +59,52 @@ fun App(countries: List<Country> = countries()) {
                 .safeContentPadding()
                 .fillMaxSize(),
         ) {
-            /*
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                OutlinedTextField(
-                    value = monsterString, onValueChange = {},
-                    label = { Text(monsterString) }, readOnly = true, singleLine = false,
-                    maxLines = 5
-                    )
-            }*/
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
                 OutlinedTextField(
                     value = characterId,
                     onValueChange = { characterId = it },
                     label = { Text("DND Beyond URL/ID") },
-                    readOnly = false,
+                    readOnly = true,
                     enabled = true,
                     singleLine = true
                 )
 
-                Button(
-                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                    onClick = {
-                        saveSettings(characterId, monsterName, proximity)
-                        outputText = getCharacter(characterId)
-                    }
-                ) {  Text("C") }
+                Button(onClick = { showCharacterDialog = true } ) {  Text("C") }
+
+                CharacterDialog(showCharacterDialog,
+                    { showCharacterDialog = false },
+                    { dialogSelectedValue ->
+                                     println("OK button clicked!")
+                                     characterId = dialogSelectedValue
+                                     showCharacterDialog = false
+                                     outputText = getCharacter(characterId)
+                                     saveSettings(characterId, monsterName?: "", proximity)
+                                }
+                )
             }
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 OutlinedTextField(
-                    value = monsterName,
+                    value = monsterName?: "",
                     onValueChange = { monsterName = it },
                     label = { Text("Monster Name") },
-                    readOnly = false,
+                    readOnly = true,
                     enabled = true,
                     singleLine = true
                 )
-                Button(
-                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                    onClick = {
-                        saveSettings(characterId, monsterName, proximity)
+                Button(onClick = { showMonsterDialog = true } ) { Text("M") }
 
-                        try {
-                            monster = Globals.getMonster(monsterName)
-                            val monsterText = monster.toString() //.description
-                            outputText = monsterText
-                        }
-                        catch (e: Exception) {
-                            outputText = "Invalid monster name"
-                        }
+                MonsterDialog(showMonsterDialog,
+                    { showMonsterDialog = false },
+                    { dialogSelectedValue ->
+                        println("OK button clicked!")
+                        monsterName = dialogSelectedValue
+                        showMonsterDialog = false
+                        saveSettings(characterId, monsterName, proximity)
                     }
-                ) { Text("M") }
-            }
-/*********************
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                OutlinedTextField(
-                    value = spellName,
-                    onValueChange = { spellName = it },
-                    label = { Text("Spell Name") },
-                    readOnly = false,
-                    enabled = true,
-                    singleLine = true
                 )
-                Button(
-                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                    onClick = {
-                        if (character == null) {
-                            outputText = "select a character before a spell"
-                        }
-                        else {
-                            try {
-                                val spellText = Globals.getSpell(spellName, character!!.is2014()).description
-                                outputText = spellText
-                            }
-                            catch (e: Exception) {
-                                outputText = "Invalid spell name"
-                            }
-                        }
-                    }
-                ) { Text("S") }
             }
- *********************/
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 OutlinedTextField(
@@ -221,37 +136,6 @@ fun App(countries: List<Country> = countries()) {
                     }
                 ) { Text("A") }
             }
-
-
-            /*
-            Text(
-                timeAtLocation,
-                style = TextStyle(fontSize = 20.sp),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally)
-            )
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                DropdownMenu(
-                    expanded = showCountries,
-                    onDismissRequest = { showCountries = false }
-                ) {
-                    countries().forEach { (name, zone) ->
-                        DropdownMenuItem(
-                            text = { Text(name) },
-                            onClick = {
-                                timeAtLocation = currentTimeAt(name, zone)
-                                showCountries = false
-                            }
-                        )
-                    }
-                }
-            }
-            Button(
-                modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                onClick = { showCountries = !showCountries }) {
-                Text("Select Location")
-            }
-*/
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 

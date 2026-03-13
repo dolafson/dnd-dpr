@@ -22,7 +22,9 @@ class DprFiles(val appDataDir: String)
     }
 
     fun getSettings(): Settings {
-        return Json.decodeFromString(read(settingsPath))
+        val settings: Settings = Json.decodeFromString(read(settingsPath))
+        println("settings: $settings")
+        return settings
     }
 
     fun saveSettings(settings: Settings) {

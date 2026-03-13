@@ -4,7 +4,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Settings(
-    val characterId: String? = null,
-    val monsterName: String? = null,
-    val targetProximity: Int? = 0
-)
+    var characterId: String? = null,
+    var monsterName: String? = null,
+    var proximity: Int? = 0
+) {
+    fun copy(other: Settings) {
+        characterId = other.characterId
+        monsterName = other.monsterName
+        proximity = other.proximity
+    }
+
+}

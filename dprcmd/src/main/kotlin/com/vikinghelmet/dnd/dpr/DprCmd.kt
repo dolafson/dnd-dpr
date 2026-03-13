@@ -25,62 +25,12 @@ class DprCmd {
         }
 }
 
-fun prettyPrintCharacter(character: com.vikinghelmet.dnd.dpr.character.Character) {
-    character.prettyPrintCharacter()
-    /*
-    println ("")
-
-//    println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
-    println (StringBuffer()
-        .append(Globals.rightPad("ability",15)).append(" ")
-        .append(Globals.rightPad("base",5)).append(" ")
-        .append(" withBonusesAdded").toString())
-
-    for (ability in com.vikinghelmet.dnd.dpr.character.stats.AbilityType.entries) {
-        if (ability == com.vikinghelmet.dnd.dpr.character.stats.AbilityType.ALL) continue
-        val base = character.getRawAbilityScore(ability)
-        val withBonuses = character.getModifiedAbilityScore(ability)
-        //println ("$ability: base=$base, withBonuses=$mod")
-
-        // println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
-        println (StringBuffer("  ")
-            .append(Globals.rightPad("$ability",15)).append(" ")
-            .append(Globals.rightPad("$base",5)).append(" ")
-            .append(" $withBonuses").toString())
-    }
-
-    character.test() // remainder of that method is portable, does not use String.format
-
-     */
-}
-
-fun getRequest(url: String): String? {
-    /*
-    val client = OkHttpClient() // TODO move?
-    val request = Request.Builder().url(url).build()
-
-    val response = client.newCall(request).execute()
-    if (response.code >= 400) {
-        throw IOException("request failed, response code = "+response.code)
-    }
-    return response.body?.string() ?: "{}"
-     */
-    var responseBody = ""
-
-    runBlocking { // This makes the main thread block until the coroutine finishes
-        responseBody = CmdTest.getRequest(url)
-    }
-
-    return responseBody
-}
-
 fun getFileOrURL(fileOrUrl: String): String? {
     return if (fileOrUrl.startsWith("http")) {
         var body = ""
         runBlocking {
             body = CmdTest.getRequest(fileOrUrl)
         }
-        //getRequest(fileOrUrl)
         body
     }
     else {
@@ -89,19 +39,6 @@ fun getFileOrURL(fileOrUrl: String): String? {
 }
 
 fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
-    /*
-    // extract ID from either a dndbeyond char url (.../ID), or simply "character:ID"
-    val id = if (arg.contains("/")) arg.substringAfter("/characters/")
-            else if (arg.contains(":")) arg.split(":")[1] else return null
-
-    val charJson = getFileOrURL("https://character-service.dndbeyond.com/character/v5/character/"+id) ?: "{}"
-
-    debug("getCharacter json length = "+ charJson.length)
-
-    //println ("charJson = "+charJson)
-    return Json.decodeFromString(charJson)
-
-     */
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     runBlocking {
         character = CmdTest.getCharacter(arg)
@@ -263,7 +200,7 @@ fun main(args : Array<String>) {
             exitEarly = true
         }
         else if (arg.startsWith("test:character")) {
-            prettyPrintCharacter(character!!)
+            character!!.prettyPrintCharacter()
             exitEarly = true
         }
         else if (arg.startsWith("test:available")) {
