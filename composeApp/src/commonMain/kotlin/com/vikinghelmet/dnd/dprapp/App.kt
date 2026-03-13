@@ -11,10 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.CmdTest
+import com.vikinghelmet.dnd.dpr.DprFiles
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.Settings
 import dpr.composeapp.generated.resources.Res
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalTime
@@ -41,6 +43,7 @@ fun countries() = listOf(
     Country("Egypt", TimeZone.of("Africa/Cairo")),
 )
 
+val dprFiles = DprFiles(getDocumentsDirPath())
 var character: Character? = null
 var monster: Monster? = null
 
@@ -50,12 +53,19 @@ fun getCharacter(characterID: String): String {
     }
 
     if (character != null) {
-        val path = getDocumentsDirPath()+"/characterTest.json"
-        println("path = $path")
-        CmdTest.writeToFile(character!!.getJson(), path)
+//        val path = getDocumentsDirPath()+"/characterTest.json"
+//        println("path = $path")
+        dprFiles.saveCharacter(character!!, characterID)
+    }
+    else {
+        println("unable to save character, null")
     }
 
     return character!!.toHumanReadableString()
+}
+
+fun saveSettings(characterId: String, monsterName: String, proximity: String) {
+    DprFiles(getDocumentsDirPath()).saveSettings(Settings(characterId, monsterName, proximity.toInt()))
 }
 
 @Composable
@@ -75,6 +85,21 @@ fun App(countries: List<Country> = countries()) {
                 Globals.addSpells(Res.readBytes(filename).decodeToString())
             }
             Globals.addMonsters(Res.readBytes("files/monsters.json").decodeToString())
+
+            //val dprFiles = DprFiles(getDocumentsDirPath())
+            dprFiles.init()
+
+            val settings = dprFiles.getSettings()
+            println("settings: $settings")
+            if (settings.characterId != null) {
+                characterId = settings.characterId!!
+            }
+            if (settings.monsterName != null) {
+                monsterName = settings.monsterName!!
+            }
+            if (settings.targetProximity != null) {
+                proximity = settings.targetProximity!!.toString()
+            }
         }
 
         Column(
@@ -104,9 +129,11 @@ fun App(countries: List<Country> = countries()) {
 
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                    onClick = { outputText = getCharacter(characterId) }) {
-                    Text("C")
-                }
+                    onClick = {
+                        saveSettings(characterId, monsterName, proximity)
+                        outputText = getCharacter(characterId)
+                    }
+                ) {  Text("C") }
             }
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
@@ -121,6 +148,8 @@ fun App(countries: List<Country> = countries()) {
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
                     onClick = {
+                        saveSettings(characterId, monsterName, proximity)
+
                         try {
                             monster = Globals.getMonster(monsterName)
                             val monsterText = monster.toString() //.description
@@ -178,6 +207,8 @@ fun App(countries: List<Country> = countries()) {
                             outputText = "select a character and monster before attacking"
                         }
                         else {
+                            saveSettings(characterId, monsterName, proximity)
+
                             try {
                                 val builder = ScenarioBuilder(character!!,monster!!)
                                 val result = builder.runScenarios (proximity.toInt())

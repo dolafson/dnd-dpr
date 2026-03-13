@@ -172,6 +172,7 @@ fun main(args : Array<String>) {
     var exitEarly = false
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     val turns = ArrayList<Turn>()
+    val dprFiles = DprFiles(System.getProperty("user.home"))
 
     if (args.isEmpty()) {
         showUsage()
@@ -270,11 +271,11 @@ fun main(args : Array<String>) {
             exitEarly = true
         }
         else if (arg.startsWith("test:file:write")) {
-            CmdTest.writeToFile("this is a test", "example.txt")
+            dprFiles.write("this is a test", "example.txt")
             exitEarly = true
         }
         else if (arg.startsWith("test:file:read")) {
-            val result = CmdTest.readFromFile("example.txt")
+            val result = dprFiles.read("example.txt")
             println("read result = $result")
             exitEarly = true
         }
