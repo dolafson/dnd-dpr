@@ -27,7 +27,6 @@ fun CharacterScreen(dprUiState: DprUiState,
 
     val options = remember { mutableStateListOf("") }
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf("") }
     val textFieldState = rememberTextFieldState()
 
     LaunchedEffect(Unit) {
@@ -75,7 +74,6 @@ fun CharacterScreen(dprUiState: DprUiState,
                         DropdownMenuItem(
                             text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
-                                selectedOption = option
                                 characterId = option
                                 textFieldState.setTextAndPlaceCursorAtEnd(characterId)
                                 expanded = false

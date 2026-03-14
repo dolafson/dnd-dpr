@@ -1,6 +1,8 @@
 package com.vikinghelmet.dnd.dprapp.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,12 +34,18 @@ fun DoubleWideRow(label1: String, value1: String, label2: String, value2: String
         Text(value2, modifier = Modifier.padding(start = 20.dp))
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
 fun MonsterScreen(dprUiState: DprUiState,
                   onDismiss: () -> Unit,
                   onConfirm: (String) -> Unit)
 {
+    //val options = mutableListOf("") //listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
+    val options = Globals.monsters.map { it.name }
+    var expanded by remember { mutableStateOf(false) }
+    val textFieldState = rememberTextFieldState()
+
     var monsterName by rememberSaveable { mutableStateOf("") }
 
     // TODO: figure out why this is needed, and find a better way ...
@@ -47,6 +55,9 @@ fun MonsterScreen(dprUiState: DprUiState,
     var selectedMonsterName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
+        //val allMonsterNames = Globals.monsters.map { it.name }
+        println ("allMonsterNames.size: "+options.size)
+
         monsterName = dprUiState.monsterName
         println("MonsterScreen LaunchedEffect, begin; monsterName = " + monsterName)
 
@@ -65,19 +76,48 @@ fun MonsterScreen(dprUiState: DprUiState,
             .safeContentPadding()
             .fillMaxSize()
     ) {
-        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-            OutlinedTextField(
-                value = monsterName ?: "",
-                onValueChange = { monsterName = it },
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            TextField(
+                state = textFieldState,
                 label = { Text("Monster Name") },
                 readOnly = false,
-                enabled = true,
-                singleLine = true
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded,
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable))
+                },
+                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable)
             )
+
+            // filter options based on text field value
+            val filteringOptions =
+                options.filter { it.contains(textFieldState.text, ignoreCase = true) }
+
+            if (filteringOptions.isNotEmpty()) {
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    filteringOptions.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = { Text(selectionOption, color = MaterialTheme.colorScheme.onSurface) },
+                            onClick = {
+                                monsterName = selectionOption
+                                textFieldState.setTextAndPlaceCursorAtEnd(monsterName)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
         }
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(onClick = {
+                // if these two fields don't match, take the one from the text field (if valid) ...
+                // TODO: confirm if this is still needed
+                val text = textFieldState.text.toString()
+                if (monsterName != text && options.contains(text)) {
+                    println("field mismatch, forcing monsterName to text value")
+                    monsterName = text
+                }
+
                 println("onClick, monsterName = $monsterName")
                 try {
                     monster = Globals.getMonster(monsterName ?: "")
