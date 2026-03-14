@@ -15,6 +15,10 @@ import kotlinx.coroutines.runBlocking
 
 var character: Character? = null
 
+fun initCharacter(characterId: String) {
+    character = dprFiles.getCharacter(settings.characterId ?: "invalid")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview

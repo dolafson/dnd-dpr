@@ -65,6 +65,9 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
         catch (e: Exception) {
             println("unable to load settings: $e")
         }
+
+        initMonster(settings.monsterName ?: "")
+        initCharacter(settings.characterId ?: "")
     }
 
     Scaffold(){

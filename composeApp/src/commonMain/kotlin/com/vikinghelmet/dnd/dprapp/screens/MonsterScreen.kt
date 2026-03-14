@@ -15,6 +15,18 @@ import com.vikinghelmet.dnd.dprapp.DprUiState
 
 var monster: Monster? = null
 
+fun initMonster(monsterName: String): Boolean {
+    try {
+        val thisMonster = Globals.getMonster(monsterName ?: "")
+        monster = thisMonster
+        return true
+    }
+    catch (e: Exception) {
+        println("unable to populate monster dialog $e")
+    }
+    return false
+}
+
 @Composable
 fun FieldValue(fieldName: String, value: String) {
     //println("FieldValue, formFields: $formFields")
@@ -41,7 +53,6 @@ fun MonsterScreen(dprUiState: DprUiState,
                   onDismiss: () -> Unit,
                   onConfirm: (String) -> Unit)
 {
-    //val options = mutableListOf("") //listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
     val options = Globals.monsters.map { it.name }
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
@@ -55,18 +66,10 @@ fun MonsterScreen(dprUiState: DprUiState,
     var selectedMonsterName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        //val allMonsterNames = Globals.monsters.map { it.name }
-        println ("allMonsterNames.size: "+options.size)
-
         monsterName = dprUiState.monsterName
-        println("MonsterScreen LaunchedEffect, begin; monsterName = " + monsterName)
 
-        try {
-            monster = Globals.getMonster(monsterName ?: "")
+        if (options.contains(monsterName)) {
             selectedMonsterName = monsterName
-        }
-        catch (e: Exception) {
-            println("unable to populate monster dialog $e")
         }
     }
 
@@ -119,12 +122,10 @@ fun MonsterScreen(dprUiState: DprUiState,
                 }
 
                 println("onClick, monsterName = $monsterName")
-                try {
-                    monster = Globals.getMonster(monsterName ?: "")
+                if (initMonster(monsterName)) {
                     selectedMonsterName = monsterName
-                } catch (e: Exception) {
-                    println("Invalid monster name")
                 }
+
             }) { Text("View") }
         }
 
