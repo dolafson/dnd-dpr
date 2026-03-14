@@ -65,6 +65,8 @@ kotlin {
             implementation(project(":dprlib"))
 
             implementation(compose.components.resources)
+            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.9.0-beta03") // Check for the latest compatible version
+            implementation("org.jetbrains.compose.material:material-icons-core:1.7.3")
         }
         webMain.dependencies {
             implementation(npm("@js-joda/timezone", "2.22.0"))
