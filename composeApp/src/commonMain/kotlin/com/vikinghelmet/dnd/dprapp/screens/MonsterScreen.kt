@@ -1,18 +1,15 @@
-package com.vikinghelmet.dnd.dprapp
+package com.vikinghelmet.dnd.dprapp.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dprapp.DprUiState
 
 var monster: Monster? = null
 
@@ -32,26 +29,19 @@ fun FieldValue(fieldName: String, value: String) {
 
 @Composable
 //@Preview
-fun MonsterScreen(onDismiss: () -> Unit,
+fun MonsterScreen(dprUiState: DprUiState,
+                  onDismiss: () -> Unit,
                   onConfirm: (String) -> Unit)
 {
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val focusManager = LocalFocusManager.current
-
     var monsterName by rememberSaveable { mutableStateOf("") }
     var outputText by remember { mutableStateOf("") }
     //var formFields by remember { mutableStateMapOf<String, String>() }
     var formFields by remember { mutableStateOf(mutableMapOf<String, String>()) }
     var ac by remember { mutableStateOf("") }
 
-    println("monsterWindow: begin")
-
-    // reset field whenever dialog opens
     LaunchedEffect(Unit) {
-        println("settings.monsterName = "+settings.monsterName)
-        monsterName = settings.monsterName ?: ""
+        monsterName = dprUiState.monsterName
+        println("MonsterScreen LaunchedEffect, begin; monsterName = " + monsterName)
 
         try {
             monster = Globals.getMonster(monsterName ?: "")
@@ -73,7 +63,7 @@ fun MonsterScreen(onDismiss: () -> Unit,
                 .padding(20.dp)
                 .safeContentPadding()
                 .fillMaxSize()
-                .clickable(interactionSource = interactionSource, indication = null) { focusManager.clearFocus() },
+                // .clickable(interactionSource = interactionSource, indication = null) { focusManager.clearFocus() },
         ) {
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
@@ -102,7 +92,7 @@ fun MonsterScreen(onDismiss: () -> Unit,
                         // formFields["AC"] = (monster?.properties?.dataAcNum ?: "?").toString()
                         ac = (monster?.properties?.dataAcNum ?: "?").toString()
 
-                        keyboardController?.hide()
+                        // keyboardController?.hide()
                     } catch (e: Exception) {
                         outputText = "Invalid monster name"
                     }

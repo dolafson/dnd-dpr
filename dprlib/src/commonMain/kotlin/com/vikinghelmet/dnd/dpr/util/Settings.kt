@@ -9,6 +9,7 @@ data class Settings(
     var proximity: Int? = 0
 ) {
     fun copy(other: Settings) {
+        if (other.characterId != null) {}
         characterId = other.characterId
         monsterName = other.monsterName
         proximity = other.proximity

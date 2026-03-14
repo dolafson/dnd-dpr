@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp
+package com.vikinghelmet.dnd.dprapp.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,66 +11,25 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.DprFiles
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.Settings
-import dpr.composeapp.generated.resources.Res
-
-val dprFiles = DprFiles(getDocumentsDirPath())
-val settings = Settings()
-
-fun saveSettings(characterId: String, monsterName: String, proximity: String) {
-    settings.characterId = characterId
-    settings.monsterName = monsterName
-    settings.proximity = proximity.toInt()
-    DprFiles(getDocumentsDirPath()).saveSettings(settings)
-}
+import com.vikinghelmet.dnd.dprapp.DprUiState
 
 @Composable
 //@Preview
-fun MainView(onCharacterButtonClicked: () -> Unit,
-             onMonsterButtonClicked: () -> Unit,
-             modifier: Modifier = Modifier
+fun MainScreen(dprUiState: DprUiState,
+               onCharacterButtonClicked: () -> Unit,
+               onMonsterButtonClicked: () -> Unit,
+               modifier: Modifier = Modifier
 ) {
-        var showCharacterDialog by remember { mutableStateOf(false) }
-        var showMonsterDialog   by remember { mutableStateOf(false) }
-
-        var monsterName by rememberSaveable { mutableStateOf("") }
-        var characterId by rememberSaveable { mutableStateOf("") }
         var proximity   by rememberSaveable { mutableStateOf("") }
-
         var outputText  by remember { mutableStateOf("") }
 
-        println("mainView: begin")
-
-        LaunchedEffect(Unit) {
-            for (filename in mutableListOf("files/spells.json","files/extra.spells.json")) {
-                Globals.addSpells(Res.readBytes(filename).decodeToString())
-            }
-            Globals.addMonsters(Res.readBytes("files/monsters.json").decodeToString())
-
-            dprFiles.init()
-            settings.copy (other = dprFiles.getSettings())
-
-            characterId = settings.characterId ?: ""
-            monsterName = settings.monsterName ?: ""
-            proximity = settings.proximity?.toString() ?: ""
-        }
-
-
-        Column(        modifier = modifier,
-/*
-            modifier = Modifier
-                .padding(20.dp)
-                .safeContentPadding()
-                .fillMaxSize(), */
-        ) {
+        Column(modifier = modifier) {
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
                 OutlinedTextField(
-                    value = characterId,
-                    onValueChange = { characterId = it },
+                    value = dprUiState.characterId,
+                    onValueChange = { },
                     label = { Text("DND Beyond URL/ID") },
                     readOnly = true,
                     enabled = true,
@@ -78,26 +37,22 @@ fun MainView(onCharacterButtonClicked: () -> Unit,
                 )
 
                 Button(onClick = {
-                    showCharacterDialog = true
                     println("Main: show view -> character")
-                    outputText = "view character" // hack
                     onCharacterButtonClicked()
                 }) { Text("C") }
             }
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 OutlinedTextField(
-                    value = monsterName ?: "",
-                    onValueChange = { monsterName = it },
+                    value = dprUiState.monsterName,
+                    onValueChange = { },
                     label = { Text("Monster Name") },
                     readOnly = true,
                     enabled = true,
                     singleLine = true
                 )
                 Button(onClick = {
-                    showMonsterDialog = true
                     println("Main: show view -> monster")
-                    outputText = "view monster" // hack
                     onMonsterButtonClicked()
                 }) { Text("M") }
             }
@@ -118,7 +73,7 @@ fun MainView(onCharacterButtonClicked: () -> Unit,
                             outputText = "select a character and monster before attacking"
                             println(outputText)
                         } else {
-                            saveSettings(characterId, monsterName, proximity)
+                            saveSettings(dprUiState.characterId, dprUiState.monsterName, proximity)
 
                             try {
                                 val builder = ScenarioBuilder(character!!, monster!!)
