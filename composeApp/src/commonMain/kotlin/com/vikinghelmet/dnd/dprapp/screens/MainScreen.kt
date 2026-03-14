@@ -73,14 +73,16 @@ fun MainScreen(dprUiState: DprUiState,
                             outputText = "select a character and monster before attacking"
                             println(outputText)
                         } else {
-                            saveSettings(dprUiState.characterId, dprUiState.monsterName, proximity)
+                            val proximityInt = if (proximity.isEmpty()) 0 else proximity.toInt()
+                            saveSettings(dprUiState.characterId, dprUiState.monsterName, proximityInt)
 
                             try {
                                 val builder = ScenarioBuilder(character!!, monster!!)
-                                val result = builder.runScenarios(proximity.toInt())
+                                val result = builder.runScenarios(proximityInt)
                                 outputText = builder.getResultSummary(result)
                             } catch (e: Exception) {
-                                outputText = "Invalid spell name"
+                                println("Unable to build scenarios: $e")
+                                outputText = "Invalid value"
                             }
                         }
                     }

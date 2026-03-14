@@ -28,10 +28,10 @@ import dpr.composeapp.generated.resources.Res
 val dprFiles = DprFiles(getDocumentsDirPath())
 val settings = Settings()
 
-fun saveSettings(characterId: String, monsterName: String, proximity: String) {
+fun saveSettings(characterId: String, monsterName: String, proximity: Int) {
     settings.characterId = characterId
     settings.monsterName = monsterName
-    settings.proximity = proximity.toInt()
+    settings.proximity = proximity
     DprFiles(getDocumentsDirPath()).saveSettings(settings)
 }
 

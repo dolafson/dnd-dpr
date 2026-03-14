@@ -13,11 +13,6 @@ import com.vikinghelmet.dnd.dprapp.DprUiState
 
 var monster: Monster? = null
 
-fun populateFields(formFields: MutableMap<String, String>) {
-    formFields["Armor Class"] = (monster?.properties?.dataAcNum ?: "?").toString()
-    formFields["Hit Points"] = (monster?.properties?.HP ?: "?")
-}
-
 @Composable
 fun FieldValue(fieldName: String, value: String) {
     //println("FieldValue, formFields: $formFields")
@@ -28,16 +23,28 @@ fun FieldValue(fieldName: String, value: String) {
 }
 
 @Composable
+fun DoubleWideRow(label1: String, value1: String, label2: String, value2: String) {
+    Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+        Text(label1)
+        Text(value1, modifier = Modifier.padding(start = 20.dp))
+
+        Text(label2, modifier = Modifier.padding(start = 60.dp))
+        Text(value2, modifier = Modifier.padding(start = 20.dp))
+    }
+}
+@Composable
 //@Preview
 fun MonsterScreen(dprUiState: DprUiState,
                   onDismiss: () -> Unit,
                   onConfirm: (String) -> Unit)
 {
     var monsterName by rememberSaveable { mutableStateOf("") }
-    var outputText by remember { mutableStateOf("") }
-    //var formFields by remember { mutableStateMapOf<String, String>() }
-    var formFields by remember { mutableStateOf(mutableMapOf<String, String>()) }
-    var ac by remember { mutableStateOf("") }
+
+    // TODO: figure out why this is needed, and find a better way ...
+    // this seems redundant, but we need at least one remember field (other than monsterName above)
+    // that is guaranteed to change value whenever the monsterName changes ;
+    // without this, NONE of the text fields in the remaining rows will update
+    var selectedMonsterName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         monsterName = dprUiState.monsterName
@@ -45,143 +52,71 @@ fun MonsterScreen(dprUiState: DprUiState,
 
         try {
             monster = Globals.getMonster(monsterName ?: "")
-            val monsterText = monster.toString() //.description
-            outputText = monsterText
-            //formFields["AC"] = (monster?.properties?.dataAcNum ?: "?").toString()
-
-            populateFields(formFields)
-            // formFields["AC"] = (monster?.properties?.dataAcNum ?: "?").toString()
-            ac = (monster?.properties?.dataAcNum ?: "?").toString()
+            selectedMonsterName = monsterName
         }
         catch (e: Exception) {
             println("unable to populate monster dialog $e")
         }
     }
 
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .safeContentPadding()
-                .fillMaxSize()
-                // .clickable(interactionSource = interactionSource, indication = null) { focusManager.clearFocus() },
+    Column(
+        modifier = Modifier
+            .padding(20.dp)
+            .safeContentPadding()
+            .fillMaxSize()
+    ) {
+        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+            OutlinedTextField(
+                value = monsterName ?: "",
+                onValueChange = { monsterName = it },
+                label = { Text("Monster Name") },
+                readOnly = false,
+                enabled = true,
+                singleLine = true
+            )
+        }
+
+        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+            Button(onClick = {
+                println("onClick, monsterName = $monsterName")
+                try {
+                    monster = Globals.getMonster(monsterName ?: "")
+                    selectedMonsterName = monsterName
+                } catch (e: Exception) {
+                    println("Invalid monster name")
+                }
+            }) { Text("View") }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp, color = Color.Blue)
+
+        FieldValue("Monster Name", selectedMonsterName)
+        FieldValue("Armor Class", (monster?.properties?.dataAcNum ?: "?").toString())
+        FieldValue("Hit Points", (monster?.properties?.HP ?: "?"))
+        FieldValue("Speed", (monster?.properties?.Speed ?: "?"))
+        FieldValue("Size", (monster?.properties?.Size ?: "?"))
+
+        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp, color = Color.Blue)
+
+        DoubleWideRow(
+            "STR",(monster?.properties?.STR ?: "?").toString(),
+            "INT", (monster?.properties?.INT ?: "?").toString())
+
+        DoubleWideRow(
+            "DEX",(monster?.properties?.DEX ?: "?").toString(),
+            "WIS", (monster?.properties?.WIS ?: "?").toString())
+
+        DoubleWideRow(
+            "CON",(monster?.properties?.CON ?: "?").toString(),
+            "CHA", (monster?.properties?.CHA ?: "?").toString())
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-
-                OutlinedTextField(
-                    value = monsterName ?: "",
-                    onValueChange = { monsterName = it },
-                    label = { Text("Monster Name") },
-                    readOnly = false,
-                    enabled = true,
-                    singleLine = true
-                )
-
-            }
-
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                Button(onClick = {
-                    try {
-                        println("new monsterName = $monsterName")
-                        monster = Globals.getMonster(monsterName ?: "")
-                        println("new monster = " + (monster?.name ?: ""))
-                        println("new AC = " + (monster?.properties?.dataAcNum ?: "?"))
-
-                        val monsterText = monster.toString() //.description
-                        outputText = monsterText
-                        populateFields(formFields)
-                        // formFields["AC"] = (monster?.properties?.dataAcNum ?: "?").toString()
-                        ac = (monster?.properties?.dataAcNum ?: "?").toString()
-
-                        // keyboardController?.hide()
-                    } catch (e: Exception) {
-                        outputText = "Invalid monster name"
-                    }
-                }) { Text("View") }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 20.dp),
-                thickness = 2.dp, // Sets the height of the line
-                color = Color.Blue // Sets the color of the line
-            )
-            /*
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Text("Armor Class")
-                    Text(formFields["Armor Class"] ?: "", modifier = Modifier.padding(start = 20.dp))
-                }
-
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Text("Hit Points")
-                    Text((monster?.properties?.HP ?: "?"), modifier = Modifier.padding(start = 20.dp))
-                }
-
- */
-            FieldValue("Armor Class", formFields["Armor Class"] ?: "")
-            FieldValue("Hit Points", formFields["Hit Points"] ?: "")
-
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                Text("Speed")
-                Text((monster?.properties?.Speed ?: "?"), modifier = Modifier.padding(start = 20.dp))
-            }
-
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                Text("Size")
-                Text((monster?.properties?.Size ?: "?"), modifier = Modifier.padding(start = 20.dp))
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 20.dp),
-                thickness = 2.dp, // Sets the height of the line
-                color = Color.Blue // Sets the color of the line
-            )
-
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                Text("STR")
-                Text((monster?.properties?.STR ?: "?").toString(), modifier = Modifier.padding(start = 20.dp))
-
-                Text("INT", modifier = Modifier.padding(start = 60.dp))
-                Text((monster?.properties?.INT ?: "?").toString(), modifier = Modifier.padding(start = 20.dp))
-            }
-
-            Row(modifier = Modifier.padding(start = 20.dp)) {
-                Text("DEX")
-                Text((monster?.properties?.DEX ?: "?").toString(), modifier = Modifier.padding(start = 20.dp))
-
-                Text("WIS", modifier = Modifier.padding(start = 60.dp))
-                Text((monster?.properties?.WIS ?: "?").toString(), modifier = Modifier.padding(start = 20.dp))
-            }
-
-            Row(modifier = Modifier.padding(start = 20.dp)) {
-                Text("CON")
-                Text((monster?.properties?.CON ?: "?").toString(), modifier = Modifier.padding(start = 20.dp))
-
-                Text("CHA", modifier = Modifier.padding(start = 60.dp))
-                Text((monster?.properties?.CHA ?: "?").toString(), modifier = Modifier.padding(start = 20.dp))
-            }
-            /*
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-
-                    OutlinedTextField(
-                        value = outputText,
-                        onValueChange = { outputText = it },
-                        readOnly = true,
-                        singleLine = false,
-                        //enabled = false,
-                        minLines = 10,
-                        maxLines = 10,
-//                modifier = Modifier.fillMaxWidth().height(100.dp) // Overriding defaults
-                        modifier = Modifier.heightIn(100.dp) // Overriding defaults
-                    )
-                }
-*/
-
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = onDismiss) { Text("Dismiss") }
-                Spacer(Modifier.width(8.dp))
-                Button(onClick = { onConfirm(monsterName ?: "") }) { Text("OK") }
-            }
+            TextButton(onClick = onDismiss) { Text("Dismiss") }
+            Spacer(Modifier.width(8.dp))
+            Button(onClick = { onConfirm(monsterName ?: "") }) { Text("OK") }
+        }
     }
 }
