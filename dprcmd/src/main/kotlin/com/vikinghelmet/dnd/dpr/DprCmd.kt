@@ -41,7 +41,7 @@ fun getFileOrURL(fileOrUrl: String): String? {
 fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     runBlocking {
-        character = CmdTest.getCharacter(arg)
+        character = CmdTest.getRemoteCharacter(arg)
     }
     //getRequest(fileOrUrl)
     return character

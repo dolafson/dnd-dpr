@@ -1,10 +1,9 @@
 package com.vikinghelmet.dnd.dprapp.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -16,30 +15,27 @@ import kotlinx.coroutines.runBlocking
 
 var character: Character? = null
 
-fun getCharacter(characterID: String): String {
-    runBlocking {
-        character = CmdTest.getCharacter(characterID)
-    }
-
-    if (character != null) {
-        dprFiles.saveCharacter(character!!, characterID)
-        return character!!.toHumanReadableString()
-    }
-    else {
-        println("unable to save character, null")
-        return ""
-    }
-}
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
 fun CharacterScreen(dprUiState: DprUiState,
                     onDismiss: () -> Unit,
-                    onConfirm: (String) -> Unit) {
+                    onConfirm: (String) -> Unit)
+{
     var characterId by rememberSaveable { mutableStateOf("") }
     var outputText by remember { mutableStateOf("") }
 
+    val options = remember { mutableStateListOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf("") }
+    val textFieldState = rememberTextFieldState()
+
     LaunchedEffect(Unit) {
+        options.clear()
+        options.addAll (dprFiles.getCharacterList())
+
+        println("character list = "+options)
+
         characterId = dprUiState.characterId
         println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
     }
@@ -52,19 +48,79 @@ fun CharacterScreen(dprUiState: DprUiState,
     ) {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
-            OutlinedTextField(
-                value = characterId,
-                onValueChange = { characterId = it },
-                label = { Text("DND Beyond URL/ID") },
-                readOnly = false,
-                enabled = true,
-                singleLine = true,
-            )
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = it }
+            ) {
+                TextField(
+                    //value = selectedOption,
+                    state = textFieldState,
+                    label = { Text("DND Beyond URL/ID") },
+                    // onValueChange = { it: String -> characterId = it },
+                    // onValueChange = { characterId = it },
+                    readOnly = false,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded,
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable))
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable)
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    options.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
+                            onClick = {
+                                selectedOption = option
+                                characterId = option
+                                textFieldState.setTextAndPlaceCursorAtEnd(characterId)
+                                expanded = false
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
+                    }
+                }
+            }
         }
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(onClick = {
-                outputText = getCharacter(characterId)
+                // if user selected from menu, load character from local storage
+                if (characterId == textFieldState.text.toString() &&
+                        dprFiles.getCharacterList().contains(characterId))
+                {
+                    character = dprFiles.getCharacter(characterId)
+                }
+                else {
+                    // user hand-entered a characterID / URL ... first check for validity
+                    val id = CmdTest.getCharacterId(textFieldState.text.toString())
+                    if (id != null) {
+                        // then update the ID, update menu, and fetch from remote storage
+                        // on a good fetch, update local storage as well as the menu
+                        characterId = id
+                        try {
+                            runBlocking {
+                                character = CmdTest.getRemoteCharacter(characterId)
+                            }
+                            if (character != null) {
+                                dprFiles.saveCharacter(character!!, characterId)
+                                options.add(characterId)
+                            }
+                        } catch (e: Exception) {
+                            //println("Error getting character, $e")
+                            outputText = "CharacterID invalid / not found"
+                        }
+                    }
+                }
+
+                if (character != null) {
+                    outputText = character!!.toHumanReadableString()
+                }
+
             }) { Text("View") }
         }
 

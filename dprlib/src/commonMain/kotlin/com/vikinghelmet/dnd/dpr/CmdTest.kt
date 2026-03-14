@@ -28,13 +28,14 @@ object CmdTest {
         return response.bodyAsText() ?: "{}"
     }
 
-    suspend fun getCharacter(arg: String): Character? {
-        // extract ID from either a dndbeyond char url (.../ID), or simply "character:ID"
-        val id = if (arg.contains("/")) arg.substringAfter("/characters/")
-            else if (arg.contains(":")) arg.split(":")[1]
-            else if (arg.toIntOrNull() != null) arg
-            else return null
+    fun getCharacterId(arg: String): String? {
+        return if (arg.contains("/")) arg.substringAfter("/characters/")
+        else if (arg.contains(":")) arg.split(":")[1]
+        else if (arg.toIntOrNull() != null) arg
+        else null
+    }
 
+    suspend fun getRemoteCharacter(id: String): Character? {
         val charJson = getRequest("https://character-service.dndbeyond.com/character/v5/character/" + id) ?: "{}"
         //println ("charJson = "+charJson)
         return Json.decodeFromString(charJson)

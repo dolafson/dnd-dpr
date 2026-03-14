@@ -22,7 +22,7 @@ class DprFiles(val appDataDir: String)
     }
 
     fun getSettings(): Settings {
-        val settings: Settings = Json.decodeFromString(read(settingsPath))
+        val settings: Settings = Json.decodeFromString(read(settingsPath) ?: "{}")
         println("settings: $settings")
         return settings
     }
@@ -34,6 +34,20 @@ class DprFiles(val appDataDir: String)
 
     fun saveCharacter(character: Character, characterId: String) {
         write(Json.encodeToString(character), characterBaselineDir+"/"+characterId)
+    }
+
+    fun getCharacter(characterId: String): Character? {
+        val json = read(characterBaselineDir+"/" + characterId)
+        return if (json !=null) Json.decodeFromString(json) else null
+    }
+
+    fun getCharacterList(): List<String> {
+        return list(characterBaselineDir).map { p -> p.substringAfterLast('/') }
+    }
+
+    fun list(subdir: String): List<String> {
+        val pathList = SystemFileSystem.list(Path(appDataDir+"/"+subdir))
+        return pathList.map { p -> p.toString() }
     }
 
     fun write(data: String, filename: String) {
@@ -48,7 +62,7 @@ class DprFiles(val appDataDir: String)
         }
     }
 
-    fun read(filename: String): String {
+    fun read(filename: String): String? {
         try {
             SystemFileSystem.source(Path(appDataDir+"/"+filename)).buffered().use { source: Source ->
                 val content = source.readString()
@@ -56,7 +70,8 @@ class DprFiles(val appDataDir: String)
             }
         } catch (e: Exception) {
             println("Error reading file: $e")
-            return "{}" // TODO: better default ?
+            return null
+            //return "{}" // TODO: better default ?
         }
     }
 
