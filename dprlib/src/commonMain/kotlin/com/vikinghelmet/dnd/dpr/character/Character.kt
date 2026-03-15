@@ -199,7 +199,7 @@ data class Character(
 
         if (characterData.inventory == null) return list
         for (item in characterData.inventory) {
-            if (item.equipped != true) continue
+            //if (item.equipped != true) continue // TODO: more flexible ways to limit selected weapons
 
             val def = item.definition
             if (def.filterType == "Weapon") {
