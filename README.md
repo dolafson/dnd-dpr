@@ -153,8 +153,17 @@ In no particular order ...
 - in the mobile app, add support for minor character edits
   - increase level or ability bonuses
   - add spells and feats
-  - save/retrieve modified character to/from app storage 
-  - (... or local file for cmdline tool)
+  - add scenario result export to txt/csv
 - add simulated battles
   - give the monster(s) a chance to fight back
   - calculate probability of character death
+
+## Known Issues
+
+- L2 wizard, 5-round scenario damage=2213; this is probably incorrect:
+  - Sleep followed by 4 rounds of Fire Bolt
+- some weapons - Dagger, HandAxe - support both melee and range
+  - currently these weapons are treated as range-only 
+- not yet supported:
+  - weapon mastery: Nick, Vex, Cleave
+  - Dragonborn Breath Weapon
