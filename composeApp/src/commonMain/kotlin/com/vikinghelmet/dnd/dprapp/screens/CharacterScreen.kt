@@ -18,12 +18,19 @@ import kotlin.time.Clock
 var character: Character? = null
 
 fun initCharacter(settings: DprSettings) {
+    val match = getMatchingCharacterItem(settings)
+    if (match != null) {
+        character = dprFiles.getCharacter(match.remoteId)
+    }
+}
+
+fun getMatchingCharacterItem(settings: DprSettings): CharacterListItem? {
     for (item in settings.characterList) {
         if (item.name == settings.characterName) {
-            character = dprFiles.getCharacter(item.remoteId)
-            break
+            return item
         }
     }
+    return null
 }
 
 fun loadCharacter(selectedOption: MutableState<CharacterListItem>, text: String, options: MutableList<CharacterListItem>, settings: DprSettings): String {
@@ -100,6 +107,13 @@ fun CharacterScreen(settings: DprSettings,
 
         println("character list = "+options)
         // println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
+        val match = getMatchingCharacterItem(settings)
+        if (match != null) {
+            selectedOption.value.copyValues(match)
+            textFieldState.setTextAndPlaceCursorAtEnd(selectedOption.value.name)
+        }
+        println("match = $match")
+        println("selectedOption = $selectedOption")
     }
 
     Column(
@@ -117,6 +131,9 @@ fun CharacterScreen(settings: DprSettings,
                 TextField(
                     state = textFieldState,
                     label = { Text("Select/Add Character") },
+                    //value = {
+                    //    Text(if (selectedOption.value.name.isNotBlank()) selectedOption.value.name else "Select/Add Character")
+                    //},
                     readOnly = false,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded,
@@ -162,31 +179,32 @@ fun CharacterScreen(settings: DprSettings,
         // FieldValue("ID", (character?.characterData?.id ?: "?" ).toString())
         // FieldValue("Name", character?.characterData?.name ?: "?" )
 
-        FieldValue("Level", (character?.getLevel() ?: "?" ).toString())
-        FieldValue("Proficiency Bonus", (character?.getProficiencyBonus() ?: "?" ).toString())
-        FieldValue("Spell Save DC", (character?.getSpellSaveDC() ?: "?" ).toString())
-        FieldValue("Spell Ability", (character?.getSpellAbilityType() ?: "?" ))
+        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+            Column {
+                Text("Level")
+                Text("Proficiency Bonus")
+                Text("Spell Save DC")
+                Text("Spell Ability")
+                // currently unable to calculate: AC, HP
+            }
+            Column(modifier = Modifier.padding(start = 20.dp)) {
+                Text((character?.getLevel() ?: "?" ).toString())
+                Text((character?.getProficiencyBonus() ?: "?" ).toString())
+                Text((character?.getSpellSaveDC() ?: "?" ).toString())
+                Text((character?.getSpellAbilityType() ?: "?" ))
+            }
+        }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
-        /*     currently unable to calculate these values ...
-
-            FieldValue("Armor Class", (character?.characterData?. ?: "?").toString())
-            FieldValue("Hit Points", (monster?.properties?.HP ?: "?"))
-            FieldValue("Speed", (monster?.properties?.Speed ?: "?"))
-        */
-
-        DoubleWideRow(
-            "STR",(character?.getModifiedAbilityScore(AbilityType.Strength) ?: "?").toString(),
-            "INT", (character?.getModifiedAbilityScore(AbilityType.Intelligence) ?: "?").toString())
-
-        DoubleWideRow(
-            "DEX",(character?.getModifiedAbilityScore(AbilityType.Dexterity) ?: "?").toString(),
-            "WIS", (character?.getModifiedAbilityScore(AbilityType.Wisdom) ?: "?").toString())
-
-        DoubleWideRow(
-            "CON",(character?.getModifiedAbilityScore(AbilityType.Constitution) ?: "?").toString(),
-            "CHA", (character?.getModifiedAbilityScore(AbilityType.Charisma) ?: "?").toString())
+        StatBlock(
+            character?.getModifiedAbilityScore(AbilityType.Strength),
+            character?.getModifiedAbilityScore(AbilityType.Dexterity),
+            character?.getModifiedAbilityScore(AbilityType.Constitution),
+            character?.getModifiedAbilityScore(AbilityType.Intelligence),
+            character?.getModifiedAbilityScore(AbilityType.Wisdom),
+            character?.getModifiedAbilityScore(AbilityType.Charisma)
+        )
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 

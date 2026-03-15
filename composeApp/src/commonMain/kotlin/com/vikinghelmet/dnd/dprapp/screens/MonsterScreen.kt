@@ -27,24 +27,31 @@ fun initMonster(monsterName: String): Boolean {
 }
 
 @Composable
-fun FieldValue(fieldName: String, value: String) {
-    //println("FieldValue, formFields: $formFields")
-    Row(modifier = Modifier.padding(start = 20.dp)) {//}, top = 10.dp)) {
-        Text(fieldName)
-        Text(value ?: "x", modifier = Modifier.padding(start = 20.dp))
+fun StatBlock(str: Int?, dex: Int?, con: Int?, int: Int?, wis: Int?, cha: Int?) {
+    Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+        Column {
+            Text("STR")
+            Text("DEX")
+            Text("CON")
+        }
+        Column(modifier = Modifier.padding(start = 20.dp)) {
+            Text((str ?: "?").toString())
+            Text((dex ?: "?").toString())
+            Text((con ?: "?").toString())
+        }
+        Column(modifier = Modifier.padding(start = 60.dp)) {
+            Text("INT")
+            Text("WIS")
+            Text("CHA")
+        }
+        Column(modifier = Modifier.padding(start = 20.dp)) {
+            Text((int ?: "?").toString())
+            Text((wis ?: "?").toString())
+            Text((cha ?: "?").toString())
+        }
     }
 }
 
-@Composable
-fun DoubleWideRow(label1: String, value1: String, label2: String, value2: String) {
-    Row(modifier = Modifier.padding(start = 20.dp)) { //, top = 10.dp)) {
-        Text(label1)
-        Text(value1, modifier = Modifier.padding(start = 20.dp))
-
-        Text(label2, modifier = Modifier.padding(start = 60.dp))
-        Text(value2, modifier = Modifier.padding(start = 20.dp))
-    }
-}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
@@ -69,6 +76,9 @@ fun MonsterScreen(settings: DprSettings,
 
         if (options.contains(monsterName)) {
             selectedMonsterName = monsterName
+        }
+        if (monsterName.isNotBlank()) {
+            textFieldState.setTextAndPlaceCursorAtEnd(monsterName)
         }
     }
 
@@ -130,25 +140,27 @@ fun MonsterScreen(settings: DprSettings,
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
-        FieldValue("Monster Name", selectedMonsterName)
-        FieldValue("Armor Class", (monster?.properties?.dataAcNum ?: "?").toString())
-        FieldValue("Hit Points", (monster?.properties?.HP ?: "?"))
-        FieldValue("Speed", (monster?.properties?.Speed ?: "?"))
-        FieldValue("Size", (monster?.properties?.Size ?: "?"))
+        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+            Column {
+                Text("Monster Name")
+                Text("Armor Class")
+                Text("Hit Points")
+                Text("Speed")
+                Text("Size")
+            }
+            Column(modifier = Modifier.padding(start = 20.dp)) {
+                Text(selectedMonsterName)
+                Text((monster?.properties?.dataAcNum ?: "?").toString())
+                Text((monster?.properties?.HP ?: "?"))
+                Text((monster?.properties?.Speed ?: "?"))
+                Text((monster?.properties?.Speed ?: "?"))
+            }
+        }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
-        DoubleWideRow(
-            "STR",(monster?.properties?.STR ?: "?").toString(),
-            "INT", (monster?.properties?.INT ?: "?").toString())
-
-        DoubleWideRow(
-            "DEX",(monster?.properties?.DEX ?: "?").toString(),
-            "WIS", (monster?.properties?.WIS ?: "?").toString())
-
-        DoubleWideRow(
-            "CON",(monster?.properties?.CON ?: "?").toString(),
-            "CHA", (monster?.properties?.CHA ?: "?").toString())
+        StatBlock(monster?.properties?.STR, monster?.properties?.DEX, monster?.properties?.CON,
+            monster?.properties?.INT, monster?.properties?.WIS, monster?.properties?.CHA)
 
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
