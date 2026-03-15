@@ -4,7 +4,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.util.Settings
+import com.vikinghelmet.dnd.dpr.util.DprSettings
 import kotlinx.io.*
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -21,13 +21,13 @@ class DprFiles(val appDataDir: String)
         SystemFileSystem.createDirectories(Path(appDataDir+"/"+characterLevelupDir))
     }
 
-    fun getSettings(): Settings {
-        val settings: Settings = Json.decodeFromString(read(settingsPath) ?: "{}")
+    fun getSettings(): DprSettings {
+        val settings: DprSettings = Json.decodeFromString(read(settingsPath) ?: "{}")
         println("settings: $settings")
         return settings
     }
 
-    fun saveSettings(settings: Settings) {
+    fun saveSettings(settings: DprSettings) {
         val settingsString = Json.encodeToString(settings)
         write(settingsString, settingsPath)
     }

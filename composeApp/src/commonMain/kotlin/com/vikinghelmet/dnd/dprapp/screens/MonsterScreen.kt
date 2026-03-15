@@ -10,14 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dprapp.DprUiState
 
 var monster: Monster? = null
 
 fun initMonster(monsterName: String): Boolean {
     try {
-        val thisMonster = Globals.getMonster(monsterName ?: "")
+        val thisMonster = Globals.getMonster(monsterName)
         monster = thisMonster
         return true
     }
@@ -49,7 +49,7 @@ fun DoubleWideRow(label1: String, value1: String, label2: String, value2: String
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
-fun MonsterScreen(dprUiState: DprUiState,
+fun MonsterScreen(settings: DprSettings,
                   onDismiss: () -> Unit,
                   onConfirm: (String) -> Unit)
 {
@@ -66,7 +66,7 @@ fun MonsterScreen(dprUiState: DprUiState,
     var selectedMonsterName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        monsterName = dprUiState.monsterName
+        monsterName = settings.monsterName
 
         if (options.contains(monsterName)) {
             selectedMonsterName = monsterName

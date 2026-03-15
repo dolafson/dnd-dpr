@@ -16,6 +16,8 @@
 package com.vikinghelmet.dnd.dprapp
 
 import androidx.lifecycle.ViewModel
+import com.vikinghelmet.dnd.dpr.util.CharacterListItem
+import com.vikinghelmet.dnd.dpr.util.DprSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,8 +31,8 @@ class DprViewModel : ViewModel() {
     /**
      * Cupcake state for this order
      */
-    private val _uiState = MutableStateFlow(DprUiState())
-    val uiState: StateFlow<DprUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(DprSettings())
+    val uiState: StateFlow<DprSettings> = _uiState.asStateFlow()
 
     /**
      * Set the proximity and TODO: calculate scenarios
@@ -44,9 +46,15 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setCharacterId(characterId: String) {
+    fun setCharacterName(characterName: String) {
         _uiState.update { currentState ->
-            currentState.copy(characterId = characterId)
+            currentState.copy(characterName = characterName)
+        }
+    }
+
+    fun setCharacterList(characterList: MutableList<CharacterListItem>) {
+        _uiState.update { currentState ->
+            currentState.copy(characterList = characterList)
         }
     }
 
@@ -57,7 +65,7 @@ class DprViewModel : ViewModel() {
     }
 
     fun reset() {
-        _uiState.value = DprUiState()
+        _uiState.value = DprSettings()
     }
 
     /*

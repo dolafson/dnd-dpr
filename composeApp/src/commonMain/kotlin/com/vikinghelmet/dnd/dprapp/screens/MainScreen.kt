@@ -12,13 +12,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dprapp.DprUiState
+import com.vikinghelmet.dnd.dpr.util.DprSettings
 
 @Composable
 //@Preview
-fun MainScreen(dprUiState: DprUiState,
+fun MainScreen(settings: DprSettings,
                onCharacterButtonClicked: () -> Unit,
                onMonsterButtonClicked: () -> Unit,
+               onAttackButtonClicked: (Int) -> Unit,
                modifier: Modifier = Modifier
 ) {
         var proximity   by rememberSaveable { mutableStateOf("") }
@@ -28,9 +29,9 @@ fun MainScreen(dprUiState: DprUiState,
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
                 OutlinedTextField(
-                    value = dprUiState.characterId,
+                    value = settings.characterName,
                     onValueChange = { },
-                    label = { Text("DND Beyond URL/ID") },
+                    label = { Text("Character") },
                     readOnly = true,
                     enabled = true,
                     singleLine = true
@@ -44,7 +45,7 @@ fun MainScreen(dprUiState: DprUiState,
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 OutlinedTextField(
-                    value = dprUiState.monsterName,
+                    value = settings.monsterName,
                     onValueChange = { },
                     label = { Text("Monster Name") },
                     readOnly = true,
@@ -74,7 +75,7 @@ fun MainScreen(dprUiState: DprUiState,
                             println(outputText)
                         } else {
                             val proximityInt = if (proximity.isEmpty()) 0 else proximity.toInt()
-                            saveSettings(dprUiState.characterId, dprUiState.monsterName, proximityInt)
+                            onAttackButtonClicked(proximityInt)
 
                             try {
                                 val builder = ScenarioBuilder(character!!, monster!!)

@@ -5,42 +5,47 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dprapp.DprUiState
+import com.vikinghelmet.dnd.dpr.util.CharacterListItem
+import com.vikinghelmet.dnd.dpr.util.DprSettings
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Clock
 
 var character: Character? = null
 
-fun initCharacter(characterId: String) {
-    character = dprFiles.getCharacter(settings.characterId ?: "invalid")
+fun initCharacter(settings: DprSettings) {
+    for (item in settings.characterList) {
+        if (item.name == settings.characterName) {
+            character = dprFiles.getCharacter(item.remoteId)
+            break
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
-fun CharacterScreen(dprUiState: DprUiState,
+fun CharacterScreen(settings: DprSettings,
                     onDismiss: () -> Unit,
                     onConfirm: (String) -> Unit)
 {
-    var characterId by rememberSaveable { mutableStateOf("") }
     var outputText by remember { mutableStateOf("") }
 
-    val options = remember { mutableStateListOf("") }
+    val options = remember { mutableListOf<CharacterListItem>() }
+    var selectedOption = remember { mutableStateOf(CharacterListItem("","","")) }
+
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
 
     LaunchedEffect(Unit) {
         options.clear()
-        options.addAll (dprFiles.getCharacterList())
+        options.addAll (settings.characterList)
 
         println("character list = "+options)
-
-        characterId = dprUiState.characterId
-        println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
+        // println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
     }
 
     Column(
@@ -56,11 +61,8 @@ fun CharacterScreen(dprUiState: DprUiState,
                 onExpandedChange = { expanded = it }
             ) {
                 TextField(
-                    //value = selectedOption,
                     state = textFieldState,
-                    label = { Text("DND Beyond URL/ID") },
-                    // onValueChange = { it: String -> characterId = it },
-                    // onValueChange = { characterId = it },
+                    label = { Text("Select/Add Character") },
                     readOnly = false,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded,
@@ -74,12 +76,16 @@ fun CharacterScreen(dprUiState: DprUiState,
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
+                    //println("ExposedDropdownMenu: options $options")
+
                     options.forEach { option ->
+                        //println("DropdownMenuItem: option $option")
+
                         DropdownMenuItem(
-                            text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(option.name, color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
-                                characterId = option
-                                textFieldState.setTextAndPlaceCursorAtEnd(characterId)
+                                selectedOption.value.copyValues(option)
+                                textFieldState.setTextAndPlaceCursorAtEnd(option.name)
                                 expanded = false
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -92,25 +98,35 @@ fun CharacterScreen(dprUiState: DprUiState,
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(onClick = {
                 // if user selected from menu, load character from local storage
-                if (characterId == textFieldState.text.toString() &&
-                        dprFiles.getCharacterList().contains(characterId))
+                // if (characterId == textFieldState.text.toString() && dprFiles.getCharacterList().contains(characterId))
+                var remoteId: String? = selectedOption.value.remoteId
+                if (remoteId!!.isNotBlank() && dprFiles.getCharacterList().contains(remoteId))
                 {
-                    character = dprFiles.getCharacter(characterId)
+                    character = dprFiles.getCharacter(remoteId)
+                    if (character != null) {
+                        settings.characterName = selectedOption.value.name
+                    }
                 }
                 else {
                     // user hand-entered a characterID / URL ... first check for validity
-                    val id = CmdTest.getCharacterId(textFieldState.text.toString())
-                    if (id != null) {
+                    remoteId = CmdTest.getCharacterId(textFieldState.text.toString())
+                    if (remoteId != null) {
                         // then update the ID, update menu, and fetch from remote storage
                         // on a good fetch, update local storage as well as the menu
-                        characterId = id
                         try {
                             runBlocking {
-                                character = CmdTest.getRemoteCharacter(characterId)
+                                character = CmdTest.getRemoteCharacter(remoteId)
                             }
                             if (character != null) {
-                                dprFiles.saveCharacter(character!!, characterId)
-                                options.add(characterId)
+                                dprFiles.saveCharacter(character!!, remoteId)
+
+                                val name = character!!.characterData.name // TODO: ensure uniqueness ...
+                                val epochSeconds: Long = Clock.System.now().epochSeconds
+                                val item = CharacterListItem(remoteId, remoteId+":"+epochSeconds, name)
+
+                                options.add(item)
+                                settings.characterList.add(item)
+                                settings.characterName = name
                             }
                         } catch (e: Exception) {
                             //println("Error getting character, $e")
@@ -147,7 +163,7 @@ fun CharacterScreen(dprUiState: DprUiState,
         ) {
             TextButton(onClick = onDismiss) { Text("Dismiss") }
             Spacer(Modifier.width(8.dp))
-            Button( onClick = { onConfirm(characterId) }) { Text("OK") }
+            Button( onClick = { onConfirm(selectedOption.value.name) }) { Text("OK") }
         }
     }
 }

@@ -15,23 +15,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vikinghelmet.dnd.dpr.DprFiles
+import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.Settings
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.getDocumentsDirPath
 import dpr.composeapp.generated.resources.Res
 
 val dprFiles = DprFiles(getDocumentsDirPath())
-val settings = Settings()
 
-fun saveSettings(characterId: String, monsterName: String, proximity: Int) {
-    settings.characterId = characterId
-    settings.monsterName = monsterName
-    settings.proximity = proximity
+fun saveSettings(settings: DprSettings) {
     DprFiles(getDocumentsDirPath()).saveSettings(settings)
 }
 
@@ -40,11 +35,9 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                     navController: NavHostController = rememberNavController())
 {
     // Get current back stack entry
-    val backStackEntry by navController.currentBackStackEntryAsState()
+    // val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
-    val currentScreen = ViewType.valueOf(
-        backStackEntry?.destination?.route ?: ViewType.main.name
-    )
+    // val currentScreen = ViewType.valueOf(backStackEntry?.destination?.route ?: ViewType.main.name)
 
     LaunchedEffect(Unit) {
         println("ScreenNavigator: launchedEffect")
@@ -56,18 +49,18 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
 
         dprFiles.init()
         try {
-            settings.copy (other = dprFiles.getSettings())
+            val settings = dprFiles.getSettings()
+            viewModel.setCharacterName(settings.characterName)
+            viewModel.setMonsterName(settings.monsterName)
+            viewModel.setProximity(settings.proximity)
+            viewModel.setCharacterList(settings.characterList)
 
-            viewModel.setCharacterId(settings.characterId ?: "")
-            viewModel.setMonsterName(settings.monsterName ?: "")
-            viewModel.setProximity(settings.proximity ?: 0)
+            initMonster(settings.monsterName)
+            initCharacter(settings)
         }
         catch (e: Exception) {
             println("unable to load settings: $e")
         }
-
-        initMonster(settings.monsterName ?: "")
-        initCharacter(settings.characterId ?: "")
     }
 
     Scaffold(){
@@ -84,38 +77,52 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
         ) {
             composable(route = ViewType.main.name) {
                 MainScreen(
-                    dprUiState = uiState,
+                    settings = uiState,
                     onCharacterButtonClicked = {
                         navController.navigate(ViewType.character.name)
                     },
                     onMonsterButtonClicked = {
                         navController.navigate(ViewType.monster.name)
                     },
+                    onAttackButtonClicked = { dialogSelectedValue ->
+                        println("OK button clicked - attack")
+
+                        viewModel.setProximity(dialogSelectedValue)
+                        saveSettings(viewModel.uiState.value)
+
+                        // no navigation needed here, stay on main screen
+                    },
                     modifier = Modifier.fillMaxSize().padding(16.dp)
                 )
             }
             composable(route = ViewType.character.name) {
                 CharacterScreen(
-                    dprUiState = uiState,
+                    settings = uiState,
                     {
                         navController.navigate(ViewType.main.name)
                     },
                     { dialogSelectedValue ->
                         println("OK button clicked - character")
-                        viewModel.setCharacterId(dialogSelectedValue)
+
+                        viewModel.setCharacterName(dialogSelectedValue)
+                        saveSettings(viewModel.uiState.value)
+
                         navController.navigate(ViewType.main.name)
                     }
                 )
             }
             composable(route = ViewType.monster.name) {
                 MonsterScreen(
-                    dprUiState = uiState,
+                    settings = uiState,
                     {
                         navController.navigate(ViewType.main.name)
                     },
                     { dialogSelectedValue ->
                         println("OK button clicked - monster")
+
                         viewModel.setMonsterName(dialogSelectedValue)
+                        saveSettings(viewModel.uiState.value)
+
                         navController.navigate(ViewType.main.name)
                     })
             }
