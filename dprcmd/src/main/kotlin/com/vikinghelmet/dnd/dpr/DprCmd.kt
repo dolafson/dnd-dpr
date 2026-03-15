@@ -200,7 +200,7 @@ fun main(args : Array<String>) {
             exitEarly = true
         }
         else if (arg.startsWith("test:character")) {
-            println(character!!.toStringBasic() + character.toStringExtra())
+            println(character!!.toStringAll())
             exitEarly = true
         }
         else if (arg.startsWith("test:available")) {

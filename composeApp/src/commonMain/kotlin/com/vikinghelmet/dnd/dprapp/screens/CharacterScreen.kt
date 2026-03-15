@@ -81,7 +81,7 @@ fun loadCharacter(selectedOption: MutableState<CharacterListItem>, text: String,
     }
 
     if (character != null) {
-        return character!!.toStringExtra()
+        return character!!.toStringWeapons()+"\n"+character!!.toStringFeats()
     }
     return ""
 }
@@ -170,7 +170,7 @@ fun CharacterScreen(settings: DprSettings,
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(onClick = {
                 outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings)
-            }) { Text("View") }
+            }) { Text("View/Add") }
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)

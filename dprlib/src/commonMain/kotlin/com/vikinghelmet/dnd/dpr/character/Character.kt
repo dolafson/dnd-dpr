@@ -318,9 +318,17 @@ data class Character(
 
     // ----------------------------------------------------------------------------------------
     // TESTS
+    fun toStringAll(): String {
+        return StringBuilder()
+            .append(toStringBasic()).append("\n")
+            .append(toStringWeapons()).append("\n")
+            .append(toStringFeats()).append("\n")
+            .append(toStringExtra())
+            .toString()
+    }
 
     fun toStringBasic(): String {
-        val buf = StringBuilder("\n")
+        val buf = StringBuilder()
 
 //    println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
         buf.append(Globals.rightPad("ability",15)).append(" ")
@@ -332,9 +340,7 @@ data class Character(
             if (ability == AbilityType.ALL) continue
             val base = getRawAbilityScore(ability)
             val withBonusesAdded = getModifiedAbilityScore(ability)
-            //println ("$ability: base=$base, withBonuses=$mod")
 
-            // println (String.format("  %-15s %3d %8d", ability, base, withBonuses))
             buf.append(Globals.rightPad("$ability",15)).append(" ")
                 .append(Globals.leftPad("$base",5)).append(" ")
                 .append(Globals.leftPad("$withBonusesAdded",5))
@@ -346,40 +352,36 @@ data class Character(
         buf.append ("PB            = "+getProficiencyBonus()).append("\n")
         buf.append ("spell ability = "+getSpellAbilityType()).append("\n")
         buf.append ("spellSaveDC   = "+getSpellSaveDC()).append("\n")
-        buf.append ("\n")
-        /*
-        buf.append ("isLucky       = "+isLucky()).append("\n")
-        buf.append ("isEA          = "+isElvenAccuracy()).append("\n")
-        buf.append ("isGWF         = "+isGreatWeaponFighting()).append("\n")
-        buf.append ("is2014        = "+is2014()).append("\n")
-        buf.append ("\n")
-*/
+        return buf.toString()
+    }
+
+    fun toStringWeapons(): String {
+        val buf = StringBuilder("")
+        for (item in getWeaponList()) {
+            val attackHitBonus = getAttackBonus(item)
+            val attackDamageBonus = getDamageBonus(item, false)
+            buf.append("weapon: $item, hit=+$attackHitBonus, damage=+$attackDamageBonus").append("\n")
+        }
+        return buf.toString()
+    }
+
+    fun toStringFeats(): String {
+        val buf = StringBuilder("")
+        for (feat in characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }) {
+            buf.append ("feat: "+feat.definition.name).append("\n")
+        }
         return buf.toString()
     }
 
     fun toStringExtra(): String {
-        val buf = StringBuilder("\n")
+        val buf = StringBuilder("")
 
-        for (item in getWeaponList()) {
-            val attackHitBonus      = getAttackBonus(item)
-            val attackDamageBonus   = getDamageBonus(item, false)
-            //val baDamageBonus       = getDamageBonus(item, true) // for now, this is always 0
-            //println("$item, attackHitBonus=$attackHitBonus, attackDamageBonus=$attackDamageBonus, baDamageBonus=$baDamageBonus")
-            buf.append("$item, attackHitBonus=$attackHitBonus, attackDamageBonus=$attackDamageBonus").append("\n")
-        }
-
-        buf.append ("\n")
         for (trait in characterData.race.racialTraits) {
             buf.append ("racial trait: "+trait.definition.name).append("\n")
         }
 
         buf.append ("\n")
-        for (feat in characterData.feats) {
-            buf.append ("feat: "+feat.definition.name).append("\n")
-        }
-        buf.append ("\n")
-        buf.append  ("weapon nickname map: "+getWeaponNicknameMap()).append("\n")
-        buf.append  ("spell slots: "+getSpellSlots()).append("\n")
+        buf.append  ("weapon nicknames: "+getWeaponNicknameMap()).append("\n")
 
         val actionNames = (
                 characterData.actions.race.map { it.name } +
@@ -387,8 +389,9 @@ data class Character(
                 characterData.actions.classActions.map { it.name }
                 ).filter { s -> !s.contains("Circle Spell") } // circle spell is garbage data, not really usable
 
-        buf.append ("actions: $actionNames\n")
+        buf.append ("action modifiers: $actionNames\n")
         buf.append ("\n")
+        buf.append  ("spell slots: "+getSpellSlots()).append("\n")
         return buf.toString()
     }
 

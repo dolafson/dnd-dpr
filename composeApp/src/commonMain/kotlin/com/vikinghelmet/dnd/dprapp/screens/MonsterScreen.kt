@@ -153,7 +153,7 @@ fun MonsterScreen(settings: DprSettings,
                 Text((monster?.properties?.dataAcNum ?: "?").toString())
                 Text((monster?.properties?.HP ?: "?"))
                 Text((monster?.properties?.Speed ?: "?"))
-                Text((monster?.properties?.Speed ?: "?"))
+                Text((monster?.properties?.Size ?: "?"))
             }
         }
 
