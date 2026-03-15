@@ -365,9 +365,13 @@ data class Character(
         return buf.toString()
     }
 
+    fun getFeatList(): List<FeatAdded> {
+        return characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }
+    }
+
     fun toStringFeats(): String {
         val buf = StringBuilder("")
-        for (feat in characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }) {
+        for (feat in getFeatList()) {
             buf.append ("feat: "+feat.definition.name).append("\n")
         }
         return buf.toString()

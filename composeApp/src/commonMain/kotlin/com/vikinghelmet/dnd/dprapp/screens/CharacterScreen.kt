@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.character.Character
@@ -208,6 +209,45 @@ fun CharacterScreen(settings: DprSettings,
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
+        if (character != null && character!!.getWeaponList().isNotEmpty())
+        {
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                Column {
+                    Text("Weapon", fontWeight = FontWeight.Bold)
+                    character!!.getWeaponList().distinct().forEach { weapon -> Text(weapon.name) }
+                }
+                Column (modifier = Modifier.padding(start = 20.dp)) {
+                    Text("Hit", fontWeight = FontWeight.Bold)
+                    character!!.getWeaponList().distinct().forEach { weapon -> Text("+"+character!!.getAttackBonus(weapon).toString()) }
+                }
+                Column (modifier = Modifier.padding(start = 20.dp)) {
+                    Text("Damage", fontWeight = FontWeight.Bold)
+                    character!!.getWeaponList().distinct().forEach { weapon -> Text(
+                        if (character!!.getDamageBonus(weapon, false) == 0) {
+                            weapon.damage!!
+                        } else {
+                            // TODO: BA
+                            weapon.damage!! +" + " +character!!.getDamageBonus(weapon, false).toString()
+                        }
+                    ) }
+                }
+            }
+        }
+
+        if (character != null && character!!.getFeatList().isNotEmpty()) {
+
+            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
+
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                Column {
+                    Text("Feat", fontWeight = FontWeight.Bold)
+                    character!!.getFeatList().forEach { feat -> Text(feat.definition.name) }
+                }
+            }
+            // HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
+        }
+
+/*
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
             OutlinedTextField(
@@ -222,6 +262,7 @@ fun CharacterScreen(settings: DprSettings,
                 modifier = Modifier.heightIn(100.dp) // Overriding defaults
             )
         }
+ */
 
         Row(
             modifier = Modifier.fillMaxWidth(),
