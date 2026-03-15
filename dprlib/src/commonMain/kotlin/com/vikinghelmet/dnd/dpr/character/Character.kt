@@ -127,6 +127,11 @@ data class Character(
     // ----------------------------------------------------------------------------------------
     // COMBAT MODIFIERS
 
+    fun getSpellAbilityType(): String {
+        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
+        return if (abilityId == null) "n/a" else AbilityType.entries[abilityId].name
+    }
+
     fun getSpellAbilityBonusWithoutPB(): Int {
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
         return if (abilityId == null) 0 else {
@@ -182,16 +187,6 @@ data class Character(
             if (value.typeId == 8 && value.valueId != null && value.value != null) result.put(value.valueId, ""+value.value)
         }
         return result
-    }
-
-
-    fun getWeaponNames(): List<String> {
-        val list = mutableListOf<String>()
-        if (characterData.inventory == null) return list
-        for (item in characterData.inventory) {
-            if (item.definition.filterType == "Weapon") list.add(item.definition.name)
-        }
-        return list;
     }
 
     fun getWeaponList(): List<Weapon> {
@@ -324,11 +319,7 @@ data class Character(
     // ----------------------------------------------------------------------------------------
     // TESTS
 
-    fun prettyPrintCharacter() {
-        println(toHumanReadableString())
-    }
-
-    fun toHumanReadableString(): String {
+    fun toStringBasic(): String {
         val buf = StringBuilder("\n")
 
 //    println (String.format("%-15s %-5s %s\n", "ability", "base", "withBonusesAdded"))
@@ -350,20 +341,24 @@ data class Character(
                 .append("\n")
         }
 
-        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
-        val spellAbilityType = if (abilityId == null) "n/a" else AbilityType.entries[abilityId]
-
         buf.append ("\n")
         buf.append ("level         = "+getLevel()).append("\n")
         buf.append ("PB            = "+getProficiencyBonus()).append("\n")
-        buf.append ("spell ability = "+spellAbilityType).append("\n")
+        buf.append ("spell ability = "+getSpellAbilityType()).append("\n")
         buf.append ("spellSaveDC   = "+getSpellSaveDC()).append("\n")
         buf.append ("\n")
+        /*
         buf.append ("isLucky       = "+isLucky()).append("\n")
         buf.append ("isEA          = "+isElvenAccuracy()).append("\n")
         buf.append ("isGWF         = "+isGreatWeaponFighting()).append("\n")
         buf.append ("is2014        = "+is2014()).append("\n")
         buf.append ("\n")
+*/
+        return buf.toString()
+    }
+
+    fun toStringExtra(): String {
+        val buf = StringBuilder("\n")
 
         for (item in getWeaponList()) {
             val attackHitBonus      = getAttackBonus(item)

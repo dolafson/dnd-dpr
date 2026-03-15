@@ -21,7 +21,7 @@ data class CharacterData(
     val username: String,
     val id: Int? = 0,
     val name: String,
-    val characterValues: List<com.vikinghelmet.dnd.dpr.character.CharacterValues>? = null,
+    val characterValues: List<CharacterValues>? = null,
     val classes: List<CharacterClass>,
     val inventory: ArrayList<InventoryItem>? = null,
     val modifiers: Modifiers,

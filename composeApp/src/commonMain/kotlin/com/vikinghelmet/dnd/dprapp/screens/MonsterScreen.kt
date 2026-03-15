@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.DprSettings
@@ -30,7 +29,7 @@ fun initMonster(monsterName: String): Boolean {
 @Composable
 fun FieldValue(fieldName: String, value: String) {
     //println("FieldValue, formFields: $formFields")
-    Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+    Row(modifier = Modifier.padding(start = 20.dp)) {//}, top = 10.dp)) {
         Text(fieldName)
         Text(value ?: "x", modifier = Modifier.padding(start = 20.dp))
     }
@@ -38,7 +37,7 @@ fun FieldValue(fieldName: String, value: String) {
 
 @Composable
 fun DoubleWideRow(label1: String, value1: String, label2: String, value2: String) {
-    Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+    Row(modifier = Modifier.padding(start = 20.dp)) { //, top = 10.dp)) {
         Text(label1)
         Text(value1, modifier = Modifier.padding(start = 20.dp))
 
@@ -129,7 +128,7 @@ fun MonsterScreen(settings: DprSettings,
             }) { Text("View") }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp, color = Color.Blue)
+        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
         FieldValue("Monster Name", selectedMonsterName)
         FieldValue("Armor Class", (monster?.properties?.dataAcNum ?: "?").toString())
@@ -137,7 +136,7 @@ fun MonsterScreen(settings: DprSettings,
         FieldValue("Speed", (monster?.properties?.Speed ?: "?"))
         FieldValue("Size", (monster?.properties?.Size ?: "?"))
 
-        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp, color = Color.Blue)
+        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
         DoubleWideRow(
             "STR",(monster?.properties?.STR ?: "?").toString(),
