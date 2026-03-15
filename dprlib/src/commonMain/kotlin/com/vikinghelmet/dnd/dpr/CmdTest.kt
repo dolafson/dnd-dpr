@@ -10,6 +10,8 @@ import io.ktor.client.statement.*
 import kotlinx.serialization.json.Json
 
 object CmdTest {
+    const val characterUrlPrefix = "https://character-service.dndbeyond.com/character/v5/character/"
+
     var client: HttpClient? = null
 
     fun getHttpClient(): HttpClient {
@@ -29,15 +31,17 @@ object CmdTest {
     }
 
     fun getCharacterId(arg: String): String? {
-        return if (arg.contains("/")) arg.substringAfter("/characters/")
+        return if (arg.contains("/")) arg.substringAfterLast("/")
         else if (arg.contains(":")) arg.split(":")[1]
         else if (arg.toIntOrNull() != null) arg
         else null
     }
 
     suspend fun getRemoteCharacter(id: String): Character? {
-        val charJson = getRequest("https://character-service.dndbeyond.com/character/v5/character/" + id) ?: "{}"
-        //println ("charJson = "+charJson)
-        return Json.decodeFromString(charJson)
+        return getRemoteCharacterByUrl(characterUrlPrefix + id)
+    }
+
+    suspend fun getRemoteCharacterByUrl(url: String): Character? {
+        return Json.decodeFromString(getRequest(url))
     }
 }

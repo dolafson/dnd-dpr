@@ -25,7 +25,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 data class Character(
     @SerialName("data")
-    val characterData: com.vikinghelmet.dnd.dpr.character.CharacterData,
+    val characterData: CharacterData,
     val id: Int? = null,
     val message: String? = null,
     val success: Boolean? = null
@@ -228,8 +228,13 @@ data class Character(
     private fun transformSpellList(input: List<PreparedSpell>): List<Spell> {
         val result = mutableListOf<Spell>()
         for (preparedSpell in input) {
-            val spell = Globals.getSpell(preparedSpell.definition.name, is2014())
-            result.add(spell)
+            try {
+                val spell = Globals.getSpell(preparedSpell.definition.name, is2014())
+                result.add(spell)
+            }
+            catch (e: Exception) {
+                println("unable to add preparedSpell $preparedSpell: $e")
+            }
         }
         return result
     }

@@ -59,15 +59,21 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
 
             // bonus action spells: mostly for ranger and paladin
             for (bonusName in bonusActionNames) {
-                val bonus = Globals.getSpell(bonusName, character.is2014())
-                turnOptions.add(
-                    Turn(
-                        attacks = listOf(
-                        //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
-                        Attack(monster = monster, action = action),
-                        Attack(monster = monster, action = bonus, isBonusAction = true),
+                try {
+                    val bonus = Globals.getSpell(bonusName, character.is2014())
+                    turnOptions.add(
+                        Turn(
+                            attacks = listOf(
+                                //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
+                                Attack(monster = monster, action = action),
+                                Attack(monster = monster, action = bonus, isBonusAction = true),
+                            )
+                        )
                     )
-                    ))
+                }
+                catch (e: Exception) {
+                    println("unable to add bonus action $bonusName: $e")
+                }
             }
         }
         return turnOptions

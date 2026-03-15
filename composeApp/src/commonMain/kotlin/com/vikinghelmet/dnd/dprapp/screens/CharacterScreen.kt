@@ -98,7 +98,6 @@ fun CharacterScreen(settings: DprSettings,
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(onClick = {
                 // if user selected from menu, load character from local storage
-                // if (characterId == textFieldState.text.toString() && dprFiles.getCharacterList().contains(characterId))
                 var remoteId: String? = selectedOption.value.remoteId
                 if (remoteId!!.isNotBlank() && dprFiles.getCharacterList().contains(remoteId))
                 {
@@ -108,16 +107,25 @@ fun CharacterScreen(settings: DprSettings,
                     }
                 }
                 else {
+                    val urlOrId = textFieldState.text.toString()
                     // user hand-entered a characterID / URL ... first check for validity
-                    remoteId = CmdTest.getCharacterId(textFieldState.text.toString())
+                    remoteId = CmdTest.getCharacterId(urlOrId)
                     if (remoteId != null) {
                         // then update the ID, update menu, and fetch from remote storage
                         // on a good fetch, update local storage as well as the menu
                         try {
                             runBlocking {
-                                character = CmdTest.getRemoteCharacter(remoteId)
+                                character = if (urlOrId.contains("http") && !urlOrId.contains("dndbeyond")) {
+                                    // content hosted somewhere other than dndbeyond
+                                    CmdTest.getRemoteCharacterByUrl(urlOrId)
+                                }
+                                else {
+                                    // default: dndbeyond
+                                    CmdTest.getRemoteCharacter(remoteId!!)
+                                }
                             }
                             if (character != null) {
+                                remoteId = character!!.characterData.id.toString()
                                 dprFiles.saveCharacter(character!!, remoteId)
 
                                 val name = character!!.characterData.name // TODO: ensure uniqueness ...

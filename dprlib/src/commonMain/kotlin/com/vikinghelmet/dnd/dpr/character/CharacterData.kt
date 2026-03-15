@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 data class CharacterData(
     val username: String,
+    val id: Int? = 0,
     val name: String,
     val characterValues: List<com.vikinghelmet.dnd.dpr.character.CharacterValues>? = null,
     val classes: List<CharacterClass>,
