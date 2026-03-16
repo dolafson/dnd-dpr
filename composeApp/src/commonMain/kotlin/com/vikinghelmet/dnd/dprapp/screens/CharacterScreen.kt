@@ -87,6 +87,13 @@ fun loadCharacter(selectedOption: MutableState<CharacterListItem>, text: String,
     return ""
 }
 
+fun levelChanged(newValue: Int) {
+    println("Level changed to $newValue")
+}
+fun statChanged(newValue: Int) {
+    println("Stat changed to $newValue")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
@@ -101,6 +108,8 @@ fun CharacterScreen(settings: DprSettings,
 
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
+
+    val levelExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         options.clear()
@@ -192,7 +201,14 @@ fun CharacterScreen(settings: DprSettings,
                 // currently unable to calculate: AC, HP
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                Text((character?.getLevel() ?: "?" ).toString())
+                if (character == null) {
+                    Text("?")
+                }
+                else {
+                    val level = character!!.getLevel()
+                    NumericMenu(level, 20, level, { levelChanged(it) })
+                }
+
                 Text((character?.getProficiencyBonus() ?: "?" ).toString())
                 Text((character?.getSpellSaveDC() ?: "?" ).toString())
                 Text((character?.getSpellAbilityType() ?: "?" ))
@@ -207,7 +223,8 @@ fun CharacterScreen(settings: DprSettings,
             character?.getModifiedAbilityScore(AbilityType.Constitution),
             character?.getModifiedAbilityScore(AbilityType.Intelligence),
             character?.getModifiedAbilityScore(AbilityType.Wisdom),
-            character?.getModifiedAbilityScore(AbilityType.Charisma)
+            character?.getModifiedAbilityScore(AbilityType.Charisma),
+            true, { statChanged(it) }
         )
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)

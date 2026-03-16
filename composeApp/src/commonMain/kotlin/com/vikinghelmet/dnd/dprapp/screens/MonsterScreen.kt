@@ -27,28 +27,31 @@ fun initMonster(monsterName: String): Boolean {
 }
 
 @Composable
-fun StatBlock(str: Int?, dex: Int?, con: Int?, int: Int?, wis: Int?, cha: Int?) {
+fun StatHalfBlock(label1: String, label2: String, label3: String,
+                  value1: Int?, value2: Int?, value3: Int?,
+                  modifier1: Modifier, modifier2: Modifier,
+                  editable: Boolean, onValueChanged: (Int) -> Unit)
+{
+    Column(modifier = modifier1) {
+        Text(label1)
+        Text(label2)
+        Text(label3)
+    }
+    Column(modifier = modifier2) {
+        if (value1 == null) Text("?") else if (!editable) Text(value1.toString()) else NumericMenu(value1,20, value1, onValueChanged)
+        if (value2 == null) Text("?") else if (!editable) Text(value2.toString()) else NumericMenu(value2,20, value2, onValueChanged)
+        if (value3 == null) Text("?") else if (!editable) Text(value3.toString()) else NumericMenu(value3,20, value3, onValueChanged)
+    }
+}
+
+@Composable
+fun StatBlock(str: Int?, dex: Int?, con: Int?, int: Int?, wis: Int?, cha: Int?, editable: Boolean, onValueChanged: (Int) -> Unit) {
     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-        Column {
-            Text("STR")
-            Text("DEX")
-            Text("CON")
-        }
-        Column(modifier = Modifier.padding(start = 20.dp)) {
-            Text((str ?: "?").toString())
-            Text((dex ?: "?").toString())
-            Text((con ?: "?").toString())
-        }
-        Column(modifier = Modifier.padding(start = 60.dp)) {
-            Text("INT")
-            Text("WIS")
-            Text("CHA")
-        }
-        Column(modifier = Modifier.padding(start = 20.dp)) {
-            Text((int ?: "?").toString())
-            Text((wis ?: "?").toString())
-            Text((cha ?: "?").toString())
-        }
+        StatHalfBlock("STR","DEX","CON",str,dex,con,
+            Modifier.padding(start = 0.dp), Modifier.padding(start = 20.dp), editable, onValueChanged)
+
+        StatHalfBlock("INT","WIS","CHA",int,wis,cha,
+            Modifier.padding(start = 60.dp), Modifier.padding(start = 20.dp), editable, onValueChanged)
     }
 }
 
@@ -160,7 +163,7 @@ fun MonsterScreen(settings: DprSettings,
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
         StatBlock(monster?.properties?.STR, monster?.properties?.DEX, monster?.properties?.CON,
-            monster?.properties?.INT, monster?.properties?.WIS, monster?.properties?.CHA)
+            monster?.properties?.INT, monster?.properties?.WIS, monster?.properties?.CHA, false, {})
 
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
