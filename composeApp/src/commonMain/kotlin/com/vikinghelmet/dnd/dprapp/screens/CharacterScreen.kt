@@ -169,9 +169,12 @@ fun CharacterScreen(settings: DprSettings,
         }
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-            Button(onClick = {
+            Button(
+                enabled = (textFieldState.text.isNotBlank() &&
+                            !options.map { op -> op.name }.contains(textFieldState.text.toString())),
+                onClick = {
                 outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings)
-            }) { Text("View/Add") }
+            }) { Text("Add") }
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
