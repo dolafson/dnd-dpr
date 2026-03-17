@@ -207,19 +207,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 // currently unable to calculate: AC, HP
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                val tmpCharacter = viewModel.getCurrentCharacter()
-                if (tmpCharacter == null) {
-                    Text("?")
-                } else {
-                    val min = tmpCharacter.getLevel()
-                    NumericMenu("level", viewModel) { level = it; modified = true }
-                    /*
-                                        Row() {
-                                            Text(min.toString(), modifier = Modifier.padding(end = 20.dp))
-                                            NumericMenu(0, 20 - min, level, { level = it; modified = true })
-                                        } */
-                }
-
+                NumericMenu("level", viewModel.getNumericRangeMap(), { level = it; modified = true })
                 Text((character?.getProficiencyBonus() ?: "?" ).toString())
                 Text((character?.getSpellSaveDC() ?: "?" ).toString())
                 Text((character?.getSpellAbilityType() ?: "?" ))
@@ -230,10 +218,10 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         if (character != null) {
             println ("redraw stats, statBlock = $statBlock")
-            StatBlockDisplay(viewModel) { newValue ->
+            StatBlockDisplay(viewModel, { newValue ->
                 modified = true
                 println("stat changed: $newValue")
-            }
+            } )
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)

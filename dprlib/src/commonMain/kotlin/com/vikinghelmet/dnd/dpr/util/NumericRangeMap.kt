@@ -11,6 +11,10 @@ class NumericRange(val min: Int, val max: Int, val current: Int? = min) {
     }
 }
 
-class NumericRangeMap(val isEditable: Boolean, val map: Map<String, NumericRange> = mutableMapOf())
+class NumericRangeMap(val isEditable: Boolean, val map: Map<String, NumericRange> = mutableMapOf()) {
+    override fun toString(): String {
+        return map.toString()
+    }
+}
 
 // value class NumericRangeMap(val value: Map<String, NumericRange>)

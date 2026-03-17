@@ -8,13 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 
 
 @Composable
 fun StatHalfBlock(a1: AbilityType, a2: AbilityType, a3: AbilityType,
                   modifier1: Modifier, modifier2: Modifier,
-                  viewModel: DprViewModel, onValueChanged: (Int) -> Unit)
+                  numericRangeMap: NumericRangeMap, onValueChanged: (Int) -> Unit)
 {
     Column(modifier = modifier1) {
         Text(a1.toShortName())  // short name for display, full name for stat lookup
@@ -22,9 +23,9 @@ fun StatHalfBlock(a1: AbilityType, a2: AbilityType, a3: AbilityType,
         Text(a3.toShortName())
     }
     Column(modifier = modifier2) {
-        NumericMenu(a1.name, viewModel, onValueChanged)
-        NumericMenu(a2.name, viewModel, onValueChanged)
-        NumericMenu(a3.name, viewModel, onValueChanged)
+        NumericMenu(a1.name, numericRangeMap, onValueChanged)
+        NumericMenu(a2.name, numericRangeMap, onValueChanged)
+        NumericMenu(a3.name, numericRangeMap, onValueChanged)
     }
 }
 
@@ -33,10 +34,10 @@ fun StatBlockDisplay(viewModel: DprViewModel, onValueChanged: (Int) -> Unit)
 {
     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
         StatHalfBlock( AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution,
-            Modifier.padding(start = 0.dp), Modifier.padding(start = 20.dp), viewModel, onValueChanged,)
+            Modifier.padding(start = 0.dp), Modifier.padding(start = 20.dp), viewModel.getNumericRangeMap(), onValueChanged,)
 
         StatHalfBlock(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma,
-            Modifier.padding(start = 60.dp), Modifier.padding(start = 20.dp), viewModel, onValueChanged,)
+            Modifier.padding(start = 60.dp), Modifier.padding(start = 20.dp), viewModel.getNumericRangeMap(), onValueChanged,)
     }
 }
 

@@ -13,64 +13,41 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
-import com.vikinghelmet.dnd.dprapp.DprViewModel
 
 @Composable
 fun NumericMenu(
     statKey: String,
-    viewModel: DprViewModel,
+    rangeMap: NumericRangeMap,
     onValueChanged: (Int) -> Unit
 ) {
     Box(modifier = Modifier
         .padding(horizontal = 0.dp)
         .border(2.dp, MaterialTheme.colorScheme.primary))
     {
-        var expanded by remember { mutableStateOf(false) }
-        //val options = (min..max).toList()
+        val rememberedRangeMap = rangeMap // by remember { mutableStateOf(rangeMap) }
 
-        //val statSource = viewModel.getStats()
-        val statSource = viewModel.uiState.collectAsState().value.statSource
-        val rangeMap = statSource?.getNumericRangeMap() ?: NumericRangeMap(false, emptyMap())
-
-        val isEditable = rangeMap.isEditable
-        val numericRange = rangeMap.map[statKey]
-
-        var selectedOption by remember { mutableStateOf<Int?>(null) }
-
-        var displayText by remember { mutableStateOf(
-            if (selectedOption != null) selectedOption.toString()
-                else if (numericRange == null) "?" else numericRange.current.toString())
+        if (!rememberedRangeMap.isEditable ||
+            rememberedRangeMap.map.isEmpty() ||
+            !rememberedRangeMap.map.containsKey(statKey))
+        {
+            Text("?", modifier = Modifier.padding(horizontal = 5.dp))
         }
+        else {
+            var expanded by remember { mutableStateOf(false) }
 
-        /*
-        var displayText by remember {
-            mutableStateOf(
-                if (numericRange == null) "?" else numericRange.current.toString()
-            )
-        }
-*/
-       // println("NumericMenu: statKey: $statKey, range = $numericRange")
-        /*
-        LaunchedEffect(Unit) {
-            println("NumericMenu: LaunchedEffect: statKey: $statKey, range = $numericRange")
+            // initialize selected to null when we get a new range map ...
+            var selectedOption by remember(rememberedRangeMap) { mutableStateOf<Int?>(null) }
 
-            displayText = if (numericRange == null) "?" else numericRange.current.toString()
-        }
-*/
-        key(numericRange) {
-            displayText =
+            var displayText by remember(selectedOption,rememberedRangeMap) { mutableStateOf(
                 if (selectedOption != null) selectedOption.toString()
-                else if (numericRange == null) "?" else numericRange.current.toString()
-            
-            println("inside key, should redraw: statKey: $statKey, range = $numericRange, selectedOption=$selectedOption, displayText: $displayText")
+                    else rememberedRangeMap.map[statKey]!!.current.toString())
+            }
+
+            println ("NumericMenu: statKey=$statKey, displayText = $displayText, selectedOption=$selectedOption, rangeMap=$rangeMap")
 
             Text(displayText, modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp))
 
-        }
-        //Text("$selectedOption", modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp))
-
-        if (isEditable && numericRange != null) {
-            val options = (numericRange.min..numericRange.max).toList()
+            val options = (rememberedRangeMap.map[statKey]!!.min..rememberedRangeMap.map[statKey]!!.max).toList()
 
             DropdownMenu(
                 expanded = expanded,

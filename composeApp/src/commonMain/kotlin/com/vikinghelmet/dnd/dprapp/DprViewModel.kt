@@ -52,14 +52,24 @@ class DprViewModel : ViewModel() {
 
     fun getCurrentCharacter(): Character? { return _uiState.value.currentCharacter }
     fun getCurrentMonster(): Monster? { return _uiState.value.currentMonster }
-
+/*
     fun getStats(): NumericRangeMap {
         return _uiState.value.statSource?.getNumericRangeMap() ?: NumericRangeMap(false,emptyMap())
     }
 
-    fun setStatSource(fromCharacter: Boolean) {
+    fun setStats(fromCharacter: Boolean) {
         _uiState.update { currentState ->
             currentState.copy(statSource = if (fromCharacter) _uiState.value.currentCharacter else _uiState.value.currentMonster)
+        }
+    }
+*/
+    fun getNumericRangeMap(): NumericRangeMap {
+        return _uiState.value.numericRangeMap
+    }
+
+    fun setNumericRangeMap(numericRangeMap: NumericRangeMap) {
+        _uiState.update { currentState ->
+            currentState.copy(numericRangeMap = numericRangeMap)
         }
     }
 
@@ -80,14 +90,19 @@ class DprViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(currentCharacter = currentCharacter)
         }
-        setStatSource(true)
+        if (currentCharacter != null) {
+            setNumericRangeMap (currentCharacter.getNumericRangeMap())
+        }
     }
 
     fun setCurrentMonster(currentMonster: Monster?) {
         _uiState.update { currentState ->
             currentState.copy(currentMonster = currentMonster)
         }
-        setStatSource(false)
+        if (currentMonster != null) {
+            setNumericRangeMap (currentMonster.getNumericRangeMap())
+        }
+//        setStats(false)
     }
 
     fun setCharacterList(characterList: MutableList<CharacterListItem>) {
