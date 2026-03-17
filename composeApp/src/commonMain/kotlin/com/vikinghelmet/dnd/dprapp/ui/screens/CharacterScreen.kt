@@ -9,13 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.modified.CharacterOverrides
 import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.ui.NumericMenu
-import com.vikinghelmet.dnd.dprapp.ui.StatBlockDisplay
 import com.vikinghelmet.dnd.dprapp.ui.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -218,10 +218,32 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         if (character != null) {
             println ("redraw stats, statBlock = $statBlock")
-            StatBlockDisplay(viewModel, { newValue ->
-                modified = true
-                println("stat changed: $newValue")
-            } )
+            val rangeMap =viewModel.getNumericRangeMap()
+
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
+            {
+                Column(modifier = Modifier.padding(start = 0.dp)) {
+                    Text(AbilityType.Strength.toShortName())  // short name for display, full name for stat lookup
+                    Text(AbilityType.Dexterity.toShortName())
+                    Text(AbilityType.Constitution.toShortName())
+                }
+                Column(modifier = Modifier.padding(start = 20.dp)) {
+                    NumericMenu(AbilityType.Strength.name, rangeMap, {})
+                    NumericMenu(AbilityType.Dexterity.name, rangeMap, {})
+                    NumericMenu(AbilityType.Constitution.name, rangeMap, {})
+                }
+                Column(modifier = Modifier.padding(start = 60.dp)) {
+                    Text(AbilityType.Intelligence.toShortName())
+                    Text(AbilityType.Wisdom.toShortName())
+                    Text(AbilityType.Charisma.toShortName())
+                }
+                Column(modifier = Modifier.padding(start = 20.dp)) {
+                    NumericMenu(AbilityType.Intelligence.name, rangeMap, {})
+                    NumericMenu(AbilityType.Wisdom.name, rangeMap, {})
+                    NumericMenu(AbilityType.Charisma.name, rangeMap, {})
+                }
+            }
+
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
