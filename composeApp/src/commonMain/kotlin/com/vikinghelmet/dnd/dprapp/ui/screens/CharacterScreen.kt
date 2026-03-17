@@ -218,6 +218,8 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         val rangeMap =viewModel.getNumericRangeMap()
 
+        // NOTE: resist the urge to refactor this stat block into common code shared with MonsterScreen
+        // that refactoring only leads to misery and woe (mismanaged composable state)
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
         {
             Column(modifier = Modifier.padding(start = 0.dp)) {

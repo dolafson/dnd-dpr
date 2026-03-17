@@ -132,7 +132,8 @@ fun MonsterScreen(viewModel: DprViewModel,
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
-
+        // NOTE: resist the urge to refactor this stat block into common code shared with CharacterScreen
+        // that refactoring only leads to misery and woe (mismanaged composable state)
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
         {
             Column(modifier = Modifier.padding(start = 0.dp)) {
