@@ -23,6 +23,7 @@ object Loader {
         }
         catch (e: Exception) {
             println("unable to find monster with name = $name, $e")
+            e.printStackTrace()
             return null
         }
     }

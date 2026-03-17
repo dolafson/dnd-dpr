@@ -8,12 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
-import com.vikinghelmet.dnd.dprapp.ui.StatBlockDisplay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,11 +35,15 @@ fun MonsterScreen(viewModel: DprViewModel,
     var selectedMonsterName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        viewModel.setCurrentMonster(viewModel.getCurrentMonster())
+        println("main monster: "+viewModel.getMainMonster())
 
-        // monsterName = settings.monsterName
-        monster = Loader.getMonster(monsterName)
+        viewModel.setCurrentMonster(viewModel.getMainMonster())
+        println("current monster: "+viewModel.getCurrentMonster())
+
         monsterName = viewModel.getCurrentMonster()?.name ?: ""
+        println("monsterName: $monsterName")
+
+        monster = Loader.getMonster(monsterName)
 
         if (options.contains(monsterName)) {
             selectedMonsterName = monsterName
@@ -96,27 +98,8 @@ fun MonsterScreen(viewModel: DprViewModel,
                 }
             }
         }
-/*
-        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-            Button(onClick = {
-                // if these two fields don't match, take the one from the text field (if valid) ...
-                // TODO: confirm if this is still needed
-                val text = textFieldState.text.toString()
-                if (monsterName != text && options.contains(text)) {
-                    println("field mismatch, forcing monsterName to text value")
-                    monsterName = text
-                }
 
-                println("onClick, monsterName = $monsterName")
-                monster = Loader.getMonster(monsterName)
-                if (monster != null) { // TODO: allow selected = null, to force fields to clear ?
-                    selectedMonsterName = monsterName
-                    viewModel.setCurrentMonster(monster)
-                }
 
-            }) { Text("View") }
-        }
-*/
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
@@ -149,10 +132,31 @@ fun MonsterScreen(viewModel: DprViewModel,
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
-        val stats = StatBlock(monster?.properties?.STR ?: 0, monster?.properties?.DEX?: 0, monster?.properties?.CON?: 0,
-            monster?.properties?.INT?: 0, monster?.properties?.WIS?: 0, monster?.properties?.CHA?: 0)
 
-        StatBlockDisplay(viewModel) {}
+        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
+        {
+            Column(modifier = Modifier.padding(start = 0.dp)) {
+                Text("STR")
+                Text("DEX")
+                Text("CON")
+            }
+            Column(modifier = Modifier.padding(start = 20.dp)) {
+                Text(text = (monster?.properties?.STR ?: "?").toString())
+                Text(text = (monster?.properties?.DEX ?: "?").toString())
+                Text(text = (monster?.properties?.CON ?: "?").toString())
+            }
+            Column(modifier = Modifier.padding(start = 60.dp)) {
+                Text("INT")
+                Text("WIS")
+                Text("CHA")
+            }
+            Column(modifier = Modifier.padding(start = 20.dp)) {
+                Text(text = (monster?.properties?.INT ?: "?").toString())
+                Text(text = (monster?.properties?.WIS ?: "?").toString())
+                Text(text = (monster?.properties?.CHA ?: "?").toString())
+            }
+        }
+
 
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 50.dp),

@@ -216,34 +216,30 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
-        if (character != null) {
-            println ("redraw stats, statBlock = $statBlock")
-            val rangeMap =viewModel.getNumericRangeMap()
+        val rangeMap =viewModel.getNumericRangeMap()
 
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
-            {
-                Column(modifier = Modifier.padding(start = 0.dp)) {
-                    Text(AbilityType.Strength.toShortName())  // short name for display, full name for stat lookup
-                    Text(AbilityType.Dexterity.toShortName())
-                    Text(AbilityType.Constitution.toShortName())
-                }
-                Column(modifier = Modifier.padding(start = 20.dp)) {
-                    NumericMenu(AbilityType.Strength.name, rangeMap, {})
-                    NumericMenu(AbilityType.Dexterity.name, rangeMap, {})
-                    NumericMenu(AbilityType.Constitution.name, rangeMap, {})
-                }
-                Column(modifier = Modifier.padding(start = 60.dp)) {
-                    Text(AbilityType.Intelligence.toShortName())
-                    Text(AbilityType.Wisdom.toShortName())
-                    Text(AbilityType.Charisma.toShortName())
-                }
-                Column(modifier = Modifier.padding(start = 20.dp)) {
-                    NumericMenu(AbilityType.Intelligence.name, rangeMap, {})
-                    NumericMenu(AbilityType.Wisdom.name, rangeMap, {})
-                    NumericMenu(AbilityType.Charisma.name, rangeMap, {})
-                }
+        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
+        {
+            Column(modifier = Modifier.padding(start = 0.dp)) {
+                Text(AbilityType.Strength.toShortName())  // short name for display, full name for stat lookup
+                Text(AbilityType.Dexterity.toShortName())
+                Text(AbilityType.Constitution.toShortName())
             }
-
+            Column(modifier = Modifier.padding(start = 20.dp)) {
+                NumericMenu(AbilityType.Strength.name, rangeMap, {})
+                NumericMenu(AbilityType.Dexterity.name, rangeMap, {})
+                NumericMenu(AbilityType.Constitution.name, rangeMap, {})
+            }
+            Column(modifier = Modifier.padding(start = 60.dp)) {
+                Text(AbilityType.Intelligence.toShortName())
+                Text(AbilityType.Wisdom.toShortName())
+                Text(AbilityType.Charisma.toShortName())
+            }
+            Column(modifier = Modifier.padding(start = 20.dp)) {
+                NumericMenu(AbilityType.Intelligence.name, rangeMap, {})
+                NumericMenu(AbilityType.Wisdom.name, rangeMap, {})
+                NumericMenu(AbilityType.Charisma.name, rangeMap, {})
+            }
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
