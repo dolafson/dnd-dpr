@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
 import com.vikinghelmet.dnd.dpr.util.DprSettings
+import com.vikinghelmet.dnd.dpr.util.HasNumericRangeMap
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,6 +19,9 @@ data class DprUiState(
     // read-write fields on other screens
     var currentCharacter: Character? = null,
     var currentMonster: Monster? = null,
+
+    // the source varies with the screen currently viewed - character or monster
+    var statSource: HasNumericRangeMap? = null,
 
     // (modifiable) drop-down menu on character screen
     var characterList: MutableList<CharacterListItem> = mutableListOf(),

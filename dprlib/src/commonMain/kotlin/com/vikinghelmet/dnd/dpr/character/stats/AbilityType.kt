@@ -9,8 +9,12 @@ enum class AbilityType {
     Wisdom,
     Charisma;
 
+    fun toShortName(): String {
+        return name.uppercase().substring(0,3)
+    }
+
     companion object {
-        fun fromShortName(shortName: String): com.vikinghelmet.dnd.dpr.character.stats.AbilityType? {
+        fun fromShortName(shortName: String): AbilityType? {
             return entries.firstOrNull { it.name.lowercase().startsWith(shortName.lowercase()) }
         }
     }

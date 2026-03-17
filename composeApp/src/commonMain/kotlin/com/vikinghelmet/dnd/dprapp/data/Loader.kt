@@ -60,19 +60,14 @@ object Loader {
         return result
     }
 
-    fun addCharacter(selectedOption: MutableState<CharacterListItem>, urlOrId: String): Character?
+    fun addCharacter(urlOrId: String): Character?
     {
-        var result: Character? = getCharacter(selectedOption)
+        var result: Character? = null
+        var remoteId: String? = CmdTest.getCharacterId(urlOrId)
 
-        if (result != null) {
-            return result
-        }
-        var remoteId: String? = selectedOption.value.remoteId
-
-        println("loadCharacter: URL or ID")
+        println("addCharacter: urlOrId = $urlOrId")
 
         // user hand-entered a characterID / URL ... first check for validity
-        remoteId = CmdTest.getCharacterId(urlOrId)
         if (remoteId == null) {
             return null
         }

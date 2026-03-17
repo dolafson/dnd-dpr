@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
+import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,6 +53,16 @@ class DprViewModel : ViewModel() {
     fun getCurrentCharacter(): Character? { return _uiState.value.currentCharacter }
     fun getCurrentMonster(): Monster? { return _uiState.value.currentMonster }
 
+    fun getStats(): NumericRangeMap {
+        return _uiState.value.statSource?.getNumericRangeMap() ?: NumericRangeMap(false,emptyMap())
+    }
+
+    fun setStatSource(fromCharacter: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(statSource = if (fromCharacter) _uiState.value.currentCharacter else _uiState.value.currentMonster)
+        }
+    }
+
     fun setMainCharacter(mainCharacter: Character?) {
         _uiState.update { currentState ->
             currentState.copy(mainCharacter = mainCharacter)
@@ -69,12 +80,14 @@ class DprViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(currentCharacter = currentCharacter)
         }
+        setStatSource(true)
     }
 
     fun setCurrentMonster(currentMonster: Monster?) {
         _uiState.update { currentState ->
             currentState.copy(currentMonster = currentMonster)
         }
+        setStatSource(false)
     }
 
     fun setCharacterList(characterList: MutableList<CharacterListItem>) {

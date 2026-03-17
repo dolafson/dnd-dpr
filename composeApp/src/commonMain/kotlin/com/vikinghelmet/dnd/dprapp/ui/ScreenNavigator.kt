@@ -53,16 +53,10 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
         dprFiles.init()
         try {
             val settings = dprFiles.getSettings()
-            viewModel.setProximity(settings.proximity)
-            viewModel.setCharacterList(settings.characterList)
-
-            val tmpCharacter = Loader.getCharacter(settings)
-            viewModel.setMainCharacter(tmpCharacter)
-            viewModel.setCurrentCharacter(tmpCharacter)
-
-            val tmpMonster = Loader.getMonster(settings)
-            viewModel.setMainMonster(tmpMonster)
-            viewModel.setCurrentMonster(tmpMonster)
+            viewModel.setProximity (settings.proximity)
+            viewModel.setCharacterList (settings.characterList)
+            viewModel.setMainCharacter (Loader.getCharacter(settings))
+            viewModel.setMainMonster (Loader.getMonster(settings))
         }
         catch (e: Exception) {
             println("unable to load settings: $e")

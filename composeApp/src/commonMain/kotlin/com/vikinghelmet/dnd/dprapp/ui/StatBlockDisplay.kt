@@ -7,51 +7,36 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.modified.StatBlock
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dprapp.DprViewModel
 
 
 @Composable
-fun StatDisplay(stats: StatBlock, label: String, editable: Boolean, onValueChanged: (Int) -> Unit) {
-    if (stats == null || stats.str == 0) {
-        Text("?")
-    }
-    else if (!editable){
-        Text(stats.getValue(label).toString())
-    }
-    else {
-        val value = stats.getValue(label)
-        NumericMenu(value,20,value,{ newValue ->
-            stats.setValue (label, newValue)
-            onValueChanged (newValue)
-        } )
-    }
-}
-
-@Composable
-fun StatHalfBlock(stats: StatBlock, editable: Boolean, onValueChanged: (Int) -> Unit,
-                  label1: String, label2: String, label3: String,
-                  modifier1: Modifier, modifier2: Modifier)
+fun StatHalfBlock(a1: AbilityType, a2: AbilityType, a3: AbilityType,
+                  modifier1: Modifier, modifier2: Modifier,
+                  viewModel: DprViewModel, onValueChanged: (Int) -> Unit)
 {
     Column(modifier = modifier1) {
-        Text(label1)
-        Text(label2)
-        Text(label3)
+        Text(a1.toShortName())  // short name for display, full name for stat lookup
+        Text(a2.toShortName())
+        Text(a3.toShortName())
     }
     Column(modifier = modifier2) {
-        StatDisplay(stats, label1, editable, onValueChanged)
-        StatDisplay(stats, label2, editable, onValueChanged)
-        StatDisplay(stats, label3, editable, onValueChanged)
+        NumericMenu(a1.name, viewModel, onValueChanged)
+        NumericMenu(a2.name, viewModel, onValueChanged)
+        NumericMenu(a3.name, viewModel, onValueChanged)
     }
 }
 
 @Composable
-fun StatBlockDisplay(stats: StatBlock, editable: Boolean, onValueChanged: (Int) -> Unit) {
+fun StatBlockDisplay(viewModel: DprViewModel, onValueChanged: (Int) -> Unit)
+{
     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-        StatHalfBlock(stats,editable, onValueChanged, "STR","DEX","CON",
-            Modifier.padding(start = 0.dp), Modifier.padding(start = 20.dp))
+        StatHalfBlock( AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution,
+            Modifier.padding(start = 0.dp), Modifier.padding(start = 20.dp), viewModel, onValueChanged,)
 
-        StatHalfBlock(stats,editable, onValueChanged,"INT","WIS","CHA",
-            Modifier.padding(start = 60.dp), Modifier.padding(start = 20.dp))
+        StatHalfBlock(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma,
+            Modifier.padding(start = 60.dp), Modifier.padding(start = 20.dp), viewModel, onValueChanged,)
     }
 }
 

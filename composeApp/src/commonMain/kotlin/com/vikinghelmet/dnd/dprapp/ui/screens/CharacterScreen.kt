@@ -14,7 +14,6 @@ import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
-import com.vikinghelmet.dnd.dprapp.data.Loader.getCharacter
 import com.vikinghelmet.dnd.dprapp.ui.NumericMenu
 import com.vikinghelmet.dnd.dprapp.ui.StatBlockDisplay
 import com.vikinghelmet.dnd.dprapp.ui.dprFiles
@@ -41,6 +40,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     onReset: () -> Unit)
 {
     var character: Character? = viewModel.getCurrentCharacter()
+    // var character: Character? = viewModel.uiState.collectAsState().value.currentCharacter // getCurrentCharacter()
 
     var outputText by remember { mutableStateOf("") }
 
@@ -65,6 +65,8 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         println("character list = "+options)
         // println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
+
+        viewModel.setCurrentCharacter(viewModel.getMainCharacter())
 
         if (viewModel.getCurrentCharacter() != null) {
             val name = viewModel.getCurrentCharacter()!!.getName()
@@ -143,12 +145,12 @@ fun CharacterScreen(viewModel: DprViewModel,
                 onClick = {
                     // outputText =  loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
 
-                    val getResult: Character? = getCharacter(selectedOption)
+                    val getResult: Character? = Loader.getCharacter(selectedOption)
                     if (getResult != null) {
                         viewModel.setCurrentCharacter (getResult)
                     }
                     else {
-                        val addResult = Loader.addCharacter (selectedOption, textFieldState.text.toString())
+                        val addResult = Loader.addCharacter (textFieldState.text.toString())
                         if (addResult != null) {
                             addCharacterToList(addResult, true, options, viewModel)
                             viewModel.setCurrentCharacter (addResult)
@@ -205,16 +207,17 @@ fun CharacterScreen(viewModel: DprViewModel,
                 // currently unable to calculate: AC, HP
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                if (character == null) {
+                val tmpCharacter = viewModel.getCurrentCharacter()
+                if (tmpCharacter == null) {
                     Text("?")
                 } else {
-                    val min = character!!.getLevel()
-                    NumericMenu(min, 20, min, { level = it; modified = true })
-/*
-                    Row() {
-                        Text(min.toString(), modifier = Modifier.padding(end = 20.dp))
-                        NumericMenu(0, 20 - min, level, { level = it; modified = true })
-                    } */
+                    val min = tmpCharacter.getLevel()
+                    NumericMenu("level", viewModel) { level = it; modified = true }
+                    /*
+                                        Row() {
+                                            Text(min.toString(), modifier = Modifier.padding(end = 20.dp))
+                                            NumericMenu(0, 20 - min, level, { level = it; modified = true })
+                                        } */
                 }
 
                 Text((character?.getProficiencyBonus() ?: "?" ).toString())
@@ -227,10 +230,10 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         if (character != null) {
             println ("redraw stats, statBlock = $statBlock")
-            StatBlockDisplay(statBlock,true, { newValue ->
+            StatBlockDisplay(viewModel) { newValue ->
                 modified = true
                 println("stat changed: $newValue")
-            } )
+            }
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)

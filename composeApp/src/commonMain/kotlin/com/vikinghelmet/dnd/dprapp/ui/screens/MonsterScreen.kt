@@ -37,6 +37,8 @@ fun MonsterScreen(viewModel: DprViewModel,
     var selectedMonsterName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
+        viewModel.setCurrentMonster(viewModel.getCurrentMonster())
+
         // monsterName = settings.monsterName
         monster = Loader.getMonster(monsterName)
         monsterName = viewModel.getCurrentMonster()?.name ?: ""
@@ -83,6 +85,7 @@ fun MonsterScreen(viewModel: DprViewModel,
 
                                 println("menu.onClick, monsterName = $monsterName")
                                 monster = Loader.getMonster(monsterName)
+
                                 if (monster != null) { // TODO: allow selected = null, to force fields to clear ?
                                     selectedMonsterName = monsterName
                                     viewModel.setCurrentMonster(monster)
@@ -149,7 +152,7 @@ fun MonsterScreen(viewModel: DprViewModel,
         val stats = StatBlock(monster?.properties?.STR ?: 0, monster?.properties?.DEX?: 0, monster?.properties?.CON?: 0,
             monster?.properties?.INT?: 0, monster?.properties?.WIS?: 0, monster?.properties?.CHA?: 0)
 
-        StatBlockDisplay(stats, false, {})
+        StatBlockDisplay(viewModel) {}
 
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 50.dp),

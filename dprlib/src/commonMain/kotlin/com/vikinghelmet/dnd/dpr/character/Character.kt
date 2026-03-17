@@ -14,8 +14,7 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.util.Constants
-import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -30,7 +29,18 @@ open class Character(
     val id: Int? = null,
     val message: String? = null,
     val success: Boolean? = null
-) {
+) : HasNumericRangeMap {
+
+    override fun getNumericRangeMap(): NumericRangeMap {
+        val result = mutableMapOf<String, NumericRange>()
+        AbilityType.entries.forEach {
+            val score = getModifiedAbilityScore(it)
+            result.put(it.name, NumericRange(score, 20))
+        }
+        result.put("level", NumericRange(getLevel(), 20))
+        return NumericRangeMap(true, result)
+    }
+
     open fun getName(): String {
         return characterData.name
     }

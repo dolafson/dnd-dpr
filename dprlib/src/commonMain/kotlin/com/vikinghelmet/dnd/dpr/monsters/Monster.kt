@@ -1,5 +1,9 @@
 package com.vikinghelmet.dnd.dpr.monsters
 
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.util.HasNumericRangeMap
+import com.vikinghelmet.dnd.dpr.util.NumericRange
+import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -12,7 +16,19 @@ data class Monster(
     val name: String,
     val properties: MonsterProperties,
     val publisher: String
-)
+) : HasNumericRangeMap {
+
+    override fun getNumericRangeMap(): NumericRangeMap {
+        val result = mutableMapOf<String, NumericRange>()
+        result.put(AbilityType.Strength.name, NumericRange(properties.STR, 20))
+        result.put(AbilityType.Dexterity.name, NumericRange(properties.DEX, 20))
+        result.put(AbilityType.Constitution.name, NumericRange(properties.CON, 20))
+        result.put(AbilityType.Intelligence.name, NumericRange(properties.INT, 20))
+        result.put(AbilityType.Wisdom.name, NumericRange(properties.WIS, 20))
+        result.put(AbilityType.Charisma.name, NumericRange(properties.CHA, 20))
+        return NumericRangeMap(false, result)
+    }
+}
 
 @Serializable
 data class MonsterProperties(
