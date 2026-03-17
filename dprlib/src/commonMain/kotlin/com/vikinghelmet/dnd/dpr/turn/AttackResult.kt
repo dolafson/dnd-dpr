@@ -39,7 +39,7 @@ data class AttackResult(
 
         if (AttackResultFormatter.isCSV || !AttackResultFormatter.isTxtFirstResultDone) {
             buf.append(AttackResultFormatter.format("level", character.getLevel()))
-            buf.append(AttackResultFormatter.format("characterName", character.characterData.name))
+            buf.append(AttackResultFormatter.format("characterName", character.getName()))
             buf.append(AttackResultFormatter.format("spellBonusToHit", character.getSpellBonusToHit()))
             buf.append(AttackResultFormatter.format("spellSaveDC", character.getSpellSaveDC()))
 

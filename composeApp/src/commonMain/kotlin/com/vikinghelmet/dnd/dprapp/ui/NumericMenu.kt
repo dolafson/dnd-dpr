@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp.screens
+package com.vikinghelmet.dnd.dprapp.ui
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,7 +22,6 @@ fun NumericMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf(defaultOption) }
-
     val options = (min..max).toList()
 
     Box(modifier = Modifier

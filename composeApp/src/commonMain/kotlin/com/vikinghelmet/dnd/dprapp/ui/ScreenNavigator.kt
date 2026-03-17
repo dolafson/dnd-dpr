@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp.screens
+package com.vikinghelmet.dnd.dprapp.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,6 +22,7 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.getDocumentsDirPath
+import com.vikinghelmet.dnd.dprapp.ui.screens.*
 import dpr.composeapp.generated.resources.Res
 
 val dprFiles = DprFiles(getDocumentsDirPath())
@@ -108,6 +109,9 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                         saveSettings(viewModel.uiState.value)
 
                         navController.navigate(ViewType.main.name)
+                    },
+                    onReset = {
+                        navController.navigate(ViewType.character.name)
                     }
                 )
             }

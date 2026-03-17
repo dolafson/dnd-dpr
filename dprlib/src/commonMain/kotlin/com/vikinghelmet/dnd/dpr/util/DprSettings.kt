@@ -5,13 +5,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CharacterListItem(
     var remoteId: String,
-    var localId: String,
     var name: String,
+    var isLocal: Boolean, // copy of remote, with local modifications (lookup by name)
 ) {
     fun copyValues(other: CharacterListItem) {
         remoteId = other.remoteId
-        localId = other.localId
         name = other.name
+        isLocal = other.isLocal
     }
 
 }

@@ -4,6 +4,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.modified.CharacterOverrides
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import kotlinx.io.*
 import kotlinx.io.files.Path
@@ -34,6 +35,16 @@ class DprFiles(val appDataDir: String)
 
     fun saveCharacter(character: Character, characterId: String) {
         write(Json.encodeToString(character), characterBaselineDir+"/"+characterId)
+    }
+
+    fun saveModifiedCharacter(characterOverrides: CharacterOverrides) {
+        // TODO: for filename, use localId instead of name ???
+        write(Json.encodeToString(characterOverrides), characterLevelupDir+"/"+characterOverrides.name+".json")
+    }
+
+    fun getModifiedCharacter(name: String): CharacterOverrides? {
+        val json = read(characterLevelupDir+"/" + name+".json")
+        return if (json !=null) Json.decodeFromString(json) else null
     }
 
     fun getCharacter(characterId: String): Character? {

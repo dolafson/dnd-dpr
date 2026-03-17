@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp.screens
+package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

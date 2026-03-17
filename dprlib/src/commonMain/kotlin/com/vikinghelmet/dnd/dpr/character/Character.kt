@@ -11,6 +11,7 @@ import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -23,13 +24,17 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class Character(
+open class Character(
     @SerialName("data")
     val characterData: CharacterData,
     val id: Int? = null,
     val message: String? = null,
     val success: Boolean? = null
 ) {
+    open fun getName(): String {
+        return characterData.name
+    }
+
     fun getJson(): String {
         return Json.encodeToString(this)
     }
@@ -70,13 +75,24 @@ data class Character(
         }
         return mod
     }
-    fun getModifiedAbilityScore(a: AbilityType): Int {
+    open fun getModifiedAbilityScore(a: AbilityType): Int {
         return getRawAbilityScore(a) +
                 getBonusModifierSum(a, characterData.modifiers.race) +
                 getBonusModifierSum(a, characterData.modifiers.feat)
     }
 
-    fun getLevel(): Int {
+    open fun getStatBlock(): StatBlock {
+        return StatBlock(
+            getModifiedAbilityScore(AbilityType.Strength),
+            getModifiedAbilityScore(AbilityType.Dexterity),
+            getModifiedAbilityScore(AbilityType.Constitution),
+            getModifiedAbilityScore(AbilityType.Intelligence),
+            getModifiedAbilityScore(AbilityType.Wisdom),
+            getModifiedAbilityScore(AbilityType.Charisma)
+        )
+    }
+
+    open fun getLevel(): Int {
         return characterData.classes.first().level
     }
 

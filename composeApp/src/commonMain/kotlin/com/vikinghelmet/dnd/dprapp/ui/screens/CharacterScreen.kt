@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp.screens
+package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -10,11 +10,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.modified.CharacterOverrides
+import com.vikinghelmet.dnd.dpr.modified.ModifiedCharacter
+import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
 import com.vikinghelmet.dnd.dpr.util.DprSettings
+import com.vikinghelmet.dnd.dprapp.ui.NumericMenu
+import com.vikinghelmet.dnd.dprapp.ui.StatBlockDisplay
+import com.vikinghelmet.dnd.dprapp.ui.dprFiles
 import kotlinx.coroutines.runBlocking
-import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 var character: Character? = null
 
@@ -34,18 +40,43 @@ fun getMatchingCharacterItem(settings: DprSettings): CharacterListItem? {
     return null
 }
 
-fun loadCharacter(selectedOption: MutableState<CharacterListItem>, text: String, options: MutableList<CharacterListItem>, settings: DprSettings): String {
-    // if user selected from menu, load character from local storage
+fun isUrlOrID(str: String): Boolean {
+    return str.startsWith("http://") || str.startsWith("https://") || str.toIntOrNull() != null
+}
+
+fun addCharacterToList (character: Character, isLocal: Boolean, options: MutableList<CharacterListItem>, settings: DprSettings)
+{
+    val item = CharacterListItem(character.characterData.id.toString(), character.getName(), isLocal)
+    options.add(item)
+    settings.characterList.add(item)
+    settings.characterName = item.name
+}
+
+fun loadCharacter(selectedOption: MutableState<CharacterListItem>, urlOrId: String, options: MutableList<CharacterListItem>, settings: DprSettings, statBlock: StatBlock): String {
     var remoteId: String? = selectedOption.value.remoteId
-    if (remoteId!!.isNotBlank() && dprFiles.getCharacterList().contains(remoteId))
+
+    if (remoteId!!.isNotBlank() && selectedOption.value.isLocal) {
+        println("loadCharacter: local overrides")
+        // if user selected LOCAL entry from menu, load character from local storage (w/ overrides)
+        val baseline  = dprFiles.getCharacter(remoteId)
+        val overrides = dprFiles.getModifiedCharacter(selectedOption.value.name)
+
+        if (baseline != null && overrides != null) {
+            settings.characterName = selectedOption.value.name
+            character = ModifiedCharacter(baseline, overrides)
+        }
+    }
+    else if (remoteId!!.isNotBlank() && dprFiles.getCharacterList().contains(remoteId))
     {
+        println("loadCharacter: local, no overrides")
+        // if user selected REMOTE entry from menu, load character from local storage
         character = dprFiles.getCharacter(remoteId)
         if (character != null) {
             settings.characterName = selectedOption.value.name
         }
     }
     else {
-        val urlOrId = text
+        println("loadCharacter: URL or ID")
         // user hand-entered a characterID / URL ... first check for validity
         remoteId = CmdTest.getCharacterId(urlOrId)
         if (remoteId != null) {
@@ -59,20 +90,12 @@ fun loadCharacter(selectedOption: MutableState<CharacterListItem>, text: String,
                     }
                     else {
                         // default: dndbeyond
-                        CmdTest.getRemoteCharacter(remoteId!!)
+                        CmdTest.getRemoteCharacter(remoteId)
                     }
                 }
                 if (character != null) {
-                    remoteId = character!!.characterData.id.toString()
                     dprFiles.saveCharacter(character!!, remoteId)
-
-                    val name = character!!.characterData.name // TODO: ensure uniqueness ...
-                    val epochSeconds: Long = Clock.System.now().epochSeconds
-                    val item = CharacterListItem(remoteId, remoteId+":"+epochSeconds, name)
-
-                    options.add(item)
-                    settings.characterList.add(item)
-                    settings.characterName = name
+                    addCharacterToList(character!!, true, options, settings)
                 }
             } catch (e: Exception) {
                 //println("Error getting character, $e")
@@ -82,34 +105,38 @@ fun loadCharacter(selectedOption: MutableState<CharacterListItem>, text: String,
     }
 
     if (character != null) {
+        println("loadCharacter: stat block before: $statBlock")
+        statBlock.copyValues(character!!.getStatBlock())
+        println("loadCharacter: stat block after: $statBlock")
         return character!!.toStringWeapons()+"\n"+character!!.toStringFeats()
     }
     return ""
 }
 
-fun levelChanged(newValue: Int) {
-    println("Level changed to $newValue")
-}
-fun statChanged(newValue: Int) {
-    println("Stat changed to $newValue")
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 //@Preview
 fun CharacterScreen(settings: DprSettings,
                     onDismiss: () -> Unit,
-                    onConfirm: (String) -> Unit)
+                    onConfirm: (String) -> Unit,
+                    onReset: () -> Unit)
 {
     var outputText by remember { mutableStateOf("") }
 
+    var level by remember { mutableStateOf(if (character != null) character!!.getLevel() else 0) }
+
+//    var statBlock by remember { mutableStateOf(if (character != null) character!!.getStatBlock() else
+//        StatBlock(0,0,0,0,0,0)) }
+    var statBlock= if (character != null) character!!.getStatBlock() else StatBlock(0,0,0,0,0,0)
+
+    var showNameAlert by remember { mutableStateOf(false) }
+    var modified by remember { mutableStateOf(false) }
+
     val options = remember { mutableListOf<CharacterListItem>() }
-    var selectedOption = remember { mutableStateOf(CharacterListItem("","","")) }
+    var selectedOption = remember { mutableStateOf(CharacterListItem("","",false)) }
 
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
-
-    val levelExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         options.clear()
@@ -167,8 +194,12 @@ fun CharacterScreen(settings: DprSettings,
                             onClick = {
                                 selectedOption.value.copyValues(option)
                                 textFieldState.setTextAndPlaceCursorAtEnd(option.name)
-                                loadCharacter(selectedOption, textFieldState.text.toString(), options, settings)
+                                outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
                                 expanded = false
+
+                                // use navigation to reload the entire page ... this will reset the editable boxes ...
+                                // this feels like a hack, maybe later we'll find a better way
+                                onReset()
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
@@ -180,10 +211,43 @@ fun CharacterScreen(settings: DprSettings,
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(
                 enabled = (textFieldState.text.isNotBlank() &&
+                            isUrlOrID(textFieldState.text.toString()) &&
                             !options.map { op -> op.name }.contains(textFieldState.text.toString())),
                 onClick = {
-                outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings)
+                    outputText =  loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
             }) { Text("Add") }
+
+            Button(
+                modifier = Modifier.padding(start = 20.dp),
+                enabled = modified,
+                onClick = {
+                    println("TODO: Save character, baseline = ${selectedOption.value.name}")
+
+                    for (option in options) {
+                        if (option.name == textFieldState.text) {
+                            println("warning: name matches an existing character ${option.name}")
+                            showNameAlert = true
+                        }
+                    }
+                    if (!showNameAlert) {
+                        val characterOverrides = CharacterOverrides(Uuid.random().toString(),
+                            character!!.characterData.id!!, level,
+                            textFieldState.text.toString(), statBlock)
+                        println("overrides = $characterOverrides")
+                        dprFiles.saveModifiedCharacter(characterOverrides)
+
+                        addCharacterToList(character!!, false, options, settings)
+                    }
+                }
+            ) { Text("Save") }
+
+            if (showNameAlert) {
+                AlertDialog(
+                    text = { Text("please choose a new name") },
+                    onDismissRequest = {},
+                    confirmButton = { TextButton(onClick = { showNameAlert = false }) { Text("OK") } },
+                )
+            }
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
@@ -203,10 +267,14 @@ fun CharacterScreen(settings: DprSettings,
             Column(modifier = Modifier.padding(start = 20.dp)) {
                 if (character == null) {
                     Text("?")
-                }
-                else {
-                    val level = character!!.getLevel()
-                    NumericMenu(level, 20, level, { levelChanged(it) })
+                } else {
+                    val min = character!!.getLevel()
+                    NumericMenu(min, 20, min, { level = it; modified = true })
+/*
+                    Row() {
+                        Text(min.toString(), modifier = Modifier.padding(end = 20.dp))
+                        NumericMenu(0, 20 - min, level, { level = it; modified = true })
+                    } */
                 }
 
                 Text((character?.getProficiencyBonus() ?: "?" ).toString())
@@ -217,15 +285,13 @@ fun CharacterScreen(settings: DprSettings,
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
-        StatBlock(
-            character?.getModifiedAbilityScore(AbilityType.Strength),
-            character?.getModifiedAbilityScore(AbilityType.Dexterity),
-            character?.getModifiedAbilityScore(AbilityType.Constitution),
-            character?.getModifiedAbilityScore(AbilityType.Intelligence),
-            character?.getModifiedAbilityScore(AbilityType.Wisdom),
-            character?.getModifiedAbilityScore(AbilityType.Charisma),
-            true, { statChanged(it) }
-        )
+        if (character != null) {
+            println ("redraw stats, statBlock = $statBlock")
+            StatBlockDisplay(statBlock,true, { newValue ->
+                modified = true
+                println("stat changed: $newValue")
+            } )
+        }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
@@ -264,25 +330,7 @@ fun CharacterScreen(settings: DprSettings,
                     character!!.getFeatList().forEach { feat -> Text(feat.definition.name) }
                 }
             }
-            // HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
         }
-
-/*
-        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-
-            OutlinedTextField(
-                value = outputText,
-                onValueChange = { outputText = it },
-                readOnly = true,
-                singleLine = false,
-                //enabled = false,
-                minLines = 10,
-                maxLines = 10,
-//                modifier = Modifier.fillMaxWidth().height(100.dp) // Overriding defaults
-                modifier = Modifier.heightIn(100.dp) // Overriding defaults
-            )
-        }
- */
 
         Row(
             modifier = Modifier.fillMaxWidth(),
