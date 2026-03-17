@@ -16,26 +16,22 @@
 package com.vikinghelmet.dnd.dprapp
 
 import androidx.lifecycle.ViewModel
+import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
-import com.vikinghelmet.dnd.dpr.util.DprSettings
+import com.vikinghelmet.dnd.dprapp.data.DprUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-private const val PRICE_PER_CUPCAKE = 2.00
-private const val PRICE_FOR_SAME_DAY_PICKUP = 3.00
-
 class DprViewModel : ViewModel() {
 
-    /**
-     * Cupcake state for this order
-     */
-    private val _uiState = MutableStateFlow(DprSettings())
-    val uiState: StateFlow<DprSettings> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(DprUiState())
+    val uiState: StateFlow<DprUiState> = _uiState.asStateFlow()
 
     /**
-     * Set the proximity and TODO: calculate scenarios
+     * Set the proximity and TODO: move scenario calculation here?
      */
     fun setProximity(proximity: Int) {
         _uiState.update { currentState ->
@@ -46,9 +42,38 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setCharacterName(characterName: String) {
+    fun isReadyForAttack(): Boolean {
+        return _uiState.value.mainCharacter != null && _uiState.value.mainMonster != null
+    }
+
+    fun getMainCharacter(): Character? { return _uiState.value.mainCharacter }
+    fun getMainMonster(): Monster? { return _uiState.value.mainMonster }
+
+    fun getCurrentCharacter(): Character? { return _uiState.value.currentCharacter }
+    fun getCurrentMonster(): Monster? { return _uiState.value.currentMonster }
+
+    fun setMainCharacter(mainCharacter: Character?) {
         _uiState.update { currentState ->
-            currentState.copy(characterName = characterName)
+            currentState.copy(mainCharacter = mainCharacter)
+        }
+    }
+
+    fun setMainMonster(mainMonster: Monster?) {
+        _uiState.update { currentState ->
+            currentState.copy(mainMonster = mainMonster)
+        }
+    }
+
+
+    fun setCurrentCharacter(currentCharacter: Character?) {
+        _uiState.update { currentState ->
+            currentState.copy(currentCharacter = currentCharacter)
+        }
+    }
+
+    fun setCurrentMonster(currentMonster: Monster?) {
+        _uiState.update { currentState ->
+            currentState.copy(currentMonster = currentMonster)
         }
     }
 
@@ -58,41 +83,7 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setMonsterName(monsterName: String) {
-        _uiState.update { currentState ->
-            currentState.copy(monsterName = monsterName)
-        }
-    }
-
     fun reset() {
-        _uiState.value = DprSettings()
+        _uiState.value = DprUiState()
     }
-
-    /*
-
-    private fun calculateScenarios(
-        quantity: Int = _uiState.value.quantity,
-        pickupDate: String = _uiState.value.date
-    ): String {
-        var calculatedPrice = quantity * PRICE_PER_CUPCAKE
-        // If the user selected the first option (today) for pickup, add the surcharge
-        if (pickupOptions()[0] == pickupDate) {
-            calculatedPrice += PRICE_FOR_SAME_DAY_PICKUP
-        }
-        return "$calculatedPrice€"
-    }
-
-    @OptIn(ExperimentalTime::class)
-    private fun pickupOptions(): List<String> {
-        val dateOptions = mutableListOf<String>()
-        val now = Clock.System.now()
-        val timeZone = TimeZone.currentSystemDefault()
-        // add current date and the following 3 dates.
-        repeat(4) {
-            val day = now.plus(it, DateTimeUnit.DAY, timeZone)
-            dateOptions.add(day.toLocalDateTime(timeZone).date.toString())
-        }
-        return dateOptions
-    }
-     */
 }

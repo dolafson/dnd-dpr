@@ -17,18 +17,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.vikinghelmet.dnd.dpr.DprFiles
-import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ViewType
+import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.getDocumentsDirPath
-import com.vikinghelmet.dnd.dprapp.ui.screens.*
+import com.vikinghelmet.dnd.dprapp.ui.screens.CharacterScreen
+import com.vikinghelmet.dnd.dprapp.ui.screens.MainScreen
+import com.vikinghelmet.dnd.dprapp.ui.screens.MonsterScreen
 import dpr.composeapp.generated.resources.Res
 
 val dprFiles = DprFiles(getDocumentsDirPath())
 
-fun saveSettings(settings: DprSettings) {
-    DprFiles(getDocumentsDirPath()).saveSettings(settings)
+fun saveSettings(viewModel: DprViewModel) {
+    DprFiles(getDocumentsDirPath()).saveSettings(viewModel.uiState.value.getSettings())
 }
 
 @Composable
@@ -51,13 +53,16 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
         dprFiles.init()
         try {
             val settings = dprFiles.getSettings()
-            viewModel.setCharacterName(settings.characterName)
-            viewModel.setMonsterName(settings.monsterName)
             viewModel.setProximity(settings.proximity)
             viewModel.setCharacterList(settings.characterList)
 
-            initMonster(settings.monsterName)
-            initCharacter(settings)
+            val tmpCharacter = Loader.getCharacter(settings)
+            viewModel.setMainCharacter(tmpCharacter)
+            viewModel.setCurrentCharacter(tmpCharacter)
+
+            val tmpMonster = Loader.getMonster(settings)
+            viewModel.setMainMonster(tmpMonster)
+            viewModel.setCurrentMonster(tmpMonster)
         }
         catch (e: Exception) {
             println("unable to load settings: $e")
@@ -78,7 +83,7 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
         ) {
             composable(route = ViewType.main.name) {
                 MainScreen(
-                    settings = uiState,
+                    viewModel = viewModel,
                     onCharacterButtonClicked = {
                         navController.navigate(ViewType.character.name)
                     },
@@ -89,7 +94,7 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                         println("OK button clicked - attack")
 
                         viewModel.setProximity(dialogSelectedValue)
-                        saveSettings(viewModel.uiState.value)
+                        saveSettings(viewModel)
 
                         // no navigation needed here, stay on main screen
                     },
@@ -98,15 +103,14 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             }
             composable(route = ViewType.character.name) {
                 CharacterScreen(
-                    settings = uiState,
+                    viewModel = viewModel,
                     {
                         navController.navigate(ViewType.main.name)
                     },
                     { dialogSelectedValue ->
                         println("OK button clicked - character")
 
-                        viewModel.setCharacterName(dialogSelectedValue)
-                        saveSettings(viewModel.uiState.value)
+                        saveSettings(viewModel)
 
                         navController.navigate(ViewType.main.name)
                     },
@@ -117,15 +121,15 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             }
             composable(route = ViewType.monster.name) {
                 MonsterScreen(
-                    settings = uiState,
+                    viewModel = viewModel,
                     {
                         navController.navigate(ViewType.main.name)
                     },
                     { dialogSelectedValue ->
                         println("OK button clicked - monster")
 
-                        viewModel.setMonsterName(dialogSelectedValue)
-                        saveSettings(viewModel.uiState.value)
+                        viewModel.setMainMonster(viewModel.getCurrentMonster())
+                        saveSettings(viewModel)
 
                         navController.navigate(ViewType.main.name)
                     })

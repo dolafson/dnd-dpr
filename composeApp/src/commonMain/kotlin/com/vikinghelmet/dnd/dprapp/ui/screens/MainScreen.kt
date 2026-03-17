@@ -12,11 +12,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.util.DprSettings
+import com.vikinghelmet.dnd.dprapp.DprViewModel
 
 @Composable
 //@Preview
-fun MainScreen(settings: DprSettings,
+fun MainScreen(viewModel: DprViewModel,
                onCharacterButtonClicked: () -> Unit,
                onMonsterButtonClicked: () -> Unit,
                onAttackButtonClicked: (Int) -> Unit,
@@ -29,7 +29,7 @@ fun MainScreen(settings: DprSettings,
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
                 OutlinedTextField(
-                    value = settings.characterName,
+                    value = viewModel.getMainCharacter()?.getName() ?: "", // settings.characterName,
                     onValueChange = { },
                     label = { Text("Character") },
                     readOnly = true,
@@ -45,7 +45,7 @@ fun MainScreen(settings: DprSettings,
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 OutlinedTextField(
-                    value = settings.monsterName,
+                    value = viewModel.getMainMonster()?.name ?: "", // settings.monsterName,
                     onValueChange = { },
                     label = { Text("Monster Name") },
                     readOnly = true,
@@ -70,7 +70,7 @@ fun MainScreen(settings: DprSettings,
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
                     onClick = {
-                        if (character == null || monster == null) {
+                        if (!viewModel.isReadyForAttack()) {
                             outputText = "select a character and monster before attacking"
                             println(outputText)
                         } else {
@@ -78,7 +78,7 @@ fun MainScreen(settings: DprSettings,
                             onAttackButtonClicked(proximityInt)
 
                             try {
-                                val builder = ScenarioBuilder(character!!, monster!!)
+                                val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getMainMonster()!!)
                                 val result = builder.runScenarios(proximityInt)
                                 outputText = builder.getResultSummary(result)
                             } catch (e: Exception) {

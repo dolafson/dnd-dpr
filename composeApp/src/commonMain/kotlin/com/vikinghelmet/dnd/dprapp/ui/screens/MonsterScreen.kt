@@ -10,31 +10,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dprapp.DprViewModel
+import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.ui.StatBlockDisplay
-
-var monster: Monster? = null
-
-fun initMonster(monsterName: String): Boolean {
-    try {
-        val thisMonster = Globals.getMonster(monsterName)
-        monster = thisMonster
-        return true
-    }
-    catch (e: Exception) {
-        println("unable to populate monster dialog $e")
-    }
-    return false
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
-fun MonsterScreen(settings: DprSettings,
+fun MonsterScreen(viewModel: DprViewModel,
                   onDismiss: () -> Unit,
                   onConfirm: (String) -> Unit)
 {
+    var monster: Monster? = viewModel.getCurrentMonster()
+
     val options = Globals.monsters.map { it.name }
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
@@ -48,7 +37,9 @@ fun MonsterScreen(settings: DprSettings,
     var selectedMonsterName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        monsterName = settings.monsterName
+        // monsterName = settings.monsterName
+        monster = Loader.getMonster(monsterName)
+        monsterName = viewModel.getCurrentMonster()?.name ?: ""
 
         if (options.contains(monsterName)) {
             selectedMonsterName = monsterName
@@ -89,13 +80,20 @@ fun MonsterScreen(settings: DprSettings,
                                 monsterName = selectionOption
                                 textFieldState.setTextAndPlaceCursorAtEnd(monsterName)
                                 expanded = false
+
+                                println("menu.onClick, monsterName = $monsterName")
+                                monster = Loader.getMonster(monsterName)
+                                if (monster != null) { // TODO: allow selected = null, to force fields to clear ?
+                                    selectedMonsterName = monsterName
+                                    viewModel.setCurrentMonster(monster)
+                                }
                             }
                         )
                     }
                 }
             }
         }
-
+/*
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(onClick = {
                 // if these two fields don't match, take the one from the text field (if valid) ...
@@ -107,13 +105,15 @@ fun MonsterScreen(settings: DprSettings,
                 }
 
                 println("onClick, monsterName = $monsterName")
-                if (initMonster(monsterName)) {
+                monster = Loader.getMonster(monsterName)
+                if (monster != null) { // TODO: allow selected = null, to force fields to clear ?
                     selectedMonsterName = monsterName
+                    viewModel.setCurrentMonster(monster)
                 }
 
             }) { Text("View") }
         }
-
+*/
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
@@ -126,10 +126,21 @@ fun MonsterScreen(settings: DprSettings,
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
                 Text(selectedMonsterName)
-                Text((monster?.properties?.dataAcNum ?: "?").toString())
-                Text((monster?.properties?.HP ?: "?"))
-                Text((monster?.properties?.Speed ?: "?"))
-                Text((monster?.properties?.Size ?: "?"))
+
+                if (viewModel.getCurrentMonster() == null) {
+                    Text("?")
+                    Text("?")
+                    Text("?")
+                    Text("?")
+                }
+                else {
+                    val m = viewModel.getCurrentMonster()!!
+                    //Text((monster?.properties?.dataAcNum ?: "?").toString())
+                    Text((m.properties.dataAcNum).toString())
+                    Text((m.properties.HP))
+                    Text((m.properties.Speed))
+                    Text((m.properties.Size))
+                }
             }
         }
 

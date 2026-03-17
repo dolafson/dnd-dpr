@@ -8,119 +8,40 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.modified.CharacterOverrides
-import com.vikinghelmet.dnd.dpr.modified.ModifiedCharacter
 import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
-import com.vikinghelmet.dnd.dpr.util.DprSettings
+import com.vikinghelmet.dnd.dprapp.DprViewModel
+import com.vikinghelmet.dnd.dprapp.data.Loader
+import com.vikinghelmet.dnd.dprapp.data.Loader.getCharacter
 import com.vikinghelmet.dnd.dprapp.ui.NumericMenu
 import com.vikinghelmet.dnd.dprapp.ui.StatBlockDisplay
 import com.vikinghelmet.dnd.dprapp.ui.dprFiles
-import kotlinx.coroutines.runBlocking
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-
-var character: Character? = null
-
-fun initCharacter(settings: DprSettings) {
-    val match = getMatchingCharacterItem(settings)
-    if (match != null) {
-        character = dprFiles.getCharacter(match.remoteId)
-    }
-}
-
-fun getMatchingCharacterItem(settings: DprSettings): CharacterListItem? {
-    for (item in settings.characterList) {
-        if (item.name == settings.characterName) {
-            return item
-        }
-    }
-    return null
-}
 
 fun isUrlOrID(str: String): Boolean {
     return str.startsWith("http://") || str.startsWith("https://") || str.toIntOrNull() != null
 }
 
-fun addCharacterToList (character: Character, isLocal: Boolean, options: MutableList<CharacterListItem>, settings: DprSettings)
+fun addCharacterToList (character: Character, isLocal: Boolean, options: MutableList<CharacterListItem>, viewModel: DprViewModel)
 {
     val item = CharacterListItem(character.characterData.id.toString(), character.getName(), isLocal)
     options.add(item)
-    settings.characterList.add(item)
-    settings.characterName = item.name
-}
-
-fun loadCharacter(selectedOption: MutableState<CharacterListItem>, urlOrId: String, options: MutableList<CharacterListItem>, settings: DprSettings, statBlock: StatBlock): String {
-    var remoteId: String? = selectedOption.value.remoteId
-
-    if (remoteId!!.isNotBlank() && selectedOption.value.isLocal) {
-        println("loadCharacter: local overrides")
-        // if user selected LOCAL entry from menu, load character from local storage (w/ overrides)
-        val baseline  = dprFiles.getCharacter(remoteId)
-        val overrides = dprFiles.getModifiedCharacter(selectedOption.value.name)
-
-        if (baseline != null && overrides != null) {
-            settings.characterName = selectedOption.value.name
-            character = ModifiedCharacter(baseline, overrides)
-        }
-    }
-    else if (remoteId!!.isNotBlank() && dprFiles.getCharacterList().contains(remoteId))
-    {
-        println("loadCharacter: local, no overrides")
-        // if user selected REMOTE entry from menu, load character from local storage
-        character = dprFiles.getCharacter(remoteId)
-        if (character != null) {
-            settings.characterName = selectedOption.value.name
-        }
-    }
-    else {
-        println("loadCharacter: URL or ID")
-        // user hand-entered a characterID / URL ... first check for validity
-        remoteId = CmdTest.getCharacterId(urlOrId)
-        if (remoteId != null) {
-            // then update the ID, update menu, and fetch from remote storage
-            // on a good fetch, update local storage as well as the menu
-            try {
-                runBlocking {
-                    character = if (urlOrId.contains("http") && !urlOrId.contains("dndbeyond")) {
-                        // content hosted somewhere other than dndbeyond
-                        CmdTest.getRemoteCharacterByUrl(urlOrId)
-                    }
-                    else {
-                        // default: dndbeyond
-                        CmdTest.getRemoteCharacter(remoteId)
-                    }
-                }
-                if (character != null) {
-                    dprFiles.saveCharacter(character!!, remoteId)
-                    addCharacterToList(character!!, true, options, settings)
-                }
-            } catch (e: Exception) {
-                //println("Error getting character, $e")
-                return "CharacterID invalid / not found"
-            }
-        }
-    }
-
-    if (character != null) {
-        println("loadCharacter: stat block before: $statBlock")
-        statBlock.copyValues(character!!.getStatBlock())
-        println("loadCharacter: stat block after: $statBlock")
-        return character!!.toStringWeapons()+"\n"+character!!.toStringFeats()
-    }
-    return ""
+    viewModel.uiState.value.characterList.add(item)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 //@Preview
-fun CharacterScreen(settings: DprSettings,
+fun CharacterScreen(viewModel: DprViewModel,
                     onDismiss: () -> Unit,
                     onConfirm: (String) -> Unit,
                     onReset: () -> Unit)
 {
+    var character: Character? = viewModel.getCurrentCharacter()
+
     var outputText by remember { mutableStateOf("") }
 
     var level by remember { mutableStateOf(if (character != null) character!!.getLevel() else 0) }
@@ -140,17 +61,21 @@ fun CharacterScreen(settings: DprSettings,
 
     LaunchedEffect(Unit) {
         options.clear()
-        options.addAll (settings.characterList)
+        options.addAll (viewModel.uiState.value.characterList)
 
         println("character list = "+options)
         // println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
-        val match = getMatchingCharacterItem(settings)
-        if (match != null) {
-            selectedOption.value.copyValues(match)
-            textFieldState.setTextAndPlaceCursorAtEnd(selectedOption.value.name)
+
+        if (viewModel.getCurrentCharacter() != null) {
+            val name = viewModel.getCurrentCharacter()!!.getName()
+            val match = viewModel.uiState.value.getMatchingCharacterItem(name)
+            if (match != null) {
+                selectedOption.value.copyValues(match)
+                textFieldState.setTextAndPlaceCursorAtEnd(selectedOption.value.name)
+            }
+            println("match = $match")
+            println("selectedOption = $selectedOption")
         }
-        println("match = $match")
-        println("selectedOption = $selectedOption")
     }
 
     Column(
@@ -194,12 +119,14 @@ fun CharacterScreen(settings: DprSettings,
                             onClick = {
                                 selectedOption.value.copyValues(option)
                                 textFieldState.setTextAndPlaceCursorAtEnd(option.name)
-                                outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
+
+                                // outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
+                                viewModel.setCurrentCharacter (Loader.getCharacter (selectedOption))
                                 expanded = false
 
                                 // use navigation to reload the entire page ... this will reset the editable boxes ...
                                 // this feels like a hack, maybe later we'll find a better way
-                                onReset()
+                                // onReset()
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
@@ -214,8 +141,20 @@ fun CharacterScreen(settings: DprSettings,
                             isUrlOrID(textFieldState.text.toString()) &&
                             !options.map { op -> op.name }.contains(textFieldState.text.toString())),
                 onClick = {
-                    outputText =  loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
-            }) { Text("Add") }
+                    // outputText =  loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
+
+                    val getResult: Character? = getCharacter(selectedOption)
+                    if (getResult != null) {
+                        viewModel.setCurrentCharacter (getResult)
+                    }
+                    else {
+                        val addResult = Loader.addCharacter (selectedOption, textFieldState.text.toString())
+                        if (addResult != null) {
+                            addCharacterToList(addResult, true, options, viewModel)
+                            viewModel.setCurrentCharacter (addResult)
+                        }
+                    }
+                }) { Text("Add") }
 
             Button(
                 modifier = Modifier.padding(start = 20.dp),
@@ -236,7 +175,8 @@ fun CharacterScreen(settings: DprSettings,
                         println("overrides = $characterOverrides")
                         dprFiles.saveModifiedCharacter(characterOverrides)
 
-                        addCharacterToList(character!!, false, options, settings)
+                        addCharacterToList(character!!, false, options, viewModel)
+                        viewModel.setMainCharacter(viewModel.getCurrentCharacter()!!)
                     }
                 }
             ) { Text("Save") }
