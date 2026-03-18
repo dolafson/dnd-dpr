@@ -19,24 +19,24 @@ object AttackResultFormatter {
         return if (isCSV) format(fieldName, value) else ""
     }
 
-    fun footer(turnId: Any, actionLabel: String, totalDamage: Float, scenarioName: String) {
+    fun footer(turnId: Any, actionLabel: String, totalDamage: Float, scenarioName: String): String {
         if (isCSV) {
             val damagePct = Globals.getPercent(totalDamage)
-            println(",,,,,,$scenarioName,$turnId,$actionLabel,,,,,,,,,,,,,$damagePct,")
+            return ",,,,,,$scenarioName,$turnId,$actionLabel,,,,,,,,,,,,,$damagePct,"
         } else {
-            println(format(actionLabel, totalDamage))
+            return format(actionLabel, totalDamage)
         }
     }
 
     fun separate() { println(txtLineSeparator) }
 
-    fun header(scenarioName: String) {
+    fun header(scenarioName: String): String {
         if (!isCSV) {
             separate();
             //println(format("scenario",scenarioName))
             //println(String.format("\t%-20s %s\n","scenario",scenarioName))
             //println()
-            return
+            return ""
         }
 
         val buf = StringBuilder("")
@@ -72,6 +72,6 @@ object AttackResultFormatter {
         buf.append("damagePerHit").append(",")
         buf.append("duration").append(",")
         buf.append("fullEffectDamage").append(",")
-        println(buf)
+        return buf.toString()
     }
 }

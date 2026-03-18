@@ -12,6 +12,7 @@ import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 class ScenarioBuilder(val character: Character, val monster: Monster) {
+    var lastResult: List<ScenarioResult>? = null
 
     fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn> {
         val actionList = actionsAvailable.getList(targetProximity)
@@ -252,7 +253,8 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
             resultList.add(scenarioResult)
         }
 
-        return resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
+        lastResult = resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
+        return lastResult!!
     }
 
     fun getResultSummary(scenarioResults: List<ScenarioResult>): String { // previously, stderr ...
@@ -271,7 +273,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         println(getResultSummary(scenarioResults))
 
         for (scenarioResult in scenarioResults) {
-            scenarioResult.output() // TODO: return string, ...
+            println(scenarioResult.output())
         }
     }
 

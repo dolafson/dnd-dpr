@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dprapp.DprViewModel
@@ -22,8 +23,11 @@ fun MainScreen(viewModel: DprViewModel,
                onAttackButtonClicked: (Int) -> Unit,
                modifier: Modifier = Modifier
 ) {
+        val uriHandler = LocalUriHandler.current
+
         var proximity   by rememberSaveable { mutableStateOf("") }
         var outputText  by remember { mutableStateOf("") }
+        var scenarioBuilder by remember { mutableStateOf<ScenarioBuilder?>(null) }
 
         Column(modifier = modifier) {
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
@@ -81,6 +85,7 @@ fun MainScreen(viewModel: DprViewModel,
                                 val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getMainMonster()!!)
                                 val result = builder.runScenarios(proximityInt)
                                 outputText = builder.getResultSummary(result)
+                                scenarioBuilder = builder
                             } catch (e: Exception) {
                                 println("Unable to build scenarios: $e")
                                 outputText = "Invalid value"
@@ -104,5 +109,26 @@ fun MainScreen(viewModel: DprViewModel,
                     modifier = Modifier.heightIn(100.dp) // Overriding defaults
                 )
             }
+/*
+    // this export button does not yet work on ios ...
+    
+            if (scenarioBuilder != null) {
+                Button(
+                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
+                    onClick = {
+                        AttackResultFormatter.isCSV = true
+
+                        val buf = StringBuilder()
+                        for (result in scenarioBuilder!!.lastResult!!) {
+                            buf.append(result.output()).append("\n")
+                        }
+
+                        dprFiles.saveAttackCSV(buf.toString())
+                        val fileURL = dprFiles.getAttackCSVLocalUrl()  // "file:///path/to/your/file.csv"
+                        uriHandler.openUri(fileURL)
+                    }
+                ) { Text("Export") }
+            }
+ */
         }
 }

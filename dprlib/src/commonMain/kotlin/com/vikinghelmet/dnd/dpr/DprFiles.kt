@@ -16,11 +16,14 @@ const val settingsPath = ".dpr/settings.json"
 const val characterBaselineDir = ".dpr/character/baseline"
 const val characterEditableDir = ".dpr/character/editable"
 
+const val exportDir = ".dpr/export"
+
 class DprFiles(val appDataDir: String)
 {
     fun init() {
         SystemFileSystem.createDirectories(Path(appDataDir+"/"+characterBaselineDir))
         SystemFileSystem.createDirectories(Path(appDataDir+"/"+characterEditableDir))
+        SystemFileSystem.createDirectories(Path(appDataDir+"/"+exportDir))
     }
 
     fun deleteAll() {
@@ -46,10 +49,16 @@ class DprFiles(val appDataDir: String)
     }
 
     fun saveEditableCharacter(editableFields: EditableFields) {
-        // TODO: for filename, use localId instead of name ???
         write(Json.encodeToString(editableFields), characterEditableDir+"/"+editableFields.name)
     }
 
+    fun saveAttackCSV(csv: String) {
+        write(csv, exportDir+"/attack.csv")
+    }
+
+    fun getAttackCSVLocalUrl(): String {
+        return "file://$appDataDir/$exportDir/attack.csv"
+    }
     fun deleteEditableCharacter(name: String) {
         delete(characterEditableDir+"/"+name)
     }

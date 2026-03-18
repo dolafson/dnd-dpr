@@ -33,7 +33,7 @@ data class AttackResult(
         this.spellAttack = spellAttack
     }
 
-    fun output(scenarioName: String) {
+    fun output(scenarioName: String): String {
         val attackLabel = if (spellAttack != null) spellAttack.toString() else attack.getLabel()
         val buf = StringBuilder("")
 
@@ -96,7 +96,7 @@ data class AttackResult(
         buf.append(AttackResultFormatter.format("duration", duration.select(selection)))
         buf.append(AttackResultFormatter.format("damageFullEffect", damageFullEffect.select(selection)))
 
-        println(buf)
+        return buf.toString()
     }
 
     fun getAvgMinMaxSelection(): AvgMinMaxSelection {
