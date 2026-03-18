@@ -107,6 +107,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                             if (addResult != null) {
                                 options.add(addResult.getName())
                                 viewModel.setCurrentCharacter(addResult)
+                                textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
                             }
                         }
                     }
