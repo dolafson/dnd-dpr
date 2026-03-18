@@ -207,7 +207,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 // currently unable to calculate: AC, HP
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                NumericMenu("level", viewModel.getNumericRangeMap(), { level = it; modified = true })
+                NumericMenu(viewModel.getNumericRangeMap().map["level"], { level = it; modified = true })
                 Text((character?.getProficiencyBonus() ?: "?" ).toString())
                 Text((character?.getSpellSaveDC() ?: "?" ).toString())
                 Text((character?.getSpellAbilityType() ?: "?" ))
@@ -215,8 +215,6 @@ fun CharacterScreen(viewModel: DprViewModel,
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
-
-        val rangeMap =viewModel.getNumericRangeMap()
 
         // NOTE: resist the urge to refactor this stat block into common code shared with MonsterScreen
         // that refactoring only leads to misery and woe (mismanaged composable state)
@@ -228,9 +226,9 @@ fun CharacterScreen(viewModel: DprViewModel,
                 Text(AbilityType.Constitution.toShortName())
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                NumericMenu(AbilityType.Strength.name, rangeMap, {})
-                NumericMenu(AbilityType.Dexterity.name, rangeMap, {})
-                NumericMenu(AbilityType.Constitution.name, rangeMap, {})
+                listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
+                    NumericMenu( viewModel.getNumericRangeMap().map[it.name], {})
+                }
             }
             Column(modifier = Modifier.padding(start = 60.dp)) {
                 Text(AbilityType.Intelligence.toShortName())
@@ -238,9 +236,9 @@ fun CharacterScreen(viewModel: DprViewModel,
                 Text(AbilityType.Charisma.toShortName())
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                NumericMenu(AbilityType.Intelligence.name, rangeMap, {})
-                NumericMenu(AbilityType.Wisdom.name, rangeMap, {})
-                NumericMenu(AbilityType.Charisma.name, rangeMap, {})
+                listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
+                    NumericMenu(viewModel.getNumericRangeMap().map[it.name], {})
+                }
             }
         }
 

@@ -5,7 +5,7 @@ interface HasNumericRangeMap {
     // fun getNumericRangeMap(): Map<String, NumericRange>
 }
 
-class NumericRange(val min: Int, val max: Int, val current: Int? = min) {
+class NumericRange(val min: Int, val max: Int, var current: Int? = min) {
     override fun toString(): String {
         return "(min=$min, current=$current, max=$max)"
     }

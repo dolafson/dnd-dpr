@@ -12,54 +12,38 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
+import com.vikinghelmet.dnd.dpr.util.NumericRange
 
 @Composable
 fun NumericMenu(
-    statKey: String,
-    rangeMap: NumericRangeMap,
+    numericRange: NumericRange?,
     onValueChanged: (Int) -> Unit
 ) {
     Box(modifier = Modifier
         .padding(horizontal = 0.dp)
         .border(2.dp, MaterialTheme.colorScheme.primary))
     {
-        val rememberedRangeMap = rangeMap // by remember { mutableStateOf(rangeMap) }
-
-        if (!rememberedRangeMap.isEditable ||
-            rememberedRangeMap.map.isEmpty() ||
-            !rememberedRangeMap.map.containsKey(statKey))
-        {
+        if (numericRange == null) {
             Text("?", modifier = Modifier.padding(horizontal = 5.dp))
         }
         else {
             var expanded by remember { mutableStateOf(false) }
+            var displayValue by remember(numericRange) { mutableStateOf(numericRange.current) }
 
-            // initialize selected to null when we get a new range map ...
-            var selectedOption by remember(rememberedRangeMap) { mutableStateOf<Int?>(null) }
+            println ("NumericMenu: displayValue = $displayValue, numericRange=$numericRange")
 
-            var displayText by remember(selectedOption,rememberedRangeMap) { mutableStateOf(
-                if (selectedOption != null) selectedOption.toString()
-                    else rememberedRangeMap.map[statKey]!!.current.toString())
-            }
+            Text(displayValue.toString(), modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp))
 
-            println ("NumericMenu: statKey=$statKey, displayText = $displayText, selectedOption=$selectedOption, rangeMap=$rangeMap")
+            val options = (numericRange.min..numericRange.max).toList()
 
-            Text(displayText, modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp))
-
-            val options = (rememberedRangeMap.map[statKey]!!.min..rememberedRangeMap.map[statKey]!!.max).toList()
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 options.forEach { option ->
                     DropdownMenuItem(
                         text = { Text(option.toString()) },
                         onClick = {
                             onValueChanged(option)
-                            selectedOption = option
-                            displayText = option.toString()
+                            displayValue = option
+                            numericRange.current = option
                             expanded = false
                         },
                         modifier = Modifier.width(50.dp)

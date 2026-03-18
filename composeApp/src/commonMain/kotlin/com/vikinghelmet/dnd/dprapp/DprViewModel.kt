@@ -99,10 +99,6 @@ class DprViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(currentMonster = currentMonster)
         }
-        if (currentMonster != null) {
-            setNumericRangeMap (currentMonster.getNumericRangeMap())
-        }
-//        setStats(false)
     }
 
     fun setCharacterList(characterList: MutableList<CharacterListItem>) {
