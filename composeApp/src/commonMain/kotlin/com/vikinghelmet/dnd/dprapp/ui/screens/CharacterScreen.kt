@@ -145,7 +145,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     viewModel.setCurrentCharacter(null)
                     textFieldState.setTextAndPlaceCursorAtEnd("")
                 }
-            ) { Text("Remove") }
+            ) { Text("Del") } // running out of room on ios screen width
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
