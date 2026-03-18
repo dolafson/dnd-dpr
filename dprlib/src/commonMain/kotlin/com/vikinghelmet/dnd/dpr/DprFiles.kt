@@ -4,7 +4,8 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.modified.CharacterOverrides
+import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
+import com.vikinghelmet.dnd.dpr.modified.EditableFields
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import kotlinx.io.*
 import kotlinx.io.files.Path
@@ -13,13 +14,13 @@ import kotlinx.serialization.json.Json
 
 const val settingsPath = ".dpr/settings.json"
 const val characterBaselineDir = ".dpr/character/baseline"
-const val characterLevelupDir = ".dpr/character/levelup"
+const val characterEditableDir = ".dpr/character/editable"
 
 class DprFiles(val appDataDir: String)
 {
     fun init() {
         SystemFileSystem.createDirectories(Path(appDataDir+"/"+characterBaselineDir))
-        SystemFileSystem.createDirectories(Path(appDataDir+"/"+characterLevelupDir))
+        SystemFileSystem.createDirectories(Path(appDataDir+"/"+characterEditableDir))
     }
 
     fun getSettings(): DprSettings {
@@ -33,18 +34,35 @@ class DprFiles(val appDataDir: String)
         write(settingsString, settingsPath)
     }
 
-    fun saveCharacter(character: Character, characterId: String) {
-        write(Json.encodeToString(character), characterBaselineDir+"/"+characterId)
+    fun saveCharacter(json: String, characterId: String) {
+        write(json, characterBaselineDir+"/"+characterId)
     }
 
-    fun saveModifiedCharacter(characterOverrides: CharacterOverrides) {
+    fun saveEditableCharacter(editableFields: EditableFields) {
         // TODO: for filename, use localId instead of name ???
-        write(Json.encodeToString(characterOverrides), characterLevelupDir+"/"+characterOverrides.name+".json")
+        write(Json.encodeToString(editableFields), characterEditableDir+"/"+editableFields.name)
     }
 
-    fun getModifiedCharacter(name: String): CharacterOverrides? {
-        val json = read(characterLevelupDir+"/" + name+".json")
-        return if (json !=null) Json.decodeFromString(json) else null
+    fun getEditableFields(name: String): EditableFields? {
+        val json = read(characterEditableDir+"/" + name) ?: return null
+        return Json.decodeFromString(json)
+        /*
+        val result: EditableFields = Json.decodeFromString(json)
+        result.name = name
+        return result */
+    }
+
+    fun getEditableCharacter(name: String): EditableCharacter? {
+        //println("getEditableCharacter, settings name = $name")
+        val editableFields = getEditableFields(name) ?: return null
+        //println("getEditableCharacter, editableFields = $editableFields")
+        if (editableFields.remoteId == 0) {
+            println("getEditableCharacter, remoteId=0")
+            return null
+        }
+        val baseline = getCharacter(editableFields.remoteId.toString()) ?: return null
+        //println("getEditableCharacter, baseline = $baseline")
+        return EditableCharacter(baseline, editableFields)
     }
 
     fun getCharacter(characterId: String): Character? {
@@ -52,8 +70,8 @@ class DprFiles(val appDataDir: String)
         return if (json !=null) Json.decodeFromString(json) else null
     }
 
-    fun getCharacterList(): List<String> {
-        return list(characterBaselineDir).map { p -> p.substringAfterLast('/') }
+    fun getEditableCharacterList(): List<String> {
+        return list(characterEditableDir).map { p -> p.substringAfterLast('/') }
     }
 
     fun list(subdir: String): List<String> {
@@ -80,6 +98,7 @@ class DprFiles(val appDataDir: String)
                 return content
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             println("Error reading file: $e")
             return null
             //return "{}" // TODO: better default ?

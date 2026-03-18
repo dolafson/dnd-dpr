@@ -8,27 +8,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.modified.CharacterOverrides
-import com.vikinghelmet.dnd.dpr.modified.StatBlock
-import com.vikinghelmet.dnd.dpr.util.CharacterListItem
+import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
+import com.vikinghelmet.dnd.dpr.modified.EditableFields
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.ui.NumericMenu
 import com.vikinghelmet.dnd.dprapp.ui.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 fun isUrlOrID(str: String): Boolean {
     return str.startsWith("http://") || str.startsWith("https://") || str.toIntOrNull() != null
-}
-
-fun addCharacterToList (character: Character, isLocal: Boolean, options: MutableList<CharacterListItem>, viewModel: DprViewModel)
-{
-    val item = CharacterListItem(character.characterData.id.toString(), character.getName(), isLocal)
-    options.add(item)
-    viewModel.uiState.value.characterList.add(item)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
@@ -36,32 +26,24 @@ fun addCharacterToList (character: Character, isLocal: Boolean, options: Mutable
 //@Preview
 fun CharacterScreen(viewModel: DprViewModel,
                     onDismiss: () -> Unit,
-                    onConfirm: (String) -> Unit,
+                    onConfirm: (EditableCharacter) -> Unit,
                     onReset: () -> Unit)
 {
-    var character: Character? = viewModel.getCurrentCharacter()
-    // var character: Character? = viewModel.uiState.collectAsState().value.currentCharacter // getCurrentCharacter()
-
-    var outputText by remember { mutableStateOf("") }
+    var character: EditableCharacter? = viewModel.getCurrentCharacter()
 
     var level by remember { mutableStateOf(if (character != null) character!!.getLevel() else 0) }
-
-//    var statBlock by remember { mutableStateOf(if (character != null) character!!.getStatBlock() else
-//        StatBlock(0,0,0,0,0,0)) }
-    var statBlock= if (character != null) character!!.getStatBlock() else StatBlock(0,0,0,0,0,0)
 
     var showNameAlert by remember { mutableStateOf(false) }
     var modified by remember { mutableStateOf(false) }
 
-    val options = remember { mutableListOf<CharacterListItem>() }
-    var selectedOption = remember { mutableStateOf(CharacterListItem("","",false)) }
-
+    val options = remember { mutableListOf<String>() }
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
 
     LaunchedEffect(Unit) {
         options.clear()
-        options.addAll (viewModel.uiState.value.characterList)
+//        options.addAll (viewModel.uiState.value.characterList)
+        options.addAll (dprFiles.getEditableCharacterList())
 
         println("character list = "+options)
         // println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
@@ -69,14 +51,7 @@ fun CharacterScreen(viewModel: DprViewModel,
         viewModel.setCurrentCharacter(viewModel.getMainCharacter())
 
         if (viewModel.getCurrentCharacter() != null) {
-            val name = viewModel.getCurrentCharacter()!!.getName()
-            val match = viewModel.uiState.value.getMatchingCharacterItem(name)
-            if (match != null) {
-                selectedOption.value.copyValues(match)
-                textFieldState.setTextAndPlaceCursorAtEnd(selectedOption.value.name)
-            }
-            println("match = $match")
-            println("selectedOption = $selectedOption")
+            textFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
         }
     }
 
@@ -117,13 +92,12 @@ fun CharacterScreen(viewModel: DprViewModel,
                         //println("DropdownMenuItem: option $option")
 
                         DropdownMenuItem(
-                            text = { Text(option.name, color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
-                                selectedOption.value.copyValues(option)
-                                textFieldState.setTextAndPlaceCursorAtEnd(option.name)
+                                textFieldState.setTextAndPlaceCursorAtEnd(option)
 
                                 // outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
-                                viewModel.setCurrentCharacter (Loader.getCharacter (selectedOption))
+                                viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(option))
                                 expanded = false
 
                                 // use navigation to reload the entire page ... this will reset the editable boxes ...
@@ -141,18 +115,19 @@ fun CharacterScreen(viewModel: DprViewModel,
             Button(
                 enabled = (textFieldState.text.isNotBlank() &&
                             isUrlOrID(textFieldState.text.toString()) &&
-                            !options.map { op -> op.name }.contains(textFieldState.text.toString())),
+                            !options.contains(textFieldState.text.toString())),
                 onClick = {
                     // outputText =  loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
 
-                    val getResult: Character? = Loader.getCharacter(selectedOption)
+                    val getResult: EditableCharacter? = Loader.getEditableCharacter(textFieldState.text.toString())
                     if (getResult != null) {
                         viewModel.setCurrentCharacter (getResult)
                     }
                     else {
                         val addResult = Loader.addCharacter (textFieldState.text.toString())
                         if (addResult != null) {
-                            addCharacterToList(addResult, true, options, viewModel)
+                            options.add(addResult.getName())
+                            // addCharacterToList(addResult, true, options, viewModel)
                             viewModel.setCurrentCharacter (addResult)
                         }
                     }
@@ -162,22 +137,21 @@ fun CharacterScreen(viewModel: DprViewModel,
                 modifier = Modifier.padding(start = 20.dp),
                 enabled = modified,
                 onClick = {
-                    println("TODO: Save character, baseline = ${selectedOption.value.name}")
-
                     for (option in options) {
-                        if (option.name == textFieldState.text) {
-                            println("warning: name matches an existing character ${option.name}")
+                        if (option == textFieldState.text) {
+                            println("warning: name matches an existing character $option")
                             showNameAlert = true
                         }
                     }
                     if (!showNameAlert) {
-                        val characterOverrides = CharacterOverrides(Uuid.random().toString(),
-                            character!!.characterData.id!!, level,
-                            textFieldState.text.toString(), statBlock)
-                        println("overrides = $characterOverrides")
-                        dprFiles.saveModifiedCharacter(characterOverrides)
+                        val editableFields = EditableFields.fromScreen(textFieldState.text.toString(), character!!, viewModel.getNumericRangeMap())
 
-                        addCharacterToList(character!!, false, options, viewModel)
+                        println("editableFields = $editableFields")
+                        dprFiles.saveEditableCharacter(editableFields)
+
+                        //addCharacterToList(character!!, false, options, viewModel)
+                        options.add(character.getName())
+
                         viewModel.setMainCharacter(viewModel.getCurrentCharacter()!!)
                     }
                 }
@@ -287,7 +261,7 @@ fun CharacterScreen(viewModel: DprViewModel,
         ) {
             TextButton(onClick = onDismiss) { Text("Dismiss") }
             Spacer(Modifier.width(8.dp))
-            Button( onClick = { onConfirm(selectedOption.value.name) }) { Text("OK") }
+            Button( onClick = { onConfirm(character!!) }) { Text("OK") } // TODO: double check this
         }
     }
 }

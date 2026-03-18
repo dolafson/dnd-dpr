@@ -16,7 +16,7 @@
 package com.vikinghelmet.dnd.dprapp
 
 import androidx.lifecycle.ViewModel
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.CharacterListItem
 import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
@@ -47,10 +47,10 @@ class DprViewModel : ViewModel() {
         return _uiState.value.mainCharacter != null && _uiState.value.mainMonster != null
     }
 
-    fun getMainCharacter(): Character? { return _uiState.value.mainCharacter }
+    fun getMainCharacter(): EditableCharacter? { return _uiState.value.mainCharacter }
     fun getMainMonster(): Monster? { return _uiState.value.mainMonster }
 
-    fun getCurrentCharacter(): Character? { return _uiState.value.currentCharacter }
+    fun getCurrentCharacter(): EditableCharacter? { return _uiState.value.currentCharacter }
     fun getCurrentMonster(): Monster? { return _uiState.value.currentMonster }
 /*
     fun getStats(): NumericRangeMap {
@@ -73,7 +73,7 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setMainCharacter(mainCharacter: Character?) {
+    fun setMainCharacter(mainCharacter: EditableCharacter?) {
         _uiState.update { currentState ->
             currentState.copy(mainCharacter = mainCharacter)
         }
@@ -86,7 +86,7 @@ class DprViewModel : ViewModel() {
     }
 
 
-    fun setCurrentCharacter(currentCharacter: Character?) {
+    fun setCurrentCharacter(currentCharacter: EditableCharacter?) {
         _uiState.update { currentState ->
             currentState.copy(currentCharacter = currentCharacter)
         }

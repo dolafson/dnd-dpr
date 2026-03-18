@@ -11,7 +11,6 @@ import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.modified.StatBlock
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.*
@@ -38,7 +37,7 @@ open class Character(
             result.put(it.name, NumericRange(score, 20))
         }
         result.put("level", NumericRange(getLevel(), 20))
-        return NumericRangeMap(true, result)
+        return NumericRangeMap(result)
     }
 
     open fun getName(): String {
@@ -89,17 +88,6 @@ open class Character(
         return getRawAbilityScore(a) +
                 getBonusModifierSum(a, characterData.modifiers.race) +
                 getBonusModifierSum(a, characterData.modifiers.feat)
-    }
-
-    open fun getStatBlock(): StatBlock {
-        return StatBlock(
-            getModifiedAbilityScore(AbilityType.Strength),
-            getModifiedAbilityScore(AbilityType.Dexterity),
-            getModifiedAbilityScore(AbilityType.Constitution),
-            getModifiedAbilityScore(AbilityType.Intelligence),
-            getModifiedAbilityScore(AbilityType.Wisdom),
-            getModifiedAbilityScore(AbilityType.Charisma)
-        )
     }
 
     open fun getLevel(): Int {

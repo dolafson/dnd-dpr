@@ -55,7 +55,7 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             val settings = dprFiles.getSettings()
             viewModel.setProximity (settings.proximity)
             viewModel.setCharacterList (settings.characterList)
-            viewModel.setMainCharacter (Loader.getCharacter(settings))
+            viewModel.setMainCharacter (Loader.getCharacterFromSettings(settings))
             viewModel.setMainMonster (Loader.getMonster(settings))
         }
         catch (e: Exception) {
@@ -101,9 +101,10 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                     {
                         navController.navigate(ViewType.main.name)
                     },
-                    { dialogSelectedValue ->
+                    { selectedEditableCharacter ->
                         println("OK button clicked - character")
 
+                        viewModel.setMainCharacter(selectedEditableCharacter)
                         saveSettings(viewModel)
 
                         navController.navigate(ViewType.main.name)

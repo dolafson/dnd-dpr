@@ -44,4 +44,9 @@ object CmdTest {
     suspend fun getRemoteCharacterByUrl(url: String): Character? {
         return Json.decodeFromString(getRequest(url))
     }
+
+    fun getCharacterApiURL(id: String): String {
+        return characterUrlPrefix + id
+    }
+
 }

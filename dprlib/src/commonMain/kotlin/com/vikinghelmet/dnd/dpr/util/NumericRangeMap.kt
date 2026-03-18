@@ -5,13 +5,13 @@ interface HasNumericRangeMap {
     // fun getNumericRangeMap(): Map<String, NumericRange>
 }
 
-class NumericRange(val min: Int, val max: Int, var current: Int? = min) {
+class NumericRange(val min: Int, val max: Int, var current: Int = min) {
     override fun toString(): String {
         return "(min=$min, current=$current, max=$max)"
     }
 }
 
-class NumericRangeMap(val isEditable: Boolean, val map: Map<String, NumericRange> = mutableMapOf()) {
+class NumericRangeMap(val map: Map<String, NumericRange> = mutableMapOf()) {
     override fun toString(): String {
         return map.toString()
     }
