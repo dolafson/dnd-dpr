@@ -5,17 +5,12 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
 import com.vikinghelmet.dnd.dpr.modified.EditableFields
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.ui.dprFiles
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 object Loader {
-
-    fun getMonster(settings: DprSettings): Monster? {
-        return getMonster(settings.monsterName)
-    }
 
     fun getMonster(name: String): Monster? {
         try {
@@ -32,13 +27,7 @@ object Loader {
         return dprFiles.getEditableCharacter(name)
     }
 
-    fun getCharacterFromSettings(settings: DprSettings): EditableCharacter? {
-        println("Loader.getCharacter, settings name = ${settings.characterName}")
-        if (settings.characterName.isEmpty()) return null
-        return dprFiles.getEditableCharacter(settings.characterName)
-    }
-
-    fun addCharacter(urlOrId: String): EditableCharacter?
+    fun addEditableCharacter(urlOrId: String): EditableCharacter?
     {
         var result: EditableCharacter? = null
         var remoteId: String? = CmdTest.getCharacterId(urlOrId)
@@ -54,7 +43,7 @@ object Loader {
         try {
             runBlocking {
                 // build a new URL if needed
-                val url = if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) CmdTest.getCharacterApiURL(remoteId)
+                val url = if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) CmdTest.getCharacterApiURL(remoteId!!)
                             else urlOrId
                 val json = CmdTest.getRequest(url)
 
@@ -78,14 +67,6 @@ object Loader {
             //println("CharacterID invalid / not found")
             return null
         }
-/*
-        if (result != null) {
-            println("loadCharacter: stat block before: $statBlock")
-            statBlock.copyValues(character!!.getStatBlock())
-            println("loadCharacter: stat block after: $statBlock")
-            println(character!!.toStringWeapons()+"\n"+character!!.toStringFeats())
-        }
-  */
         return result
     }
 }

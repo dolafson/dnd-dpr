@@ -3,25 +3,26 @@ package com.vikinghelmet.dnd.dprapp.data
 import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.DprSettings
-import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
+import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
+import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class DprUiState(
-    // read-only fields on main screen
-    var mainCharacter: EditableCharacter? = null,
-    var mainMonster: Monster? = null,
-
-    // read-write field on main screen
-    var proximity: Int = 0,
-
-    // read-write fields on other screens
+    // current character/monster: whatever is currently displayed on that screen
     var currentCharacter: EditableCharacter? = null,
     var currentMonster: Monster? = null,
 
-    // the source varies with the screen currently viewed - character or monster
-    //var statSource: HasNumericRangeMap? = null,
-    var numericRangeMap: NumericRangeMap = NumericRangeMap(emptyMap()),
+    // main character/monster: assigned from current after OK press; used in attack calculation
+    var mainCharacter: EditableCharacter? = null,
+    var mainMonster: Monster? = null,
+
+    // editable field on main screen
+    var proximity: Int = 0,
+
+    // editable fields on character screen
+    var editableAbilityMap: EditableAbilityMap = EditableAbilityMap(emptyMap()),
+    var characterLevel: NumericRange = NumericRange(0,0,0),
 ) {
     fun getSettings(): DprSettings {
         return DprSettings(

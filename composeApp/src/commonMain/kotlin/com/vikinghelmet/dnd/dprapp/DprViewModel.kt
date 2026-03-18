@@ -18,7 +18,8 @@ package com.vikinghelmet.dnd.dprapp
 import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
+import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
+import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,13 +53,23 @@ class DprViewModel : ViewModel() {
     fun getCurrentCharacter(): EditableCharacter? { return _uiState.value.currentCharacter }
     fun getCurrentMonster(): Monster? { return _uiState.value.currentMonster }
 
-    fun getNumericRangeMap(): NumericRangeMap {
-        return _uiState.value.numericRangeMap
+    fun getAbilityMap(): EditableAbilityMap {
+        return _uiState.value.editableAbilityMap
     }
 
-    fun setNumericRangeMap(numericRangeMap: NumericRangeMap) {
+    fun setAbilityMap(editableAbilityMap: EditableAbilityMap) {
         _uiState.update { currentState ->
-            currentState.copy(numericRangeMap = numericRangeMap)
+            currentState.copy(editableAbilityMap = editableAbilityMap)
+        }
+    }
+
+    fun getCharacterLevel(): NumericRange {
+        return _uiState.value.characterLevel
+    }
+
+    fun setCharacterLevel(characterLevel: NumericRange) {
+        _uiState.update { currentState ->
+            currentState.copy(characterLevel = characterLevel)
         }
     }
 
@@ -80,7 +91,8 @@ class DprViewModel : ViewModel() {
             currentState.copy(currentCharacter = currentCharacter)
         }
         if (currentCharacter != null) {
-            setNumericRangeMap (currentCharacter.getNumericRangeMap())
+            setAbilityMap (currentCharacter.getAbilityMap())
+            setCharacterLevel (NumericRange(currentCharacter.getLevel(),20,currentCharacter.getLevel()))
         }
     }
 

@@ -23,18 +23,14 @@ fun isUrlOrID(str: String): Boolean {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
-//@Preview
 fun CharacterScreen(viewModel: DprViewModel,
                     onDismiss: () -> Unit,
-                    onConfirm: (EditableCharacter) -> Unit,
-                    onReset: () -> Unit)
+                    onConfirm: (EditableCharacter) -> Unit)
 {
     var character: EditableCharacter? = viewModel.getCurrentCharacter()
 
-    var level by remember { mutableStateOf(if (character != null) character!!.getLevel() else 0) }
-
     var showNameAlert by remember { mutableStateOf(false) }
-    var modified by remember { mutableStateOf(false) }
+    var showSaveButton by remember { mutableStateOf(false) }
 
     val options = remember { mutableListOf<String>() }
     var expanded by remember { mutableStateOf(false) }
@@ -43,8 +39,6 @@ fun CharacterScreen(viewModel: DprViewModel,
     LaunchedEffect(Unit) {
         options.clear()
         options.addAll (dprFiles.getEditableCharacterList())
-
-        println("character list = "+options)
 
         viewModel.setCurrentCharacter(viewModel.getMainCharacter())
 
@@ -107,7 +101,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                         viewModel.setCurrentCharacter (getResult)
                     }
                     else {
-                        val addResult = Loader.addCharacter (textFieldState.text.toString())
+                        val addResult = Loader.addEditableCharacter (textFieldState.text.toString())
                         if (addResult != null) {
                             options.add(addResult.getName())
                             viewModel.setCurrentCharacter (addResult)
@@ -117,7 +111,7 @@ fun CharacterScreen(viewModel: DprViewModel,
 
             Button(
                 modifier = Modifier.padding(start = 20.dp),
-                enabled = modified,
+                enabled = showSaveButton,
                 onClick = {
                     for (option in options) {
                         if (option == textFieldState.text) {
@@ -127,7 +121,9 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                     if (!showNameAlert) {
                         val newName = textFieldState.text.toString()
-                        val editableFields = EditableFields.fromScreen(newName, character!!, viewModel.getNumericRangeMap())
+                        val editableFields = EditableFields.fromScreen(newName, character!!,
+                        viewModel.getCharacterLevel(),
+                            viewModel.getAbilityMap())
 
                         dprFiles.saveEditableCharacter(editableFields)
                         character = EditableCharacter(character!!, editableFields)
@@ -160,7 +156,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     // currently unable to calculate: AC, HP
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
-                    NumericMenu(viewModel.getNumericRangeMap().map["level"], { level = it; modified = true })
+                    NumericMenu(viewModel.getCharacterLevel(), { showSaveButton = true })
                     Text(character.getProficiencyBonus().toString())
                     Text(character.getSpellSaveDC().toString())
                     Text(character.getSpellAbilityType())
@@ -180,7 +176,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
-                        NumericMenu( viewModel.getNumericRangeMap().map[it.name], {})
+                        NumericMenu( viewModel.getAbilityMap().map[it], { showSaveButton = true })
                     }
                 }
                 Column(modifier = Modifier.padding(start = 60.dp)) {
@@ -190,7 +186,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
-                        NumericMenu(viewModel.getNumericRangeMap().map[it.name], {})
+                        NumericMenu(viewModel.getAbilityMap().map[it], { showSaveButton = true })
                     }
                 }
             }

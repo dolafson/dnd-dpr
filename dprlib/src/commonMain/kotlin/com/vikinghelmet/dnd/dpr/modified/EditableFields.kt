@@ -4,7 +4,8 @@ package com.vikinghelmet.dnd.dpr.modified
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
+import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
+import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
@@ -19,9 +20,9 @@ data class EditableFields (
 ){
     companion object {
         fun fromCharacter(character: Character): EditableFields {
-            println("EditableFields: fromCharacter: remoteId = ${character.characterData.id!!}")
-            val result = EditableFields(character.characterData.id!!,
-                character.getLevel(), character.getName())
+            val remoteId = character.characterData.id!!
+            println("EditableFields: fromCharacter: remoteId = $remoteId")
+            val result = EditableFields(remoteId, character.getLevel(), character.getName())
 
             AbilityType.entries.forEach {
                 result.stats.put(it, character.getModifiedAbilityScore(it))
@@ -29,21 +30,12 @@ data class EditableFields (
             return result
         }
 
-        fun fromScreen(name: String, character: Character, numericRangeMap: NumericRangeMap): EditableFields {
+        fun fromScreen(name: String, character: Character, characterLevel: NumericRange,
+                       editableAbilityMap: EditableAbilityMap): EditableFields
+        {
             val result = fromCharacter(character)
-            numericRangeMap.map.forEach {
-                if(it.key == "level") {
-                    println("level: rangeMap[${it.key}] = "+it.value.current)
-                    result.level = it.value.current
-                }
-                else try {
-                    println("ability: rangeMap[${it.key}] = ${it.value.current}")
-                    result.stats[AbilityType.valueOf(it.key)] = it.value.current
-                }
-                catch (e: IllegalArgumentException) {
-                    e.printStackTrace()
-                }
-            }
+            result.level = characterLevel.current
+            editableAbilityMap.map.forEach { result.stats[it.key] = it.value.current }
             result.name = name
             return result
         }
