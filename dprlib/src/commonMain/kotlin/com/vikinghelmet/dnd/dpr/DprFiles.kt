@@ -23,6 +23,13 @@ class DprFiles(val appDataDir: String)
         SystemFileSystem.createDirectories(Path(appDataDir+"/"+characterEditableDir))
     }
 
+    fun deleteAll() {
+        for (file in list(characterBaselineDir) + list(characterEditableDir)) {
+            SystemFileSystem.delete(Path(file))
+        }
+        saveSettings(DprSettings())
+    }
+
     fun getSettings(): DprSettings {
         val settings: DprSettings = Json.decodeFromString(read(settingsPath) ?: "{}")
         println("settings: $settings")
@@ -43,7 +50,12 @@ class DprFiles(val appDataDir: String)
         write(Json.encodeToString(editableFields), characterEditableDir+"/"+editableFields.name)
     }
 
+    fun deleteEditableCharacter(name: String) {
+        delete(characterEditableDir+"/"+name)
+    }
+
     fun getEditableFields(name: String): EditableFields? {
+        if (name.isEmpty()) return null
         val json = read(characterEditableDir+"/" + name) ?: return null
         return Json.decodeFromString(json)
         /*
@@ -102,6 +114,15 @@ class DprFiles(val appDataDir: String)
             println("Error reading file: $e")
             return null
             //return "{}" // TODO: better default ?
+        }
+    }
+
+    fun delete(filename: String) {
+        try {
+            SystemFileSystem.delete(Path(appDataDir+"/"+filename))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println("Error deleting file: $e")
         }
     }
 

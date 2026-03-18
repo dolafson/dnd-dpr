@@ -14,7 +14,7 @@ object Loader {
 
     fun getMonster(name: String): Monster? {
         try {
-            return Globals.getMonster(name)
+            return if (name.isEmpty()) null else Globals.getMonster(name)
         }
         catch (e: Exception) {
             println("unable to find monster with name = $name, $e")

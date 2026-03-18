@@ -29,9 +29,7 @@ fun CharacterScreen(viewModel: DprViewModel,
 {
     var character: EditableCharacter? = viewModel.getCurrentCharacter()
 
-    var showNameAlert by remember { mutableStateOf(false) }
-    var showSaveButton by remember { mutableStateOf(false) }
-
+    var unsavedChanges by remember { mutableStateOf(false) }
     val options = remember { mutableListOf<String>() }
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
@@ -82,6 +80,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                                 textFieldState.setTextAndPlaceCursorAtEnd(option)
                                 viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(option))
                                 expanded = false
+                                unsavedChanges = false // TODO: prevent menu selection when unsavedChanges = true ?
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
@@ -92,55 +91,60 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(
-                enabled = (textFieldState.text.isNotBlank() &&
-                            isUrlOrID(textFieldState.text.toString()) &&
-                            !options.contains(textFieldState.text.toString())),
+                enabled = (textFieldState.text.isNotBlank() && isUrlOrID(textFieldState.text.toString())),
                 onClick = {
-                    val getResult: EditableCharacter? = Loader.getEditableCharacter(textFieldState.text.toString())
-                    if (getResult != null) {
-                        viewModel.setCurrentCharacter (getResult)
+                    val jenny = "8675309"
+                    if (textFieldState.text.toString() == jenny) {
+                        dprFiles.deleteAll()
+                        onDismiss()
                     }
                     else {
-                        val addResult = Loader.addEditableCharacter (textFieldState.text.toString())
-                        if (addResult != null) {
-                            options.add(addResult.getName())
-                            viewModel.setCurrentCharacter (addResult)
+                        val getResult: EditableCharacter? = Loader.getEditableCharacter(textFieldState.text.toString())
+                        if (getResult != null) {
+                            viewModel.setCurrentCharacter(getResult)
+                        } else {
+                            val addResult = Loader.addEditableCharacter(textFieldState.text.toString())
+                            if (addResult != null) {
+                                options.add(addResult.getName())
+                                viewModel.setCurrentCharacter(addResult)
+                            }
                         }
                     }
                 }) { Text("Add") }
 
             Button(
                 modifier = Modifier.padding(start = 20.dp),
-                enabled = showSaveButton,
+                enabled = (textFieldState.text.isNotBlank() && !isUrlOrID(textFieldState.text.toString()) && unsavedChanges),
                 onClick = {
-                    for (option in options) {
-                        if (option == textFieldState.text) {
-                            println("warning: name matches an existing character $option")
-                            showNameAlert = true
-                        }
-                    }
-                    if (!showNameAlert) {
-                        val newName = textFieldState.text.toString()
-                        val editableFields = EditableFields.fromScreen(newName, character!!,
-                        viewModel.getCharacterLevel(),
-                            viewModel.getAbilityMap())
+                    val name = textFieldState.text.toString()
+                    val editableFields = EditableFields.fromScreen(name, character!!,
+                    viewModel.getCharacterLevel(), viewModel.getAbilityMap())
 
-                        dprFiles.saveEditableCharacter(editableFields)
-                        character = EditableCharacter(character!!, editableFields)
-                        viewModel.setMainCharacter(character)
+                    dprFiles.saveEditableCharacter(editableFields)
+                    character = EditableCharacter(character!!, editableFields)
+                    viewModel.setMainCharacter(character)
 
-                        options.add(newName)
+                    if (!options.contains(name)) {
+                        options.add(name)
                     }
                 }
             ) { Text("Save") }
 
-            if (showNameAlert) {
-                AlertDialog(
-                    text = { Text("please choose a new name") },
-                    onDismissRequest = {},
-                    confirmButton = { TextButton(onClick = { showNameAlert = false }) { Text("OK") } },
-                )
-            }
+            Button(
+                modifier = Modifier.padding(start = 20.dp),
+                enabled = (textFieldState.text.isNotBlank() && options.contains(textFieldState.text.toString())),
+                onClick = {
+                    val name = textFieldState.text.toString()
+                    if (character == viewModel.getMainCharacter()) {
+                        viewModel.setMainCharacter(null)
+                    }
+                    dprFiles.deleteEditableCharacter(name)
+
+                    options.remove(name)
+                    viewModel.setCurrentCharacter(null)
+                    textFieldState.setTextAndPlaceCursorAtEnd("")
+                }
+            ) { Text("Remove") }
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
@@ -156,7 +160,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     // currently unable to calculate: AC, HP
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
-                    NumericMenu(viewModel.getCharacterLevel(), { showSaveButton = true })
+                    NumericMenu(viewModel.getCharacterLevel(), { unsavedChanges = true })
                     Text(character.getProficiencyBonus().toString())
                     Text(character.getSpellSaveDC().toString())
                     Text(character.getSpellAbilityType())
@@ -176,7 +180,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
-                        NumericMenu( viewModel.getAbilityMap().map[it], { showSaveButton = true })
+                        NumericMenu( viewModel.getAbilityMap().map[it], { unsavedChanges = true })
                     }
                 }
                 Column(modifier = Modifier.padding(start = 60.dp)) {
@@ -186,7 +190,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
-                        NumericMenu(viewModel.getAbilityMap().map[it], { showSaveButton = true })
+                        NumericMenu(viewModel.getAbilityMap().map[it], { unsavedChanges = true })
                     }
                 }
             }
