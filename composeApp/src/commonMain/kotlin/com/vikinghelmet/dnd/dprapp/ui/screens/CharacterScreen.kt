@@ -42,11 +42,9 @@ fun CharacterScreen(viewModel: DprViewModel,
 
     LaunchedEffect(Unit) {
         options.clear()
-//        options.addAll (viewModel.uiState.value.characterList)
         options.addAll (dprFiles.getEditableCharacterList())
 
         println("character list = "+options)
-        // println("CharacterScreen LaunchedEffect, begin; characterId = " + characterId)
 
         viewModel.setCurrentCharacter(viewModel.getMainCharacter())
 
@@ -70,9 +68,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                 TextField(
                     state = textFieldState,
                     label = { Text("Select/Add Character") },
-                    //value = {
-                    //    Text(if (selectedOption.value.name.isNotBlank()) selectedOption.value.name else "Select/Add Character")
-                    //},
                     readOnly = false,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded,
@@ -86,23 +81,13 @@ fun CharacterScreen(viewModel: DprViewModel,
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    //println("ExposedDropdownMenu: options $options")
-
                     options.forEach { option ->
-                        //println("DropdownMenuItem: option $option")
-
                         DropdownMenuItem(
                             text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 textFieldState.setTextAndPlaceCursorAtEnd(option)
-
-                                // outputText = loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
                                 viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(option))
                                 expanded = false
-
-                                // use navigation to reload the entire page ... this will reset the editable boxes ...
-                                // this feels like a hack, maybe later we'll find a better way
-                                // onReset()
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
@@ -117,8 +102,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                             isUrlOrID(textFieldState.text.toString()) &&
                             !options.contains(textFieldState.text.toString())),
                 onClick = {
-                    // outputText =  loadCharacter(selectedOption, textFieldState.text.toString(), options, settings, statBlock)
-
                     val getResult: EditableCharacter? = Loader.getEditableCharacter(textFieldState.text.toString())
                     if (getResult != null) {
                         viewModel.setCurrentCharacter (getResult)
@@ -127,7 +110,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                         val addResult = Loader.addCharacter (textFieldState.text.toString())
                         if (addResult != null) {
                             options.add(addResult.getName())
-                            // addCharacterToList(addResult, true, options, viewModel)
                             viewModel.setCurrentCharacter (addResult)
                         }
                     }
@@ -144,15 +126,14 @@ fun CharacterScreen(viewModel: DprViewModel,
                         }
                     }
                     if (!showNameAlert) {
-                        val editableFields = EditableFields.fromScreen(textFieldState.text.toString(), character!!, viewModel.getNumericRangeMap())
+                        val newName = textFieldState.text.toString()
+                        val editableFields = EditableFields.fromScreen(newName, character!!, viewModel.getNumericRangeMap())
 
-                        println("editableFields = $editableFields")
                         dprFiles.saveEditableCharacter(editableFields)
+                        character = EditableCharacter(character!!, editableFields)
+                        viewModel.setMainCharacter(character)
 
-                        //addCharacterToList(character!!, false, options, viewModel)
-                        options.add(character.getName())
-
-                        viewModel.setMainCharacter(viewModel.getCurrentCharacter()!!)
+                        options.add(newName)
                     }
                 }
             ) { Text("Save") }
@@ -166,91 +147,90 @@ fun CharacterScreen(viewModel: DprViewModel,
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
+        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
 
-        // ID/Name are arguably redundant ...
-        // FieldValue("ID", (character?.characterData?.id ?: "?" ).toString())
-        // FieldValue("Name", character?.characterData?.name ?: "?" )
-
-        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-            Column {
-                Text("Level")
-                Text("Proficiency Bonus")
-                Text("Spell Save DC")
-                Text("Spell Ability")
-                // currently unable to calculate: AC, HP
-            }
-            Column(modifier = Modifier.padding(start = 20.dp)) {
-                NumericMenu(viewModel.getNumericRangeMap().map["level"], { level = it; modified = true })
-                Text((character?.getProficiencyBonus() ?: "?" ).toString())
-                Text((character?.getSpellSaveDC() ?: "?" ).toString())
-                Text((character?.getSpellAbilityType() ?: "?" ))
-            }
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
-
-        // NOTE: resist the urge to refactor this stat block into common code shared with MonsterScreen
-        // that refactoring only leads to misery and woe (mismanaged composable state)
-        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
-        {
-            Column(modifier = Modifier.padding(start = 0.dp)) {
-                Text(AbilityType.Strength.toShortName())  // short name for display, full name for stat lookup
-                Text(AbilityType.Dexterity.toShortName())
-                Text(AbilityType.Constitution.toShortName())
-            }
-            Column(modifier = Modifier.padding(start = 20.dp)) {
-                listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
-                    NumericMenu( viewModel.getNumericRangeMap().map[it.name], {})
-                }
-            }
-            Column(modifier = Modifier.padding(start = 60.dp)) {
-                Text(AbilityType.Intelligence.toShortName())
-                Text(AbilityType.Wisdom.toShortName())
-                Text(AbilityType.Charisma.toShortName())
-            }
-            Column(modifier = Modifier.padding(start = 20.dp)) {
-                listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
-                    NumericMenu(viewModel.getNumericRangeMap().map[it.name], {})
-                }
-            }
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
-
-        if (character != null && character!!.getWeaponList().isNotEmpty())
-        {
+        // everything below here - except for Dismiss button - requires a valid character
+        if (character != null) {
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 Column {
-                    Text("Weapon", fontWeight = FontWeight.Bold)
-                    character!!.getWeaponList().distinct().forEach { weapon -> Text(weapon.name) }
+                    Text("Level")
+                    Text("Proficiency Bonus")
+                    Text("Spell Save DC")
+                    Text("Spell Ability")
+                    // currently unable to calculate: AC, HP
                 }
-                Column (modifier = Modifier.padding(start = 20.dp)) {
-                    Text("Hit", fontWeight = FontWeight.Bold)
-                    character!!.getWeaponList().distinct().forEach { weapon -> Text("+"+character!!.getAttackBonus(weapon).toString()) }
-                }
-                Column (modifier = Modifier.padding(start = 20.dp)) {
-                    Text("Damage", fontWeight = FontWeight.Bold)
-                    character!!.getWeaponList().distinct().forEach { weapon -> Text(
-                        if (character!!.getDamageBonus(weapon, false) == 0) {
-                            weapon.damage!!
-                        } else {
-                            // TODO: BA
-                            weapon.damage!! +" + " +character!!.getDamageBonus(weapon, false).toString()
-                        }
-                    ) }
+                Column(modifier = Modifier.padding(start = 20.dp)) {
+                    NumericMenu(viewModel.getNumericRangeMap().map["level"], { level = it; modified = true })
+                    Text(character.getProficiencyBonus().toString())
+                    Text(character.getSpellSaveDC().toString())
+                    Text(character.getSpellAbilityType())
                 }
             }
-        }
 
-        if (character != null && character!!.getFeatList().isNotEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
 
-            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
+            // NOTE: resist the urge to refactor this stat block into common code shared with MonsterScreen
+            // that refactoring only leads to misery and woe (mismanaged composable state)
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
+            {
+                Column(modifier = Modifier.padding(start = 0.dp)) {
+                    Text(AbilityType.Strength.toShortName())  // short name for display, full name for stat lookup
+                    Text(AbilityType.Dexterity.toShortName())
+                    Text(AbilityType.Constitution.toShortName())
+                }
+                Column(modifier = Modifier.padding(start = 20.dp)) {
+                    listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
+                        NumericMenu( viewModel.getNumericRangeMap().map[it.name], {})
+                    }
+                }
+                Column(modifier = Modifier.padding(start = 60.dp)) {
+                    Text(AbilityType.Intelligence.toShortName())
+                    Text(AbilityType.Wisdom.toShortName())
+                    Text(AbilityType.Charisma.toShortName())
+                }
+                Column(modifier = Modifier.padding(start = 20.dp)) {
+                    listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
+                        NumericMenu(viewModel.getNumericRangeMap().map[it.name], {})
+                    }
+                }
+            }
 
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                Column {
-                    Text("Feat", fontWeight = FontWeight.Bold)
-                    character!!.getFeatList().forEach { feat -> Text(feat.definition.name) }
+            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+
+            if (character.getWeaponList().isNotEmpty())
+            {
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("Weapon", fontWeight = FontWeight.Bold)
+                        character.getWeaponList().distinct().forEach { weapon -> Text(weapon.name) }
+                    }
+                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                        Text("Hit", fontWeight = FontWeight.Bold)
+                        character.getWeaponList().distinct().forEach { weapon -> Text("+"+character.getAttackBonus(weapon).toString()) }
+                    }
+                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                        Text("Damage", fontWeight = FontWeight.Bold)
+                        character.getWeaponList().distinct().forEach { weapon -> Text(
+                            if (character.getDamageBonus(weapon, false) == 0) {
+                                weapon.damage!!
+                            } else {
+                                // TODO: BA
+                                weapon.damage!! +" + " +character.getDamageBonus(weapon, false).toString()
+                            }
+                        ) }
+                    }
+                }
+            }
+
+            if (character.getFeatList().isNotEmpty()) {
+
+                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("Feat", fontWeight = FontWeight.Bold)
+                        character.getFeatList().forEach { feat -> Text(feat.definition.name) }
+                    }
                 }
             }
         }

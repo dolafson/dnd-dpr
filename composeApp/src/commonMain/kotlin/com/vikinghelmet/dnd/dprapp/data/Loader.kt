@@ -63,6 +63,9 @@ object Loader {
                 // on a good fetch, update local storage as well as the menu
                 result = EditableCharacter(baseline, EditableFields.fromCharacter(baseline))
 
+                // update remoteId based on parsed data; this will be used as the local filename
+                remoteId = baseline.characterData.id.toString()
+
                 // save raw json (large), so we have local access to ALL remote data, even if we don't know what to do with it yet
                 dprFiles.saveCharacter(json, remoteId)
 

@@ -51,17 +51,7 @@ class DprViewModel : ViewModel() {
 
     fun getCurrentCharacter(): EditableCharacter? { return _uiState.value.currentCharacter }
     fun getCurrentMonster(): Monster? { return _uiState.value.currentMonster }
-/*
-    fun getStats(): NumericRangeMap {
-        return _uiState.value.statSource?.getNumericRangeMap() ?: NumericRangeMap(false,emptyMap())
-    }
 
-    fun setStats(fromCharacter: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(statSource = if (fromCharacter) _uiState.value.currentCharacter else _uiState.value.currentMonster)
-        }
-    }
-*/
     fun getNumericRangeMap(): NumericRangeMap {
         return _uiState.value.numericRangeMap
     }
