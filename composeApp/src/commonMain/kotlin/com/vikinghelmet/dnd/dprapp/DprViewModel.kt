@@ -18,7 +18,6 @@ package com.vikinghelmet.dnd.dprapp
 import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.util.CharacterListItem
 import com.vikinghelmet.dnd.dpr.util.NumericRangeMap
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -98,12 +97,6 @@ class DprViewModel : ViewModel() {
     fun setCurrentMonster(currentMonster: Monster?) {
         _uiState.update { currentState ->
             currentState.copy(currentMonster = currentMonster)
-        }
-    }
-
-    fun setCharacterList(characterList: MutableList<CharacterListItem>) {
-        _uiState.update { currentState ->
-            currentState.copy(characterList = characterList)
         }
     }
 

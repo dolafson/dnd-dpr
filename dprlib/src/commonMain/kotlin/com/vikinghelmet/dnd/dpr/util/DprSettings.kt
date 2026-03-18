@@ -20,7 +20,6 @@ data class CharacterListItem(
 data class DprSettings(
     var characterName: String = "",
     var monsterName: String = "",
-    var proximity: Int = 0,
-    var characterList: MutableList<CharacterListItem> = mutableListOf(),
+    var proximity: Int = 0
 ) {
 }
