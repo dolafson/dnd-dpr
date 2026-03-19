@@ -24,6 +24,7 @@ import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.getDocumentsDirPath
 import com.vikinghelmet.dnd.dprapp.ui.screens.CharacterScreen
 import com.vikinghelmet.dnd.dprapp.ui.screens.MainScreen
+import com.vikinghelmet.dnd.dprapp.ui.screens.MoneyScreen
 import com.vikinghelmet.dnd.dprapp.ui.screens.MonsterScreen
 import dpr.composeapp.generated.resources.Res
 
@@ -91,6 +92,9 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
 
                         // no navigation needed here, stay on main screen
                     },
+                    onMoneyButtonClicked = {
+                        navController.navigate(ViewType.money.name)
+                    },
                     modifier = Modifier.fillMaxSize().padding(16.dp)
                 )
             }
@@ -122,6 +126,16 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                         viewModel.setMainMonster(viewModel.getCurrentMonster())
                         saveSettings(viewModel)
 
+                        navController.navigate(ViewType.main.name)
+                    })
+            }
+            composable(route = ViewType.money.name) {
+                MoneyScreen(
+                    viewModel = viewModel,
+                    {
+                        navController.navigate(ViewType.main.name)
+                    },
+                    {
                         navController.navigate(ViewType.main.name)
                     })
             }

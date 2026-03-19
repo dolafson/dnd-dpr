@@ -32,6 +32,7 @@ fun NumericMenu(
 
             println ("NumericMenu: displayValue = $displayValue, numericRange=$numericRange")
 
+
             Text(displayValue.toString(), modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp))
 
             val options = (numericRange.min..numericRange.max).toList()

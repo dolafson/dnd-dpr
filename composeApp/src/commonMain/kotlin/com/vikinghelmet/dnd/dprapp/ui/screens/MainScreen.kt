@@ -1,12 +1,10 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -21,6 +19,7 @@ fun MainScreen(viewModel: DprViewModel,
                onCharacterButtonClicked: () -> Unit,
                onMonsterButtonClicked: () -> Unit,
                onAttackButtonClicked: (Int) -> Unit,
+               onMoneyButtonClicked: () -> Unit,
                modifier: Modifier = Modifier
 ) {
         val uriHandler = LocalUriHandler.current
@@ -111,7 +110,7 @@ fun MainScreen(viewModel: DprViewModel,
             }
 /*
     // this export button does not yet work on ios ...
-    
+
             if (scenarioBuilder != null) {
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
@@ -130,5 +129,8 @@ fun MainScreen(viewModel: DprViewModel,
                 ) { Text("Export") }
             }
  */
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onMoneyButtonClicked )  { Text("$") }
+            }
         }
 }
