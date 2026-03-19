@@ -130,14 +130,7 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                     })
             }
             composable(route = ViewType.money.name) {
-                MoneyScreen(
-                    viewModel = viewModel,
-                    {
-                        navController.navigate(ViewType.main.name)
-                    },
-                    {
-                        navController.navigate(ViewType.main.name)
-                    })
+                MoneyScreen({  navController.navigate(ViewType.main.name) })
             }
         }
     }

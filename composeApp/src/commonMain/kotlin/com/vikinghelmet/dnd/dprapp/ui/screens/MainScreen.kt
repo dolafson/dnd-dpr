@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -130,7 +129,7 @@ fun MainScreen(viewModel: DprViewModel,
             }
  */
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onMoneyButtonClicked )  { Text("$") }
+                Button(onClick = onMoneyButtonClicked )  { Text("$") }
             }
         }
 }
