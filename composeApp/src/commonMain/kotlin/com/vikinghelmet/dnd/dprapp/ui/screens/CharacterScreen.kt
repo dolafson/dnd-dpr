@@ -234,6 +234,31 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                 }
             }
+
+            if (character.getPreparedSpells().isNotEmpty()) {
+                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("Prepared Spells", fontWeight = FontWeight.Bold)
+                        character.getPreparedSpells().forEach { spell -> Text(spell.name) }
+                    }
+                }
+            }
+
+            if (character.editableFields.plan.isNotEmpty()) {
+                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("PLANNED Spells by Character Level", fontWeight = FontWeight.Bold)
+                        for (p in character.editableFields.plan.entries) {
+                            //val characterLevel = p.key
+                            //val spellsAtLevel = p.value.spells
+                            Text("${p.key}: spells = ${p.value.spells}")
+                        }
+                        character.editableFields.plan.forEach { key ->  }
+                    }
+                }
+            }
         }
 
         Row(
