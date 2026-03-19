@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -29,10 +30,17 @@ fun CharacterScreen(viewModel: DprViewModel,
 {
     var character: EditableCharacter? = viewModel.getCurrentCharacter()
 
+    var modifyCounter: Int by remember { mutableStateOf(0) }
+
     var unsavedChanges by remember { mutableStateOf(false) }
     val options = remember { mutableListOf<String>() }
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
+
+    val spellSelections = remember(modifyCounter, viewModel.getCharacterLevel()) {
+        println("modifyCounter: $modifyCounter")
+        character?.getSpellSelectionsBySpellLevel(viewModel.getCharacterLevel().current) ?: emptyMap()
+    }
 
     LaunchedEffect(Unit) {
         options.clear()
@@ -161,7 +169,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     // currently unable to calculate: AC, HP
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
-                    NumericMenu(viewModel.getCharacterLevel(), { unsavedChanges = true })
+                    NumericMenu(viewModel.getCharacterLevel(), { unsavedChanges = true; modifyCounter ++ })
                     Text(character.getProficiencyBonus().toString())
                     Text(character.getSpellSaveDC().toString())
                     Text(character.getSpellAbilityType())
@@ -235,6 +243,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
             }
 
+            /*
             if (character.getPreparedSpells().isNotEmpty()) {
                 HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
                 Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
@@ -259,6 +268,59 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                 }
             }
+
+             */
+
+            // for (i in character.from.getLevel()..character.getLevel())
+
+            for (selection in spellSelections) {
+                val spellLevel = selection.key
+                if (selection.value.isNotEmpty()) {
+                    HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+                    Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                        Column {
+
+                            Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
+
+                            for (spell in selection.value.readOnlyList) {
+                                Text(spell.name)
+                            }
+                            for (spell in selection.value.editableList) {
+                                Text(spell.name, color = Color.Blue)
+                            }
+                        }
+                    }
+                }
+            }
+/*
+            for (spellLevel in 1..9) if (
+                character.editableFields.plan.isNotEmpty() &&
+                character.hasSpellsAtSpellLevel(spellLevel))
+            {
+                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
+                        character.editableFields.plan.forEach { plan ->
+                            plan.value.spells.forEach { spellName ->
+                                // TODO: optimize this
+                                var spell: Spell? = null
+                                try {
+                                    spell = Globals.getSpell(spellName, character.is2014())
+                                }
+                                catch (e: Exception) {
+                                    println("unable to display details for spell $spellName")
+                                }
+                                if (spell != null && spell.properties.Level == spellLevel) {
+                                    Text(spell.name)
+                                }
+                            }
+                        }
+
+                        //character.getPreparedSpells().forEach { spell -> if (spell.properties.Level == spellLevel) { Text(spell.name) }}
+                    }
+                }
+ */
         }
 
         Row(
