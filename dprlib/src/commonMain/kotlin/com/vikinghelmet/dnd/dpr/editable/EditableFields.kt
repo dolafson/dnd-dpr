@@ -8,6 +8,7 @@ import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
@@ -18,7 +19,7 @@ data class EditableFields (
     var name: String,
     var stats: MutableMap<AbilityType, Int> = mutableMapOf(),
     //var plan: List<LevelPlan> = mutableListOf(),
-    var plan: Map<String,LevelPlan> = mutableMapOf(),
+    var plan: MutableMap<String,LevelPlan> = mutableMapOf(),
 ){
     companion object {
         fun fromCharacter(character: Character): EditableFields {
@@ -32,13 +33,16 @@ data class EditableFields (
             return result
         }
 
-        fun fromScreen(name: String, character: Character, characterLevel: NumericRange,
+        fun fromScreen(name: String, character: EditableCharacter, characterLevel: NumericRange,
                        editableAbilityMap: EditableAbilityMap): EditableFields
         {
             val result = fromCharacter(character)
             result.level = characterLevel.current
             editableAbilityMap.map.forEach { result.stats[it.key] = it.value.current }
             result.name = name
+
+            // use json serialization to get a deep copy
+            result.plan = Json.decodeFromString (Json.encodeToString (character.editableFields.plan))
             return result
         }
     }
