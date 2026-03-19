@@ -3,6 +3,7 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
@@ -204,6 +205,9 @@ fun main(args : Array<String>) {
         else if (arg.startsWith("test:plan")) {
             val editableCharacter = dprFiles.getEditableCharacter(args[i+1])
             println("plan = ${editableCharacter!!.editableFields.plan}")
+            AbilityType.entries.forEach {
+                println("ability = $it, score = ${editableCharacter.getModifiedAbilityScore(it)}")
+            }
             exitEarly = true
         }
         else if (arg.startsWith("test:available")) {

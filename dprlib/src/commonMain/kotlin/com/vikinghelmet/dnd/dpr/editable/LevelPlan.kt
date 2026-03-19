@@ -11,7 +11,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class LevelPlan (
-    var level: Int,
+    //var level: Int,
     var spells: List<String> = mutableListOf(),
     var asi: Map<AbilityType, Int> = mutableMapOf(),    // ability score improvement
     var feat: Feat? = null,

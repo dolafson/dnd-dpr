@@ -23,7 +23,15 @@ data class EditableCharacter (
     }
 
     override fun getModifiedAbilityScore(a: AbilityType): Int {
-        return editableFields.stats[a] ?: 0
+        if (editableFields.plan.isEmpty()) {
+            return editableFields.stats[a] ?: 0     // TODO: remove this once plan is fully realized
+        }
+
+        var increase = 0
+        for (i in from.getLevel()..getLevel()) {
+            increase += (editableFields.plan[i.toString()]?.asi[a] ?: 0)
+        }
+        return from.getModifiedAbilityScore(a) + increase
     }
 
     override fun getLevel(): Int {

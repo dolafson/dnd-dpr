@@ -17,7 +17,8 @@ data class EditableFields (
     var level: Int,
     var name: String,
     var stats: MutableMap<AbilityType, Int> = mutableMapOf(),
-    var plan: List<LevelPlan> = mutableListOf(),
+    //var plan: List<LevelPlan> = mutableListOf(),
+    var plan: Map<String,LevelPlan> = mutableMapOf(),
 ){
     companion object {
         fun fromCharacter(character: Character): EditableFields {

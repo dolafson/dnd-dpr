@@ -92,7 +92,7 @@ class DprViewModel : ViewModel() {
         }
         if (currentCharacter != null) {
             setAbilityMap (currentCharacter.getAbilityMap())
-            setCharacterLevel (NumericRange(currentCharacter.getLevel(),20,currentCharacter.getLevel()))
+            setCharacterLevel (NumericRange(currentCharacter.from.getLevel(),20,currentCharacter.getLevel()))
         }
     }
 
