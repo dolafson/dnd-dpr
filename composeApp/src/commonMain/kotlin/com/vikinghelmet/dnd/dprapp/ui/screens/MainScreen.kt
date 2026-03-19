@@ -22,6 +22,7 @@ fun MainScreen(viewModel: DprViewModel,
                modifier: Modifier = Modifier
 ) {
         val uriHandler = LocalUriHandler.current
+        //val fileOpener = LocalFileOpener.current
 
         var proximity   by rememberSaveable { mutableStateOf("") }
         var outputText  by remember { mutableStateOf("") }
@@ -107,9 +108,9 @@ fun MainScreen(viewModel: DprViewModel,
                     modifier = Modifier.heightIn(100.dp) // Overriding defaults
                 )
             }
-/*
-    // this export button does not yet work on ios ...
 
+    // this export button does not yet work on ios ...
+/*
             if (scenarioBuilder != null) {
                 Button(
                     //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
@@ -121,13 +122,18 @@ fun MainScreen(viewModel: DprViewModel,
                             buf.append(result.output()).append("\n")
                         }
 
-                        dprFiles.saveAttackCSV(buf.toString())
-                        val fileURL = dprFiles.getAttackCSVLocalUrl()  // "file:///path/to/your/file.csv"
-                        uriHandler.openUri(fileURL)
+                        //dprFiles.saveAttackCSV(buf.toString())
+                        //val fileURL = dprFiles.getAttackCSVLocalUrl()  // "file:///path/to/your/file.csv"
+
+                        //uriHandler.openUri(fileURL)
+                        //fileOpener.openCsvFile(fileURL)
+                        //openCsvFile(fileURL.replace("file://", ""))
+
+                        shareCsv("attack.csv", buf.toString())
                     }
                 ) { Text("Export") }
             }
- */
+*/
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Button(onClick = onMoneyButtonClicked )  { Text("$") }
             }
