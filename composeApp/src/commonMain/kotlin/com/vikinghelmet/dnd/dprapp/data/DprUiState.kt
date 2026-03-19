@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dprapp.data
 
-import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap

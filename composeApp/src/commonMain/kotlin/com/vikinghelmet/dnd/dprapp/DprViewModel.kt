@@ -16,7 +16,7 @@
 package com.vikinghelmet.dnd.dprapp
 
 import androidx.lifecycle.ViewModel
-import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
 import com.vikinghelmet.dnd.dpr.util.NumericRange

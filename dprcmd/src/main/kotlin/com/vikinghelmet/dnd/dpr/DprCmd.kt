@@ -101,8 +101,6 @@ Attacks:
      -z  <monster <"melee" or "range">>     run all possible 5-turn scenarios, then sort by total damage
   
 """)
-
-     println("test dprlib = "+ Constants)
 }
 
 fun main(args : Array<String>) {
@@ -201,6 +199,11 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("test:character")) {
             println(character!!.toStringAll())
+            exitEarly = true
+        }
+        else if (arg.startsWith("test:plan")) {
+            val editableCharacter = dprFiles.getEditableCharacter(args[i+1])
+            println("plan = ${editableCharacter!!.editableFields.plan}")
             exitEarly = true
         }
         else if (arg.startsWith("test:available")) {

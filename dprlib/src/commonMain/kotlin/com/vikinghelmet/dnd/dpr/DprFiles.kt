@@ -4,8 +4,8 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
-import com.vikinghelmet.dnd.dpr.modified.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import kotlinx.io.*
 import kotlinx.io.files.Path

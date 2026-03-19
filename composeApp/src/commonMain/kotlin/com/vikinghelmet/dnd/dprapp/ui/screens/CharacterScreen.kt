@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
-import com.vikinghelmet.dnd.dpr.modified.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.ui.NumericMenu

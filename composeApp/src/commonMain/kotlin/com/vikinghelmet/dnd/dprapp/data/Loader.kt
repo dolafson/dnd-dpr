@@ -2,8 +2,8 @@ package com.vikinghelmet.dnd.dprapp.data
 
 import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.modified.EditableCharacter
-import com.vikinghelmet.dnd.dpr.modified.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.ui.dprFiles
