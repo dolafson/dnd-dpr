@@ -26,6 +26,7 @@ fun isUrlOrID(str: String): Boolean {
 @Composable
 fun CharacterScreen(viewModel: DprViewModel,
                     onDismiss: () -> Unit,
+                    onPlan: (EditableCharacter) -> Unit,
                     onConfirm: (EditableCharacter) -> Unit)
 {
     var character: EditableCharacter? = viewModel.getCurrentCharacter()
@@ -99,19 +100,34 @@ fun CharacterScreen(viewModel: DprViewModel,
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(
-                enabled = (textFieldState.text.isNotBlank() && isUrlOrID(textFieldState.text.toString())),
+                // enabled = (textFieldState.text.isNotBlank() && isUrlOrID(textFieldState.text.toString())),
+                enabled = (textFieldState.text.isNotBlank() && !options.contains(textFieldState.text.toString())),
                 onClick = {
+                    val currentText = textFieldState.text.toString()
                     val jenny = "8675309"
-                    if (textFieldState.text.toString() == jenny) {
+                    if (currentText == jenny) {
                         dprFiles.deleteAll()
                         onDismiss()
                     }
+                    else if (options.isNotEmpty() && !isUrlOrID(currentText)) {
+                        // old character, new name
+                        val editableFields = EditableFields.fromScreen(currentText, character!!,
+                            viewModel.getCharacterLevel(), viewModel.getAbilityMap())
+
+                        dprFiles.saveEditableCharacter(editableFields)
+                        character = EditableCharacter(character!!, editableFields)
+                        viewModel.setMainCharacter(character)
+
+                        if (!options.contains(currentText)) {
+                            options.add(currentText)
+                        }
+                    }
                     else {
-                        val getResult: EditableCharacter? = Loader.getEditableCharacter(textFieldState.text.toString())
+                        val getResult: EditableCharacter? = Loader.getEditableCharacter(currentText)
                         if (getResult != null) {
                             viewModel.setCurrentCharacter(getResult)
                         } else {
-                            val addResult = Loader.addEditableCharacter(textFieldState.text.toString())
+                            val addResult = Loader.addEditableCharacter(currentText)
                             if (addResult != null) {
                                 options.add(addResult.getName())
                                 viewModel.setCurrentCharacter(addResult)
@@ -120,7 +136,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                         }
                     }
                 }) { Text("Add") }
-
+/*
             Button(
                 modifier = Modifier.padding(start = 20.dp),
                 enabled = (textFieldState.text.isNotBlank() && !isUrlOrID(textFieldState.text.toString()) && unsavedChanges),
@@ -138,6 +154,14 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                 }
             ) { Text("Save") }
+*/
+            Button(
+                modifier = Modifier.padding(start = 20.dp),
+                enabled = (textFieldState.text.isNotBlank() && options.contains(textFieldState.text.toString())),
+                onClick = {
+                    onPlan(character!!)
+                }
+            ) { Text("Plan") } // running out of room on ios screen width
 
             Button(
                 modifier = Modifier.padding(start = 20.dp),

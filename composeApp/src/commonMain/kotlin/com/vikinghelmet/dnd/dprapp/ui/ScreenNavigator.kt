@@ -22,10 +22,7 @@ import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.getDocumentsDirPath
-import com.vikinghelmet.dnd.dprapp.ui.screens.CharacterScreen
-import com.vikinghelmet.dnd.dprapp.ui.screens.MainScreen
-import com.vikinghelmet.dnd.dprapp.ui.screens.MoneyScreen
-import com.vikinghelmet.dnd.dprapp.ui.screens.MonsterScreen
+import com.vikinghelmet.dnd.dprapp.ui.screens.*
 import dpr.composeapp.generated.resources.Res
 
 val dprFiles = DprFiles(getDocumentsDirPath())
@@ -105,6 +102,10 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                         navController.navigate(ViewType.main.name)
                     },
                     { selectedEditableCharacter ->
+                        println("PLAN button clicked")
+                        navController.navigate(ViewType.plan.name)
+                    },
+                    { selectedEditableCharacter ->
                         println("OK button clicked - character")
 
                         viewModel.setMainCharacter(selectedEditableCharacter)
@@ -131,6 +132,14 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             }
             composable(route = ViewType.money.name) {
                 MoneyScreen({  navController.navigate(ViewType.main.name) })
+            }
+            composable(route = ViewType.plan.name) {
+                PlanningScreen(
+                    viewModel,
+                    // TODO: diff behavior for dismiss/confirm ?
+                    { navController.navigate(ViewType.character.name) },
+                    { navController.navigate(ViewType.character.name) }
+                )
             }
         }
     }

@@ -4,5 +4,6 @@ enum class ViewType {
     main,
     character,
     monster,
-    money
+    money,
+    plan
 }
