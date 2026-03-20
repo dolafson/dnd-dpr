@@ -76,6 +76,8 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                 MainScreen(
                     viewModel = viewModel,
                     onCharacterButtonClicked = {
+                        viewModel.setCurrentCharacter(viewModel.getMainCharacter())
+
                         navController.navigate(ViewType.character.name)
                     },
                     onMonsterButtonClicked = {

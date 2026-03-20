@@ -47,9 +47,9 @@ fun CharacterScreen(viewModel: DprViewModel,
         options.clear()
         options.addAll (dprFiles.getEditableCharacterList())
 
-        viewModel.setCurrentCharacter(viewModel.getMainCharacter())
-
         if (viewModel.getCurrentCharacter() != null) {
+            println("CharacterScreen: LaunchedEffect: set char name: ${ viewModel.getCurrentCharacter()!!.getName() }")
+
             textFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
         }
     }
@@ -88,6 +88,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                             onClick = {
                                 textFieldState.setTextAndPlaceCursorAtEnd(option)
                                 viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(option))
+                                println("from menu selection, set current character = ${ viewModel.getCurrentCharacter()!!.getName() }")
                                 expanded = false
                                 unsavedChanges = false // TODO: prevent menu selection when unsavedChanges = true ?
                             },

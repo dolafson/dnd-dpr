@@ -31,7 +31,7 @@ fun PlanningScreen(viewModel: DprViewModel,
             .safeContentPadding()
             .fillMaxSize(),
     ) {
-        println("plan = $planViewModel")
+        //println("plan = $planViewModel")
 
         //for (tmpLevel in character.from.getLevel()..20)
         //for (tmpLevel in 1..20)
