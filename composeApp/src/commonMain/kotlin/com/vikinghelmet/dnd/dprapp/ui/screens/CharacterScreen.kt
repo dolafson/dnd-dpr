@@ -39,7 +39,7 @@ fun CharacterScreen(viewModel: DprViewModel,
     val textFieldState = rememberTextFieldState()
 
     val spellSelections = remember(modifyCounter, viewModel.getCharacterLevel()) {
-        println("modifyCounter: $modifyCounter")
+        // println("modifyCounter: $modifyCounter")
         character?.getSpellSelectionsBySpellLevel(viewModel.getCharacterLevel().current) ?: emptyMap()
     }
 

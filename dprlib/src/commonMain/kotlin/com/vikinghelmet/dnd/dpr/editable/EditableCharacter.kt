@@ -95,7 +95,7 @@ data class EditableCharacter (
 
     fun getSpellSelectionsBySpellLevel(currentLevel: Int): Map<Int, SpellSelections> {
         val result = mutableMapOf<Int, SpellSelections>()
-        println("currentLevel: $currentLevel")
+        // println("currentLevel: $currentLevel")
 
         if (editableFields.plan.isEmpty()) {
             return result
@@ -133,7 +133,7 @@ data class EditableCharacter (
 
             val max = numberOfSlotsAtSpellLevel(spellLevel)
             val size = result[spellLevel]!!.size()
-            println("spellLevel: $spellLevel, maxSlots: $max, filled: $size")
+            // println("spellLevel: $spellLevel, maxSlots: $max, filled: $size")
 
             for (i in size..max-1) {
                 // TODO: better placeholder ...
@@ -142,8 +142,7 @@ data class EditableCharacter (
             }
         }
 
-        println("all spell selections: $result")
-
+        // println("all spell selections: $result")
         return result
     }
 

@@ -33,6 +33,7 @@ fun BasicTextMenu(
                 DropdownMenuItem(
                     text = { Text(option.first, color = option.second) },
                     onClick = {
+                        println("menu changed, new value = ${option.first}")
                         onValueChanged(option.first)
                         selection = option.first
                         expanded = false

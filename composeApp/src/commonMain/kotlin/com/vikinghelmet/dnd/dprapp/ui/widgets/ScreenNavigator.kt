@@ -102,11 +102,11 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                         navController.navigate(ViewType.main.name)
                     },
                     { selectedEditableCharacter ->
-                        println("PLAN button clicked")
+                        //println("PLAN button clicked")
                         navController.navigate(ViewType.plan.name)
                     },
                     { selectedEditableCharacter ->
-                        println("OK button clicked - character")
+                        //println("OK button clicked - character")
 
                         viewModel.setMainCharacter(selectedEditableCharacter)
                         saveSettings(viewModel)

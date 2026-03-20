@@ -30,7 +30,7 @@ fun NumericMenu(
             var expanded by remember { mutableStateOf(false) }
             var displayValue by remember(numericRange) { mutableStateOf(numericRange.current) }
 
-            println ("NumericMenu: displayValue = $displayValue, numericRange=$numericRange")
+            //println ("NumericMenu: displayValue = $displayValue, numericRange=$numericRange")
 
 
             Text(displayValue.toString(), modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp))

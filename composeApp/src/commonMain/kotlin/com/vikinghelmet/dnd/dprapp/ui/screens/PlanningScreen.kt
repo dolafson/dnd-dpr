@@ -1,16 +1,14 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dprapp.DprViewModel
+import com.vikinghelmet.dnd.dprapp.data.PlanViewModel
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.FeatMenu
 import kotlin.uuid.ExperimentalUuidApi
@@ -23,18 +21,8 @@ fun PlanningScreen(viewModel: DprViewModel,
                     onConfirm: () -> Unit)
 {
     var character: EditableCharacter = viewModel.getCurrentCharacter()!!
-
     var modifyCounter: Int by remember { mutableStateOf(0) }
-    val textFieldState = rememberTextFieldState()
-    val spellsForClass = remember { character.getSpellsForClass() }
-
-    LaunchedEffect(Unit) {
-        viewModel.setCurrentCharacter(viewModel.getMainCharacter())
-
-        if (viewModel.getCurrentCharacter() != null) {
-            textFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
-        }
-    }
+    var planViewModel = remember { PlanViewModel(character) }
 
     Column(
         modifier = Modifier
@@ -42,49 +30,49 @@ fun PlanningScreen(viewModel: DprViewModel,
             .safeContentPadding()
             .fillMaxSize(),
     ) {
-        val asiLevelList = character.getLevelsForAbilityIncrease()
-        val fsLevelList = character.getLevelsForFightingStyle()
+        // println("plan = $planViewModel")
 
         //for (tmpLevel in character.from.getLevel()..20)
-        for (tmpLevel in 1..20)
+        //for (tmpLevel in 1..20)
+        for (p in planViewModel.plan)
         {
-            val addFeat  = asiLevelList.contains(tmpLevel)
-            val addFS    = fsLevelList.contains(tmpLevel)
-            val addSpell = character.hasNewSpellSlotsAtCharacterLevel(tmpLevel)
-            if (!addFeat && !addFS && !addSpell) continue
+            if (!p.addFeat && !p.addFS && !p.addSpell) continue
 
-            if (tmpLevel > 1) {
+            if (p.level > 1) {
                 HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
             }
 
             Row(modifier = Modifier.padding(top = 10.dp)) {
-                Text("Level ${tmpLevel}", fontWeight = FontWeight.Bold)
+                Text("Level ${p.level}", fontWeight = FontWeight.Bold)
             }
 
-            if (addFeat) {
-                FeatMenu(character)
+            if (p.addFeat) {
+                FeatMenu(character, false, {
+                    feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2;
+                        println("update:  feat = $feat; asi1 = $asi1; asi2 = $asi2, p=$p")
+                    }
+                })
             }
 
-            if (addFS) {
-                FeatMenu(character, true)
+            if (p.addFS) {
+                FeatMenu(character, true, {
+                    feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2 ;
+                        println("update:  feat = $feat; asi1 = $asi1; asi2 = $asi2, p=$p")
+                    }
+                })
             }
 
-            if (addSpell) {
-                val slotList = character.getNewSpellSlotsAtCharacterLevel(tmpLevel)
-
-                for (id in slotList.indices) for (i in 1..slotList[id]) {
+            if (p.addSpell) {
+                for (s in p.spellsToAdd) {
                     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                        val spellLevel = id+1
-                        val spellNames = spellsForClass.filter { it.properties.Level == spellLevel }.map { it.name }
-                        val spellsWithColor = spellNames.map { it -> Pair(it,Color.Black) }.toList()
-
                         Column {
-                            Text("L${spellLevel} Spell", modifier = Modifier.padding(end = 10.dp))
+                            Text("L${s.spellLevel} Spell", modifier = Modifier.padding(end = 10.dp))
                         }
                         Column (modifier = Modifier.padding(start = 20.dp)) {
-                            BasicTextMenu(spellsWithColor, {})
+                            BasicTextMenu(s.options, {
+                                s.selectedSpell = it
+                            })
                         }
-                        //TextMenu(spellNames,{} )
                     }
                 }
             }
@@ -97,7 +85,12 @@ fun PlanningScreen(viewModel: DprViewModel,
         ) {
             TextButton(onClick = onDismiss) { Text("Dismiss") }
             Spacer(Modifier.width(8.dp))
-            Button( onClick = { onConfirm() }) { Text("OK") } // TODO: double check this
+            Button( onClick = {
+                //println("after updates, plan = $planViewModel")
+                onConfirm()
+            }) {
+                Text("OK")
+            }
         }
     }
 }

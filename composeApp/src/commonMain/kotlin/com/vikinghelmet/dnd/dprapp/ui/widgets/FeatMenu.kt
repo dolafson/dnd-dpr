@@ -15,8 +15,13 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatEligibility
 
 @Composable
-fun FeatMenu(character: Character, fightingStyleOnly: Boolean = false) {
+fun FeatMenu(character: Character,
+             fightingStyleOnly: Boolean = false,
+             onValueChanged: (String, String, String) -> Unit)
+{
     var selectedFeat = remember { mutableStateOf("") }
+    var asi1 = remember { mutableStateOf("") }
+    var asi2 = remember { mutableStateOf("") }
 
     val featNamesWithColor = FeatEligibility.getListByCharacter(character).filter {
         !fightingStyleOnly || it.isFightingStyle
@@ -41,9 +46,26 @@ fun FeatMenu(character: Character, fightingStyleOnly: Boolean = false) {
             }
         }
         Column (modifier = Modifier.padding(start = 20.dp)) {
-            BasicTextMenu(featNamesWithColor, { s -> selectedFeat.value = s })
-            for (i in 1..asiCount) {
-                BasicTextMenu(asiChoices, { s -> selectedFeat.value = s })
+            BasicTextMenu(featNamesWithColor, { s ->
+                println("featMenu changed, new feat = $s")
+                selectedFeat.value = s
+                asi1.value = ""
+                asi2.value = ""
+                onValueChanged(selectedFeat.value, asi1.value, asi2.value)
+            })
+            if (asiCount > 0) {
+                BasicTextMenu(asiChoices, { s ->
+                    println("featMenu changed, new asi1 = $s")
+                    asi1.value = s
+                    onValueChanged(selectedFeat.value, asi1.value, asi2.value)
+                })
+            }
+            if (asiCount == 2) {
+                BasicTextMenu(asiChoices, { s ->
+                    println("featMenu changed, new asi2 = $s")
+                    asi2.value = s
+                    onValueChanged(selectedFeat.value, asi1.value, asi2.value)
+                })
             }
         }
     }
