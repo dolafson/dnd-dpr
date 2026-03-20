@@ -37,7 +37,7 @@ fun PlanningScreen(viewModel: DprViewModel,
         //for (tmpLevel in 1..20)
         for (p in planViewModel.plan)
         {
-            if (!p.addFeat && !p.addFS && !p.addSpell) continue
+            if (!p.addFeat && !p.addFS && !p.addSpell && !p.addSubclass) continue
 
             if (p.level > 1) {
                 HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
@@ -46,6 +46,20 @@ fun PlanningScreen(viewModel: DprViewModel,
             Row(modifier = Modifier.padding(top = 10.dp)) {
                 Text("Level ${p.level}", fontWeight = FontWeight.Bold)
             }
+
+            if (p.addSubclass) {
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("Subclass", modifier = Modifier.padding(end = 10.dp))
+                    }
+                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                        BasicTextMenu(p.subclass ?: "", planViewModel.getSubclassOptions()) {
+                            p.subclass = it
+                        }
+                    }
+                }
+            }
+
 
             if (p.addFeat) {
                 FeatMenu(p, character, false, { feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2; }})

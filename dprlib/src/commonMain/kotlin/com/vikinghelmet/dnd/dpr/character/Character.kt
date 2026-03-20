@@ -417,6 +417,15 @@ open class Character(
         return Globals.getSpellsForClass(getClassname(), is2014 = is2014())
     }
 
+    fun getSubclassOptions(): List<String> {
+        return when (getClass()) {
+            ClassName.Ranger -> listOf("Hunter", "Beast Master", "Gloom Stalker", "Fey Wanderer", "Winter Walker")
+            ClassName.Cleric -> listOf("Knowledge Domain",  "Life Domain", "Light Domain",
+                "Nature Domain",  "Tempest Domain",  "Trickery Domain", "War Domain",)
+            else -> listOf()
+        }
+    }
+
     fun getClass(): ClassName {
         return ClassName.valueOf(characterData.classes.first().definition.name)
     }
@@ -424,6 +433,11 @@ open class Character(
     fun getClassname(): String {
         return characterData.classes.first().definition.name
     }
+
+    fun getSubclassLevel(): Int? {
+        return getClassFeaturesByLevel().filter { it.key.contains("Subclass") || it.key.contains("Divine Domain")}.map { it.value}.firstOrNull()
+    }
+
     fun getLevelsForAbilityIncrease(): List<Int> {
         return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
     }

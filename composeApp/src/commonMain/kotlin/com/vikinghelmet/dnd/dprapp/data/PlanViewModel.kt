@@ -17,17 +17,19 @@ class PlanViewSpell(val spellLevel: Int, var selectedSpell: String, val options:
 class PlanViewLevel(
     val level: Int,
 
+    // these fields are transient, useful when loading/displaying screen
     val addFeat: Boolean,
     val addFS: Boolean, // subset of feat
     val addSpell: Boolean,
+    val addSubclass: Boolean,
 
     // these fields should be an exact match with file storage
     var subclass: String? = null,
     var feat: Feat? = null,
     var asi1: AbilityType? = null,
-    var asi2: AbilityType? = null,
 
     // spells are a superset of what's in file storage; this version includes the list of options available
+    var asi2: AbilityType? = null,
     var spellsToAdd: List<PlanViewSpell> = mutableListOf()
 ) {
     override fun toString(): String {
@@ -37,6 +39,8 @@ class PlanViewLevel(
 
 data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
 {
+    var character: EditableCharacter? = null // save for later use
+
     override fun toString(): String {
         val buf = StringBuilder()
         plan.forEach { buf.append(it.toString()+"\n") }
@@ -44,16 +48,20 @@ data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
     }
 
     constructor(character: EditableCharacter) : this() {
+        this.character = character
         // println("planView constructor, view hash = ${this.hashCode()}, plan hash = ${plan.hashCode()}")
         val asiLevelList = character.getLevelsForAbilityIncrease()
         val fsLevelList = character.getLevelsForFightingStyle()
 
         //for (tmpLevel in character.from.getLevel()..20)
         for (tmpLevel in 0..20) {
-            val p = PlanViewLevel (tmpLevel,
+            val p = PlanViewLevel (
+                tmpLevel,
                 asiLevelList.contains(tmpLevel),
                 fsLevelList.contains(tmpLevel),
-                character.hasNewSpellSlotsAtCharacterLevel(tmpLevel))
+                character.hasNewSpellSlotsAtCharacterLevel(tmpLevel),
+                character.getSubclassLevel() == tmpLevel
+            )
 
             val savedPlanLevel = character.editableFields.plan["$tmpLevel"]
             if (savedPlanLevel != null) {
@@ -121,4 +129,10 @@ data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
         }
         return result
     }
+
+    fun getSubclassOptions(): List<Pair<String,Color>> {
+        return character!!.getSubclassOptions().map { it -> Pair(it,Color.Black) }.toList()
+    }
+
+
 }
