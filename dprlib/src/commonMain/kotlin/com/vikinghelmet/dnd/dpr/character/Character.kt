@@ -400,7 +400,40 @@ open class Character(
         buf.append ("action modifiers: $actionNames\n")
         buf.append ("\n")
         buf.append  ("spell slots: "+getSpellSlots()).append("\n")
+
+        buf.append("classFeatures    = ${ getClassFeatureNames() }").append("\n")
+        buf.append("subclassFeatures = ${ getSubclassFeatureNames() }").append("\n")
+
+        buf.append("feats by level = ${ getClassFeaturesByLevel() }").append("\n")
+        buf.append("levels for ASI = ${ getLevelsForAbilityIncrease() }").append("\n")
+        buf.append("className      = ${ getClassname() }").append("\n")
+        buf.append("spellsForClass = ${ getSpellsForClass() }").append("\n")
+
         return buf.toString()
+    }
+
+    fun getSpellsForClass(): List<Spell> {
+        return Globals.getSpellsForClass(getClassname(), is2014 = is2014())
+    }
+
+    fun getClassname(): String {
+        return characterData.classes.first().definition.name
+    }
+    fun getLevelsForAbilityIncrease(): List<Int> {
+        return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
+
+    }
+    fun getClassFeaturesByLevel(): Map<String, Int> {
+        return characterData.classes.first().definition.classFeatures.map { it -> Pair(it.name, it.requiredLevel) }.toMap()
+    }
+
+    fun getClassFeatureNames(): List<String> {
+        return characterData.classes.first().definition.classFeatures.map { it.name }
+    }
+
+    fun getSubclassFeatureNames(): List<String> {
+        val sub = characterData.classes.first().subclassDefinition ?: return emptyList()
+        return sub.classFeatures.map { it.name }
     }
 
 }

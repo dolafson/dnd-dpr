@@ -107,6 +107,14 @@ object Globals {
         throw IllegalArgumentException("spell not found: "+name)
     }
 
+
+    fun getSpellsForClass(className: String, is2014: Boolean): List<Spell> {
+        return spells.filter { spell ->
+            (spell.properties.Classes ?: "").contains(className) &&
+                (spell.isSameIn2014And2024() || (is2014 == spell.is2014()))
+        }
+    }
+
     fun getMonster(name: String): Monster {
         for (monster in monsters) {
             if (monster.name == name) {

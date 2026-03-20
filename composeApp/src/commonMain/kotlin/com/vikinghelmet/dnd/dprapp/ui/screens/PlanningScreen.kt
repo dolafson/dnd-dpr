@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dprapp.DprViewModel
-import com.vikinghelmet.dnd.dprapp.ui.NumericMenu
+import com.vikinghelmet.dnd.dprapp.ui.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -36,6 +36,8 @@ fun PlanningScreen(viewModel: DprViewModel,
         character?.getSpellSelectionsBySpellLevel(viewModel.getCharacterLevel().current) ?: emptyMap()
     }
 
+    val spellsForClass = remember { character.getSpellsForClass() }
+
     LaunchedEffect(Unit) {
         options.clear()
         options.addAll (dprFiles.getEditableCharacterList())
@@ -53,8 +55,7 @@ fun PlanningScreen(viewModel: DprViewModel,
             .safeContentPadding()
             .fillMaxSize(),
     ) {
-        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-
+/*
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Column {
                 Text("Level")
@@ -64,6 +65,59 @@ fun PlanningScreen(viewModel: DprViewModel,
             }
         }
 
+
+ */
+        val asiLevelList = character.getLevelsForAbilityIncrease()
+
+        //for (tmpLevel in character.from.getLevel()..20)
+        for (tmpLevel in 1..20)
+        {
+            val addFeat  = asiLevelList.contains(tmpLevel)
+            val addSpell = character.hasNewSpellSlotsAtCharacterLevel(tmpLevel)
+
+            println("level = $tmpLevel, addFeat = $addFeat, addSpell = $addSpell")
+            if (!addFeat && !addSpell) continue
+
+            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+
+            Row(modifier = Modifier.padding(top = 10.dp)) {
+                Text("Character Level ${tmpLevel}", fontWeight = FontWeight.Bold)
+            }
+
+            if (addFeat) {
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("Feat ...", color = Color.Blue)
+                        // character.getFeatList().forEach { feat -> Text(feat.definition.name) }
+                    }
+                }
+            }
+
+            if (addSpell) {
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        val slotList = character.getNewSpellSlotsAtCharacterLevel(tmpLevel)
+                        println("planning: slotList = $slotList")
+                        for (id in slotList.indices) {
+                            val spellLevel = id+1
+                            if (slotList[id] > 0) {
+                                Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+
+                                val spellNames = spellsForClass.filter { it.properties.Level == spellLevel }.map { it.name }
+                                println("Level ${spellLevel} Spells: ${spellNames}")
+
+                                for (i in 1..slotList[id]) {
+                                    BasicTextMenu(spellNames,{} )
+                                    //TextMenu(spellNames,{} )
+                                    // Text("TODO ...", color = Color.Blue)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+/*
         if (character.getFeatList().isNotEmpty()) {
 
             HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
@@ -75,8 +129,6 @@ fun PlanningScreen(viewModel: DprViewModel,
                 }
             }
         }
-
-        // for (i in character.from.getLevel()..character.getLevel())
 
         for (selection in spellSelections) {
             val spellLevel = selection.key
@@ -97,6 +149,8 @@ fun PlanningScreen(viewModel: DprViewModel,
                 }
             }
         }
+
+ */
 
             /*
             for (spellLevel in 1..9) if (

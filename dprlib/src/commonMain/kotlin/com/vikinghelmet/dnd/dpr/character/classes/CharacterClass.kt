@@ -10,5 +10,6 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 data class CharacterClass(
     val definition: com.vikinghelmet.dnd.dpr.character.classes.ClassDefinition,
+    val subclassDefinition: com.vikinghelmet.dnd.dpr.character.classes.ClassDefinition? = null,
     val level: Int,
 )

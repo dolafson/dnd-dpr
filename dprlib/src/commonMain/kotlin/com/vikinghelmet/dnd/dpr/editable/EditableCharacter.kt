@@ -36,6 +36,35 @@ data class EditableCharacter (
         return result ?: 0
     }
 
+    fun getSpellSlotsAtCharacterLevel(characterLevel: Int): List<Int> {
+        val result = characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(characterLevel) ?: emptyList()
+
+        // println("getSpellSlotsAtCharacterLevel($characterLevel) -> result=$result")
+        return result
+    }
+
+    fun getNewSpellSlotsAtCharacterLevel(characterLevel: Int): List<Int> {
+        if (characterLevel == 0) return emptyList()
+
+        val slotsNow = getSpellSlotsAtCharacterLevel(characterLevel)
+        if (characterLevel == 1) return slotsNow
+
+        val slotsBefore = getSpellSlotsAtCharacterLevel(characterLevel-1)
+        var result: MutableList<Int> = mutableListOf()
+
+        for (id in slotsBefore.indices.sorted()) {
+            // println("get new slots, id=$id, now=${ slotsNow[id] }, before=${ slotsBefore[id] }, delta=${ slotsNow[id] - slotsBefore[id] }")
+            result.add(slotsNow[id] - slotsBefore[id])
+        }
+        return result
+    }
+
+    fun hasNewSpellSlotsAtCharacterLevel(characterLevel: Int): Boolean {
+        val newSlots = getNewSpellSlotsAtCharacterLevel(characterLevel)
+        println("hasNewSpellSlotsAtCharacterLevel($characterLevel) -> list=$newSlots")
+        return newSlots.filter { it != 0 }.isNotEmpty()
+    }
+
     fun getAbilityMap(): EditableAbilityMap {
         val result = mutableMapOf<AbilityType, NumericRange>()
         AbilityType.entries.forEach {
