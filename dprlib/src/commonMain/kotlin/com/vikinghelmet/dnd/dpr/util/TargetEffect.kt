@@ -119,7 +119,7 @@ data class TargetEffect (
         // - these one-off effects last for the spell duration, typically 1 min (also ends on a successful save)
         // - these spells require concentration for the duration, and spell ends if concentration is broken
 
-        when (SpellsWithComplexRules.Companion.fromNameWithWS (name)) {
+        when (SpellsWithComplexRules.fromNameWithWS (name)) {
             SpellsWithComplexRules.Bane -> {
                 // target must subtract 1d4 from the attack roll or save
                 attackPenalty.add ("1d4")

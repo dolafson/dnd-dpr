@@ -55,7 +55,7 @@ class ScenarioCalculator(
 
             attackResult.update(turnId, actionId, 1)
 
-            if (scenario.character.isFeatEnabled(Feat.ColdCaster)) {
+            if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
                 // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons)
                 effectManager.add(turnId,
                     FeatWithDuration(Feat.ColdCaster, 1,

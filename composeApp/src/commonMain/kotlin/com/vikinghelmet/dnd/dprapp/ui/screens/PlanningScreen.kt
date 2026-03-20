@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.vikinghelmet.dnd.dpr.character.feats.FeatEligibility
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ui.BasicTextMenu
@@ -55,18 +56,6 @@ fun PlanningScreen(viewModel: DprViewModel,
             .safeContentPadding()
             .fillMaxSize(),
     ) {
-/*
-        Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-            Column {
-                Text("Level")
-            }
-            Column(modifier = Modifier.padding(start = 20.dp)) {
-                NumericMenu(viewModel.getCharacterLevel(), { unsavedChanges = true; modifyCounter ++ })
-            }
-        }
-
-
- */
         val asiLevelList = character.getLevelsForAbilityIncrease()
 
         //for (tmpLevel in character.from.getLevel()..20)
@@ -74,45 +63,48 @@ fun PlanningScreen(viewModel: DprViewModel,
         {
             val addFeat  = asiLevelList.contains(tmpLevel)
             val addSpell = character.hasNewSpellSlotsAtCharacterLevel(tmpLevel)
-
-            println("level = $tmpLevel, addFeat = $addFeat, addSpell = $addSpell")
             if (!addFeat && !addSpell) continue
 
-            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+            if (tmpLevel > 1) {
+                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+            }
 
             Row(modifier = Modifier.padding(top = 10.dp)) {
-                Text("Character Level ${tmpLevel}", fontWeight = FontWeight.Bold)
+                Text("Level ${tmpLevel}", fontWeight = FontWeight.Bold)
             }
 
             if (addFeat) {
+                val featList = FeatEligibility.getListByCharacter(character)
+                val featNames = featList.map {
+                    Pair(it.getNameWithWS(), if (it.fullSupport) Color.Blue else Color.LightGray)
+                }
+
                 Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                     Column {
-                        Text("Feat ...", color = Color.Blue)
-                        // character.getFeatList().forEach { feat -> Text(feat.definition.name) }
+                        Text("Feat")
+                    }
+                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                        BasicTextMenu(featNames, {})
                     }
                 }
             }
 
             if (addSpell) {
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-                        val slotList = character.getNewSpellSlotsAtCharacterLevel(tmpLevel)
-                        println("planning: slotList = $slotList")
-                        for (id in slotList.indices) {
-                            val spellLevel = id+1
-                            if (slotList[id] > 0) {
-                                Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+                val slotList = character.getNewSpellSlotsAtCharacterLevel(tmpLevel)
 
-                                val spellNames = spellsForClass.filter { it.properties.Level == spellLevel }.map { it.name }
-                                println("Level ${spellLevel} Spells: ${spellNames}")
+                for (id in slotList.indices) for (i in 1..slotList[id]) {
+                    Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                        val spellLevel = id+1
+                        val spellNames = spellsForClass.filter { it.properties.Level == spellLevel }.map { it.name }
+                        val spellsWithColor = spellNames.map { it -> Pair(it,Color.Black) }.toList()
 
-                                for (i in 1..slotList[id]) {
-                                    BasicTextMenu(spellNames,{} )
-                                    //TextMenu(spellNames,{} )
-                                    // Text("TODO ...", color = Color.Blue)
-                                }
-                            }
+                        Column {
+                            Text("L${spellLevel} Spell", modifier = Modifier.padding(end = 10.dp))
                         }
+                        Column (modifier = Modifier.padding(start = 20.dp)) {
+                            BasicTextMenu(spellsWithColor, {})
+                        }
+                        //TextMenu(spellNames,{} )
                     }
                 }
             }
@@ -183,7 +175,7 @@ fun PlanningScreen(viewModel: DprViewModel,
  */
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(onClick = onDismiss) { Text("Dismiss") }

@@ -123,4 +123,8 @@ object Globals {
         }
         throw IllegalArgumentException("monster not found: "+name)
     }
+
+    fun addWStoCamelCase(input: String): String {
+        return input.replace(Regex("(?<!^)([A-Z])"), " $1")
+    }
 }

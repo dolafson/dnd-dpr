@@ -1,31 +1,41 @@
 package com.vikinghelmet.dnd.dpr.spells
 
-enum class SpellsWithComplexRules(val nameWithWS: String) {
+import com.vikinghelmet.dnd.dpr.util.Globals
 
-    Bane("Bane"),
-    BestowCurse("Bestow Curse"),
-    Blur("Blur"),
-    EnlargeReduce("Enlarge Reduce"),
-    Enthrall("Enthrall"),
-    FaerieFire("Faerie Fire"),
-    GuidingBolt("Guiding Bolt"),
-    Hex("Hex"),
-    HuntersMark("Hunter's Mark"),
-    MindSliver("Mind Sliver"),
-    OttosIrresistibleDance("Otto's Irresistible Dance"),
-    PhantasmalKiller("Phantasmal Killer"),
-    RayOfEnfeeblement("Ray of Enfeeblement"),
-    ShiningSmite("Shining Smite"),
-    ViciousMockery("Vicious Mockery"),
+enum class SpellsWithComplexRules {
+
+    Bane,
+    BestowCurse,
+    Blur,
+    EnlargeReduce,
+    Enthrall,
+    FaerieFire,
+    GuidingBolt,
+    Hex,
+    HuntersMark,
+    MindSliver,
+    OttosIrresistibleDance,
+    PhantasmalKiller,
+    RayOfEnfeeblement,
+    ShiningSmite,
+    ViciousMockery,
     ;
 
+    fun getNameWithWS(): String {
+        when (this) {
+            HuntersMark -> return "Hunter's Mark"
+            OttosIrresistibleDance -> return "Otto's Irresistible Dance"
+            else -> return Globals.addWStoCamelCase(name)
+        }
+    }
+
     override fun toString(): String {
-        return nameWithWS
+        return getNameWithWS()
     }
 
     companion object {
         fun fromNameWithWS(nameWithWS: String): SpellsWithComplexRules? {
-            return entries.firstOrNull { it.nameWithWS.lowercase().startsWith(nameWithWS.lowercase()) }
+            return entries.firstOrNull { it.getNameWithWS().lowercase().startsWith(nameWithWS.lowercase()) }
         }
     }
 }

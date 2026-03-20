@@ -1,15 +1,22 @@
 package com.vikinghelmet.dnd.dpr.character.actions
 
-enum class ActionModifier(val nameWithWS: String) {
-    HuntersLore("Hunter's Lore"),
-    HordeBreaker("Horde Breaker"),
-    ColossusSlayer("Colossus Slayer"),
-    DreadfulStrike("Dreadful Strike"),
-    PolarStrikes("Polar Strikes");
+import com.vikinghelmet.dnd.dpr.util.Globals
+
+enum class ActionModifier {
+    HuntersLore,
+    HordeBreaker,
+    ColossusSlayer,
+    DreadfulStrike,
+    PolarStrikes;
+
+    fun getNameWithWS(): String {
+        if (this == HuntersLore) return "Hunter's Lore"
+        return Globals.addWStoCamelCase(name)
+    }
 
     companion object {
         fun fromName(name: String): com.vikinghelmet.dnd.dpr.character.actions.ActionModifier? {
-            return entries.firstOrNull { it.nameWithWS == name }
+            return entries.firstOrNull { it.getNameWithWS() == name }
         }
     }
 }

@@ -3,6 +3,7 @@
 package com.vikinghelmet.dnd.dpr.character
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
@@ -88,20 +89,20 @@ open class Character(
         return Constants.levelToProficiencyMap[getLevel()] ?: 0
     }
 
-    fun isFeatEnabled(requested : Feat): Boolean {
+    fun isFeatEnabled(requested : String): Boolean {
         for (feat in characterData.feats) {
-            if (feat.definition.name == requested.nameWithWS) return true
+            if (feat.definition.name == requested) return true
         }
         return false
     }
 
     fun addFeat(requested : Feat) {
-        characterData.feats.add(FeatAdded(definition = Definition(name = requested.nameWithWS)))
+        characterData.feats.add(FeatAdded(definition = Definition(name = requested.getNameWithWS())))
     }
 
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean {
         for (trait in characterData.race.racialTraits) {
-            if (trait.definition.name == requested.nameWithWS) return true
+            if (trait.definition.name == requested.getNameWithWS()) return true
         }
         return false
     }
@@ -121,11 +122,11 @@ open class Character(
     }
 
     fun isElementalAdept(): Boolean {
-        return isFeatEnabled(Feat.ElementalAdept)
+        return isFeatEnabled(Feat.ElementalAdept.getNameWithWS())
     }
 
     fun isGreatWeaponFighting(): Boolean {
-        return isFeatEnabled(Feat.GreatWeaponFighting)
+        return isFeatEnabled(Feat.GreatWeaponFighting.getNameWithWS())
     }
 
     // ----------------------------------------------------------------------------------------
@@ -414,6 +415,10 @@ open class Character(
 
     fun getSpellsForClass(): List<Spell> {
         return Globals.getSpellsForClass(getClassname(), is2014 = is2014())
+    }
+
+    fun getClass(): ClassName {
+        return ClassName.valueOf(characterData.classes.first().definition.name)
     }
 
     fun getClassname(): String {

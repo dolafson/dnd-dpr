@@ -17,5 +17,8 @@ enum class AbilityType {
         fun fromShortName(shortName: String): AbilityType? {
             return entries.firstOrNull { it.name.lowercase().startsWith(shortName.lowercase()) }
         }
+        fun getAllNotALL(): List<AbilityType> {
+            return AbilityType.entries.filter { it != AbilityType.ALL }.toList()
+        }
     }
 }

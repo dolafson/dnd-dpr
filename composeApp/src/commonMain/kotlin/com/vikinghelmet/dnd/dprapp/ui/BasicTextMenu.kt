@@ -11,11 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun BasicTextMenu(
-    options: List<String> = mutableListOf(),
+    optionsWithColor: List<Pair<String, Color>> = mutableListOf(),
     onValueChanged: (String) -> Unit
 ) {
     Box(modifier = Modifier
@@ -28,12 +29,12 @@ fun BasicTextMenu(
         Text(selection, modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp,).width(200.dp))
 
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.width(200.dp)) {
-            options.forEach { option ->
+            optionsWithColor.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(option.first, color = option.second) },
                     onClick = {
-                        onValueChanged(option)
-                        selection = option
+                        onValueChanged(option.first)
+                        selection = option.first
                         expanded = false
                     },
                     modifier = Modifier.width(200.dp)

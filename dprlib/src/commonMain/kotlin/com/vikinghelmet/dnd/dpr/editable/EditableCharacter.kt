@@ -32,7 +32,7 @@ data class EditableCharacter (
     fun numberOfSlotsAtSpellLevel(spellLevel: Int): Int {
         val slotList = getSpellSlots() // spellsBySpellLevel, returns different list based on current character level
         val result = slotList[spellLevel-1] // 1-based to 0-based indexing
-        println("hasSpellsAtSpellLevel($spellLevel) -> list=$slotList, result=$result")
+        //println("hasSpellsAtSpellLevel($spellLevel) -> list=$slotList, result=$result")
         return result ?: 0
     }
 
@@ -61,7 +61,7 @@ data class EditableCharacter (
 
     fun hasNewSpellSlotsAtCharacterLevel(characterLevel: Int): Boolean {
         val newSlots = getNewSpellSlotsAtCharacterLevel(characterLevel)
-        println("hasNewSpellSlotsAtCharacterLevel($characterLevel) -> list=$newSlots")
+        // println("hasNewSpellSlotsAtCharacterLevel($characterLevel) -> list=$newSlots")
         return newSlots.filter { it != 0 }.isNotEmpty()
     }
 
