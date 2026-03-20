@@ -204,7 +204,7 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("test:plan")) {
             val editableCharacter = dprFiles.getEditableCharacter(args[i+1])
-            println("plan = ${editableCharacter!!.editableFields.plan}")
+            println("plan = ${editableCharacter!!.editableFields.toPrettyPlan() }")
             AbilityType.entries.forEach {
                 println("ability = $it, score = ${editableCharacter.getModifiedAbilityScore(it)}")
             }

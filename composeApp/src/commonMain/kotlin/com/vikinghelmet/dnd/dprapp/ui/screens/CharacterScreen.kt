@@ -267,36 +267,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
             }
 
-            /*
-            if (character.getPreparedSpells().isNotEmpty()) {
-                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-                        Text("Prepared Spells", fontWeight = FontWeight.Bold)
-                        character.getPreparedSpells().forEach { spell -> Text(spell.name) }
-                    }
-                }
-            }
-
-            if (character.editableFields.plan.isNotEmpty()) {
-                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-                        Text("PLANNED Spells by Character Level", fontWeight = FontWeight.Bold)
-                        for (p in character.editableFields.plan.entries) {
-                            //val characterLevel = p.key
-                            //val spellsAtLevel = p.value.spells
-                            Text("${p.key}: spells = ${p.value.spells}")
-                        }
-                        character.editableFields.plan.forEach { key ->  }
-                    }
-                }
-            }
-
-             */
-
-            // for (i in character.from.getLevel()..character.getLevel())
-
             for (selection in spellSelections) {
                 val spellLevel = selection.key
                 if (selection.value.isNotEmpty()) {
@@ -316,35 +286,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                 }
             }
-/*
-            for (spellLevel in 1..9) if (
-                character.editableFields.plan.isNotEmpty() &&
-                character.hasSpellsAtSpellLevel(spellLevel))
-            {
-                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-                        Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
-                        character.editableFields.plan.forEach { plan ->
-                            plan.value.spells.forEach { spellName ->
-                                // TODO: optimize this
-                                var spell: Spell? = null
-                                try {
-                                    spell = Globals.getSpell(spellName, character.is2014())
-                                }
-                                catch (e: Exception) {
-                                    println("unable to display details for spell $spellName")
-                                }
-                                if (spell != null && spell.properties.Level == spellLevel) {
-                                    Text(spell.name)
-                                }
-                            }
-                        }
-
-                        //character.getPreparedSpells().forEach { spell -> if (spell.properties.Level == spellLevel) { Text(spell.name) }}
-                    }
-                }
- */
         }
 
         Row(

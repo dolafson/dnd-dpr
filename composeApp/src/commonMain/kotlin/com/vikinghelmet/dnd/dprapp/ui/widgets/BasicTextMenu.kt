@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BasicTextMenu(
+    preselectedValue: String,
     optionsWithColor: List<Pair<String, Color>> = mutableListOf(),
     onValueChanged: (String) -> Unit
 ) {
@@ -24,7 +25,7 @@ fun BasicTextMenu(
         .border(2.dp, MaterialTheme.colorScheme.primary))
     {
         var expanded by remember { mutableStateOf(false) }
-        var selection by remember { mutableStateOf("") }
+        var selection by remember { mutableStateOf(preselectedValue) }
 
         Text(selection, modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp,).width(200.dp))
 

@@ -93,5 +93,8 @@ enum class Feat(
         fun getFightingStyleFeats(): List<Feat> {
             return entries.filter { it.isFightingStyle }
         }
+        fun fromNameWithWS(input: String): Feat? {
+            return entries.find { it.getNameWithWS() == input }
+        }
     }
 }

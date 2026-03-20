@@ -13,15 +13,20 @@ import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatEligibility
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dprapp.data.PlanViewLevel
 
 @Composable
-fun FeatMenu(character: Character,
-             fightingStyleOnly: Boolean = false,
-             onValueChanged: (String, String, String) -> Unit)
+fun FeatMenu(
+    preselectedValues: PlanViewLevel,
+    character: Character,
+    fightingStyleOnly: Boolean = false,
+    onValueChanged: (Feat, AbilityType?, AbilityType?) -> Unit
+)
 {
-    var selectedFeat = remember { mutableStateOf("") }
-    var asi1 = remember { mutableStateOf("") }
-    var asi2 = remember { mutableStateOf("") }
+    var selectedFeat = remember { mutableStateOf<Feat?>(preselectedValues.feat) }
+    var asi1 = remember { mutableStateOf<AbilityType?>(preselectedValues.asi1) }
+    var asi2 = remember { mutableStateOf<AbilityType?>(preselectedValues.asi2) }
 
     val featNamesWithColor = FeatEligibility.getListByCharacter(character).filter {
         !fightingStyleOnly || it.isFightingStyle
@@ -29,7 +34,7 @@ fun FeatMenu(character: Character,
         Pair(it.getNameWithWS(), if (it.fullSupport) Color.Blue else Color.LightGray)
     }
 
-    val feat = Feat.entries.find { selectedFeat.value == it.getNameWithWS() }
+    val feat = Feat.entries.find { it == selectedFeat.value }
 
     val asiCount = if (feat == null) 0
         else if (Feat.AbilityScoreIncrease == feat) 2
@@ -46,26 +51,29 @@ fun FeatMenu(character: Character,
             }
         }
         Column (modifier = Modifier.padding(start = 20.dp)) {
-            BasicTextMenu(featNamesWithColor, { s ->
-                println("featMenu changed, new feat = $s")
-                selectedFeat.value = s
-                asi1.value = ""
-                asi2.value = ""
-                onValueChanged(selectedFeat.value, asi1.value, asi2.value)
-            })
+            val priorFeatName = preselectedValues.feat?.name ?: ""
+            BasicTextMenu(priorFeatName, featNamesWithColor) { s ->
+                //println("featMenu changed, new feat = $s")
+                selectedFeat.value = Feat.fromNameWithWS(s)
+                asi1.value = null
+                asi2.value = null
+                onValueChanged(selectedFeat.value!!, asi1.value, asi2.value)
+            }
             if (asiCount > 0) {
-                BasicTextMenu(asiChoices, { s ->
-                    println("featMenu changed, new asi1 = $s")
-                    asi1.value = s
-                    onValueChanged(selectedFeat.value, asi1.value, asi2.value)
-                })
+                val priorASI = preselectedValues.asi1?.name ?: ""
+                BasicTextMenu(priorASI, asiChoices) { s ->
+                    //println("featMenu changed, new asi1 = $s")
+                    asi1.value = AbilityType.valueOf(s)
+                    onValueChanged(selectedFeat.value!!, asi1.value, asi2.value)
+                }
             }
             if (asiCount == 2) {
-                BasicTextMenu(asiChoices, { s ->
-                    println("featMenu changed, new asi2 = $s")
-                    asi2.value = s
-                    onValueChanged(selectedFeat.value, asi1.value, asi2.value)
-                })
+                val priorASI = preselectedValues.asi2?.name ?: ""
+                BasicTextMenu(priorASI, asiChoices) { s ->
+                    //println("featMenu changed, new asi2 = $s")
+                    asi2.value = AbilityType.valueOf(s)
+                    onValueChanged(selectedFeat.value!!, asi1.value, asi2.value)
+                }
             }
         }
     }

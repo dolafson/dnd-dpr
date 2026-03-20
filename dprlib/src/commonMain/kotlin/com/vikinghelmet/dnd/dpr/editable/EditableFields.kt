@@ -19,8 +19,14 @@ data class EditableFields (
     var name: String,
     var stats: MutableMap<AbilityType, Int> = mutableMapOf(),
     //var plan: List<LevelPlan> = mutableListOf(),
-    var plan: MutableMap<String,LevelPlan> = mutableMapOf(),
+    var plan: MutableMap<String,PlanLevel> = mutableMapOf(),
 ){
+    fun toPrettyPlan(): String {
+        val buf = StringBuilder()
+        for ((key, value) in plan) { buf.append("$key=$value").append("\n") }
+        return "[$buf]"
+    }
+
     companion object {
         fun fromCharacter(character: Character): EditableFields {
             val remoteId = character.characterData.id!!

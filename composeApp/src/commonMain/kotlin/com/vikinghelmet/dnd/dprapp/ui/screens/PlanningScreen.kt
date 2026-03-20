@@ -11,6 +11,7 @@ import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.PlanViewModel
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.FeatMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
 
 
@@ -30,7 +31,7 @@ fun PlanningScreen(viewModel: DprViewModel,
             .safeContentPadding()
             .fillMaxSize(),
     ) {
-        // println("plan = $planViewModel")
+        println("plan = $planViewModel")
 
         //for (tmpLevel in character.from.getLevel()..20)
         //for (tmpLevel in 1..20)
@@ -47,19 +48,11 @@ fun PlanningScreen(viewModel: DprViewModel,
             }
 
             if (p.addFeat) {
-                FeatMenu(character, false, {
-                    feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2;
-                        println("update:  feat = $feat; asi1 = $asi1; asi2 = $asi2, p=$p")
-                    }
-                })
+                FeatMenu(p, character, false, { feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2; }})
             }
 
             if (p.addFS) {
-                FeatMenu(character, true, {
-                    feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2 ;
-                        println("update:  feat = $feat; asi1 = $asi1; asi2 = $asi2, p=$p")
-                    }
-                })
+                FeatMenu(p, character, true) { feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2; } }
             }
 
             if (p.addSpell) {
@@ -69,9 +62,9 @@ fun PlanningScreen(viewModel: DprViewModel,
                             Text("L${s.spellLevel} Spell", modifier = Modifier.padding(end = 10.dp))
                         }
                         Column (modifier = Modifier.padding(start = 20.dp)) {
-                            BasicTextMenu(s.options, {
+                            BasicTextMenu(s.selectedSpell, s.options) {
                                 s.selectedSpell = it
-                            })
+                            }
                         }
                     }
                 }
@@ -87,6 +80,10 @@ fun PlanningScreen(viewModel: DprViewModel,
             Spacer(Modifier.width(8.dp))
             Button( onClick = {
                 //println("after updates, plan = $planViewModel")
+                println ("saving plan to local file")
+                character.editableFields.plan = planViewModel.toPersistentFormat()
+                dprFiles.saveEditableCharacter(character.editableFields)
+
                 onConfirm()
             }) {
                 Text("OK")

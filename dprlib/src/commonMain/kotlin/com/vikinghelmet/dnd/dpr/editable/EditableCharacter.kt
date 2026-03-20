@@ -80,7 +80,8 @@ data class EditableCharacter (
 
         var increase = 0
         for (i in from.getLevel()..getLevel()) {
-            increase += (editableFields.plan[i.toString()]?.asi[a] ?: 0)
+            if (a == editableFields.plan[i.toString()]?.asi1) increase++
+            if (a == editableFields.plan[i.toString()]?.asi2) increase++
         }
         return from.getModifiedAbilityScore(a) + increase
     }
@@ -110,10 +111,10 @@ data class EditableCharacter (
             val planCharacterLevel = planEntry.key.toInt()
             if (planCharacterLevel > currentLevel) break
 
-            planEntry.value.spells.forEach { spellName ->
+            planEntry.value.spells.forEach { s ->
                 // TODO: optimize this
                 try {
-                    val spell = Globals.getSpell(spellName, is2014())
+                    val spell = Globals.getSpell(s, is2014())
                     val spellLevel = spell.properties.Level
 
                     if (planCharacterLevel < currentLevel) {
@@ -122,7 +123,7 @@ data class EditableCharacter (
                         result[spellLevel]!!.editableList.add(spell)
                     }
                 } catch (e: Exception) {
-                    println("unable to display details for spell $spellName")
+                    println("unable to display details for spell ${s}")
                 }
             }
         }
