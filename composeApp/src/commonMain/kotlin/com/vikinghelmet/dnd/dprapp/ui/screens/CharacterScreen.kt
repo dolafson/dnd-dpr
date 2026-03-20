@@ -14,8 +14,8 @@ import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
-import com.vikinghelmet.dnd.dprapp.ui.NumericMenu
-import com.vikinghelmet.dnd.dprapp.ui.dprFiles
+import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
 
 fun isUrlOrID(str: String): Boolean {

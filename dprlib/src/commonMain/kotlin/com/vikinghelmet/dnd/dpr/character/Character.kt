@@ -426,8 +426,12 @@ open class Character(
     }
     fun getLevelsForAbilityIncrease(): List<Int> {
         return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
-
     }
+
+    fun getLevelsForFightingStyle(): List<Int> {
+        return getClassFeaturesByLevel().filter { it.key.contains("Fighting Style")}.map { it.value}
+    }
+
     fun getClassFeaturesByLevel(): Map<String, Int> {
         return characterData.classes.first().definition.classFeatures.map { it -> Pair(it.name, it.requiredLevel) }.toMap()
     }

@@ -9,11 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.character.feats.FeatEligibility
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dprapp.DprViewModel
-import com.vikinghelmet.dnd.dprapp.ui.BasicTextMenu
-import com.vikinghelmet.dnd.dprapp.ui.dprFiles
+import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.FeatMenu
 import kotlin.uuid.ExperimentalUuidApi
 
 
@@ -26,23 +25,10 @@ fun PlanningScreen(viewModel: DprViewModel,
     var character: EditableCharacter = viewModel.getCurrentCharacter()!!
 
     var modifyCounter: Int by remember { mutableStateOf(0) }
-
-    var unsavedChanges by remember { mutableStateOf(false) }
-    val options = remember { mutableListOf<String>() }
-    var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
-
-    val spellSelections = remember(modifyCounter, viewModel.getCharacterLevel()) {
-        println("modifyCounter: $modifyCounter")
-        character?.getSpellSelectionsBySpellLevel(viewModel.getCharacterLevel().current) ?: emptyMap()
-    }
-
     val spellsForClass = remember { character.getSpellsForClass() }
 
     LaunchedEffect(Unit) {
-        options.clear()
-        options.addAll (dprFiles.getEditableCharacterList())
-
         viewModel.setCurrentCharacter(viewModel.getMainCharacter())
 
         if (viewModel.getCurrentCharacter() != null) {
@@ -57,13 +43,15 @@ fun PlanningScreen(viewModel: DprViewModel,
             .fillMaxSize(),
     ) {
         val asiLevelList = character.getLevelsForAbilityIncrease()
+        val fsLevelList = character.getLevelsForFightingStyle()
 
         //for (tmpLevel in character.from.getLevel()..20)
         for (tmpLevel in 1..20)
         {
             val addFeat  = asiLevelList.contains(tmpLevel)
+            val addFS    = fsLevelList.contains(tmpLevel)
             val addSpell = character.hasNewSpellSlotsAtCharacterLevel(tmpLevel)
-            if (!addFeat && !addSpell) continue
+            if (!addFeat && !addFS && !addSpell) continue
 
             if (tmpLevel > 1) {
                 HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
@@ -74,19 +62,11 @@ fun PlanningScreen(viewModel: DprViewModel,
             }
 
             if (addFeat) {
-                val featList = FeatEligibility.getListByCharacter(character)
-                val featNames = featList.map {
-                    Pair(it.getNameWithWS(), if (it.fullSupport) Color.Blue else Color.LightGray)
-                }
+                FeatMenu(character)
+            }
 
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-                        Text("Feat")
-                    }
-                    Column (modifier = Modifier.padding(start = 20.dp)) {
-                        BasicTextMenu(featNames, {})
-                    }
-                }
+            if (addFS) {
+                FeatMenu(character, true)
             }
 
             if (addSpell) {
@@ -109,70 +89,7 @@ fun PlanningScreen(viewModel: DprViewModel,
                 }
             }
         }
-/*
-        if (character.getFeatList().isNotEmpty()) {
 
-            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-
-            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                Column {
-                    Text("Feat", fontWeight = FontWeight.Bold)
-                    character.getFeatList().forEach { feat -> Text(feat.definition.name) }
-                }
-            }
-        }
-
-        for (selection in spellSelections) {
-            val spellLevel = selection.key
-            if (selection.value.isNotEmpty()) {
-                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-
-                        Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
-
-                        for (spell in selection.value.readOnlyList) {
-                            Text(spell.name)
-                        }
-                        for (spell in selection.value.editableList) {
-                            Text(spell.name, color = Color.Blue)
-                        }
-                    }
-                }
-            }
-        }
-
- */
-
-            /*
-            for (spellLevel in 1..9) if (
-                character.editableFields.plan.isNotEmpty() &&
-                character.hasSpellsAtSpellLevel(spellLevel))
-            {
-                HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-                        Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
-                        character.editableFields.plan.forEach { plan ->
-                            plan.value.spells.forEach { spellName ->
-                                // TODO: optimize this
-                                var spell: Spell? = null
-                                try {
-                                    spell = Globals.getSpell(spellName, character.is2014())
-                                }
-                                catch (e: Exception) {
-                                    println("unable to display details for spell $spellName")
-                                }
-                                if (spell != null && spell.properties.Level == spellLevel) {
-                                    Text(spell.name)
-                                }
-                            }
-                        }
-
-                        //character.getPreparedSpells().forEach { spell -> if (spell.properties.Level == spellLevel) { Text(spell.name) }}
-                    }
-                }
- */
 
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 40.dp),

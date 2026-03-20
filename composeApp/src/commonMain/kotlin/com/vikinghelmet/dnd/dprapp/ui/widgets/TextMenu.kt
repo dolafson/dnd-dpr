@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp.ui
+package com.vikinghelmet.dnd.dprapp.ui.widgets
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.input.rememberTextFieldState

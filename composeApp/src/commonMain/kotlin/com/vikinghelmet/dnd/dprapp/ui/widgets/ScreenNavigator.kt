@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp.ui
+package com.vikinghelmet.dnd.dprapp.ui.widgets
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding

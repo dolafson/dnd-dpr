@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dprapp.ui
+package com.vikinghelmet.dnd.dprapp.ui.widgets
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
