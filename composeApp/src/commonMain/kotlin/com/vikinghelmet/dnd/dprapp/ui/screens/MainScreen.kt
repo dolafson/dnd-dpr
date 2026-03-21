@@ -110,13 +110,21 @@ fun MainScreen(viewModel: DprViewModel,
                             onAttackButtonClicked(proximityInt)
 
                             val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getMainMonster()!!)
-                            builder.build(proximityInt)
                             viewModel.setScenarioBuilder(builder)
 
                             loading = true
+                            currentProgress = 0f
 //                      scope.launch { loadProgress { progress -> currentProgress = progress }; loading = false }
 
                             scope.launch {
+                                outputText = "Building scenario list ...\n"
+                                delay(1)
+
+                                builder.build(proximityInt)
+                                outputText += "Number of turn options = ${ builder.turnOptions.size }\n"
+                                outputText += "Number of scenarios = ${ builder.scenarioList.size }\n"
+                                delay(1)
+
                                 while (builder.hasNext()) {
                                     for (i in 1..1000) if (builder.hasNext()) {
                                         builder.addNext()
@@ -128,14 +136,14 @@ fun MainScreen(viewModel: DprViewModel,
 
                                 val scenarioResult = builder.topResults(1).first()
 
-                                val buf = StringBuilder("Avg Damage = ")
+                                val buf = StringBuilder("Highest Avg Damage = ")
                                     .append(Globals.getPercent(scenarioResult.totalDPR)).append("\n").append("\n")
 
                                 for (turn in scenarioResult.scenario.turns) {
                                     buf.append(turn.attacks.map { it.getLabel() }).append("\n")
                                 }
 
-                                outputText = buf.toString()
+                                outputText += buf.toString()
 
                                 loading = false
                             }
