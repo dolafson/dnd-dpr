@@ -6,6 +6,10 @@ import com.vikinghelmet.dnd.dpr.util.Constants
 class ActionsAvailable {
     val mapOfLists = mutableMapOf<Int, MutableList<AttackAction>>()
 
+    override fun toString(): String {
+        return "$mapOfLists"
+    }
+
     fun getRanges(): List<Int> {return mapOfLists.keys.toList() }
 
     fun getList(targetProximity: Int): List<AttackAction> {

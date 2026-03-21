@@ -294,9 +294,9 @@ open class Character(
         val weaponListNames = mutableListOf<String>()
 
         for (weapon in getWeaponList()) {
-            //val existingCount = weaponListNames.count { it == weapon.name }
-            //if (existingCount > 1) continue  // allow up to one dup, to support BA for Light weapons
-            if (weaponListNames.contains(weapon.name)) continue
+            val existingCount = weaponListNames.count { it == weapon.name }
+            if (existingCount > 1) continue  // allow up to one dup, to support BA for Light weapons
+            //if (weaponListNames.contains(weapon.name)) continue
 
             weaponListNames.add(weapon.name)
             actionsAvailable.add(weapon.range ?: 0, weapon)

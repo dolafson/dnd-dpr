@@ -45,9 +45,11 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
     }
 
     fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn> {
-        println("# possibleTurns")
 
         val actionList = actionsAvailable.getList(targetProximity)
+        println("# possibleTurns, actionsAvailable = $actionsAvailable")
+        println("# possibleTurns, actionList(prox) = $actionList")
+
         val bonusActionNames = SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(targetProximity))
         val turnOptions = ArrayList<Turn>()
 
@@ -67,6 +69,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
 
             // note: actionList is already filtered by range, which is good
             val lightWeapons = actionList.filter { it is Weapon && it.isLight() }
+            println("# all light weapons = ${ lightWeapons }")
 
             // light weapon ?  see if you have a 2nd one to use in a BA
             if (action.isLight() && lightWeapons.size > 1)
