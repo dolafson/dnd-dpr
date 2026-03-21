@@ -33,7 +33,6 @@ fun CharacterScreen(viewModel: DprViewModel,
 
     var modifyCounter: Int by remember { mutableStateOf(0) }
 
-    var unsavedChanges by remember { mutableStateOf(false) }
     val options = remember { mutableListOf<String>() }
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState()
@@ -90,7 +89,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                                 viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(option))
                                 println("from menu selection, set current character = ${ viewModel.getCurrentCharacter()!!.getName() }")
                                 expanded = false
-                                unsavedChanges = false // TODO: prevent menu selection when unsavedChanges = true ?
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
@@ -137,25 +135,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                         }
                     }
                 }) { Text("Add") }
-/*
-            Button(
-                modifier = Modifier.padding(start = 20.dp),
-                enabled = (textFieldState.text.isNotBlank() && !isUrlOrID(textFieldState.text.toString()) && unsavedChanges),
-                onClick = {
-                    val name = textFieldState.text.toString()
-                    val editableFields = EditableFields.fromScreen(name, character!!,
-                    viewModel.getCharacterLevel(), viewModel.getAbilityMap())
 
-                    dprFiles.saveEditableCharacter(editableFields)
-                    character = EditableCharacter(character!!, editableFields)
-                    viewModel.setMainCharacter(character)
-
-                    if (!options.contains(name)) {
-                        options.add(name)
-                    }
-                }
-            ) { Text("Save") }
-*/
             Button(
                 modifier = Modifier.padding(start = 20.dp),
                 enabled = (textFieldState.text.isNotBlank() && options.contains(textFieldState.text.toString())),
@@ -181,31 +161,51 @@ fun CharacterScreen(viewModel: DprViewModel,
             ) { Text("Del") } // running out of room on ios screen width
         }
 
-        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
 
-        // everything below here - except for Dismiss button - requires a valid character
         if (character != null) {
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 Column {
                     Text("Level")
-                    Text("Proficiency Bonus")
-                    Text("Spell Save DC")
-                    Text("Spell Ability")
-                    // currently unable to calculate: AC, HP
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     NumericMenu(viewModel.getCharacterLevel(), { newLevel ->
                         character.editableFields.level = newLevel
-                        unsavedChanges = true;
                         modifyCounter ++;
                     })
-                    Text(character.getProficiencyBonus().toString())
-                    Text(character.getSpellSaveDC().toString())
-                    Text(character.getSpellAbilityType())
+                }
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+
+        // everything below here - except for Dismiss button - requires a valid character ... AND is read-only
+
+        if (character != null) {
+            Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                Column {
+                    Text("Proficiency Bonus")
+
+                    if (character.getSpellAbilityType() != "n/a") {
+                        Text("Spell Save DC")
+                        //Text("Spell Ability")
+                    }
+                    // currently unable to calculate: AC, HP
+                }
+                Column(modifier = Modifier.padding(start = 20.dp)) {
+                    var current = character.getProficiencyBonus()
+                    Text(text = current.toString(), color = highlightIncrease (character.from.getProficiencyBonus(), current))
+
+                    if (character.getSpellAbilityType() != "n/a") {
+                        current = character.getSpellSaveDC()
+                        Text(current.toString(), color = highlightIncrease (character.from.getSpellSaveDC(), current))
+
+                        //Text(character.getSpellAbilityType())
+                    }
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+            Spacer(modifier = Modifier.padding(top = 20.dp))
+            //HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
 
             // NOTE: resist the urge to refactor this stat block into common code shared with MonsterScreen
             // that refactoring only leads to misery and woe (mismanaged composable state)
@@ -218,7 +218,9 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
-                        Text(text = ( character.getModifiedAbilityScore(it) ).toString())
+                        val baselineScore = character.from.getModifiedAbilityScore(it)
+                        val currentScore = character.getModifiedAbilityScore(it)
+                        Text(text = ( currentScore ).toString(), color = highlightIncrease (baselineScore, currentScore))
                     }
                 }
                 Column(modifier = Modifier.padding(start = 60.dp)) {
@@ -228,34 +230,9 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
-                        Text(text = ( character.getModifiedAbilityScore(it) ).toString())
-                    }
-                }
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
-
-            if (character.getWeaponList().isNotEmpty())
-            {
-                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                    Column {
-                        Text("Weapon", fontWeight = FontWeight.Bold)
-                        character.getWeaponList().distinct().forEach { weapon -> Text(weapon.name) }
-                    }
-                    Column (modifier = Modifier.padding(start = 20.dp)) {
-                        Text("Hit", fontWeight = FontWeight.Bold)
-                        character.getWeaponList().distinct().forEach { weapon -> Text("+"+character.getAttackBonus(weapon).toString()) }
-                    }
-                    Column (modifier = Modifier.padding(start = 20.dp)) {
-                        Text("Damage", fontWeight = FontWeight.Bold)
-                        character.getWeaponList().distinct().forEach { weapon -> Text(
-                            if (character.getDamageBonus(weapon, false) == 0) {
-                                weapon.damage!!
-                            } else {
-                                // TODO: BA
-                                weapon.damage!! +" + " +character.getDamageBonus(weapon, false).toString()
-                            }
-                        ) }
+                        val baselineScore = character.from.getModifiedAbilityScore(it)
+                        val currentScore = character.getModifiedAbilityScore(it)
+                        Text(text = ( currentScore ).toString(), color = highlightIncrease (baselineScore, currentScore))
                     }
                 }
             }
@@ -290,7 +267,36 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                 }
             }
+
+            HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
+
+            if (character.getWeaponList().isNotEmpty())
+            {
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("Weapon", fontWeight = FontWeight.Bold)
+                        character.getWeaponList().distinct().forEach { weapon -> Text(weapon.name) }
+                    }
+                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                        Text("Hit", fontWeight = FontWeight.Bold)
+                        character.getWeaponList().distinct().forEach { weapon -> Text("+"+character.getAttackBonus(weapon).toString()) }
+                    }
+                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                        Text("Damage", fontWeight = FontWeight.Bold)
+                        character.getWeaponList().distinct().forEach { weapon -> Text(
+                            if (character.getDamageBonus(weapon, false) == 0) {
+                                weapon.damage!!
+                            } else {
+                                // TODO: BA
+                                weapon.damage!! +" + " +character.getDamageBonus(weapon, false).toString()
+                            }
+                        ) }
+                    }
+                }
+            }
+
         }
+
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -302,3 +308,5 @@ fun CharacterScreen(viewModel: DprViewModel,
         }
     }
 }
+
+fun highlightIncrease(val1: Int, val2: Int): Color = if (val1 == val2) Color.Black else Color.Blue
