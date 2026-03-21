@@ -370,13 +370,16 @@ open class Character(
         return buf.toString()
     }
 
-    fun getFeatList(): List<FeatAdded> {
+    private fun getFeatAddedList(): List<FeatAdded> {
         return characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }
+    }
+    open fun getFeatList(): List<Feat> {
+        return getFeatAddedList().mapNotNull { Feat.fromNameWithWS(it.definition.name) }
     }
 
     fun toStringFeats(): String {
         val buf = StringBuilder("")
-        for (feat in getFeatList()) {
+        for (feat in getFeatAddedList()) {
             buf.append ("feat: "+feat.definition.name).append("\n")
         }
         return buf.toString()

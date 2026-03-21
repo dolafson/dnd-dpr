@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.editable
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -80,6 +81,15 @@ data class EditableCharacter (
 
     override fun getName(): String {
         return editableFields.name
+    }
+
+    override fun getFeatList(): List<Feat> {
+        val result = mutableListOf<Feat>()
+        for (i in 1..getLevel()) {
+            val feat = editableFields.plan["$i"]?.feat
+            if (feat != null) { result.add(feat) }
+        }
+        return result
     }
 
     override fun getPreparedSpells(): List<Spell> {

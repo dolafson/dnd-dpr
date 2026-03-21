@@ -187,7 +187,6 @@ fun CharacterScreen(viewModel: DprViewModel,
 
                     if (character.getSpellAbilityType() != "n/a") {
                         Text("Spell Save DC")
-                        //Text("Spell Ability")
                     }
                     // currently unable to calculate: AC, HP
                 }
@@ -198,14 +197,11 @@ fun CharacterScreen(viewModel: DprViewModel,
                     if (character.getSpellAbilityType() != "n/a") {
                         current = character.getSpellSaveDC()
                         Text(current.toString(), color = highlightIncrease (character.from.getSpellSaveDC(), current))
-
-                        //Text(character.getSpellAbilityType())
                     }
                 }
             }
 
             Spacer(modifier = Modifier.padding(top = 20.dp))
-            //HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
 
             // NOTE: resist the urge to refactor this stat block into common code shared with MonsterScreen
             // that refactoring only leads to misery and woe (mismanaged composable state)
@@ -244,7 +240,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                     Column {
                         Text("Feat", fontWeight = FontWeight.Bold)
-                        character.getFeatList().forEach { feat -> Text(feat.definition.name) }
+                        character.getFeatList().forEach { feat -> Text(feat.getNameWithWS()) }
                     }
                 }
             }
