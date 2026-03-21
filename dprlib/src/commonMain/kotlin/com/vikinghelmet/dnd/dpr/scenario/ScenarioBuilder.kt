@@ -45,6 +45,8 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
     }
 
     fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn> {
+        println("# possibleTurns")
+
         val actionList = actionsAvailable.getList(targetProximity)
         val bonusActionNames = SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(targetProximity))
         val turnOptions = ArrayList<Turn>()
@@ -61,32 +63,35 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
 
             // remainder pertains to weapon attacks
             var turn: Turn? = null
+            //var foundAtLeastOneLightWeaponPair = false
 
             // light weapon ?  see if you have a 2nd one to use in a BA
-            if (action.isLight()) {
-                for (w2 in character.getWeaponList()) {
-                    if (action == w2) continue // if you have 2 shortswords, hopefully they vary by nickname ...
-                    if (w2.isLight()) {
-                        turn = Turn(
-                            attacks = listOf(
-                                /*
-                                Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
-                                Attack(monster = monster, attack = (w2.nickname ?: w2.name), isBonusAction = true),
-                                 */
-                                Attack(monster = monster, action = action),
-                                Attack(monster = monster, action = w2, isBonusAction = true),
-                            )
-                        )
-                        break
+            if (action.isLight() && character.getLightWeapons().size > 1)
+            {
+                println("# light weapon 1=$action, hashcode =${action.hashCode()}, all light weapons = ${ character.getLightWeapons() }")
+
+                for (w2 in character.getLightWeapons()) {
+                    if (action.hashCode() == w2.hashCode()) {
+                        continue // the same physical weapon cannot be used for action and BA
                     }
+                    // println("# light weapon comparison 1=$action:${action.hashCode()}, 2=$w2:${w2.hashCode()}")
+
+                    turn = Turn(
+                        attacks = listOf(
+                            // TODO: use weapon nicnkames ?
+                            Attack(monster = monster, action = action),
+                            Attack(monster = monster, action = w2, isBonusAction = true),
+                        )
+                    )
+                    turnOptions.add(turn)
                 }
             }
 
             // if you didn't find a 2nd light weapon, just use the first weapon w/out a BA
             if (turn == null) {
                 turn = Turn(attacks = listOf(Attack(monster = monster, action = action)))
+                turnOptions.add(turn)
             }
-            turnOptions.add(turn)
 
             // bonus action spells: mostly for ranger and paladin
             for (bonusName in bonusActionNames) {

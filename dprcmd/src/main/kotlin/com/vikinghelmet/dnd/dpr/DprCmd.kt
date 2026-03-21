@@ -235,7 +235,15 @@ fun main(args : Array<String>) {
             exitEarly = true
         }
         else if (arg.startsWith("test:available")) {
-            ScenarioBuilder(character!!, Globals.getMonster("Goblin")).testActionsAvailable() // hack
+            ScenarioBuilder(character!!, Globals.getMonster("Goblin")).testActionsAvailable()
+            exitEarly = true
+        }
+        else if (arg.startsWith("test:build")) {
+            val builder = ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
+            builder.build(args[i+1].toInt(), args[i+2].toInt())
+            builder.scenarioList.forEach {
+                println("scenario = ${it.getLabel()}")
+            }
             exitEarly = true
         }
         else if (arg.startsWith("test:file:write")) {

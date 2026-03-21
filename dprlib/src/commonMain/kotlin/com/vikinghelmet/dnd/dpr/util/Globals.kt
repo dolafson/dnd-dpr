@@ -9,6 +9,7 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.math.round
 
 object Globals {
     var debug = false
@@ -25,7 +26,8 @@ object Globals {
     )
 
     fun getPercent(float: Float): String {
-        return ""+((float*100).toInt()/100)
+        val rounded = round(float * 100) / 100 
+        return "${rounded}"
     }
 
     fun wrapWithQuotes(input: String): String {

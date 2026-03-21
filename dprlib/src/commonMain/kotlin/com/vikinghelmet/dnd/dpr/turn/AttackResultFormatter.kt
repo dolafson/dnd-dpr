@@ -15,6 +15,15 @@ object AttackResultFormatter {
 //            String.format("\t%-20s %s\n",fieldName, strValue)
         return if (isCSV) "$strValue," else "\t"+Globals.rightPad(fieldName,20)+" $strValue\n"
     }
+
+    fun formatFloat(fieldName: String, value: Float): String {
+        isTxtFirstResultDone = true
+        val strValue = if (value is Float) Globals.getPercent(value) else value.toString()
+
+//            String.format("\t%-20s %s\n",fieldName, strValue)
+        return if (isCSV) "$strValue," else "\t"+Globals.rightPad(fieldName,20)+" $strValue\n"
+    }
+
     fun formatCSVOnly(fieldName: String, value: Any): String {
         return if (isCSV) format(fieldName, value) else ""
     }

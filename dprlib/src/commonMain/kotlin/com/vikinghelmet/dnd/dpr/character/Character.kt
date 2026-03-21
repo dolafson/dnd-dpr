@@ -194,6 +194,10 @@ open class Character(
         return result
     }
 
+    fun getLightWeapons(): List<Weapon> {
+        return getWeaponList().filter { it -> it.isLight() }
+    }
+
     fun getWeaponList(): List<Weapon> {
         val list = mutableListOf<Weapon>()
 
@@ -290,7 +294,10 @@ open class Character(
         val weaponListNames = mutableListOf<String>()
 
         for (weapon in getWeaponList()) {
-            if (weaponListNames.contains(weapon.name)) continue // avoid dups
+            //val existingCount = weaponListNames.count { it == weapon.name }
+            //if (existingCount > 1) continue  // allow up to one dup, to support BA for Light weapons
+            if (weaponListNames.contains(weapon.name)) continue
+
             weaponListNames.add(weapon.name)
             actionsAvailable.add(weapon.range ?: 0, weapon)
         }
