@@ -57,3 +57,5 @@ actual fun shareCsv(fileName: String, csvContent: String) {
     val viewController = window?.rootViewController
     viewController?.presentViewController(activityViewController, animated = true, completion = null)
 }
+
+actual fun isShareCsvSupported(): Boolean { return false }

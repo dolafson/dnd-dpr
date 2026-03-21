@@ -18,3 +18,5 @@ val LocalFileOpener = staticCompositionLocalOf<FileOpener> {
 expect fun openCsvFile(fileName: String) // e.g., file:///path/to/file.csv
 
 expect fun shareCsv(fileName: String, csvContent: String)
+
+expect fun isShareCsvSupported(): Boolean

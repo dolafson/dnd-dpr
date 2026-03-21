@@ -19,3 +19,5 @@ actual fun shareCsv(fileName: String, csvContent: String) {
     file.writeText(csvContent)
     Desktop.getDesktop().open(file)
 }
+
+actual fun isShareCsvSupported(): Boolean { return true }

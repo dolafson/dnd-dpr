@@ -12,9 +12,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
+import com.vikinghelmet.dnd.dprapp.isShareCsvSupported
+import com.vikinghelmet.dnd.dprapp.shareCsv
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -119,7 +125,18 @@ fun MainScreen(viewModel: DprViewModel,
                                     delay(1)
                                     println("currentProgress: $currentProgress")
                                 }
-                                outputText = builder.getResultSummary()
+
+                                val scenarioResult = builder.topResults(1).first()
+
+                                val buf = StringBuilder("Avg Damage = ")
+                                    .append(Globals.getPercent(scenarioResult.totalDPR)).append("\n").append("\n")
+
+                                for (turn in scenarioResult.scenario.turns) {
+                                    buf.append(turn.attacks.map { it.getLabel() }).append("\n")
+                                }
+
+                                outputText = buf.toString()
+
                                 loading = false
                             }
 
@@ -155,31 +172,36 @@ fun MainScreen(viewModel: DprViewModel,
             )
         }
 
-// this export button does not yet work on ios ...
-        if (viewModel.getScenarioBuilder() != null) {
-            /*
-                            Button(
-                                //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                                onClick = {
-                                    AttackResultFormatter.isCSV = true
+        // export button does not yet work on ios ...
+        if (isShareCsvSupported() && viewModel.getScenarioBuilder() != null)
+        {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
 
-                                    val buf = StringBuilder()
-                                    for (result in scenarioBuilder!!.lastResult!!) {
-                                        buf.append(result.output()).append("\n")
-                                    }
+                Button(
+                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
+                    onClick = {
+                        AttackResultFormatter.isCSV = true
 
-                                    //dprFiles.saveAttackCSV(buf.toString())
-                                    //val fileURL = dprFiles.getAttackCSVLocalUrl()  // "file:///path/to/your/file.csv"
+                        val scenarioBuilder = viewModel.getScenarioBuilder()!!
+                        val buf = StringBuilder()
+                        for (result in scenarioBuilder.topResults(Constants.SCENARIO_OUTPUT_MAX)) {
+                            buf.append(result.output()).append("\n")
+                        }
 
-                                    //uriHandler.openUri(fileURL)
-                                    //fileOpener.openCsvFile(fileURL)
-                                    //openCsvFile(fileURL.replace("file://", ""))
+                        dprFiles.saveAttackCSV(buf.toString())
 
-                                    shareCsv("attack.csv", buf.toString())
-                                }
-                            ) { Text("Export") }
-            */
+                        //val fileURL = dprFiles.getAttackCSVLocalUrl()  // "file:///path/to/your/file.csv"
+
+                        //uriHandler.openUri(fileURL)
+                        //fileOpener.openCsvFile(fileURL)
+                        //openCsvFile(fileURL.replace("file://", ""))
+
+                        shareCsv("attack.csv", buf.toString())
+                    }
+                ) { Text("Export") }
+            }
         }
+
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             Button(onClick = onMoneyButtonClicked )  { Text("$") }
         }

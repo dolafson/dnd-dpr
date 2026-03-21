@@ -263,20 +263,6 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
         println()
     }
 
-    fun runScenarios(targetProximity: Int): List<ScenarioResult> {
-        build(targetProximity)
-
-        resultList.clear()
-
-        logDuration("dprForAllScenarios", {
-            while (hasNext()) {
-                addNext()
-            }
-        })
-
-        return topResults()
-    }
-
     fun hasNext(): Boolean {
         return getPercentComplete() < 100.0f
     }
@@ -289,9 +275,9 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
         return if (!runIterator.hasNext()) { 100.0f } else { (resultList.size * 1.0f) / (scenarioList.size * 1.0f) }
     }
 
-    fun topResults(): List<ScenarioResult> {
+    fun topResults(max: Int): List<ScenarioResult> {
         // sorting is fast enough that there's little point in measuring it
-        return resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
+        return resultList.sortedByDescending { it.totalDPR }.take(max)
     }
 
     fun logDuration(label: String, task: () -> Unit) {
@@ -299,9 +285,9 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
         println("# dur($label) = ${dur.inWholeMilliseconds}")
     }
 
-    fun getResultSummary(): String { // previously, stderr ...
+    fun getResultSummary(max: Int): String { // previously, stderr ...
         val buf = StringBuilder()
-        for (scenarioResult in topResults()) {
+        for (scenarioResult in topResults(max)) {
             buf.append("# ")
                 .append(Globals.getPercent(scenarioResult.totalDPR))
                 .append(" \t")
@@ -312,7 +298,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
     }
 
     fun showResults() {
-        println(getResultSummary())
+        println(getResultSummary(Constants.SCENARIO_OUTPUT_MAX))
 
         for (scenarioResult in resultList) {
             println(scenarioResult.output())
