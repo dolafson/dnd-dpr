@@ -53,7 +53,7 @@ fun PlanningScreen(viewModel: DprViewModel,
                         Text("Subclass", modifier = Modifier.padding(end = 10.dp))
                     }
                     Column (modifier = Modifier.padding(start = 20.dp)) {
-                        BasicTextMenu(p.subclass ?: "", planViewModel.getSubclassOptions()) {
+                        BasicTextMenu(p.subclass ?: "", planViewModel.getSubclassOptions(), 200.dp, 200.dp) {
                             p.subclass = it
                         }
                     }
@@ -76,7 +76,7 @@ fun PlanningScreen(viewModel: DprViewModel,
                             Text("L${s.spellLevel} Spell", modifier = Modifier.padding(end = 10.dp))
                         }
                         Column (modifier = Modifier.padding(start = 20.dp)) {
-                            BasicTextMenu(s.selectedSpell, s.options) {
+                            BasicTextMenu(s.selectedSpell, s.options, 200.dp, 200.dp) {
                                 s.selectedSpell = it
                             }
                         }

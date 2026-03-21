@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dprapp.data
 
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
 import com.vikinghelmet.dnd.dpr.util.NumericRange
@@ -23,6 +24,8 @@ data class DprUiState(
     // editable fields on character screen
     var editableAbilityMap: EditableAbilityMap = EditableAbilityMap(emptyMap()),
     var characterLevel: NumericRange = NumericRange(0,0,0),
+
+    var scenarioBuilder: ScenarioBuilder? = null,
 ) {
     fun getSettings(): DprSettings {
         return DprSettings(

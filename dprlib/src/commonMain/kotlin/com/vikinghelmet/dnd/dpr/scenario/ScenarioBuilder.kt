@@ -10,9 +10,39 @@ import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import kotlin.time.measureTime
 
-class ScenarioBuilder(val character: Character, val monster: Monster) {
-    var lastResult: List<ScenarioResult>? = null
+class ScenarioBuilder(val character: Character, val monster: Monster, val actionsAvailable: ActionsAvailable) {
+    var turnOptions: MutableList<Turn> = mutableListOf()
+    var scenarioList = ArrayList<Scenario>()
+    var resultList: MutableList<ScenarioResult> = mutableListOf()
+    var runIterator: Iterator<Scenario> = scenarioList.iterator()
+
+    constructor(character: Character, monster: Monster): this(character,monster,character.getActionsAvailable()) {
+
+    }
+    fun build(targetProximity: Int) {
+        turnOptions.clear()
+        scenarioList.clear()
+        resultList.clear()
+
+        logDuration("possibleTurns", { turnOptions.addAll(possibleTurns(actionsAvailable, targetProximity)) })
+        println("# num(possibleTurns) = ${turnOptions.size}")
+
+        logDuration("buildScenarios", {
+            buildScenarios(
+                Constants.NUM_TURNS_PER_SCENARIO,
+                turnOptions,
+                Scenario(character, emptyList()),
+                scenarioList
+            )
+        })
+
+        println("# num(scenarios) = ${scenarioList.size}")
+        logDuration("addActionModifiers", { addActionModifiers(scenarioList) })
+
+        runIterator = scenarioList.iterator()
+    }
 
     fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn> {
         val actionList = actionsAvailable.getList(targetProximity)
@@ -234,32 +264,44 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
     }
 
     fun runScenarios(targetProximity: Int): List<ScenarioResult> {
-        val actionsAvailable = character.getActionsAvailable()
-        val turnOptions = possibleTurns(actionsAvailable, targetProximity)
-        val scenarioList = ArrayList<Scenario>()
-        buildScenarios(Constants.NUM_TURNS_PER_SCENARIO, turnOptions, Scenario(character, emptyList()), scenarioList)
+        build(targetProximity)
 
-        addActionModifiers(scenarioList)
-/*
-        for (scenario in scenarioList) for (turnId in scenario.turns.indices) for (actionId in scenario.turns[turnId].attacks.indices) {
-            //for (turn in scenario.turns) for (a in turn.attacks) {
-            val mods = scenario.turns[turnId].attacks[actionId].actionModifiers
-            println("turnId=$turnId, actionId=$actionId, mods=$mods")
-        }
-*/
-        val resultList = ArrayList<ScenarioResult>()
-        for (scenario in scenarioList) {
-            val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
-            resultList.add(scenarioResult)
-        }
+        resultList.clear()
 
-        lastResult = resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
-        return lastResult!!
+        logDuration("dprForAllScenarios", {
+            while (hasNext()) {
+                addNext()
+            }
+        })
+
+        return topResults()
     }
 
-    fun getResultSummary(scenarioResults: List<ScenarioResult>): String { // previously, stderr ...
+    fun hasNext(): Boolean {
+        return getPercentComplete() < 100.0f
+    }
+
+    fun addNext() {
+        resultList.add(ScenarioCalculator(runIterator.next()).calculateDPRForAllTurns())
+    }
+
+    fun getPercentComplete(): Float {
+        return if (!runIterator.hasNext()) { 100.0f } else { (resultList.size * 1.0f) / (scenarioList.size * 1.0f) }
+    }
+
+    fun topResults(): List<ScenarioResult> {
+        // sorting is fast enough that there's little point in measuring it
+        return resultList.sortedByDescending { it.totalDPR }.take(Constants.SCENARIO_OUTPUT_MAX)
+    }
+
+    fun logDuration(label: String, task: () -> Unit) {
+        val dur = measureTime { task.invoke() }
+        println("# dur($label) = ${dur.inWholeMilliseconds}")
+    }
+
+    fun getResultSummary(): String { // previously, stderr ...
         val buf = StringBuilder()
-        for (scenarioResult in scenarioResults) {
+        for (scenarioResult in topResults()) {
             buf.append("# ")
                 .append(Globals.getPercent(scenarioResult.totalDPR))
                 .append(" \t")
@@ -269,10 +311,10 @@ class ScenarioBuilder(val character: Character, val monster: Monster) {
         return buf.toString()
     }
 
-    fun showResults(scenarioResults: List<ScenarioResult>) {
-        println(getResultSummary(scenarioResults))
+    fun showResults() {
+        println(getResultSummary())
 
-        for (scenarioResult in scenarioResults) {
+        for (scenarioResult in resultList) {
             println(scenarioResult.output())
         }
     }

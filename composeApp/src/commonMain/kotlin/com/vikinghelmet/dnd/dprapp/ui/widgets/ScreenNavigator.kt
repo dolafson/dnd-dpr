@@ -53,6 +53,7 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             val settings = dprFiles.getSettings()
             viewModel.setProximity (settings.proximity)
             viewModel.setMainCharacter (Loader.getEditableCharacter(settings.characterName))
+            viewModel.setCurrentCharacter (viewModel.getMainCharacter())
             viewModel.setMainMonster (Loader.getMonster(settings.monsterName))
         }
         catch (e: Exception) {

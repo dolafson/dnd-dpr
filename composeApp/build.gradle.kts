@@ -67,6 +67,8 @@ kotlin {
             implementation(compose.components.resources)
             implementation("org.jetbrains.androidx.navigation:navigation-compose:2.9.0-beta03") // Check for the latest compatible version
             implementation("org.jetbrains.compose.material:material-icons-core:1.7.3")
+//            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+//            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")//2.6.1")
         }
         webMain.dependencies {
             implementation(npm("@js-joda/timezone", "2.22.0"))
@@ -81,6 +83,11 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.core)
+            //implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-ktx:2.11.0-alpha01")//2.6.1")
+            // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.3")
+
+//            https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-swing/1.6.3/kotlinx-coroutines-swing-1.6.3.pom
+
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

@@ -52,7 +52,7 @@ fun FeatMenu(
         }
         Column (modifier = Modifier.padding(start = 20.dp)) {
             val priorFeatName = preselectedValues.feat?.name ?: ""
-            BasicTextMenu(priorFeatName, featNamesWithColor) { s ->
+            BasicTextMenu(priorFeatName, featNamesWithColor, 200.dp, 200.dp) { s ->
                 //println("featMenu changed, new feat = $s")
                 selectedFeat.value = Feat.fromNameWithWS(s)
                 asi1.value = null
@@ -61,7 +61,7 @@ fun FeatMenu(
             }
             if (asiCount > 0) {
                 val priorASI = preselectedValues.asi1?.name ?: ""
-                BasicTextMenu(priorASI, asiChoices) { s ->
+                BasicTextMenu(priorASI, asiChoices, 200.dp, 200.dp) { s ->
                     //println("featMenu changed, new asi1 = $s")
                     asi1.value = AbilityType.valueOf(s)
                     onValueChanged(selectedFeat.value!!, asi1.value, asi2.value)
@@ -69,7 +69,7 @@ fun FeatMenu(
             }
             if (asiCount == 2) {
                 val priorASI = preselectedValues.asi2?.name ?: ""
-                BasicTextMenu(priorASI, asiChoices) { s ->
+                BasicTextMenu(priorASI, asiChoices, 200.dp, 200.dp) { s ->
                     //println("featMenu changed, new asi2 = $s")
                     asi2.value = AbilityType.valueOf(s)
                     onValueChanged(selectedFeat.value!!, asi1.value, asi2.value)

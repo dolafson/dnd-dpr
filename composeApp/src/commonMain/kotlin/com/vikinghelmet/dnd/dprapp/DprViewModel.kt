@@ -18,6 +18,7 @@ package com.vikinghelmet.dnd.dprapp
 import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
@@ -42,6 +43,8 @@ class DprViewModel : ViewModel() {
             )
         }
     }
+
+    fun getProximity(): Int = _uiState.value.proximity
 
     fun isReadyForAttack(): Boolean {
         return _uiState.value.mainCharacter != null && _uiState.value.mainMonster != null
@@ -100,6 +103,16 @@ class DprViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(currentMonster = currentMonster)
         }
+    }
+
+    fun setScenarioBuilder(scenarioBuilder: ScenarioBuilder) {
+        _uiState.update { currentState ->
+            currentState.copy(scenarioBuilder = scenarioBuilder)
+        }
+    }
+
+    fun getScenarioBuilder(): ScenarioBuilder? {
+        return _uiState.value.scenarioBuilder
     }
 
     fun reset() {
