@@ -194,7 +194,11 @@ fun CharacterScreen(viewModel: DprViewModel,
                     // currently unable to calculate: AC, HP
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
-                    NumericMenu(viewModel.getCharacterLevel(), { unsavedChanges = true; modifyCounter ++ })
+                    NumericMenu(viewModel.getCharacterLevel(), { newLevel ->
+                        character.editableFields.level = newLevel
+                        unsavedChanges = true;
+                        modifyCounter ++;
+                    })
                     Text(character.getProficiencyBonus().toString())
                     Text(character.getSpellSaveDC().toString())
                     Text(character.getSpellAbilityType())
@@ -214,7 +218,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
-                        NumericMenu( viewModel.getAbilityMap().map[it], { unsavedChanges = true })
+                        Text(text = ( character.getModifiedAbilityScore(it) ).toString())
                     }
                 }
                 Column(modifier = Modifier.padding(start = 60.dp)) {
@@ -224,7 +228,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
-                        NumericMenu(viewModel.getAbilityMap().map[it], { unsavedChanges = true })
+                        Text(text = ( character.getModifiedAbilityScore(it) ).toString())
                     }
                 }
             }
@@ -274,7 +278,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                     HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
                     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                         Column {
-
                             Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
 
                             for (spell in selection.value.readOnlyList) {

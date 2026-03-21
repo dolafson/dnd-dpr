@@ -239,7 +239,7 @@ open class Character(
         return result
     }
 
-    fun getPreparedSpells(): List<Spell> {
+    open fun getPreparedSpells(): List<Spell> {
         val result = mutableListOf<Spell>()
         for (classSpellList in characterData.classSpells!!)  result.addAll (transformSpellList (classSpellList.spells))
         result.addAll (transformSpellList (characterData.spells.classSpells))

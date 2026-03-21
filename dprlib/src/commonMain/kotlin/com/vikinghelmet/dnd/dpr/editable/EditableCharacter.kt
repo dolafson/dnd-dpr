@@ -17,18 +17,6 @@ data class EditableCharacter (
     val editableFields: EditableFields
 ) : Character(from.characterData, from.id, from.message, from.success)
 {
-    // cat leif.full.json | jq -c .data.classes[].definition.spellRules.levelSpellSlots[] |head
-    //[0,0,0,0,0,0,0,0,0]
-    //[2,0,0,0,0,0,0,0,0]
-    //[2,0,0,0,0,0,0,0,0]
-    //[3,0,0,0,0,0,0,0,0]
-    //[3,0,0,0,0,0,0,0,0]
-    //[4,2,0,0,0,0,0,0,0]
-    //[4,2,0,0,0,0,0,0,0]
-    //[4,3,0,0,0,0,0,0,0]
-    //[4,3,0,0,0,0,0,0,0]
-    //[4,3,2,0,0,0,0,0,0]
-
     fun numberOfSlotsAtSpellLevel(spellLevel: Int): Int {
         val slotList = getSpellSlots() // spellsBySpellLevel, returns different list based on current character level
         val result = slotList[spellLevel-1] // 1-based to 0-based indexing
@@ -94,6 +82,15 @@ data class EditableCharacter (
         return editableFields.name
     }
 
+    override fun getPreparedSpells(): List<Spell> {
+        val result = mutableListOf<Spell>()
+        for (i in 1..getLevel()) {
+           (editableFields.plan["$i"]?.spells ?: emptyList()).forEach { spellName ->
+                try { result.add (Globals.getSpell (spellName, is2014())) } catch (e: Exception) {}
+            }
+        }
+        return result
+    }
     fun getSpellSelectionsBySpellLevel(currentLevel: Int): Map<Int, SpellSelections> {
         val result = mutableMapOf<Int, SpellSelections>()
         // println("currentLevel: $currentLevel")
