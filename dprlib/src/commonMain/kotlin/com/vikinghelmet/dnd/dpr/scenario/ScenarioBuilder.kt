@@ -65,12 +65,15 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
             var turn: Turn? = null
             //var foundAtLeastOneLightWeaponPair = false
 
-            // light weapon ?  see if you have a 2nd one to use in a BA
-            if (action.isLight() && character.getLightWeapons().size > 1)
-            {
-                println("# light weapon 1=$action, hashcode =${action.hashCode()}, all light weapons = ${ character.getLightWeapons() }")
+            // note: actionList is already filtered by range, which is good
+            val lightWeapons = actionList.filter { it is Weapon && it.isLight() }
 
-                for (w2 in character.getLightWeapons()) {
+            // light weapon ?  see if you have a 2nd one to use in a BA
+            if (action.isLight() && lightWeapons.size > 1)
+            {
+                println("# light weapon 1=$action, hashcode =${action.hashCode()}, all light weapons = ${ lightWeapons }")
+
+                for (w2 in lightWeapons) {
                     if (action.hashCode() == w2.hashCode()) {
                         continue // the same physical weapon cannot be used for action and BA
                     }

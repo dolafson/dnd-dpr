@@ -26,7 +26,7 @@ object Globals {
     )
 
     fun getPercent(float: Float): String {
-        val rounded = round(float * 100) / 100 
+        val rounded = round(float * 100) / 100
         return "${rounded}"
     }
 
