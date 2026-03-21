@@ -24,6 +24,7 @@ data class DprUiState(
     // editable fields on character screen
     var editableAbilityMap: EditableAbilityMap = EditableAbilityMap(emptyMap()),
     var characterLevel: NumericRange = NumericRange(0,0,0),
+    var numberOfTurns: NumericRange = NumericRange(1,5,1),
 
     var scenarioBuilder: ScenarioBuilder? = null,
 ) {

@@ -86,8 +86,8 @@ Search:
 
 Attacks:
 
-     -a  <monster turn[;turn...] >          one/more turns, each a comma-separated list of spell or weapon name
-     -z  <monster <"melee" or "range">>     run all possible 5-turn scenarios, then sort by total damage
+     -a  <monster turn[;turn...] >     one/more turns, each a comma-separated list of spell or weapon name
+     -z  <monster proximityInFeet>     run all possible 5-turn scenarios, then sort by total damage
 
 ```
 

@@ -21,3 +21,5 @@ actual fun shareCsv(fileName: String, csvContent: String) {
 }
 
 actual fun isShareCsvSupported(): Boolean { return true }
+
+actual fun isTinyCpu(): Boolean { return false }

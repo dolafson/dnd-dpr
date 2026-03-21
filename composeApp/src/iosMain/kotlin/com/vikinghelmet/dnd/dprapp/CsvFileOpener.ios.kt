@@ -59,3 +59,5 @@ actual fun shareCsv(fileName: String, csvContent: String) {
 }
 
 actual fun isShareCsvSupported(): Boolean { return false }
+
+actual fun isTinyCpu(): Boolean { return true }

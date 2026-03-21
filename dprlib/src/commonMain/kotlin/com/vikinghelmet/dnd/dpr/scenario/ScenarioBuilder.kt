@@ -21,7 +21,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
     constructor(character: Character, monster: Monster): this(character,monster,character.getActionsAvailable()) {
 
     }
-    fun build(targetProximity: Int) {
+    fun build(targetProximity: Int, numberOfTurns: Int) {
         turnOptions.clear()
         scenarioList.clear()
         resultList.clear()
@@ -31,7 +31,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
 
         logDuration("buildScenarios", {
             buildScenarios(
-                Constants.NUM_TURNS_PER_SCENARIO,
+                numberOfTurns,
                 turnOptions,
                 Scenario(character, emptyList()),
                 scenarioList

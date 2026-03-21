@@ -28,46 +28,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class DprViewModel : ViewModel() {
-
     private val _uiState = MutableStateFlow(DprUiState())
     val uiState: StateFlow<DprUiState> = _uiState.asStateFlow()
 
-    /**
-     * Set the proximity and TODO: move scenario calculation here?
-     */
-    fun setProximity(proximity: Int) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                proximity = proximity,
-                // price = calculatePrice(quantity = numberCupcakes)
-            )
-        }
-    }
-
     fun getProximity(): Int = _uiState.value.proximity
+    fun getNumberOfTurns(): NumericRange = _uiState.value.numberOfTurns
+    fun getMainCharacter(): EditableCharacter? = _uiState.value.mainCharacter
+    fun getMainMonster(): Monster? = _uiState.value.mainMonster
+    fun getCurrentCharacter(): EditableCharacter? = _uiState.value.currentCharacter
+    fun getCurrentMonster(): Monster? = _uiState.value.currentMonster
+    fun getAbilityMap(): EditableAbilityMap =  _uiState.value.editableAbilityMap
+    fun getCharacterLevel(): NumericRange = _uiState.value.characterLevel
+    fun getScenarioBuilder(): ScenarioBuilder? = _uiState.value.scenarioBuilder
 
+    // ------------------------------------------
     fun isReadyForAttack(): Boolean {
         return _uiState.value.mainCharacter != null && _uiState.value.mainMonster != null
-    }
-
-    fun getMainCharacter(): EditableCharacter? { return _uiState.value.mainCharacter }
-    fun getMainMonster(): Monster? { return _uiState.value.mainMonster }
-
-    fun getCurrentCharacter(): EditableCharacter? { return _uiState.value.currentCharacter }
-    fun getCurrentMonster(): Monster? { return _uiState.value.currentMonster }
-
-    fun getAbilityMap(): EditableAbilityMap {
-        return _uiState.value.editableAbilityMap
     }
 
     fun setAbilityMap(editableAbilityMap: EditableAbilityMap) {
         _uiState.update { currentState ->
             currentState.copy(editableAbilityMap = editableAbilityMap)
         }
-    }
-
-    fun getCharacterLevel(): NumericRange {
-        return _uiState.value.characterLevel
     }
 
     fun setCharacterLevel(characterLevel: NumericRange) {
@@ -87,7 +69,6 @@ class DprViewModel : ViewModel() {
             currentState.copy(mainMonster = mainMonster)
         }
     }
-
 
     fun setCurrentCharacter(currentCharacter: EditableCharacter?) {
         _uiState.update { currentState ->
@@ -111,8 +92,16 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun getScenarioBuilder(): ScenarioBuilder? {
-        return _uiState.value.scenarioBuilder
+    /**
+     * Set the proximity and TODO: move scenario calculation here?
+     */
+    fun setProximity(proximity: Int) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                proximity = proximity,
+                // price = calculatePrice(quantity = numberCupcakes)
+            )
+        }
     }
 
     fun reset() {

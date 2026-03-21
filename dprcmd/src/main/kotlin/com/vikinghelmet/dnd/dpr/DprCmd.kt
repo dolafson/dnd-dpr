@@ -98,8 +98,8 @@ Search:
 
 Attacks:
 
-     -a  <monster turn[;turn...] >          one/more turns, each a comma-separated list of spell or weapon name
-     -z  <monster <"melee" or "range">>     run all possible 5-turn scenarios, then sort by total damage
+     -a  <monster turn[;turn...] >   one/more turns, each a comma-separated list of spell or weapon name
+     -z  <monster proximityInFeet>   run all possible 5-turn scenarios, then sort by total damage
   
 """)
 }
@@ -163,7 +163,11 @@ fun main(args : Array<String>) {
                 }
                 "-z" -> {
                     val monster = Globals.getMonster(args[i+1])
+                    val proximity = args[i+2].toInt()
                     val builder = ScenarioBuilder(character!!,monster)
+
+                    builder.build(proximity, Constants.NUM_TURNS_PER_SCENARIO)
+                    while (builder.hasNext()) { builder.addNext() }
                     builder.showResults()
                 }
                 else -> println("invalid argument: $arg")
