@@ -264,13 +264,13 @@ open class Character(
 
             // special cases ... these spells don't specify range, as it is implied by the weapon type
             if (spell.takeImmediatelyAfterHitting()) {
-                if (!spell.isMeleeWeaponBonusAction() || (targetProximity <= Constants.MELEE_RANGE)) {
+                if ( (spell.isMeleeWeaponBonusAction()  && (targetProximity <= Constants.MELEE_RANGE)) ||
+                     (spell.isRangedWeaponBonusAction() && (targetProximity > Constants.MELEE_RANGE)) )
+                {
                     result.add(spell)
                 }
             }
-
-            // all other spells, include on the basis of range
-            if (targetProximity <= spell.getRange()) {
+            else if (targetProximity <= spell.getRange()) { // all other spells, include on the basis of range
                 result.add(spell)
             }
         }

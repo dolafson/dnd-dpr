@@ -59,6 +59,11 @@ data class Spell(
         return takeImmediatelyAfterHitting() && (dd.contains("Melee weapon") || dd.contains("with a weapon"))
     }
 
+    fun isRangedWeaponBonusAction(): Boolean { // only a few of these exist
+        val dd = properties.dataDescription ?: ""
+        return takeImmediatelyAfterHitting() && (dd.contains("Ranged weapon") || dd.contains("with a weapon"))
+    }
+
     /* notes on RANGE data
 
         2024 spells:
