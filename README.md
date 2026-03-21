@@ -150,16 +150,17 @@ In no particular order ...
 - add support for weapon effects, similar to spell effects
   - (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
 - add support for spell damage upcasting (by character level, or spell level) 
-- in the mobile app, add support for minor character edits
-  - increase level or ability bonuses
-  - add spells and feats
-  - add scenario result export to txt/csv
+- improve support for spells that are 'always prepared'
 - add simulated battles
   - give the monster(s) a chance to fight back
   - calculate probability of character death
+- in the mobile app ...
+  - add export to txt/csv; this currently works on jvm desktop, but not iOS
 
 ## Known Issues
 
+- when loading a new character with level > 1
+  - should auto-populate plan up to current level
 - L2 wizard, 5-round scenario, damage is probably incorrect:
   - Sleep followed by 4 rounds of Fire Bolt -> damage = 2213 ?
 - some weapons - Dagger, HandAxe - support both melee and range

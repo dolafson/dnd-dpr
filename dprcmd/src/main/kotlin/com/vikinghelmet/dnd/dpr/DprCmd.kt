@@ -4,6 +4,8 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
@@ -11,6 +13,7 @@ import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.DprFiles
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
@@ -25,6 +28,8 @@ class DprCmd {
             return "Hello World!"
         }
 }
+
+val dprFiles = DprFiles(System.getProperty("user.home"))
 
 fun getFileOrURL(fileOrUrl: String): String? {
     return if (fileOrUrl.startsWith("http")) {
@@ -46,6 +51,14 @@ fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
     }
     //getRequest(fileOrUrl)
     return character
+}
+
+fun getEditableCharacter(json: String): EditableCharacter? {
+    if (json.isEmpty()) return null
+    val editableFields: EditableFields = Json.Default.decodeFromString(json)
+
+    val baseline = getCharacter(editableFields.remoteId.toString()) ?: return null
+    return EditableCharacter(baseline, editableFields)
 }
 
 fun getResource(fileName: String): String? {
@@ -108,7 +121,6 @@ fun main(args : Array<String>) {
     var exitEarly = false
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     val turns = ArrayList<Turn>()
-    val dprFiles = DprFiles(System.getProperty("user.home"))
 
     if (args.isEmpty()) {
         showUsage()
@@ -173,7 +185,7 @@ fun main(args : Array<String>) {
                 else -> println("invalid argument: $arg")
             }
         }
-        else if (arg.endsWith(".json")) {
+        else if (arg.endsWith(".json") || arg.contains("/")) {
             val jsonString = getFileOrURL(arg)
             if (jsonString == null) {
                 println("unable to read input: $arg")
@@ -186,6 +198,14 @@ fun main(args : Array<String>) {
             }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
+            }
+            else if (jsonString.contains("\"remoteId\"")) {
+                character = getEditableCharacter(jsonString)
+                println("loaded editable character: $character")
+            }
+            else {
+                println("unsupported json file: $arg")
+                exitEarly = true
             }
         }
         else if (arg.endsWith(".json")){
