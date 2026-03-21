@@ -286,6 +286,21 @@ open class Character(
         return characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(getLevel()) ?: MutableList(20) { 0 }
     }
 
+    fun getSpellSlotsIncludingExtraForPrepared(): List<Int> {
+        // TODO: support multi-class spell casters
+        val result = mutableListOf<Int>()
+        result.addAll(characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(getLevel()) ?: MutableList(20) { 0 })
+
+        val delta = getMaxPreparedSpells() - result.sum()
+        if (delta == 0) return result
+
+        // otherwise, find the highest non-zero slot, and add the delta there ...
+        val index = result.indexOfLast { it > 0 }
+        result[index] += delta
+
+        return result;
+    }
+
     fun getMaxPreparedSpells(): Int {
         return characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes?.get(getLevel()) ?: 0
     }
@@ -414,8 +429,9 @@ open class Character(
 
         buf.append ("action modifiers: $actionNames\n")
         buf.append ("\n")
-        buf.append  ("spell slots: "+getSpellSlots()).append("\n")
-        buf.append  ("spell prep: "+getMaxPreparedSpells()).append("\n")
+        buf.append  ("spell slots:  "+getSpellSlots()).append("\n")
+        buf.append  ("spell slots2: "+getSpellSlotsIncludingExtraForPrepared()).append("\n")
+        buf.append  ("spell prep:   "+getMaxPreparedSpells()).append("\n")
 
         buf.append("classFeatures    = ${ getClassFeatureNames() }").append("\n")
         buf.append("subclassFeatures = ${ getSubclassFeatureNames() }").append("\n")

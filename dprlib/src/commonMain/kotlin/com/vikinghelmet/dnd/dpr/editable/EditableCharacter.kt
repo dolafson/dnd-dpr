@@ -17,7 +17,7 @@ data class EditableCharacter (
 ) : Character(from.characterData, from.id, from.message, from.success)
 {
     fun numberOfSlotsAtSpellLevel(spellLevel: Int): Int {
-        val slotList = getSpellSlots() // spellsBySpellLevel, returns different list based on current character level
+        val slotList = getSpellSlotsIncludingExtraForPrepared()
         val result = slotList[spellLevel-1] // 1-based to 0-based indexing
         //println("hasSpellsAtSpellLevel($spellLevel) -> list=$slotList, result=$result")
         return result ?: 0
