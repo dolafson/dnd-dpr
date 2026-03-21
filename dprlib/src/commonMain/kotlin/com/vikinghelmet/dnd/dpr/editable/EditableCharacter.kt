@@ -5,9 +5,7 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
@@ -54,19 +52,7 @@ data class EditableCharacter (
         return newSlots.filter { it != 0 }.isNotEmpty()
     }
 
-    fun getAbilityMap(): EditableAbilityMap {
-        val result = mutableMapOf<AbilityType, NumericRange>()
-        AbilityType.entries.forEach {
-            result[it] = NumericRange(getModifiedAbilityScore(it), 20)
-        }
-        return EditableAbilityMap(result)
-    }
-
     override fun getModifiedAbilityScore(a: AbilityType): Int {
-        if (editableFields.plan.isEmpty()) {
-            return editableFields.stats[a] ?: 0     // TODO: remove this once plan is fully realized
-        }
-
         var increase = 0
         for (i in from.getLevel()..getLevel()) {
             if (a == editableFields.plan[i.toString()]?.asi1) increase++

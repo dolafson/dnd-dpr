@@ -115,7 +115,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     else if (options.isNotEmpty() && !isUrlOrID(currentText)) {
                         // old character, new name
                         val editableFields = EditableFields.fromScreen(currentText, character!!,
-                            viewModel.getCharacterLevel(), viewModel.getAbilityMap())
+                            viewModel.getCharacterLevel())
 
                         dprFiles.saveEditableCharacter(editableFields)
                         character = EditableCharacter(character!!, editableFields)

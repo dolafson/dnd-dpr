@@ -4,7 +4,6 @@ import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.util.DprSettings
-import com.vikinghelmet.dnd.dpr.util.EditableAbilityMap
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.Serializable
 
@@ -22,7 +21,6 @@ data class DprUiState(
     var proximity: Int = 0,
 
     // editable fields on character screen
-    var editableAbilityMap: EditableAbilityMap = EditableAbilityMap(emptyMap()),
     var characterLevel: NumericRange = NumericRange(0,0,0),
     var numberOfTurns: NumericRange = NumericRange(1,5,1),
 

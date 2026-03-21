@@ -286,6 +286,10 @@ open class Character(
         return characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(getLevel()) ?: MutableList(20) { 0 }
     }
 
+    fun getMaxPreparedSpells(): Int {
+        return characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes?.get(getLevel()) ?: 0
+    }
+
     // ----------------------------------------------------------------------------------------
     // ACTIONS (spells or weapons)
 
@@ -411,6 +415,7 @@ open class Character(
         buf.append ("action modifiers: $actionNames\n")
         buf.append ("\n")
         buf.append  ("spell slots: "+getSpellSlots()).append("\n")
+        buf.append  ("spell prep: "+getMaxPreparedSpells()).append("\n")
 
         buf.append("classFeatures    = ${ getClassFeatureNames() }").append("\n")
         buf.append("subclassFeatures = ${ getSubclassFeatureNames() }").append("\n")
