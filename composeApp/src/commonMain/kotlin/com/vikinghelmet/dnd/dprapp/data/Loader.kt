@@ -69,4 +69,10 @@ object Loader {
         }
         return result
     }
+
+    fun loadParty(): List<EditableCharacter> {
+        return listOf("eldir", "kael", "lars", "leif", "oleg", "rhogar",).mapNotNull {
+            addEditableCharacter("https://www.vikinghelmet.com/dnd/party/$it.json")
+        }
+    }
 }

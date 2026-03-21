@@ -103,10 +103,14 @@ fun CharacterScreen(viewModel: DprViewModel,
                 enabled = (textFieldState.text.isNotBlank() && !options.contains(textFieldState.text.toString())),
                 onClick = {
                     val currentText = textFieldState.text.toString()
-                    val jenny = "8675309"
-                    if (currentText == jenny) {
+                    if (currentText == "kaboom") {
                         dprFiles.deleteAll()
                         onDismiss()
+                    }
+                    else if (currentText == "party") {
+                        Loader.loadParty().forEach { options.add(it.getName()) }
+                        viewModel.setCurrentCharacter(null)
+                        textFieldState.setTextAndPlaceCursorAtEnd("")
                     }
                     else if (options.isNotEmpty() && !isUrlOrID(currentText)) {
                         // old character, new name
@@ -181,8 +185,13 @@ fun CharacterScreen(viewModel: DprViewModel,
         // everything below here - except for Dismiss button - requires a valid character ... AND is read-only
 
         if (character != null) {
+            val subclass = character.getSubclassName()
+
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 Column {
+                    Text("Class")
+                    if (subclass != null) { Text("Subclass") }
+
                     Text("Proficiency Bonus")
 
                     if (character.getSpellAbilityType() != "n/a") {
@@ -191,6 +200,9 @@ fun CharacterScreen(viewModel: DprViewModel,
                     // currently unable to calculate: AC, HP
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
+                    Text(text = character.getClassName())
+                    if (subclass != null) { Text(text=subclass) }
+
                     var current = character.getProficiencyBonus()
                     Text(text = current.toString(), color = highlightIncrease (character.from.getProficiencyBonus(), current))
 
@@ -271,7 +283,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                     Column {
                         Text("Weapon", fontWeight = FontWeight.Bold)
-                        character.getWeaponList().distinct().forEach { weapon -> Text(weapon.name) }
+                        character.getWeaponList().distinct().forEach { weapon -> Text(weapon.name.replace(",.*".toRegex(), "") ) }
                     }
                     Column (modifier = Modifier.padding(start = 20.dp)) {
                         Text("Hit", fontWeight = FontWeight.Bold)

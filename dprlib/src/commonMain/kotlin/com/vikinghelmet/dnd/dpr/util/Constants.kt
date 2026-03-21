@@ -1,8 +1,8 @@
 package com.vikinghelmet.dnd.dpr.util
 
 object Constants {
-    var NUM_TURNS_PER_SCENARIO = 5
-    var SCENARIO_OUTPUT_MAX = 30
+    const val NUM_TURNS_PER_SCENARIO = 5
+    const val SCENARIO_OUTPUT_MAX = 30
 
     const val MELEE_RANGE = 5
 

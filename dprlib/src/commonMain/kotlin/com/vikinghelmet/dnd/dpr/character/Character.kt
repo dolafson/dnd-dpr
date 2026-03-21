@@ -417,14 +417,14 @@ open class Character(
 
         buf.append("feats by level = ${ getClassFeaturesByLevel() }").append("\n")
         buf.append("levels for ASI = ${ getLevelsForAbilityIncrease() }").append("\n")
-        buf.append("className      = ${ getClassname() }").append("\n")
+        buf.append("className      = ${ getClassName() }").append("\n")
         buf.append("spellsForClass = ${ getSpellsForClass() }").append("\n")
 
         return buf.toString()
     }
 
     fun getSpellsForClass(): List<Spell> {
-        return Globals.getSpellsForClass(getClassname(), is2014 = is2014())
+        return Globals.getSpellsForClass(getClassName(), is2014 = is2014())
     }
 
     fun getSubclassOptions(): List<String> {
@@ -440,8 +440,12 @@ open class Character(
         return ClassName.valueOf(characterData.classes.first().definition.name)
     }
 
-    fun getClassname(): String {
+    fun getClassName(): String {
         return characterData.classes.first().definition.name
+    }
+
+    open fun getSubclassName(): String? {
+        return characterData.classes.first().subclassDefinition?.name
     }
 
     fun getSubclassLevel(): Int? {

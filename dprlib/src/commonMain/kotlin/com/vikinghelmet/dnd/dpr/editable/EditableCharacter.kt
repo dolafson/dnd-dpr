@@ -83,6 +83,17 @@ data class EditableCharacter (
         return editableFields.name
     }
 
+    override fun getSubclassName(): String? {
+        val sub = from.getSubclassName()
+        if (sub != null) return sub
+
+        for (i in from.getLevel()..getLevel()) {
+            val sub = editableFields.plan[i.toString()]?.subclass
+            if (sub != null) { return sub }
+        }
+        return null
+    }
+
     override fun getFeatList(): List<Feat> {
         val result = mutableListOf<Feat>()
         for (i in 1..getLevel()) {
