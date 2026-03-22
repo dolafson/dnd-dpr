@@ -302,7 +302,7 @@ open class Character(
 
     private fun getMaxPreparedSpells(characterLevel: Int): Int {
         var maxList = characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes ?: emptyList()
-        
+
         if (maxList.isEmpty()) {
             maxList = characterData.classes.first().definition.spellRules?.levelPreparedSpellMaxes ?: emptyList()
         }

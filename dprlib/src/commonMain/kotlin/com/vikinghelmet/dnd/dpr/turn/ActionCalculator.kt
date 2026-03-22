@@ -4,9 +4,9 @@ import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -348,7 +348,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
         val duration = 1f * (spell.getDuration() ?: 0)
         return AttackResult(
             1,
-            AvgMinMax(100f,100f,100f),
+            AvgMinMax(1f,1f,1f),
             AvgMinMax(0f,0f,0f),
             AvgMinMax(0f,0f,0f),
             AvgMinMax(duration, duration, duration),
@@ -415,7 +415,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
 
         if (preconditions.autoFailSave == true) {
             debug("autoFailSave is enabled, forcing chanceToHit to 100")
-            chanceToHit = AvgMinMax(100f, 100f, 100f)
+            chanceToHit = AvgMinMax(1f, 1f, 1f)
         }
 
         chanceToHit.debug("Chance to Hit")
@@ -594,7 +594,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
         // TODO: "autoCrit" from paralyzed/unconscious should only apply to melee attacks (not range)
 
         // Crit%:        (B211, F211, J211)
-        val critChance = if (effectManager.isAutoCrit()) AvgMinMax(100f,100f,100f) else AvgMinMax(
+        val critChance = if (effectManager.isAutoCrit()) AvgMinMax(1f,1f,1f) else AvgMinMax(
             critChance(autoHit, "No Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
