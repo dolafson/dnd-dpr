@@ -233,7 +233,20 @@ open class Character(
     private fun transformSpellList(input: List<PreparedSpellRemote>): List<PreparedSpell> {
         val result = mutableListOf<PreparedSpell>()
         for (psRemote in input) {
-            try { result.add (PreparedSpell (psRemote, is2014())) }  catch (e: Exception) { println("unable to add preparedSpell $psRemote: $e") }
+            try {
+                val spell =  Globals.getSpell(psRemote.definition.name, is2014())
+
+                // ritual spells are not normally used in combat; they also do not consume a spell slot
+                if (spell.properties.Ritual?.contains("Yes") == true) {
+                    println("excluding ritual spell from prepared list")
+                    continue
+                }
+
+                result.add (PreparedSpell(psRemote.alwaysPrepared, spell))
+            }
+            catch (e: Exception) {
+                println("unable to add preparedSpell ${psRemote.definition.name}: $e")
+            }
         }
         return result
     }
@@ -249,8 +262,11 @@ open class Character(
     fun getPreparedAttackSpells(): List<PreparedSpell> {
         val result = mutableListOf<PreparedSpell>()
         for (spell in getPreparedSpells()) {
-            if (spell.properties.filterTags?.contains("Healing") == true) continue // we only care about offensive spells for now
-            if (spell.isBonusAction()) continue // this list should only contain primary attacks
+            // when attacking, ignore healing spells
+            if (spell.properties.filterTags?.contains("Healing") == true) continue
+
+            // this list should only contain primary attacks
+            if (spell.isBonusAction()) continue
             result.add(spell)
         }
         return result
@@ -285,7 +301,11 @@ open class Character(
     }
 
     private fun getMaxPreparedSpells(characterLevel: Int): Int {
-        val maxList = characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes ?: emptyList()
+        var maxList = characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes ?: emptyList()
+        
+        if (maxList.isEmpty()) {
+            maxList = characterData.classes.first().definition.spellRules?.levelPreparedSpellMaxes ?: emptyList()
+        }
         return if (maxList.isEmpty()) 0 else maxList[characterLevel]
     }
 

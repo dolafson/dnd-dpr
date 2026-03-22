@@ -196,12 +196,12 @@ fun main(args : Array<String>) {
             else if (jsonString.contains("\"Monsters\"")){
                 monsters.addAll(Json.decodeFromString(jsonString))
             }
-            else if (jsonString.contains("\"username\"")) {
-                character = Json.decodeFromString(jsonString)
-            }
             else if (jsonString.contains("\"remoteId\"")) {
                 character = getEditableCharacter(jsonString)
                 println("loaded editable character: $character")
+            }
+            else if (jsonString.contains("\"username\"")) {
+                character = Json.decodeFromString(jsonString)
             }
             else {
                 println("unsupported json file: $arg")
@@ -250,6 +250,11 @@ fun main(args : Array<String>) {
             //println("turnOptions = ${ builder.turnOptions }")
 
             exitEarly = true
+        }
+        else if (arg.startsWith("test:spells")) {
+            character!!.getPreparedSpells().forEach { spell ->
+                println("alwaysPrepared = ${spell.alwaysPrepared}, spell = ${spell.name}")
+            }
         }
         else if (arg.startsWith("test:build")) {
             val builder = ScenarioBuilder(character!!, Globals.getMonster("Goblin"))

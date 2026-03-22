@@ -81,7 +81,7 @@ class PlanViewLevel(
             }
         }
 
-        println ("level=${ level }, spellsToAdd=$spellsToAdd, listOfSpellsFromPlanLevel=$listOfSpellsFromPlanLevel")
+        //println ("level=${ level }, spellsToAdd=$spellsToAdd, listOfSpellsFromPlanLevel=$listOfSpellsFromPlanLevel")
         this.spellsToAdd = spellsToAdd
     }
 
@@ -103,7 +103,7 @@ data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
     constructor(character: EditableCharacter) : this() {
         this.character = character
         for (tmpLevel in 1..20) {
-            println("planViewConstructor, adding level = $tmpLevel")
+            // println("planViewConstructor, adding level = $tmpLevel")
             plan.add(PlanViewLevel (tmpLevel, character))
         }
     }
