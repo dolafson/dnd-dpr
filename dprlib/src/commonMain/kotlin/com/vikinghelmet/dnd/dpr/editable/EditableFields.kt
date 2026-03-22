@@ -17,26 +17,20 @@ data class EditableFields (
     var name: String,
     var plan: MutableMap<String,PlanLevel> = mutableMapOf(),
 ){
+    constructor(character: Character): this(character.characterData.id!!, character.getLevel(), character.getName())
+
+    constructor(name: String, character: EditableCharacter, characterLevel: NumericRange): this(character)
+    {
+        this.level = characterLevel.current
+        this.name = name
+        // use json serialization to get a deep copy
+        this.plan = Json.decodeFromString (Json.encodeToString (character.editableFields.plan))
+    }
+
     fun toPrettyPlan(): String {
         val buf = StringBuilder()
         for ((key, value) in plan) { buf.append("$key=$value").append("\n") }
         return "[$buf]"
     }
 
-    companion object {
-        fun fromCharacter(character: Character): EditableFields {
-            return EditableFields(character.characterData.id!!, character.getLevel(), character.getName())
-        }
-
-        fun fromScreen(name: String, character: EditableCharacter, characterLevel: NumericRange): EditableFields
-        {
-            val result = fromCharacter(character)
-            result.level = characterLevel.current
-            result.name = name
-
-            // use json serialization to get a deep copy
-            result.plan = Json.decodeFromString (Json.encodeToString (character.editableFields.plan))
-            return result
-        }
-    }
 }

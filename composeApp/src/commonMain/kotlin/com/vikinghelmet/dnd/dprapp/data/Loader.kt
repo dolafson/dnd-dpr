@@ -50,7 +50,7 @@ object Loader {
                 val baseline: Character = Json.decodeFromString(json)
 
                 // on a good fetch, update local storage as well as the menu
-                result = EditableCharacter(baseline, EditableFields.fromCharacter(baseline))
+                result = EditableCharacter(baseline, EditableFields(baseline))
 
                 // update remoteId based on parsed data; this will be used as the local filename
                 remoteId = baseline.characterData.id.toString()
