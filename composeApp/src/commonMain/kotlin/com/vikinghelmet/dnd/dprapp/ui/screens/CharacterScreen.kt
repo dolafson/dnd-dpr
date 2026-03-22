@@ -130,45 +130,6 @@ fun CharacterScreen(viewModel: DprViewModel,
                 enabled = (textFieldState.text.isNotBlank() && !options.contains(textFieldState.text.toString())),
                 onClick = {
                     viewCharacter = addClicked(viewModel, viewCharacter, textFieldState, options)
-                    /*
-                    val currentText = textFieldState.text.toString()
-                    if (currentText == "kaboom") {
-                        dprFiles.deleteAll()
-                        viewModel.setCurrentCharacter(null)
-                        viewModel.setMainCharacter(null)
-                        textFieldState.setTextAndPlaceCursorAtEnd("")
-                        options.clear()
-                    }
-                    else if (currentText == "party") {
-                        Loader.loadParty().forEach { options.add(it.getName()) }
-                        viewModel.setCurrentCharacter(null)
-                        textFieldState.setTextAndPlaceCursorAtEnd("")
-                    }
-                    else if (options.isNotEmpty() && !isUrlOrID(currentText)) {
-                        // old character, new name
-                        val editableFields = EditableFields(currentText, character!!, viewModel.getCharacterLevel())
-
-                        dprFiles.saveEditableCharacter(editableFields)
-                        character = EditableCharacter(character!!, editableFields)
-                        viewModel.setMainCharacter(character)
-
-                        if (!options.contains(currentText)) {
-                            options.add(currentText)
-                        }
-                    }
-                    else {
-                        val getResult: EditableCharacter? = Loader.getEditableCharacter(currentText)
-                        if (getResult != null) {
-                            viewModel.setCurrentCharacter(getResult)
-                        } else {
-                            val addResult = Loader.addEditableCharacter(currentText)
-                            if (addResult != null) {
-                                options.add(addResult.getName())
-                                viewModel.setCurrentCharacter(addResult)
-                                textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
-                            }
-                        }
-                    } */
                 }) { Text("Add") }
 
             Button(
@@ -289,6 +250,8 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                 }
             }
+
+            //val spellSelections = character.getSpellSelectionsBySpellLevel(viewModel.getCharacterLevel().current)
 
             for (selection in spellSelections) {
                 val spellLevel = selection.key

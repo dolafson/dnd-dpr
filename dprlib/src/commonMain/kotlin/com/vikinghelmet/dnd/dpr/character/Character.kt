@@ -302,11 +302,10 @@ open class Character(
 
     private fun getMaxPreparedSpells(characterLevel: Int): Int {
         var maxList = characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes ?: emptyList()
+        if (maxList.isNotEmpty()) return maxList[characterLevel]
 
-        if (maxList.isEmpty()) {
-            maxList = characterData.classes.first().definition.spellRules?.levelPreparedSpellMaxes ?: emptyList()
-        }
-        return if (maxList.isEmpty()) 0 else maxList[characterLevel]
+        val maxList2 = characterData.classes.first().definition.spellRules?.levelPreparedSpellMaxes ?: emptyList()
+        return if (maxList2.isEmpty()) 0 else maxList2[characterLevel] ?: 0
     }
 
     private fun getSpellSlotsAtCharacterLevel(characterLevel: Int): List<Int> {
