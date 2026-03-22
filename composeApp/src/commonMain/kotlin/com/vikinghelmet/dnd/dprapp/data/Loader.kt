@@ -64,6 +64,7 @@ object Loader {
             }
         } catch (e: Exception) {
             println("Error getting character, $e")
+            e.printStackTrace()
             //println("CharacterID invalid / not found")
             return null
         }

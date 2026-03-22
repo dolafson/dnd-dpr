@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr.editable
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -53,14 +54,14 @@ data class EditableCharacter (
         return result
     }
 
-    override fun getPreparedSpells(): List<Spell> {
-        val result = mutableListOf<Spell>()
+    override fun getPreparedSpells(): List<PreparedSpell> {
+        val result = mutableListOf<PreparedSpell>()
         for (i in 1..getLevel()) {
            (editableFields.plan["$i"]?.spells ?: emptyList()).forEach { spellName ->
-                try { result.add (Globals.getSpell (spellName, is2014())) } catch (e: Exception) {}
+                try { result.add (PreparedSpell(spellName, is2014())) } catch (e: Exception) {}
             }
         }
-        return result
+        return from.getPreparedSpells() + from.getPreparedSpells().filter { it.alwaysPrepared }
     }
 
     fun getSpellSelectionsBySpellLevel(currentCharacterLevel: Int): Map<Int, SpellToPlanLevelMap> {

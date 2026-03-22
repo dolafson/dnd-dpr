@@ -33,9 +33,9 @@ data class EditableFields (
         val asiFeatIterator = character.getFeatAddedList().filter { it.isASI() }.mapNotNull { Feat.fromNameWithWS(it.definition.name) }.iterator()
 
         val spellLevelMap = mutableMapOf<Int,Iterator<Spell>>()
-        for (spellLevel in 1..20) {
+        for (spellLevel in 1..9) {
             spellLevelMap.put(spellLevel,
-                character.getPreparedSpells().filter { it.properties.Level == spellLevel }.iterator())
+                character.getPreparedSpells().filter { !it.alwaysPrepared && it.properties.Level == spellLevel }.iterator())
         }
 
         for (tmpLevel in 1..20) {
@@ -64,6 +64,24 @@ data class EditableFields (
                 val spellLevel = id + 1
                 val iter = spellLevelMap[spellLevel]
                 spells.add (if (iter != null && iter.hasNext()) iter.next().name else "")
+            }
+
+            if (tmpLevel == character.getLevel()) {
+                // check for any spells from dndbeyond character not assigned to a slot ...
+                // ( this happens with Kael at char level 2, they have 1 extra 1st level spell i can't account for )
+                // remainder should be assigned to characters current level (not a future level!)
+
+                for (spellLevel in 1..9) {
+                    val iterator = spellLevelMap[spellLevel]!!
+                    if (iterator.hasNext()) {
+                        val remainder = mutableListOf<String>()
+                        while (iterator.hasNext()) remainder.add(iterator.next().name)
+                        println ("assigning 'remainder' spell to level=${ character.getLevel() }, remainder=$remainder")
+                        println("before rmdr, spells = ${ spells }")
+                        spells += remainder
+                        println("after rmdr, spells = ${ spells }")
+                    }
+                }
             }
 
             planLevel.spells = spells

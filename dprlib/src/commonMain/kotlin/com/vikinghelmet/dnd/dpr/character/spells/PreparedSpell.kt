@@ -1,37 +1,14 @@
 package com.vikinghelmet.dnd.dpr.character.spells
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonIgnoreUnknownKeys
+import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.Globals
 
-@JsonIgnoreUnknownKeys
-@Serializable
-data class PreparedSpell(
-    val definition: com.vikinghelmet.dnd.dpr.character.spells.Definition,
-    /*
-    val activation: Activation,
-    val additionalDescription: String,
-    val alwaysPrepared: Boolean,
-    val atWillLimitedUseLevel: Any,
-    val baseLevelAtWill: Boolean,
-    val castAtLevel: Any,
-    val castOnlyAsRitual: Boolean,
-    val componentId: Int,
-    val componentTypeId: Int,
-    val countsAsKnownSpell: Boolean,
-    val definitionId: Int,
-    val displayAsAttack: Any,
-    val entityTypeId: Int,
-    val id: Int,
-    val isSignatureSpell: Any,
-    val limitedUse: Any,
-    val overrideSaveDc: Any,
-    val prepared: Boolean,
-    val range: RangeX,
-    val restriction: String,
-    val ritualCastingType: Any,
-    val spellCastingAbilityId: Int,
-    val spellListId: Any,
-    val usesSpellSlot: Boolean
+class PreparedSpell(val alwaysPrepared: Boolean = false,
+                    val from: Spell) : Spell(from.book, from.description, from.name, from.properties, from.publisher)
+{
+    constructor(input: PreparedSpellRemote, is2014: Boolean)
+            : this(input.alwaysPrepared, Globals.getSpell(input.definition.name, is2014))
 
-     */
-)
+    constructor(name: String, is2014: Boolean)
+            : this(false, Globals.getSpell(name, is2014))
+}

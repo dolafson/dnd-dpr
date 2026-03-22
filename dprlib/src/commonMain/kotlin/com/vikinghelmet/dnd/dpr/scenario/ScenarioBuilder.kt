@@ -5,7 +5,6 @@ import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.spells.SpellHelper
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -50,7 +49,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
         println("# possibleTurns, actionsAvailable = $actionsAvailable")
         println("# possibleTurns, actionList(prox) = $actionList")
 
-        val bonusActionNames = SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(targetProximity))
+        val bonusActionNames = character.getPreparedBonusActionSpells(targetProximity).map { it.name }
         val turnOptions = ArrayList<Turn>()
 
         for (action in actionList) {
@@ -267,10 +266,10 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
         println("available map: "+actionsAvailable.mapOfLists)
         println()
         println("MELEE:  actions       = "+actionsAvailable.getList(Constants.MELEE_RANGE))
-        println("MELEE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(Constants.MELEE_RANGE)))
+        println("MELEE:  bonus actions = "+character.getPreparedBonusActionSpells(Constants.MELEE_RANGE).map { it.name })
         println()
         println("RANGE:  actions       = "+actionsAvailable.getList(Constants.MELEE_RANGE*2))
-        println("RANGE:  bonus actions = "+SpellHelper.getSpellNames(character.getPreparedBonusActionSpells(Constants.MELEE_RANGE*2))) // TODO
+        println("RANGE:  bonus actions = "+character.getPreparedBonusActionSpells(Constants.MELEE_RANGE*2).map { it.name })
         println()
     }
 

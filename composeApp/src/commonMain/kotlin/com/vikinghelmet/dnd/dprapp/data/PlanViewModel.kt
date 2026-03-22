@@ -67,6 +67,21 @@ class PlanViewLevel(
             )
         }
 
+        // check for any unassigned spells ... ugh
+        for (spellLevel in 1..9) {
+            val options = c.getSpellsForClass().filter { it.properties.Level == spellLevel }.map { it.name }
+
+            val iterator = mapOfSpellLevelToSpellsChosen[spellLevel]!!
+            while (iterator.hasNext()) {
+                val spell = iterator.next()
+                println ("assigning 'remainder' spell to level=${ c.getLevel() }, remainder=$spell")
+                spellsToAdd.add(
+                    PlanViewSpell(spellLevel, spell.name, options.map { it -> Pair(it, Color.Black) }.toList())
+                )
+            }
+        }
+
+        println ("level=${ level }, spellsToAdd=$spellsToAdd, listOfSpellsFromPlanLevel=$listOfSpellsFromPlanLevel")
         this.spellsToAdd = spellsToAdd
     }
 
@@ -88,6 +103,7 @@ data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
     constructor(character: EditableCharacter) : this() {
         this.character = character
         for (tmpLevel in 1..20) {
+            println("planViewConstructor, adding level = $tmpLevel")
             plan.add(PlanViewLevel (tmpLevel, character))
         }
     }

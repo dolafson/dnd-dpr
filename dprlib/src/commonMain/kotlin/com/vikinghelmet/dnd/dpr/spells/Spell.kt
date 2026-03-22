@@ -23,7 +23,7 @@ object SpellHelper {
 }
 
 @Serializable
-data class Spell(
+open class Spell(
     val book: String,
     val description: String,
     val name: String,

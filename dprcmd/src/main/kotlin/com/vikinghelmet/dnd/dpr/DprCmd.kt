@@ -238,6 +238,19 @@ fun main(args : Array<String>) {
             ScenarioBuilder(character!!, Globals.getMonster("Goblin")).testActionsAvailable()
             exitEarly = true
         }
+        else if (arg.startsWith("test:turnOptions")) {
+            val builder =ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
+            builder.build(args[i+1].toInt(), args[i+2].toInt())
+
+            builder.turnOptions.forEach {
+                val buf = StringBuilder()
+                it.attacks.forEach { buf.append(it.getLabel()).append(",") }
+                println("turn option = { $buf }")
+            }
+            //println("turnOptions = ${ builder.turnOptions }")
+
+            exitEarly = true
+        }
         else if (arg.startsWith("test:build")) {
             val builder = ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
             builder.build(args[i+1].toInt(), args[i+2].toInt())

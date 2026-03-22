@@ -6,5 +6,5 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class ClassSpell(
-    val spells: List<com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell>
+    val spells: List<com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote>
 )

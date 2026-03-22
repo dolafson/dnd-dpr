@@ -11,6 +11,7 @@ import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -229,30 +230,24 @@ open class Character(
     // ----------------------------------------------------------------------------------------
     // SPELLS
 
-    private fun transformSpellList(input: List<PreparedSpell>): List<Spell> {
-        val result = mutableListOf<Spell>()
-        for (preparedSpell in input) {
-            try {
-                val spell = Globals.getSpell(preparedSpell.definition.name, is2014())
-                result.add(spell)
-            }
-            catch (e: Exception) {
-                println("unable to add preparedSpell $preparedSpell: $e")
-            }
+    private fun transformSpellList(input: List<PreparedSpellRemote>): List<PreparedSpell> {
+        val result = mutableListOf<PreparedSpell>()
+        for (psRemote in input) {
+            try { result.add (PreparedSpell (psRemote, is2014())) }  catch (e: Exception) { println("unable to add preparedSpell $psRemote: $e") }
         }
         return result
     }
 
-    open fun getPreparedSpells(): List<Spell> {
-        val result = mutableListOf<Spell>()
+    open fun getPreparedSpells(): List<PreparedSpell> {
+        val result = mutableListOf<PreparedSpell>()
         for (classSpellList in characterData.classSpells!!)  result.addAll (transformSpellList (classSpellList.spells))
         result.addAll (transformSpellList (characterData.spells.classSpells))
         result.addAll (transformSpellList (characterData.spells.raceSpells))
         return result
     }
 
-    fun getPreparedAttackSpells(): List<Spell> {
-        val result = mutableListOf<Spell>()
+    fun getPreparedAttackSpells(): List<PreparedSpell> {
+        val result = mutableListOf<PreparedSpell>()
         for (spell in getPreparedSpells()) {
             if (spell.properties.filterTags?.contains("Healing") == true) continue // we only care about offensive spells for now
             if (spell.isBonusAction()) continue // this list should only contain primary attacks
@@ -261,8 +256,8 @@ open class Character(
         return result
     }
 
-    fun getPreparedBonusActionSpells(targetProximity: Int): List<Spell> {
-        val result = mutableListOf<Spell>()
+    fun getPreparedBonusActionSpells(targetProximity: Int): List<PreparedSpell> {
+        val result = mutableListOf<PreparedSpell>()
         for (spell in getPreparedSpells()) {
             if (!spell.isBonusAction()) continue
 
@@ -290,7 +285,8 @@ open class Character(
     }
 
     private fun getMaxPreparedSpells(characterLevel: Int): Int {
-        return characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes?.get(characterLevel) ?: 0
+        val maxList = characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes ?: emptyList()
+        return if (maxList.isEmpty()) 0 else maxList[characterLevel]
     }
 
     private fun getSpellSlotsAtCharacterLevel(characterLevel: Int): List<Int> {
@@ -329,7 +325,7 @@ open class Character(
 
         //println("extra($characterLevel): before adjustment, result = $result")
         val delta = getMaxPreparedSpells(characterLevel) - result.sum()
-        if (delta == 0) return result
+        if (delta <= 0) return result
 
         // otherwise, find the highest non-zero slot, and add the delta there ...
         val index = result.indexOfLast { it > 0 }
