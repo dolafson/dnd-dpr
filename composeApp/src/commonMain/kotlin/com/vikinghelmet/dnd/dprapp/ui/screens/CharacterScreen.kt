@@ -258,17 +258,15 @@ fun CharacterScreen(viewModel: DprViewModel,
 
             for (selection in spellSelections) {
                 val spellLevel = selection.key
-                if (selection.value.isNotEmpty()) {
+                if (selection.value.spellToPlanLevelMap.isNotEmpty()) {
                     HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
                     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                         Column {
                             Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
 
-                            for (spell in selection.value.readOnlyList) {
-                                Text(spell.name)
-                            }
-                            for (spell in selection.value.editableList) {
-                                Text(spell.name, color = Color.Blue)
+                            for (entry in selection.value.spellToPlanLevelMap.entries) {
+                                val color = if (entry.value < character.getLevel()) Color.Black else Color.Blue
+                                Text(entry.key.name, color = color)
                             }
                         }
                     }

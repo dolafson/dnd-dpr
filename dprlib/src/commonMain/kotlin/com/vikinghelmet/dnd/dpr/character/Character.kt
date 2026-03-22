@@ -281,17 +281,54 @@ open class Character(
         return result
     }
 
+    // ----------------------------------------------------------------------------------------
+    // SPELL SLOTS
+
     fun getSpellSlots(): List<Int> {
         // TODO: support multi-class spell casters
         return characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(getLevel()) ?: MutableList(20) { 0 }
     }
 
-    fun getSpellSlotsIncludingExtraForPrepared(): List<Int> {
+    private fun getMaxPreparedSpells(characterLevel: Int): Int {
+        return characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes?.get(characterLevel) ?: 0
+    }
+
+    private fun getSpellSlotsAtCharacterLevel(characterLevel: Int): List<Int> {
+        //return characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(characterLevel) ?: emptyList()
+        val result = getSpellSlotsIncludingExtraForPrepared(characterLevel)
+        //println("getSpellSlotsIncludingExtraForPrepared(level=$characterLevel) = $result")
+        return result
+    }
+
+    fun getSpellSlotsGainedAtCharacterLevel(characterLevel: Int): List<Int> {
+        if (characterLevel == 0) return emptyList()
+
+        val slotsNow = getSpellSlotsAtCharacterLevel(characterLevel)
+        if (characterLevel == 1) return slotsNow
+
+        val slotsBefore = getSpellSlotsAtCharacterLevel(characterLevel-1)
+        var result: MutableList<Int> = mutableListOf()
+
+        for (id in slotsBefore.indices.sorted()) {
+            // println("get new slots, id=$id, now=${ slotsNow[id] }, before=${ slotsBefore[id] }, delta=${ slotsNow[id] - slotsBefore[id] }")
+            result.add(slotsNow[id] - slotsBefore[id])
+        }
+        return result
+    }
+
+    fun getNumberOfSlotsAtSpellLevel(spellLevel: Int): Int {
+        val slotList = getSpellSlotsIncludingExtraForPrepared(getLevel())
+        return slotList[spellLevel-1] // 1-based to 0-based indexing
+    }
+
+    private fun getSpellSlotsIncludingExtraForPrepared(characterLevel: Int): List<Int> {
         // TODO: support multi-class spell casters
         val result = mutableListOf<Int>()
-        result.addAll(characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(getLevel()) ?: MutableList(20) { 0 })
+        if (characterLevel == 0) return result
+        result.addAll(characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(characterLevel) ?: MutableList(9) { 0 })
 
-        val delta = getMaxPreparedSpells() - result.sum()
+        //println("extra($characterLevel): before adjustment, result = $result")
+        val delta = getMaxPreparedSpells(characterLevel) - result.sum()
         if (delta == 0) return result
 
         // otherwise, find the highest non-zero slot, and add the delta there ...
@@ -299,10 +336,6 @@ open class Character(
         result[index] += delta
 
         return result;
-    }
-
-    fun getMaxPreparedSpells(): Int {
-        return characterData.classes.first().definition.spellRules?.levelSpellKnownMaxes?.get(getLevel()) ?: 0
     }
 
     // ----------------------------------------------------------------------------------------
@@ -396,7 +429,7 @@ open class Character(
         return buf.toString()
     }
 
-    private fun getFeatAddedList(): List<FeatAdded> {
+    fun getFeatAddedList(): List<FeatAdded> {
         return characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }
     }
     open fun getFeatList(): List<Feat> {
@@ -430,8 +463,8 @@ open class Character(
         buf.append ("action modifiers: $actionNames\n")
         buf.append ("\n")
         buf.append  ("spell slots:  "+getSpellSlots()).append("\n")
-        buf.append  ("spell slots2: "+getSpellSlotsIncludingExtraForPrepared()).append("\n")
-        buf.append  ("spell prep:   "+getMaxPreparedSpells()).append("\n")
+        buf.append  ("spell slots2: "+getSpellSlotsIncludingExtraForPrepared(getLevel())).append("\n")
+        buf.append  ("spell prep:   "+getMaxPreparedSpells(getLevel())).append("\n")
 
         buf.append("classFeatures    = ${ getClassFeatureNames() }").append("\n")
         buf.append("subclassFeatures = ${ getSubclassFeatureNames() }").append("\n")

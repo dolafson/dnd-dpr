@@ -8,4 +8,12 @@ data class FeatAdded(
     val componentTypeId: Int? = null,
     val definition: com.vikinghelmet.dnd.dpr.character.feats.Definition,
     val definitionId: Int? = null
-)
+) {
+    fun isFightingStyle(): Boolean {
+        return definition.description?.contains("Fighting Style Feat") ?: false
+    }
+
+    fun isASI(): Boolean {
+        return definition.snippet?.contains("Ability Score Increase") ?: false
+    }
+}

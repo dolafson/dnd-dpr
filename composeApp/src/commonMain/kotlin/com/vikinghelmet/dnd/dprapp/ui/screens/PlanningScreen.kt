@@ -2,7 +2,8 @@ package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,7 +23,6 @@ fun PlanningScreen(viewModel: DprViewModel,
                     onConfirm: () -> Unit)
 {
     var character: EditableCharacter = viewModel.getCurrentCharacter()!!
-    var modifyCounter: Int by remember { mutableStateOf(0) }
     var planViewModel = remember { PlanViewModel(character) }
 
     Column(
@@ -31,13 +31,9 @@ fun PlanningScreen(viewModel: DprViewModel,
             .safeContentPadding()
             .fillMaxSize(),
     ) {
-        //println("plan = $planViewModel")
-
-        //for (tmpLevel in character.from.getLevel()..20)
-        //for (tmpLevel in 1..20)
         for (p in planViewModel.plan)
         {
-            if (!p.addFeat && !p.addFS && !p.addSpell && !p.addSubclass) continue
+            if (!p.addFeat && !p.addFS && p.spellsToAdd.isEmpty() && !p.addSubclass) continue
 
             if (p.level > 1) {
                 HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
@@ -60,7 +56,6 @@ fun PlanningScreen(viewModel: DprViewModel,
                 }
             }
 
-
             if (p.addFeat) {
                 FeatMenu(p, character, false, { feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2; }})
             }
@@ -69,16 +64,14 @@ fun PlanningScreen(viewModel: DprViewModel,
                 FeatMenu(p, character, true) { feat, asi1, asi2 -> run { p.feat = feat; p.asi1 = asi1; p.asi2 = asi2; } }
             }
 
-            if (p.addSpell) {
-                for (s in p.spellsToAdd) {
-                    Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-                        Column {
-                            Text("L${s.spellLevel} Spell", modifier = Modifier.padding(end = 10.dp))
-                        }
-                        Column (modifier = Modifier.padding(start = 20.dp)) {
-                            BasicTextMenu(s.selectedSpell, s.options, 200.dp, 200.dp) {
-                                s.selectedSpell = it
-                            }
+            for (s in p.spellsToAdd) {
+                Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
+                    Column {
+                        Text("L${s.spellLevel} Spell", modifier = Modifier.padding(end = 10.dp))
+                    }
+                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                        BasicTextMenu(s.selectedSpell, s.options, 200.dp, 200.dp) {
+                            s.selectedSpell = it
                         }
                     }
                 }

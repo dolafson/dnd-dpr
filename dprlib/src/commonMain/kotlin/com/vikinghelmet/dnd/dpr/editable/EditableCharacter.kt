@@ -16,42 +16,6 @@ data class EditableCharacter (
     val editableFields: EditableFields
 ) : Character(from.characterData, from.id, from.message, from.success)
 {
-    fun numberOfSlotsAtSpellLevel(spellLevel: Int): Int {
-        val slotList = getSpellSlotsIncludingExtraForPrepared()
-        val result = slotList[spellLevel-1] // 1-based to 0-based indexing
-        //println("hasSpellsAtSpellLevel($spellLevel) -> list=$slotList, result=$result")
-        return result ?: 0
-    }
-
-    fun getSpellSlotsAtCharacterLevel(characterLevel: Int): List<Int> {
-        val result = characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(characterLevel) ?: emptyList()
-
-        // println("getSpellSlotsAtCharacterLevel($characterLevel) -> result=$result")
-        return result
-    }
-
-    fun getNewSpellSlotsAtCharacterLevel(characterLevel: Int): List<Int> {
-        if (characterLevel == 0) return emptyList()
-
-        val slotsNow = getSpellSlotsAtCharacterLevel(characterLevel)
-        if (characterLevel == 1) return slotsNow
-
-        val slotsBefore = getSpellSlotsAtCharacterLevel(characterLevel-1)
-        var result: MutableList<Int> = mutableListOf()
-
-        for (id in slotsBefore.indices.sorted()) {
-            // println("get new slots, id=$id, now=${ slotsNow[id] }, before=${ slotsBefore[id] }, delta=${ slotsNow[id] - slotsBefore[id] }")
-            result.add(slotsNow[id] - slotsBefore[id])
-        }
-        return result
-    }
-
-    fun hasNewSpellSlotsAtCharacterLevel(characterLevel: Int): Boolean {
-        val newSlots = getNewSpellSlotsAtCharacterLevel(characterLevel)
-        // println("hasNewSpellSlotsAtCharacterLevel($characterLevel) -> list=$newSlots")
-        return newSlots.filter { it != 0 }.isNotEmpty()
-    }
-
     override fun getModifiedAbilityScore(a: AbilityType): Int {
         var increase = 0
         for (i in from.getLevel()..getLevel()) {
@@ -98,8 +62,9 @@ data class EditableCharacter (
         }
         return result
     }
-    fun getSpellSelectionsBySpellLevel(currentLevel: Int): Map<Int, SpellSelections> {
-        val result = mutableMapOf<Int, SpellSelections>()
+
+    fun getSpellSelectionsBySpellLevel(currentCharacterLevel: Int): Map<Int, SpellToPlanLevelMap> {
+        val result = mutableMapOf<Int, SpellToPlanLevelMap>()
         // println("currentLevel: $currentLevel")
 
         if (editableFields.plan.isEmpty()) {
@@ -107,25 +72,21 @@ data class EditableCharacter (
         }
 
         // initialize
-        for (spellLevel in 1..9) if (numberOfSlotsAtSpellLevel(spellLevel) > 0) {
-            result[spellLevel] = SpellSelections()
+        for (spellLevel in 1..9) if (getNumberOfSlotsAtSpellLevel(spellLevel) > 0) {
+            result[spellLevel] = SpellToPlanLevelMap()
         }
 
         for (planEntry in editableFields.plan) {
             val planCharacterLevel = planEntry.key.toInt()
-            if (planCharacterLevel > currentLevel) break
+            if (planCharacterLevel > currentCharacterLevel) break
 
             planEntry.value.spells.forEach { s ->
                 // TODO: optimize this
                 try {
                     val spell = Globals.getSpell(s, is2014())
                     val spellLevel = spell.properties.Level
+                    result[spellLevel]!!.spellToPlanLevelMap.put(spell,planCharacterLevel)
 
-                    if (planCharacterLevel < currentLevel) {
-                        result[spellLevel]!!.readOnlyList.add(spell)
-                    } else {
-                        result[spellLevel]!!.editableList.add(spell)
-                    }
                 } catch (e: Exception) {
                     println("unable to display details for spell ${s}")
                 }
@@ -136,14 +97,14 @@ data class EditableCharacter (
         for (spellLevel in 1..9) {
             if (result[spellLevel] == null) break
 
-            val max = numberOfSlotsAtSpellLevel(spellLevel)
-            val size = result[spellLevel]!!.size()
+            val max = getNumberOfSlotsAtSpellLevel(spellLevel)
+            val size = result[spellLevel]!!.spellToPlanLevelMap.size
             // println("spellLevel: $spellLevel, maxSlots: $max, filled: $size")
 
-            for (i in size..max-1) {
+            repeat (max-size) {
                 // TODO: better placeholder ...
                 val props = Properties("","",spellLevel,"")
-                result[spellLevel]!!.editableList.add(Spell("TODO","TODO","TODO", props,"TODO"))
+                result[spellLevel]!!.spellToPlanLevelMap.put(Spell("TODO","TODO","TODO", props,"TODO"), 100) // hack
             }
         }
 

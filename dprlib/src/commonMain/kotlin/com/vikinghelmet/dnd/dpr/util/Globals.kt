@@ -109,6 +109,7 @@ object Globals {
         throw IllegalArgumentException("spell not found: "+name)
     }
 
+    fun getSpellOrNull(name: String, is2014: Boolean): Spell? = try { getSpell(name, is2014) } catch (e: Exception) { null }
 
     fun getSpellsForClass(className: String, is2014: Boolean): List<Spell> {
         return spells.filter { spell ->
