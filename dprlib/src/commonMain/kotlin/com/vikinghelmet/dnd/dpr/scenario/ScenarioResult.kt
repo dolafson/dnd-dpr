@@ -8,21 +8,23 @@ data class ScenarioResult(
     val attackResults: List<AttackResult>,
     val totalDPR: Float = 0f,
 ) {
+    fun dprAtRound(round: Int):Float {
+        return attackResults.firstOrNull { it.turnId == round }?.dpr() ?: 0f
+    }
+
     fun output(): String {
-        var turnId = 1
         val scenarioName = scenario.getLabel()
         val buf = StringBuilder()
         buf.append(AttackResultFormatter.header(scenarioName)).append("\n")
 
-        for (turn in scenario.turns) {
+        for (turnId in 1..scenario.turns.size) {
             var turnDPR = 0f
-
             for (result in attackResults) if (result.turnId == turnId) {
                 buf.append (result.output(scenarioName)).append("\n")
-                turnDPR += result.damagePerRound.select (result.getAvgMinMaxSelection())
+                turnDPR += result.dpr()
             }
 
-            buf.append(AttackResultFormatter.footer(turnId++, "TURN TOTAL", turnDPR, scenarioName)).append("\n")
+            buf.append(AttackResultFormatter.footer(turnId, "TURN TOTAL", turnDPR, scenarioName)).append("\n")
         }
 
         buf.append(AttackResultFormatter.footer("", "SCENARIO TOTAL", totalDPR, scenarioName)).append("\n")

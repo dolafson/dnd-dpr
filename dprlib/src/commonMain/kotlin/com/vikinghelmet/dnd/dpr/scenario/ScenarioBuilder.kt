@@ -287,7 +287,13 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
 
     fun topResults(max: Int): List<ScenarioResult> {
         // sorting is fast enough that there's little point in measuring it
-        return resultList.sortedByDescending { it.totalDPR }.take(max)
+        //return resultList.sortedByDescending { it.totalDPR }.take(max)
+
+        // first prioritize totalDPR, and if multiple scenarios have the same total, sort them by highest damage at the start of the round
+
+        return resultList.sortedWith(
+            compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(0)}
+        ).take(max)
     }
 
     fun logDuration(label: String, task: () -> Unit) {

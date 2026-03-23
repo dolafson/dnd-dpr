@@ -26,6 +26,10 @@ data class AttackResult(
     var effectId: Int = -1,
     var spellAttack: SpellAttack? = null,
 ) {
+    fun dpr(): Float {
+        return damagePerRound.select (getAvgMinMaxSelection())
+    }
+
     fun update(turnId: Int, actionId: Int, effectId: Int, spellAttack: SpellAttack? = null) {
         this.turnId = turnId
         this.actionId = actionId
