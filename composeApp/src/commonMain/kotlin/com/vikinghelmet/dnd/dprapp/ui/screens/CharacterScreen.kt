@@ -1,8 +1,6 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -10,16 +8,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
+import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterSelector
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
@@ -67,62 +64,14 @@ fun CharacterScreen(viewModel: DprViewModel,
             .fillMaxSize(),
     ) {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it }
-            ) {
-                TextField(
-                    state = textFieldState,
-                    lineLimits = TextFieldLineLimits.SingleLine,
-                    label = { Text("Select/Add Character") },
-                    readOnly = false,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded,
-                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable))
-                    },
-                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable)
-                        // handle Return key for Desktop
-                        .onKeyEvent { keyEvent ->
-                            if (keyEvent.type == KeyEventType.KeyDown  && keyEvent.key == Key.Enter) {
-                                println("KeyDown event, key pressed = ${keyEvent.key}")
-                                viewCharacter = addClicked(viewModel, viewCharacter, textFieldState, options)
-                                true // Event handled
-                            } else {
-                                false // Event propagated
-                            }
-                        } ,
-                    // handle Return key for Mobile
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done,
-                    ),
-                    onKeyboardAction = {
-                        // 4. Triggered when the user clicks the IME "Done" button
-                        // You can perform business logic here, then clear focus
-                        viewCharacter = addClicked(viewModel, viewCharacter, textFieldState, options)
-                        focusManager.clearFocus()
-                    }
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    options.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
-                            onClick = {
-                                textFieldState.setTextAndPlaceCursorAtEnd(option)
-                                viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(option))
-                                println("from menu selection, set current character = ${ viewModel.getCurrentCharacter()!!.getName() }")
-                                expanded = false
-                            },
-                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                        )
-                    }
-                }
-            }
+            CharacterSelector("Select/Add Character", dprFiles.getEditableCharacterList(), textFieldState, false,
+               {  addText ->
+                viewCharacter = addClicked(viewModel, viewCharacter, textFieldState, options)
+                println("from menu selection, after adding new character(s), options = $options, current = ${ viewModel.getCurrentCharacter() }")
+            }, {  selectedOption ->
+                viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(selectedOption))
+                println("from menu selection, set main character = ${ viewModel.getCurrentCharacter()!!.getName() }")
+            })
         }
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {

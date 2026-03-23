@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
@@ -18,6 +19,7 @@ import com.vikinghelmet.dnd.dprapp.isShareCsvSupported
 import com.vikinghelmet.dnd.dprapp.isTinyCpu
 import com.vikinghelmet.dnd.dprapp.shareCsv
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterSelector
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlinx.coroutines.delay
@@ -36,6 +38,8 @@ fun MainScreen(viewModel: DprViewModel,
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope() // Create a coroutine scope
 
+    val characterTextFieldState = rememberTextFieldState()
+
     //al uriHandler = LocalUriHandler.current
     //val fileOpener = LocalFileOpener.current
 
@@ -45,11 +49,12 @@ fun MainScreen(viewModel: DprViewModel,
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
             Column() {
-                OutlinedTextField(
-                    label = { Text("Character") }, readOnly = true, enabled = true, singleLine = true,
-                    value = viewModel.getMainCharacter()?.getName() ?: "",
-                    onValueChange = { },
-                )
+                CharacterSelector("Select Character", dprFiles.getEditableCharacterList(),
+                    characterTextFieldState, true, {},
+                    { selectedOption ->
+                    viewModel.setMainCharacter (dprFiles.getEditableCharacter(selectedOption))
+                    println("from menu selection, set main character = ${ viewModel.getMainCharacter()!!.getName() }")
+                })
 
                 Row(modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)) {
                     Text(text = "Level", modifier = Modifier.padding(end = 10.dp))
@@ -228,3 +233,4 @@ suspend fun loadProgress(updateProgress: (Float) -> Unit) {
         delay(100)
     }
 }
+
