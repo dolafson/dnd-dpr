@@ -73,6 +73,8 @@ data class EditableCharacter (
             return result
         }
 
+        result[0] = mutableListOf()
+
         // initialize
         for (spellLevel in 1..9) if (getNumberOfSlotsAtSpellLevel(spellLevel) > 0) {
             result[spellLevel] = mutableListOf()

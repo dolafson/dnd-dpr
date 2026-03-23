@@ -254,15 +254,14 @@ fun CharacterScreen(viewModel: DprViewModel,
             //val spellSelections = character.getSpellSelectionsBySpellLevel(viewModel.getCharacterLevel().current)
 
             for (selection in spellSelections) {
-                val spellLevel = selection.key
-                val spellList = selection.value
-                if (spellList.isNotEmpty()) {
+                if (selection.value.isNotEmpty()) {
                     HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
                     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                         Column {
-                            Text("Level ${spellLevel} Spells", fontWeight = FontWeight.Bold)
+                            val label = if (selection.key == 0) "Cantrips" else "Level ${selection.key} Spells"
+                            Text(label, fontWeight = FontWeight.Bold)
 
-                            for (spell in spellList) {
+                            for (spell in selection.value) {
                                 // val color = if (entry.value < character.getLevel()) Color.Black else Color.Blue
                                 Text(spell.name)
                             }
