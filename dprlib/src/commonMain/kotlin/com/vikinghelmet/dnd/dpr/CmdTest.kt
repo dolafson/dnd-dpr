@@ -4,7 +4,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedList
+import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -38,19 +38,28 @@ object CmdTest {
         else null
     }
 
-    suspend fun getRemoteCharacter(id: String): Character? {
-        return getRemoteCharacterByUrl(getCharacterApiURL(id))
+    suspend fun getRemoteCharacterByUrl(url: String): Pair<String,Character> {
+        val json = getRequest(url)
+        val character: Character = Json.decodeFromString(json)
+        val alwaysPrepared = getAlwaysPreparedSpellList(character)
+        println("alwaysPrepared: $alwaysPrepared")
+        character.alwaysPreparedSpells = alwaysPrepared ?: AlwaysPreparedSpells()
+        return Pair(json, character)
     }
 
-    fun getAlwaysPreparedSpellList(character: com.vikinghelmet.dnd.dpr.character.Character): AlwaysPreparedList? {
-        val campaignId = character.characterData.campaign?.id ?: 0
-        val bgid = character.characterData.background?.definition?.id ?: 0
-        val subclassId = character.getClassId()
-        val url = "$characterUrlPrefix/game-data/always-prepared-spells?campaignId=7230418&sharingSetting=2&classId=19&classLevel=2&backgroundId=7"
-        return null
-    }
+    suspend fun getAlwaysPreparedSpellList(character: com.vikinghelmet.dnd.dpr.character.Character): AlwaysPreparedSpells? {
+        val params = character.getApiRequestParameters()
 
-    suspend fun getRemoteCharacterByUrl(url: String): Character? {
+        if (params.isIncomplete()) return null
+
+        val url = StringBuilder("$characterUrlPrefix/game-data/always-prepared-spells?")
+            .append("campaignId=${params.campaignId}")
+            .append("&sharingSetting=2")
+            .append("&classId=${params.classId}")
+            .append("&classLevel=${params.classLevel}")
+            .append("&backgroundId=${params.backgroundId}")
+            .toString()
+
         return Json.decodeFromString(getRequest(url))
     }
 

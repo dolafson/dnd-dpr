@@ -3,6 +3,7 @@
 package com.vikinghelmet.dnd.dpr.character
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.api.ApiRequestParameters
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
@@ -10,6 +11,7 @@ import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
+import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -32,6 +34,8 @@ open class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
+    var alwaysPreparedSpells: AlwaysPreparedSpells = AlwaysPreparedSpells()
+
     open fun getName(): String {
         return characterData.name
     }
@@ -112,22 +116,30 @@ open class Character(
         return isRacialTraitEnabled (RacialTrait.Luck)
     }
 
+    fun isElvenAccuracy(): Boolean {
+        return isRacialTraitEnabled (RacialTrait.ElvenAccuracy)
+    }
+
     /**
      * Elemental Adept in D&D 5e enhances damage by treating any 1 rolled on damage dice for a chosen element
      * (acid, cold, fire, lightning, or thunder) as a 2. It also allows spells to ignore resistance to that
      * damage type, effectively doubling damage against resistant targets. This feat increases average damage
      * slightly, particularly with multi-die spells.
      */
-    fun isElvenAccuracy(): Boolean {
-        return isRacialTraitEnabled (RacialTrait.ElvenAccuracy)
-    }
-
     fun isElementalAdept(): Boolean {
         return isFeatEnabled(Feat.ElementalAdept.getNameWithWS())
     }
 
     fun isGreatWeaponFighting(): Boolean {
         return isFeatEnabled(Feat.GreatWeaponFighting.getNameWithWS())
+    }
+
+    fun getFeatAddedList(): List<FeatAdded> {
+        return characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }
+    }
+
+    open fun getFeatList(): List<Feat> {
+        return getFeatAddedList().mapNotNull { Feat.fromNameWithWS(it.definition.name) }
     }
 
     // ----------------------------------------------------------------------------------------
@@ -195,10 +207,6 @@ open class Character(
         return result
     }
 
-    fun getLightWeapons(): List<Weapon> {
-        return getWeaponList().filter { it -> it.isLight() }
-    }
-
     fun getWeaponList(): List<Weapon> {
         val list = mutableListOf<Weapon>()
 
@@ -257,6 +265,7 @@ open class Character(
         result.addAll (transformSpellList (characterData.spells.classSpells))
         result.addAll (transformSpellList (characterData.spells.raceSpells))
         result.addAll (transformSpellList (characterData.spells.featSpells))
+        result.addAll (transformSpellList (alwaysPreparedSpells.data))
         return result
     }
 
@@ -397,7 +406,74 @@ open class Character(
     }
 
     // ----------------------------------------------------------------------------------------
-    // TESTS
+    // CLASS INFO
+
+    fun getSpellsForClass(): List<Spell> {
+        return Globals.getSpellsForClass(getClassName(), is2014 = is2014())
+    }
+
+    fun getSubclassOptions(): List<String> {
+        return when (getClass()) {
+            ClassName.Ranger -> listOf("Hunter", "Beast Master", "Gloom Stalker", "Fey Wanderer", "Winter Walker")
+            ClassName.Cleric -> listOf("Knowledge Domain",  "Life Domain", "Light Domain",
+                "Nature Domain",  "Tempest Domain",  "Trickery Domain", "War Domain",)
+            else -> listOf()
+        }
+    }
+
+    fun getClass(): ClassName {
+        return ClassName.valueOf(characterData.classes.first().definition.name)
+    }
+
+    fun getClassName(): String {
+        return characterData.classes.first().definition.name
+    }
+
+    open fun getSubclassName(): String? {
+        return characterData.classes.first().subclassDefinition?.name
+    }
+
+    fun getSubclassLevel(): Int? {
+        return getClassFeaturesByLevel().filter { it.key.contains("Subclass") || it.key.contains("Divine Domain")}.map { it.value}.firstOrNull()
+    }
+
+    fun getLevelsForAbilityIncrease(): List<Int> {
+        return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
+    }
+
+    fun getLevelsForFightingStyle(): List<Int> {
+        return getClassFeaturesByLevel().filter { it.key.contains("Fighting Style")}.map { it.value}
+    }
+
+    fun getClassFeaturesByLevel(): Map<String, Int> {
+        return characterData.classes.first().definition.classFeatures.map { it -> Pair(it.name, it.requiredLevel) }.toMap()
+    }
+
+    fun getClassFeatureNames(): List<String> {
+        return characterData.classes.first().definition.classFeatures.map { it.name }
+    }
+
+    fun getSubclassFeatureNames(): List<String> {
+        val sub = characterData.classes.first().subclassDefinition ?: return emptyList()
+        return sub.classFeatures.map { it.name }
+    }
+
+    fun getApiRequestParameters(): ApiRequestParameters {
+        val classId = characterData.classes.first().subclassDefinition?.id ?:
+            characterData.classes.first().classFeatures.mapNotNull { it.definition }.mapNotNull { it.classId }.firstOrNull()
+
+        return ApiRequestParameters(
+            characterData.campaign?.id,
+            characterData.background?.definition?.id,
+            classId,
+            getLevel()
+        )
+    }
+
+
+    // ----------------------------------------------------------------------------------------
+    // DEBUG OUTPUT
+
     fun toStringAll(): String {
         return StringBuilder()
             .append(toStringBasic()).append("\n")
@@ -445,13 +521,6 @@ open class Character(
         return buf.toString()
     }
 
-    fun getFeatAddedList(): List<FeatAdded> {
-        return characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }
-    }
-    open fun getFeatList(): List<Feat> {
-        return getFeatAddedList().mapNotNull { Feat.fromNameWithWS(it.definition.name) }
-    }
-
     fun toStringFeats(): String {
         val buf = StringBuilder("")
         for (feat in getFeatAddedList()) {
@@ -472,8 +541,8 @@ open class Character(
 
         val actionNames = (
                 characterData.actions.race.map { it.name } +
-                characterData.actions.feat.map { it.name } +
-                characterData.actions.classActions.map { it.name }
+                        characterData.actions.feat.map { it.name } +
+                        characterData.actions.classActions.map { it.name }
                 ).filter { s -> !s.contains("Circle Spell") } // circle spell is garbage data, not really usable
 
         buf.append ("action modifiers: $actionNames\n")
@@ -493,63 +562,5 @@ open class Character(
         return buf.toString()
     }
 
-    fun getSpellsForClass(): List<Spell> {
-        return Globals.getSpellsForClass(getClassName(), is2014 = is2014())
-    }
-
-    fun getSubclassOptions(): List<String> {
-        return when (getClass()) {
-            ClassName.Ranger -> listOf("Hunter", "Beast Master", "Gloom Stalker", "Fey Wanderer", "Winter Walker")
-            ClassName.Cleric -> listOf("Knowledge Domain",  "Life Domain", "Light Domain",
-                "Nature Domain",  "Tempest Domain",  "Trickery Domain", "War Domain",)
-            else -> listOf()
-        }
-    }
-
-    fun getClass(): ClassName {
-        return ClassName.valueOf(characterData.classes.first().definition.name)
-    }
-
-    fun getClassName(): String {
-        return characterData.classes.first().definition.name
-    }
-
-    open fun getSubclassName(): String? {
-        return characterData.classes.first().subclassDefinition?.name
-    }
-
-    fun getSubclassId(): Int? {
-        return characterData.classes.first().subclassDefinition?.id
-    }
-
-    fun getClassId(): Int? {
-        return getSubclassId() ?:
-            characterData.classes.first().classFeatures.mapNotNull { it.definition }.mapNotNull { it.classId }.firstOrNull()
-    }
-
-    fun getSubclassLevel(): Int? {
-        return getClassFeaturesByLevel().filter { it.key.contains("Subclass") || it.key.contains("Divine Domain")}.map { it.value}.firstOrNull()
-    }
-
-    fun getLevelsForAbilityIncrease(): List<Int> {
-        return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
-    }
-
-    fun getLevelsForFightingStyle(): List<Int> {
-        return getClassFeaturesByLevel().filter { it.key.contains("Fighting Style")}.map { it.value}
-    }
-
-    fun getClassFeaturesByLevel(): Map<String, Int> {
-        return characterData.classes.first().definition.classFeatures.map { it -> Pair(it.name, it.requiredLevel) }.toMap()
-    }
-
-    fun getClassFeatureNames(): List<String> {
-        return characterData.classes.first().definition.classFeatures.map { it.name }
-    }
-
-    fun getSubclassFeatureNames(): List<String> {
-        val sub = characterData.classes.first().subclassDefinition ?: return emptyList()
-        return sub.classFeatures.map { it.name }
-    }
 
 }

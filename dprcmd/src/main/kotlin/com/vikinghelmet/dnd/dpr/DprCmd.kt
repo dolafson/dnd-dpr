@@ -3,7 +3,8 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedList
+import com.vikinghelmet.dnd.dpr.CmdTest.getCharacterApiURL
+import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
@@ -48,9 +49,8 @@ fun getFileOrURL(fileOrUrl: String): String? {
 fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     runBlocking {
-        character = CmdTest.getRemoteCharacter(arg)
+        character = CmdTest.getRemoteCharacterByUrl (getCharacterApiURL (arg)).second
     }
-    //getRequest(fileOrUrl)
     return character
 }
 
@@ -206,9 +206,9 @@ fun main(args : Array<String>) {
                 character = Json.decodeFromString(jsonString)
             }
             else if (jsonString.contains("\"Always prepared spells successfully received.\"")) {
-                val alwaysPreparedList: AlwaysPreparedList = Json.decodeFromString(jsonString)
-                val names = alwaysPreparedList.data.map { it.definition.name }
-                println("alwaysPreparedList: ${ names }")
+                val alwaysPrepared: AlwaysPreparedSpells = Json.decodeFromString(jsonString)
+                val names = alwaysPrepared.data.map { it.definition.name }
+                println("alwaysPrepared: ${ names }")
             }
             else {
                 println("unsupported json file: $arg")

@@ -6,7 +6,6 @@ import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 
 object Loader {
 
@@ -32,9 +31,11 @@ object Loader {
                 // build a new URL if needed
                 val url = if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) CmdTest.getCharacterApiURL(remoteId!!)
                             else urlOrId
-                val json = CmdTest.getRequest(url)
 
-                val baseline: Character = Json.decodeFromString(json)
+                val resultPair = CmdTest.getRemoteCharacterByUrl(url)
+
+                val json = resultPair.first
+                val baseline: Character = resultPair.second
 
                 // on a good fetch, update local storage as well as the menu
                 result = EditableCharacter(baseline, EditableFields(baseline))

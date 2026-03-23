@@ -5,6 +5,6 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class AlwaysPreparedList(
+data class AlwaysPreparedSpells(
     val data: List<PreparedSpellRemote> = mutableListOf(),
 )
