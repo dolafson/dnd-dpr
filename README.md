@@ -9,7 +9,7 @@ Hunter's Mark as a first round Bonus Action.  This may yield a smaller
 first round damage, but maximize total damage across rounds.
 
 The tool can be run as a mobile app, or from a Linux / Mac 
-commandline.  The mobile app is currently very primitive.  For a more 
+commandline.  The mobile app is somewhat primitive.  For a more 
 user-friendly web interface, consider using [DPR Calc](https://dprcalc.com/), which 
 provides great support for single turn Weapon DPR.  It does not yet 
 support spells or multi-turn scenarios
@@ -150,19 +150,19 @@ In no particular order ...
 - add support for weapon effects, similar to spell effects
   - (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
 - add support for spell damage upcasting (by character level, or spell level) 
-- improve support for spells that are 'always prepared'
 - add simulated battles
   - give the monster(s) a chance to fight back
   - calculate probability of character death
 - in the mobile app ...
   - add export to txt/csv; this currently works on jvm desktop, but not iOS
+  - add numeric menus for numberOfTargets and distanceBetweenTargets
 
 ## Known Issues
 
-- when loading a new character with level > 1
-  - should auto-populate plan up to current level
-- L2 wizard, 5-round scenario, damage is probably incorrect:
-  - Sleep followed by 4 rounds of Fire Bolt -> damage = 2213 ?
+- roughly 20% of spells are missing
+  - these should be manually to the resource file **extra.spells.json** 
+- some classes - 2014 cleric, possibly others - handle prepared spells differently
+  - additional api calls to character service are needed 
 - some weapons - Dagger, HandAxe - support both melee and range
   - currently these weapons are treated as range-only 
 - not yet supported:
