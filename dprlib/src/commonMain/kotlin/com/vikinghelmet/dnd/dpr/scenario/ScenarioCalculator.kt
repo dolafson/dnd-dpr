@@ -29,6 +29,9 @@ class ScenarioCalculator(
                 val resultsForAttack = calculateDPR(turnId, actionCount, attack)
                 for (result in resultsForAttack) {
                     dpr += result.damagePerRound.select (result.getAvgMinMaxSelection())
+
+                    val fullEffect = result.damageFullEffect.select (result.getAvgMinMaxSelection())
+                    scenarioTotalDamage += fullEffect
                 }
                 actionCount++
 
@@ -37,7 +40,6 @@ class ScenarioCalculator(
 
             effectManager.pruneRunningSpells(turnId)
             turnId++
-            scenarioTotalDamage += dpr
         }
 
         return ScenarioResult(scenario, attackResults, scenarioTotalDamage)
