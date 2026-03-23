@@ -44,6 +44,16 @@ fun MainScreen(viewModel: DprViewModel,
 
     var outputText  by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        if (viewModel.getMainCharacter() != null) {
+            characterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
+        }
+
+        if (viewModel.getMainMonster() != null) {
+            monsterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getMainMonster()!!.name)
+        }
+    }
+
     Column(modifier = modifier) {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
