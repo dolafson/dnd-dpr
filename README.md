@@ -160,7 +160,7 @@ In no particular order ...
 ## Known Issues
 
 - roughly 20% of spells are missing
-  - these should be manually to the resource file **extra.spells.json** 
+  - these should be manually added to the resource file **extra.spells.json** 
 - some classes - 2014 cleric, possibly others - handle prepared spells differently
   - additional api calls to character service are needed 
 - some weapons - Dagger, HandAxe - support both melee and range
