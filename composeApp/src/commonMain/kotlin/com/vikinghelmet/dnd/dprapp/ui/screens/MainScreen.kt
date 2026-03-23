@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
@@ -18,10 +19,7 @@ import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.isShareCsvSupported
 import com.vikinghelmet.dnd.dprapp.isTinyCpu
 import com.vikinghelmet.dnd.dprapp.shareCsv
-import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
-import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterSelector
-import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
-import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
+import com.vikinghelmet.dnd.dprapp.ui.widgets.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -39,6 +37,7 @@ fun MainScreen(viewModel: DprViewModel,
     val scope = rememberCoroutineScope() // Create a coroutine scope
 
     val characterTextFieldState = rememberTextFieldState()
+    val monsterTextFieldState = rememberTextFieldState()
 
     //al uriHandler = LocalUriHandler.current
     //val fileOpener = LocalFileOpener.current
@@ -64,12 +63,17 @@ fun MainScreen(viewModel: DprViewModel,
                         outputText = ""
                     })
                 }
-
+/*
                 OutlinedTextField(
                     label = { Text("Monster Name") }, readOnly = true, enabled = true, singleLine = true,
                     value = viewModel.getMainMonster()?.name ?: "",
                     onValueChange = { },
                 )
+ */
+                MonsterSelector(monsterTextFieldState, false) { selectedMonster ->
+                    viewModel.setMainMonster(selectedMonster)
+                    monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.name ?: "")
+                }
 
                 Row(modifier = Modifier.padding(top = 20.dp, bottom= 10.dp)) {
                     Text(text = "Proximity", modifier = Modifier.padding(end = 10.dp))

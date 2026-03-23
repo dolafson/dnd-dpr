@@ -4,24 +4,11 @@ import com.vikinghelmet.dnd.dpr.CmdTest
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
-import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 object Loader {
-
-    fun getMonster(name: String): Monster? {
-        try {
-            return if (name.isEmpty()) null else Globals.getMonster(name)
-        }
-        catch (e: Exception) {
-            println("unable to find monster with name = $name, $e")
-            e.printStackTrace()
-            return null
-        }
-    }
 
     fun getEditableCharacter(name: String): EditableCharacter? {
         return dprFiles.getEditableCharacter(name)

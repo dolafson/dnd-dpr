@@ -127,6 +127,18 @@ object Globals {
         throw IllegalArgumentException("monster not found: "+name)
     }
 
+    fun getMonsterOrNull(name: String): Monster? {
+        try {
+            return if (name.isEmpty()) null else getMonster(name)
+        }
+        catch (e: Exception) {
+            println("unable to find monster with name = $name, $e")
+            e.printStackTrace()
+            return null
+        }
+    }
+
+
     fun addWStoCamelCase(input: String): String {
         return input.replace(Regex("(?<!^)([A-Z])"), " $1")
     }

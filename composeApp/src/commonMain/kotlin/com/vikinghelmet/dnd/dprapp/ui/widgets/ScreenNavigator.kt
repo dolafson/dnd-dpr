@@ -54,7 +54,7 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             viewModel.setProximity (settings.proximity)
             viewModel.setMainCharacter (Loader.getEditableCharacter(settings.characterName))
             viewModel.setCurrentCharacter (viewModel.getMainCharacter())
-            viewModel.setMainMonster (Loader.getMonster(settings.monsterName))
+            viewModel.setMainMonster (Globals.getMonsterOrNull(settings.monsterName))
         }
         catch (e: Exception) {
             println("unable to load settings: $e")
