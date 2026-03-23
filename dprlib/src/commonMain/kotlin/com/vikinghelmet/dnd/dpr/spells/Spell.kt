@@ -98,11 +98,11 @@ open class Spell(
 
         val durList = dur.split(" ")
 
-        return durList[0].toInt() * when (durList[1]) {
-            "turn" -> 1
-            "min" -> 10
-            "hour", "hours", "Hours" -> 600
-            "Days" -> 600 * 24
+        return durList[0].toInt() * when (durList[1].lowercase()) {
+            "turn", "round" -> 1
+            "min", "minute" -> 10
+            "hour", "hours" -> 600
+            "days" -> 600 * 24
             else -> 0
         }
     }

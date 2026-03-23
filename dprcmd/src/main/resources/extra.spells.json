@@ -322,6 +322,92 @@
       },
       "publisher": "Wizards of the Coast",
       "book": "Free Basic Rules (2024)"
+    },
+
+    {
+      "name": "Spellfire Flare",
+      "description": "<p>You unleash a blast of brilliant fire. Make a ranged spell attack against a target within range; a target gains no benefit from Half Cover or Three-Quarters Cover for this attack roll. On a hit, the target takes 2d10 Radiant damage.</p>\r\n<p><strong><em> Using a Higher-Level Spell Slot.</em></strong> You create an additional blast for each spell slot level above 1. You can direct the blasts at the same target or at different ones. Make a separate attack roll for each blast.</p>",
+      "properties": {
+        "Category": "Spells",
+        "School": "Evocation",
+        "Name": "Spellfire Flare",
+        "Level": 1,
+        "Casting Time": "Action",
+        "filter-Duration": "0 None",
+        "data-RangeNum": 60,
+        "data-datarecords": [
+          {
+            "name": "Spellfire Flare Attack",
+            "payload": {
+              "type": "Attack",
+              "name": "Spellfire Flare"
+            }
+          },
+          {
+            "name": "Spellfire Flare Damage",
+            "parent": "Spellfire Flare Attack",
+            "payload": {
+              "type": "Damage",
+              "ability": "none",
+              "damageType": "Radiant",
+              "diceCount": 2,
+              "diceSize": "d10"
+            }
+          }
+        ],
+        "Concentration": "No",
+        "Damage": "2d10",
+        "Damage Type": "Radiant"
+      },
+      "publisher": "Wizards of the Coast",
+      "book": "Hand Entered, Free Basic Rules (2024)"
+    },
+
+    {
+      "name": "Create Bonfire",
+      "description": "<p>You create a bonfire on ground that you can see within range. Until the spell ends, the magic bonfire fills a 5-foot cube. Any creature in the bonfire’s space when you cast the spell must succeed on a Dexterity saving throw or take 1d8 fire damage. A creature must also make the saving throw when it moves into the bonfire’s space for the first time on a turn or ends its turn there.</p>\r\n<p>The bonfire ignites flammable objects in its area that aren’t being worn or carried.</p>\r\n<p>The spell’s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).</p>",
+      "properties": {
+        "Category": "Spells",
+        "School": "Conjuration",
+        "Name": "Create Bonfire",
+        "Level": 0,
+        "Casting Time": "Action",
+        "filter-Duration": "1 Minute",
+        "data-RangeNum": 60,
+        "data-datarecords": [
+          {
+            "name": "Create Bonfire Attack",
+            "payload": {
+              "type": "Attack",
+              "name": "Create Bonfire",
+              "save": {
+                "saveAbility": "Dexterity",
+                "onSucceed": "unaffected"
+              },
+              "aoe": {
+                "shape": "Cube",
+                "size": "5 foot"
+              }
+            }
+          },
+          {
+            "name": "Create Bonfire Damage",
+            "parent": "Create Bonfire Attack",
+            "payload": {
+              "type": "Damage",
+              "ability": "none",
+              "damageType": "Fire",
+              "diceCount": 1,
+              "diceSize": "d8"
+            }
+          }
+        ],
+        "Concentration": "Yes",
+        "Damage": "1d8",
+        "Damage Type": "Fire"
+      },
+      "publisher": "Wizards of the Coast",
+      "book": "Hand Entered, Free Basic Rules (2024)"
     }
 
 ]
