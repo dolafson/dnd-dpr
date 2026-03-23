@@ -58,7 +58,7 @@ fun MainScreen(viewModel: DprViewModel,
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
             Column() {
-                CharacterSelector("Select Character", dprFiles.getEditableCharacterList(),
+                CharacterMenu("Select Character", dprFiles.getEditableCharacterList(),
                     characterTextFieldState, true, {},
                     { selectedOption ->
                     viewModel.setMainCharacter (dprFiles.getEditableCharacter(selectedOption))
@@ -73,14 +73,8 @@ fun MainScreen(viewModel: DprViewModel,
                         outputText = ""
                     })
                 }
-/*
-                OutlinedTextField(
-                    label = { Text("Monster Name") }, readOnly = true, enabled = true, singleLine = true,
-                    value = viewModel.getMainMonster()?.name ?: "",
-                    onValueChange = { },
-                )
- */
-                MonsterSelector(monsterTextFieldState, false) { selectedMonster ->
+
+                MonsterMenu(monsterTextFieldState, false) { selectedMonster ->
                     viewModel.setMainMonster(selectedMonster)
                     monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.name ?: "")
                 }

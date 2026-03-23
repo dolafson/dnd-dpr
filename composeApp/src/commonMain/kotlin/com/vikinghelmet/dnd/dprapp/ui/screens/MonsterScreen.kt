@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
-import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterSelector
+import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +46,7 @@ fun MonsterScreen(viewModel: DprViewModel,
             .safeContentPadding()
             .fillMaxSize()
     ) {
-        MonsterSelector(textFieldState, true) { selectedMonster ->
+        MonsterMenu(textFieldState, true) { selectedMonster ->
             monster = selectedMonster
             viewModel.setCurrentMonster(selectedMonster)
             textFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.name ?: "")

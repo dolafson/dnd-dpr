@@ -15,8 +15,8 @@ import androidx.compose.ui.text.input.ImeAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterSelector(label: String, options: List<String>, textFieldState: TextFieldState,
-                      isReadOnly: Boolean, onAddText: (String) -> Unit, onMenuItemSelected: (String) -> Unit) {
+fun CharacterMenu(label: String, options: List<String>, textFieldState: TextFieldState,
+                  isReadOnly: Boolean, onAddText: (String) -> Unit, onMenuItemSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     //val textFieldState = rememberTextFieldState()
 

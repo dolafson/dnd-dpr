@@ -16,7 +16,7 @@ import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
-import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterSelector
+import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
@@ -64,7 +64,7 @@ fun CharacterScreen(viewModel: DprViewModel,
             .fillMaxSize(),
     ) {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-            CharacterSelector("Select/Add Character", dprFiles.getEditableCharacterList(), textFieldState, false,
+            CharacterMenu("Select/Add Character", dprFiles.getEditableCharacterList(), textFieldState, false,
                {  addText ->
                 viewCharacter = addClicked(viewModel, viewCharacter, textFieldState, options)
                 println("from menu selection, after adding new character(s), options = $options, current = ${ viewModel.getCurrentCharacter() }")

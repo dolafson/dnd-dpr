@@ -10,7 +10,7 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonsterSelector(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuItemSelected: (Monster?) -> Unit) {
+fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuItemSelected: (Monster?) -> Unit) {
     val options = Globals.monsters.map { it.name }
 
     var expanded by remember { mutableStateOf(false) }
