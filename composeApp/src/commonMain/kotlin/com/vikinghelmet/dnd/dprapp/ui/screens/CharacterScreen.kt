@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -16,9 +15,12 @@ import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.Loader
+import com.vikinghelmet.dnd.dprapp.data.Loader.addEditableCharacter
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 
 fun isUrlOrID(str: String): Boolean {
@@ -30,10 +32,13 @@ fun isUrlOrID(str: String): Boolean {
 fun CharacterScreen(viewModel: DprViewModel,
                     onDismiss: () -> Unit,
                     onPlan: (EditableCharacter) -> Unit,
-                    onConfirm: (EditableCharacter) -> Unit)
-{
+                    onConfirm: (EditableCharacter) -> Unit) {
     var viewCharacter: EditableCharacter? = viewModel.getCurrentCharacter()
-    val focusManager = LocalFocusManager.current
+    // val focusManager = LocalFocusManager.current
+
+    var currentProgress by remember { mutableFloatStateOf(5f) }
+    var loading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope() // Create a coroutine scope
 
     var modifyCounter: Int by remember { mutableStateOf(0) }
 
@@ -46,16 +51,93 @@ fun CharacterScreen(viewModel: DprViewModel,
         viewCharacter?.getSpellSelectionsBySpellLevel(viewModel.getCharacterLevel().current) ?: emptyMap()
     }
 
+
     LaunchedEffect(Unit) {
         options.clear()
-        options.addAll (dprFiles.getEditableCharacterList())
+        options.addAll(dprFiles.getEditableCharacterList())
 
         if (viewModel.getCurrentCharacter() != null) {
-            println("CharacterScreen: LaunchedEffect: set char name: ${ viewModel.getCurrentCharacter()!!.getName() }")
+            println("CharacterScreen: LaunchedEffect: set char name: ${viewModel.getCurrentCharacter()!!.getName()}")
 
             textFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
         }
     }
+
+
+    fun highlightIncrease(val1: Int, val2: Int): Color = if (val1 == val2) Color.Black else Color.Blue
+
+    fun reset(viewModel: DprViewModel, textFieldState: TextFieldState) {
+        viewModel.setCurrentCharacter(null)
+        textFieldState.setTextAndPlaceCursorAtEnd("")
+    }
+
+    suspend fun addPartyBackground() {
+        currentProgress = 5f
+        delay(1)
+        loading = true
+
+        println("fetching party ...")
+        delay(1)
+        val party = Loader.getParty()
+        var count = 1
+        // when loading party, update progress ...
+        party.forEach {
+            val added = addEditableCharacter("https://www.vikinghelmet.com/dnd/party/$it.json")
+            if (added != null) options.add(added.getName())
+            currentProgress = (count++ * 1f) / (party.size * 1f)
+            delay(1)
+        }
+        loading = false
+    }
+
+    fun addCharacter(addText: String) {
+        if (addText == "party") {
+            scope.launch { addPartyBackground() }
+            reset(viewModel, textFieldState)
+        }
+        else {
+            val oldCharacter = viewCharacter
+            var newCharacter: EditableCharacter? = viewCharacter // default: old -> new
+
+            val currentText = textFieldState.text.toString()
+            if (currentText == "kaboom") {
+                dprFiles.deleteAll()
+                viewModel.setCurrentCharacter(null)
+                reset(viewModel,textFieldState)
+                options.clear()
+            }
+            else if (options.isNotEmpty() && !isUrlOrID(currentText)) {
+                // old character, new name
+                val editableFields = EditableFields(currentText, oldCharacter!!, viewModel.getCharacterLevel())
+
+                dprFiles.saveEditableCharacter(editableFields)
+                newCharacter = EditableCharacter(oldCharacter!!, editableFields)
+                viewModel.setMainCharacter(oldCharacter)
+
+                if (!options.contains(currentText)) {
+                    options.add(currentText)
+                }
+            }
+            else {
+                val getResult: EditableCharacter? = Loader.getEditableCharacter(currentText)
+                if (getResult != null) {
+                    viewModel.setCurrentCharacter(getResult)
+                } else {
+                    val addResult = Loader.addEditableCharacter(currentText)
+                    if (addResult != null) {
+                        options.add(addResult.getName())
+                        viewModel.setCurrentCharacter(addResult)
+                        textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
+                    }
+                }
+            }
+
+            viewCharacter = newCharacter
+        }
+
+        println("after adding new character(s), options = $options, current = ${viewModel.getCurrentCharacter()}")
+    }
+
 
     Column(
         modifier = Modifier
@@ -64,22 +146,22 @@ fun CharacterScreen(viewModel: DprViewModel,
             .fillMaxSize(),
     ) {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
-            CharacterMenu("Select/Add Character", dprFiles.getEditableCharacterList(), textFieldState, false,
-               {  addText ->
-                viewCharacter = addClicked(viewModel, viewCharacter, textFieldState, options)
-                println("from menu selection, after adding new character(s), options = $options, current = ${ viewModel.getCurrentCharacter() }")
-            }, {  selectedOption ->
-                viewModel.setCurrentCharacter (dprFiles.getEditableCharacter(selectedOption))
-                println("from menu selection, set main character = ${ viewModel.getCurrentCharacter()!!.getName() }")
-            })
+            CharacterMenu(
+                "Select/Add Character", dprFiles.getEditableCharacterList(), textFieldState, false,
+                { addText ->
+                    addCharacter(addText)
+                },
+                { selectedOption ->
+                    viewModel.setCurrentCharacter(dprFiles.getEditableCharacter(selectedOption))
+                    println("from menu selection, set main character = ${viewModel.getCurrentCharacter()!!.getName()}")
+                })
         }
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Button(
                 enabled = (textFieldState.text.isNotBlank() && !options.contains(textFieldState.text.toString())),
-                onClick = {
-                    viewCharacter = addClicked(viewModel, viewCharacter, textFieldState, options)
-                }) { Text("Add") }
+                onClick = { addCharacter(textFieldState.text.toString()) }
+            ) {  Text("Add") }
 
             Button(
                 modifier = Modifier.padding(start = 20.dp),
@@ -106,6 +188,14 @@ fun CharacterScreen(viewModel: DprViewModel,
             ) { Text("Del") } // running out of room on ios screen width
         }
 
+        if (loading) {
+            Spacer(Modifier.height(20.dp))
+            LinearProgressIndicator(
+                progress = { currentProgress }, modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(20.dp))
+        }
+
         if (viewCharacter != null) {
             val character: EditableCharacter = viewCharacter!!
 
@@ -116,7 +206,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     NumericMenu(viewModel.getCharacterLevel(), { newLevel ->
                         character.editableFields.level = newLevel
-                        modifyCounter ++;
+                        modifyCounter++;
                     })
                 }
             }
@@ -133,7 +223,9 @@ fun CharacterScreen(viewModel: DprViewModel,
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 Column {
                     Text("Class")
-                    if (subclass != null) { Text("Subclass") }
+                    if (subclass != null) {
+                        Text("Subclass")
+                    }
 
                     Text("Proficiency Bonus")
 
@@ -144,14 +236,19 @@ fun CharacterScreen(viewModel: DprViewModel,
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     Text(text = character.getClassName())
-                    if (subclass != null) { Text(text=subclass) }
+                    if (subclass != null) {
+                        Text(text = subclass)
+                    }
 
                     var current = character.getProficiencyBonus()
-                    Text(text = current.toString(), color = highlightIncrease (character.from.getProficiencyBonus(), current))
+                    Text(
+                        text = current.toString(),
+                        color = highlightIncrease(character.from.getProficiencyBonus(), current)
+                    )
 
                     if (character.getSpellAbilityType() != "n/a") {
                         current = character.getSpellSaveDC()
-                        Text(current.toString(), color = highlightIncrease (character.from.getSpellSaveDC(), current))
+                        Text(current.toString(), color = highlightIncrease(character.from.getSpellSaveDC(), current))
                     }
                 }
             }
@@ -171,7 +268,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
                         val baselineScore = character.from.getModifiedAbilityScore(it)
                         val currentScore = character.getModifiedAbilityScore(it)
-                        Text(text = ( currentScore ).toString(), color = highlightIncrease (baselineScore, currentScore))
+                        Text(text = (currentScore).toString(), color = highlightIncrease(baselineScore, currentScore))
                     }
                 }
                 Column(modifier = Modifier.padding(start = 60.dp)) {
@@ -183,7 +280,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                     listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
                         val baselineScore = character.from.getModifiedAbilityScore(it)
                         val currentScore = character.getModifiedAbilityScore(it)
-                        Text(text = ( currentScore ).toString(), color = highlightIncrease (baselineScore, currentScore))
+                        Text(text = (currentScore).toString(), color = highlightIncrease(baselineScore, currentScore))
                     }
                 }
             }
@@ -221,27 +318,30 @@ fun CharacterScreen(viewModel: DprViewModel,
 
             HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)
 
-            if (character.getWeaponList().isNotEmpty())
-            {
+            if (character.getWeaponList().isNotEmpty()) {
                 Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                     Column {
                         Text("Weapon", fontWeight = FontWeight.Bold)
-                        character.getWeaponList().distinct().forEach { weapon -> Text(weapon.name.replace(",.*".toRegex(), "") ) }
+                        character.getWeaponList().distinct()
+                            .forEach { weapon -> Text(weapon.name.replace(",.*".toRegex(), "")) }
                     }
-                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                    Column(modifier = Modifier.padding(start = 20.dp)) {
                         Text("Hit", fontWeight = FontWeight.Bold)
-                        character.getWeaponList().distinct().forEach { weapon -> Text("+"+character.getAttackBonus(weapon).toString()) }
+                        character.getWeaponList().distinct()
+                            .forEach { weapon -> Text("+" + character.getAttackBonus(weapon).toString()) }
                     }
-                    Column (modifier = Modifier.padding(start = 20.dp)) {
+                    Column(modifier = Modifier.padding(start = 20.dp)) {
                         Text("Damage", fontWeight = FontWeight.Bold)
-                        character.getWeaponList().distinct().forEach { weapon -> Text(
-                            if (character.getDamageBonus(weapon, false) == 0) {
-                                weapon.damage!!
-                            } else {
-                                // TODO: BA
-                                weapon.damage!! +" + " +character.getDamageBonus(weapon, false).toString()
-                            }
-                        ) }
+                        character.getWeaponList().distinct().forEach { weapon ->
+                            Text(
+                                if (character.getDamageBonus(weapon, false) == 0) {
+                                    weapon.damage!!
+                                } else {
+                                    // TODO: BA
+                                    weapon.damage!! + " + " + character.getDamageBonus(weapon, false).toString()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -255,54 +355,10 @@ fun CharacterScreen(viewModel: DprViewModel,
         ) {
             TextButton(onClick = onDismiss) { Text("Dismiss") }
             Spacer(Modifier.width(8.dp))
-            Button( onClick = { onConfirm(viewCharacter!!) }) { Text("OK") } // TODO: double check this
+            Button(onClick = { onConfirm(viewCharacter!!) }) { Text("OK") } // TODO: double check this
         }
     }
 }
 
-fun highlightIncrease(val1: Int, val2: Int): Color = if (val1 == val2) Color.Black else Color.Blue
 
-fun addClicked(viewModel: DprViewModel, character: EditableCharacter?, textFieldState: TextFieldState, options: MutableList<String>): EditableCharacter?
-{
-    var newCharacter: EditableCharacter? = character // default: old -> new
 
-    val currentText = textFieldState.text.toString()
-    if (currentText == "kaboom") {
-        dprFiles.deleteAll()
-        viewModel.setCurrentCharacter(null)
-        viewModel.setMainCharacter(null)
-        textFieldState.setTextAndPlaceCursorAtEnd("")
-        options.clear()
-    }
-    else if (currentText == "party") {
-        Loader.loadParty().forEach { options.add(it.getName()) }
-        viewModel.setCurrentCharacter(null)
-        textFieldState.setTextAndPlaceCursorAtEnd("")
-    }
-    else if (options.isNotEmpty() && !isUrlOrID(currentText)) {
-        // old character, new name
-        val editableFields = EditableFields(currentText, character!!, viewModel.getCharacterLevel())
-
-        dprFiles.saveEditableCharacter(editableFields)
-        newCharacter = EditableCharacter(character!!, editableFields)
-        viewModel.setMainCharacter(character)
-
-        if (!options.contains(currentText)) {
-            options.add(currentText)
-        }
-    }
-    else {
-        val getResult: EditableCharacter? = Loader.getEditableCharacter(currentText)
-        if (getResult != null) {
-            viewModel.setCurrentCharacter(getResult)
-        } else {
-            val addResult = Loader.addEditableCharacter(currentText)
-            if (addResult != null) {
-                options.add(addResult.getName())
-                viewModel.setCurrentCharacter(addResult)
-                textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
-            }
-        }
-    }
-    return newCharacter
-}

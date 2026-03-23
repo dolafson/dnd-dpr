@@ -73,7 +73,14 @@ class DprFiles(val appDataDir: String)
         }
         val baseline = getCharacter(editableFields.remoteId.toString()) ?: return null
         //println("getEditableCharacter, baseline = $baseline")
-        return EditableCharacter(baseline, editableFields)
+
+        val result = EditableCharacter(baseline, editableFields)
+        if (baseline.getAlwaysPreparedSpells().isEmpty() && result.getAlwaysPreparedSpells().isNotEmpty()) {
+            baseline.alwaysPrepared = result.getAlwaysPreparedSpells()
+        }
+
+        println("on file load, always prepared: baseline = ${ baseline.getAlwaysPreparedSpells() }, editable = ${ result.getAlwaysPreparedSpells() }")
+        return result
     }
 
     fun getCharacter(characterId: String): Character? {

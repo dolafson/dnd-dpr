@@ -4,6 +4,7 @@ package com.vikinghelmet.dnd.dpr.editable
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -18,6 +19,7 @@ data class EditableFields (
     var level: Int,
     var name: String,
     var plan: MutableMap<String,PlanLevel> = mutableMapOf(),
+    var alwaysPreparedSpells: List<PreparedSpellRemote> = mutableListOf()
 ){
     constructor(name: String, character: EditableCharacter, characterLevel: NumericRange): this(character)
     {
@@ -27,13 +29,19 @@ data class EditableFields (
         this.plan = Json.decodeFromString (Json.encodeToString (character.editableFields.plan))
     }
 
-    constructor(character: Character): this(character.characterData.id!!, character.getLevel(), character.getName())
+    constructor(character: Character): this(
+        character.characterData.id!!,
+        character.getLevel(),
+        character.getName(),
+        mutableMapOf(),
+        character.getAlwaysPreparedSpells())
     {
         // set up iterators to populate plan with pre-selected values
         val asiFeatIterator = character.getFeatAddedList().filter { it.isASI() }.mapNotNull { Feat.fromNameWithWS(it.definition.name) }.iterator()
 
         val spellLevelMap = mutableMapOf<Int,Iterator<Spell>>()
         for (spellLevel in 1..9) {
+            // we want to populate the plan with spells, but not the always prepared ones
             spellLevelMap.put(spellLevel,
                 character.getPreparedSpells().filter { !it.alwaysPrepared && it.properties.Level == spellLevel }.iterator())
         }

@@ -43,7 +43,7 @@ object CmdTest {
         val character: Character = Json.decodeFromString(json)
         val alwaysPrepared = getAlwaysPreparedSpellList(character)
         println("alwaysPrepared: $alwaysPrepared")
-        character.alwaysPreparedSpells = alwaysPrepared ?: AlwaysPreparedSpells()
+        character.alwaysPrepared = alwaysPrepared?.data ?: mutableListOf()
         return Pair(json, character)
     }
 

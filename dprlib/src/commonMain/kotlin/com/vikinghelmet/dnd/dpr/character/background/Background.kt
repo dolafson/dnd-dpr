@@ -7,7 +7,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 data class Background(
     // stuff we need
-    val definition: BackgroundDefinition,
+    val definition: BackgroundDefinition?=null,
 )
 
 

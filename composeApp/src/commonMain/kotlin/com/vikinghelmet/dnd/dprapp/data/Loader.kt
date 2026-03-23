@@ -40,6 +40,8 @@ object Loader {
                 // on a good fetch, update local storage as well as the menu
                 result = EditableCharacter(baseline, EditableFields(baseline))
 
+                println("always prepared: baseline = ${ baseline.getAlwaysPreparedSpells() }, editable = ${ result.getAlwaysPreparedSpells() }")
+
                 // update remoteId based on parsed data; this will be used as the local filename
                 remoteId = baseline.characterData.id.toString()
 
@@ -58,6 +60,8 @@ object Loader {
         }
         return result
     }
+
+    fun getParty(): List<String> = listOf("eldir", "kael", "lars", "leif", "oleg", "rhogar",)
 
     fun loadParty(): List<EditableCharacter> {
         return listOf("eldir", "kael", "lars", "leif", "oleg", "rhogar",).mapNotNull {

@@ -11,7 +11,6 @@ import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
-import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -34,7 +33,9 @@ open class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
-    var alwaysPreparedSpells: AlwaysPreparedSpells = AlwaysPreparedSpells()
+    var alwaysPrepared: List<PreparedSpellRemote> = mutableListOf()
+
+    open fun getAlwaysPreparedSpells(): List<PreparedSpellRemote> = alwaysPrepared
 
     open fun getName(): String {
         return characterData.name
@@ -243,13 +244,6 @@ open class Character(
         for (psRemote in input) {
             try {
                 val spell =  Globals.getSpell(psRemote.definition.name, is2014())
-
-                // ritual spells are not normally used in combat; they also do not consume a spell slot
-                if (spell.properties.Ritual?.contains("Yes") == true) {
-                    println("excluding ritual spell from prepared list")
-                    continue
-                }
-
                 result.add (PreparedSpell(psRemote.alwaysPrepared, spell))
             }
             catch (e: Exception) {
@@ -265,7 +259,7 @@ open class Character(
         result.addAll (transformSpellList (characterData.spells.classSpells))
         result.addAll (transformSpellList (characterData.spells.raceSpells))
         result.addAll (transformSpellList (characterData.spells.featSpells))
-        result.addAll (transformSpellList (alwaysPreparedSpells.data))
+        result.addAll (transformSpellList (getAlwaysPreparedSpells()))
         return result
     }
 
@@ -274,6 +268,12 @@ open class Character(
         for (spell in getPreparedSpells()) {
             // when attacking, ignore healing spells
             if (spell.properties.filterTags?.contains("Healing") == true) continue
+
+            // ritual spells are not normally used in combat; they also do not consume a spell slot when read from a book
+            if (spell.properties.Ritual?.contains("Yes") == true) {
+                println("excluding ritual spell from prepared list")
+                continue
+            }
 
             // this list should only contain primary attacks
             if (spell.isBonusAction()) continue

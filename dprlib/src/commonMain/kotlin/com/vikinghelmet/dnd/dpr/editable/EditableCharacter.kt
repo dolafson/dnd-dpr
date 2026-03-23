@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.editable
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -17,6 +18,8 @@ data class EditableCharacter (
     val editableFields: EditableFields
 ) : Character(from.characterData, from.id, from.message, from.success)
 {
+    override fun getAlwaysPreparedSpells(): List<PreparedSpellRemote> = editableFields.alwaysPreparedSpells
+
     override fun getModifiedAbilityScore(a: AbilityType): Int {
         var increase = 0
         for (i in from.getLevel()..getLevel()) {
@@ -56,12 +59,22 @@ data class EditableCharacter (
 
     override fun getPreparedSpells(): List<PreparedSpell> {
         val result = mutableListOf<PreparedSpell>()
+
+        result.addAll(from.getPreparedSpells())
+        // add plan-based prepared spells to the ones on the original character sheet
+
+        // loop across plan up to current selected level
         for (i in 1..getLevel()) {
+            // get the planned spells at the given level
            (editableFields.plan["$i"]?.spells ?: emptyList()).forEach { spellName ->
-                try { result.add (PreparedSpell(spellName, is2014())) } catch (e: Exception) {}
+               // if spell name is not already in the prepared list, add it
+               if (! result.map {it.name}.contains(spellName)) {
+                   try { result.add (PreparedSpell(spellName, is2014())) } catch (e: Exception) {}
+               }
             }
         }
-        return from.getPreparedSpells() + from.getPreparedSpells().filter { it.alwaysPrepared }
+
+        return result
     }
 
     fun getSpellSelectionsBySpellLevel(currentCharacterLevel: Int): Map<Int, List<Spell>> {
@@ -112,6 +125,7 @@ data class EditableCharacter (
         }
 
         // always prepped spells are usually not tracked in the plan; they get added here
+        println ("getSpellSelectionsBySpellLevel, prepared = ${ getPreparedSpells() } ")
         for (prep in getPreparedSpells()) {
             val spellLevel = prep.properties.Level
             if (result[spellLevel] == null) continue
