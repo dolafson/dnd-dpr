@@ -518,6 +518,15 @@ open class Character(
         return characterData.classes.first().subclassDefinition?.name
     }
 
+    fun getSubclassId(): Int? {
+        return characterData.classes.first().subclassDefinition?.id
+    }
+
+    fun getClassId(): Int? {
+        return getSubclassId() ?:
+            characterData.classes.first().classFeatures.mapNotNull { it.definition }.mapNotNull { it.classId }.firstOrNull()
+    }
+
     fun getSubclassLevel(): Int? {
         return getClassFeaturesByLevel().filter { it.key.contains("Subclass") || it.key.contains("Divine Domain")}.map { it.value}.firstOrNull()
     }

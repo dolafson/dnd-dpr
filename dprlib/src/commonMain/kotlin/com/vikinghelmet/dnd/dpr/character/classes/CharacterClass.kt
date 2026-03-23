@@ -11,5 +11,12 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class CharacterClass(
     val definition: com.vikinghelmet.dnd.dpr.character.classes.ClassDefinition,
     val subclassDefinition: com.vikinghelmet.dnd.dpr.character.classes.ClassDefinition? = null,
+
+    // note: these two data sets look similar, but are not identical ...
+    //      data.classes[].classFeatures[].definition
+    //      data.classes[].definition.classFeatures
+
+    val classFeatures: MutableList<ClassFeature2> = mutableListOf(),
+
     val level: Int,
 )

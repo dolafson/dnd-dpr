@@ -4,13 +4,14 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedList
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.serialization.json.Json
 
 object CmdTest {
-    const val characterUrlPrefix = "https://character-service.dndbeyond.com/character/v5/character/"
+    const val characterUrlPrefix = "https://character-service.dndbeyond.com/character/v5"
 
     var client: HttpClient? = null
 
@@ -38,7 +39,15 @@ object CmdTest {
     }
 
     suspend fun getRemoteCharacter(id: String): Character? {
-        return getRemoteCharacterByUrl(characterUrlPrefix + id)
+        return getRemoteCharacterByUrl(getCharacterApiURL(id))
+    }
+
+    fun getAlwaysPreparedSpellList(character: com.vikinghelmet.dnd.dpr.character.Character): AlwaysPreparedList? {
+        val campaignId = character.characterData.campaign?.id ?: 0
+        val bgid = character.characterData.background?.definition?.id ?: 0
+        val subclassId = character.getClassId()
+        val url = "$characterUrlPrefix/game-data/always-prepared-spells?campaignId=7230418&sharingSetting=2&classId=19&classLevel=2&backgroundId=7"
+        return null
     }
 
     suspend fun getRemoteCharacterByUrl(url: String): Character? {
@@ -46,7 +55,7 @@ object CmdTest {
     }
 
     fun getCharacterApiURL(id: String): String {
-        return characterUrlPrefix + id
+        return "$characterUrlPrefix/character/$id"
     }
 
 }

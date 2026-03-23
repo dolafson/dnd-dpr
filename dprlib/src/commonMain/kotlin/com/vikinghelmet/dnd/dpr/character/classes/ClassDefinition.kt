@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class ClassDefinition(
+    val id: Int,
     val name: String,
     val spellCastingAbilityId: Int? = null,
     val spellRules: com.vikinghelmet.dnd.dpr.character.classes.SpellRules? = null,

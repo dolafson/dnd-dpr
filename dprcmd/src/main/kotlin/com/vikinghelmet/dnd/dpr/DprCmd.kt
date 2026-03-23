@@ -54,6 +54,7 @@ fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
     return character
 }
 
+
 fun getEditableCharacter(json: String): EditableCharacter? {
     if (json.isEmpty()) return null
     val editableFields: EditableFields = Json.Default.decodeFromString(json)

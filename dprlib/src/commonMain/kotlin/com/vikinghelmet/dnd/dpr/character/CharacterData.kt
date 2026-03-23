@@ -3,6 +3,8 @@
 package com.vikinghelmet.dnd.dpr.character
 
 import com.vikinghelmet.dnd.dpr.character.actions.Actions
+import com.vikinghelmet.dnd.dpr.character.background.Background
+import com.vikinghelmet.dnd.dpr.character.campaign.Campaign
 import com.vikinghelmet.dnd.dpr.character.classes.CharacterClass
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.InventoryItem
@@ -21,6 +23,8 @@ data class CharacterData(
     val username: String,
     val id: Int? = 0,
     val name: String,
+    val background: Background? = null,
+    val campaign: Campaign? = null,
     val characterValues: List<CharacterValues>? = null,
     val classes: List<CharacterClass>,
     val inventory: ArrayList<InventoryItem>? = null,
