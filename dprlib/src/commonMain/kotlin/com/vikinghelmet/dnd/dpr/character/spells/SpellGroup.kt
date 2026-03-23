@@ -8,5 +8,6 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 data class SpellGroup(
     @SerialName("class") val classSpells: List<com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote>,
-    @SerialName("race") val raceSpells: List<com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote>
+    @SerialName("race") val raceSpells: List<com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote>,
+    @SerialName("feat") val featSpells: List<com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote>
 )

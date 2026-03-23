@@ -256,6 +256,7 @@ open class Character(
         for (classSpellList in characterData.classSpells!!)  result.addAll (transformSpellList (classSpellList.spells))
         result.addAll (transformSpellList (characterData.spells.classSpells))
         result.addAll (transformSpellList (characterData.spells.raceSpells))
+        result.addAll (transformSpellList (characterData.spells.featSpells))
         return result
     }
 

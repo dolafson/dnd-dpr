@@ -64,8 +64,9 @@ data class EditableCharacter (
         return from.getPreparedSpells() + from.getPreparedSpells().filter { it.alwaysPrepared }
     }
 
-    fun getSpellSelectionsBySpellLevel(currentCharacterLevel: Int): Map<Int, SpellToPlanLevelMap> {
-        val result = mutableMapOf<Int, SpellToPlanLevelMap>()
+    fun getSpellSelectionsBySpellLevel(currentCharacterLevel: Int): Map<Int, List<Spell>> {
+        // val result = mutableMapOf<Int, SpellToPlanLevelMap>()
+        val result = mutableMapOf<Int, MutableList<Spell>>()
         // println("currentLevel: $currentLevel")
 
         if (editableFields.plan.isEmpty()) {
@@ -74,7 +75,7 @@ data class EditableCharacter (
 
         // initialize
         for (spellLevel in 1..9) if (getNumberOfSlotsAtSpellLevel(spellLevel) > 0) {
-            result[spellLevel] = SpellToPlanLevelMap()
+            result[spellLevel] = mutableListOf()
         }
 
         for (planEntry in editableFields.plan) {
@@ -85,8 +86,7 @@ data class EditableCharacter (
                 // TODO: optimize this
                 try {
                     val spell = Globals.getSpell(s, is2014())
-                    val spellLevel = spell.properties.Level
-                    result[spellLevel]!!.spellToPlanLevelMap.put(spell,planCharacterLevel)
+                    result[spell.properties.Level]!!.add(spell)
 
                 } catch (e: Exception) {
                     println("unable to display details for spell ${s}")
@@ -99,13 +99,26 @@ data class EditableCharacter (
             if (result[spellLevel] == null) break
 
             val max = getNumberOfSlotsAtSpellLevel(spellLevel)
-            val size = result[spellLevel]!!.spellToPlanLevelMap.size
+            val size = result[spellLevel]!!.size
             // println("spellLevel: $spellLevel, maxSlots: $max, filled: $size")
 
             repeat (max-size) {
                 // TODO: better placeholder ...
                 val props = Properties("","",spellLevel,"")
-                result[spellLevel]!!.spellToPlanLevelMap.put(Spell("TODO","TODO","TODO", props,"TODO"), 100) // hack
+                result[spellLevel]!!.add(Spell("TODO","TODO","TODO", props,"TODO")) // hack
+            }
+        }
+
+        // always prepped spells are usually not tracked in the plan; they get added here
+        for (prep in getPreparedSpells()) {
+            val spellLevel = prep.properties.Level
+            if (result[spellLevel] == null) continue
+
+            val spellNames = result[spellLevel]!!.map { it.name }
+
+            if (! spellNames.contains(prep.name)) {
+                println("result[$spellLevel] = ${result[spellLevel]!!} , adding prepped spell ${prep.name}")
+                result[spellLevel]!!.add(prep)
             }
         }
 
