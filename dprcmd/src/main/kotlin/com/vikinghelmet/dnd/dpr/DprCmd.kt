@@ -20,10 +20,16 @@ import com.vikinghelmet.dnd.dpr.util.DprFiles
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
+import dev.shivathapaa.logger.api.LogLevel
+import dev.shivathapaa.logger.api.LoggerFactory
+import dev.shivathapaa.logger.core.LoggerConfig
+import dev.shivathapaa.logger.formatters.LogFormatters
+import dev.shivathapaa.logger.sink.DefaultLogSink
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.InputStream
+
 
 class DprCmd {
     val greeting: String
@@ -120,6 +126,63 @@ Attacks:
 """)
 }
 
+fun initLogger(level: LogLevel) {
+/*
+    val context = org.slf4j.LoggerFactory.getILoggerFactory() as LoggerContext
+    context.stop() // Clear existing configuration
+
+    // 1. Create Encoder
+    val encoder = PatternLayoutEncoder().apply {
+        this.context = context
+        pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+        start()
+    }
+
+    // 2. Create Console Appender
+    val consoleAppender = ConsoleAppender<ILoggingEvent>().apply {
+        this.context = context
+        name = "console"
+        this.encoder = encoder
+        start()
+    }
+
+    // 3. Configure Root Logger
+    val root = context.getLogger(Logger.ROOT_LOGGER_NAME)
+    root.level = Level.INFO
+    root.addAppender(consoleAppender)
+
+    context.start() // Restart context
+
+    val myLogger = org.slf4j.LoggerFactory.getLogger("foo")
+    myLogger.info("Example log ...")
+*/
+
+    // notes:
+    //      ConsoleSink writes to /dev/stdout
+    //      DefaultLogSink writes to /dev/stderr
+
+    val config = LoggerConfig.Builder()
+        .minLevel(level)
+        .addSink(
+            //ConsoleSink(
+                DefaultLogSink(
+                    //logFormatter = LogFormatters.compact(showEmoji = false)
+                    logFormatter = LogFormatters.default(false)
+                    //logFormatter = LogFormatters.pretty(false)
+                    //logFormatter = LogFormatters.json(false)
+                )
+            )  // Choose predefined sink or create custom
+        .build()
+/*
+DefaultLogFormatter
+CompactLogFormatter
+PrettyLogFormatter
+JsonLogFormatter
+
+ */
+    LoggerFactory.install(config)
+}
+
 fun main(args : Array<String>) {
     var exitEarly = false
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
@@ -129,6 +192,10 @@ fun main(args : Array<String>) {
         showUsage()
         System.exit(0)
     }
+
+    initLogger(if (args.contains("-d")) LogLevel.VERBOSE
+                else if (args.contains("-i")) LogLevel.INFO
+                else LogLevel.WARN)
 
     for (filename in mutableListOf("spells.json","extra.spells.json")) {
         Globals.addSpells(getResource(filename) ?: "[]")
@@ -156,7 +223,9 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("-")) {
             when (arg) {
-                "-d" -> Globals.debug = true
+                "-i" -> { }//initLogger(LogLevel.DEBUG) }
+                "-d" -> { Globals.debug = true ; }//initLogger(LogLevel.DEBUG) }
+
                 "--csv" -> AttackResultFormatter.isCSV = true;
                 "-a" -> {
                     val monster = Globals.getMonster(args[i+1])
@@ -301,4 +370,12 @@ fun main(args : Array<String>) {
     }
 
     CharacterAPI.closeHttpClient() // don't forget to do this, otherwise the program may run forever
+
+    val logger = LoggerFactory.get("MyApp")
+
+    logger.verbose { "This is a verbose message" }
+    logger.debug { "This is a debug message" }
+    logger.info { "This is an info message" }
+    logger.error { "This is an error message" }
+    //logger.fatal { "This is a fatal message" }
 }

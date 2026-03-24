@@ -79,6 +79,8 @@ kotlin {
             implementation("org.jetbrains.compose.material:material-icons-core:1.7.3")
 //            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 //            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")//2.6.1")
+
+            implementation("io.github.shivathapaa:logger:1.2.0")
         }
         webMain.dependencies {
             implementation(npm("@js-joda/timezone", "2.22.0"))

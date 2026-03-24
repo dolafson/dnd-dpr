@@ -21,6 +21,7 @@ import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
+import dev.shivathapaa.logger.api.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -41,6 +42,8 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     var outputText  by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
+        Log.w("Main Screen Launched")
+
         if (viewModel.getMainCharacter() != null) {
             characterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
         }

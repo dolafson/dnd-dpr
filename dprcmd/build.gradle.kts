@@ -34,6 +34,10 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.kotlinx.coroutines.core)
 
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("ch.qos.logback:logback-classic:1.5.11")
+    implementation("io.github.shivathapaa:logger:1.2.0")
+
     //implementation("com.vikinghelmet.dnd:dprlib:1.0.0")
     implementation(project(":dprlib"))
 }

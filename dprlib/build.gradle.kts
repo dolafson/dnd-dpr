@@ -56,6 +56,16 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
+
+            //implementation("io.github.aakira:napier:2.7.1")
+            //api("com.diamondedge:logging:2.1.0")
+            //implementation("com.diamondedge:logging:2.1.0")
+
+            //implementation("com.diamondedge:logging-android:2.1.0")
+            //implementation("com.diamondedge:logging-jvm:2.1.0")
+            //implementation("com.diamondedge:logging-js:2.1.0")
+
+            implementation("io.github.shivathapaa:logger:1.2.0")
         }
 
         commonTest.dependencies {
