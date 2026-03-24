@@ -166,3 +166,4 @@ In no particular order ...
 - not yet supported:
   - weapon mastery: Nick, Vex, Cleave
   - Dragonborn Breath Weapon
+  - Extra Attack at Level 5 (fighter, monk, paladin, ranger)
