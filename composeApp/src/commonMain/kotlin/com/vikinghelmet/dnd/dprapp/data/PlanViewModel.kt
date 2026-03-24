@@ -6,6 +6,7 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.PlanLevel
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 class PlanViewSpell(val spellLevel: Int, var selectedSpell: String, val options: List<Pair<String,Color>>){
@@ -47,7 +48,7 @@ class PlanViewLevel(
         }
 
         val mapOfSpellLevelToSpellsChosen = mutableMapOf<Int, Iterator<Spell>>()
-        for (spellLevel in 1..9) {
+        for (spellLevel in Constants.SPELL_LEVELS) {
             mapOfSpellLevelToSpellsChosen.put (spellLevel,
                 listOfSpellsFromPlanLevel.filter { spellLevel == it.properties.Level }.iterator())
         }
@@ -69,7 +70,7 @@ class PlanViewLevel(
 
         // check for any unassigned spells ... ugh
         // somehow the character is able to prepare more spells than the slot table allows
-        for (spellLevel in 1..9) {
+        for (spellLevel in Constants.SPELL_LEVELS) {
             val options = c.getSpellsForClass().filter { it.properties.Level == spellLevel }.map { it.name }
 
             val iterator = mapOfSpellLevelToSpellsChosen[spellLevel]!!
@@ -103,7 +104,7 @@ data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
 
     constructor(character: EditableCharacter) : this() {
         this.character = character
-        for (tmpLevel in 1..20) {
+        for (tmpLevel in Constants.CHARACTER_LEVELS) {
             // println("planViewConstructor, adding level = $tmpLevel")
             plan.add(PlanViewLevel (tmpLevel, character))
         }

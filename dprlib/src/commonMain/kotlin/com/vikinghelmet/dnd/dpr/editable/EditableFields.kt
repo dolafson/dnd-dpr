@@ -6,6 +6,7 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -40,14 +41,14 @@ data class EditableFields (
         val asiFeatIterator = character.getFeatAddedList().filter { it.isASI() }.mapNotNull { Feat.fromNameWithWS(it.definition.name) }.iterator()
 
         val spellLevelMap = mutableMapOf<Int,Iterator<Spell>>()
-        for (spellLevel in 1..9) {
+        for (spellLevel in Constants.SPELL_LEVELS) {
             // we want to populate the plan with spells, but not the always prepared ones
             spellLevelMap[spellLevel] = character.getPreparedSpells().filter {
                 !it.alwaysPrepared && !it.isRitual() && it.properties.Level == spellLevel
             }.iterator()
         }
 
-        for (tmpLevel in 1..20) {
+        for (tmpLevel in Constants.CHARACTER_LEVELS) {
             val planLevel = PlanLevel()
             plan.put("$tmpLevel", planLevel)
 
@@ -80,7 +81,7 @@ data class EditableFields (
                 // ( this happens with Kael at char level 2, they have 1 extra 1st level spell i can't account for )
                 // remainder should be assigned to characters current level (not a future level!)
 
-                for (spellLevel in 1..9) {
+                for (spellLevel in Constants.SPELL_LEVELS) {
                     val iterator = spellLevelMap[spellLevel]!!
                     if (iterator.hasNext()) {
                         val remainder = mutableListOf<String>()

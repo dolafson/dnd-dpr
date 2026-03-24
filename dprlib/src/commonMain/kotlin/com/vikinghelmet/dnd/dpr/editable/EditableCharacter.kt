@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
@@ -89,7 +90,7 @@ data class EditableCharacter (
         result[0] = mutableListOf()
 
         // initialize
-        for (spellLevel in 1..9) if (getNumberOfSlotsAtSpellLevel(spellLevel) > 0) {
+        for (spellLevel in Constants.SPELL_LEVELS) if (getNumberOfSlotsAtSpellLevel(spellLevel) > 0) {
             result[spellLevel] = mutableListOf()
         }
 
@@ -110,7 +111,7 @@ data class EditableCharacter (
         }
 
         // final audit: if not all slots are filled, add a placeholder
-        for (spellLevel in 1..9) {
+        for (spellLevel in Constants.SPELL_LEVELS) {
             if (result[spellLevel] == null) break
 
             val max = getNumberOfSlotsAtSpellLevel(spellLevel)
