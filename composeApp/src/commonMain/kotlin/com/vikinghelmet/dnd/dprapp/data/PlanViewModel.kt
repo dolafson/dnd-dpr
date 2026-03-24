@@ -68,13 +68,14 @@ class PlanViewLevel(
         }
 
         // check for any unassigned spells ... ugh
+        // somehow the character is able to prepare more spells than the slot table allows
         for (spellLevel in 1..9) {
             val options = c.getSpellsForClass().filter { it.properties.Level == spellLevel }.map { it.name }
 
             val iterator = mapOfSpellLevelToSpellsChosen[spellLevel]!!
             while (iterator.hasNext()) {
                 val spell = iterator.next()
-                println ("assigning 'remainder' spell to level=${ c.getLevel() }, remainder=$spell")
+                println ("planView: assigning 'remainder' spell to level=${ c.getLevel() }, remainder=$spell")
                 spellsToAdd.add(
                     PlanViewSpell(spellLevel, spell.name, options.map { it -> Pair(it, Color.Black) }.toList())
                 )

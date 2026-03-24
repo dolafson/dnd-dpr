@@ -42,8 +42,9 @@ data class EditableFields (
         val spellLevelMap = mutableMapOf<Int,Iterator<Spell>>()
         for (spellLevel in 1..9) {
             // we want to populate the plan with spells, but not the always prepared ones
-            spellLevelMap.put(spellLevel,
-                character.getPreparedSpells().filter { !it.alwaysPrepared && it.properties.Level == spellLevel }.iterator())
+            spellLevelMap[spellLevel] = character.getPreparedSpells().filter {
+                !it.alwaysPrepared && !it.isRitual() && it.properties.Level == spellLevel
+            }.iterator()
         }
 
         for (tmpLevel in 1..20) {
@@ -84,7 +85,7 @@ data class EditableFields (
                     if (iterator.hasNext()) {
                         val remainder = mutableListOf<String>()
                         while (iterator.hasNext()) remainder.add(iterator.next().name)
-                        println ("assigning 'remainder' spell to level=${ character.getLevel() }, remainder=$remainder")
+                        println ("editableFields: assigning 'remainder' spell to level=${ character.getLevel() }, remainder=$remainder")
                         println("before rmdr, spells = ${ spells }")
                         spells += remainder
                         println("after rmdr, spells = ${ spells }")

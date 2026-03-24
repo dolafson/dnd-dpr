@@ -40,6 +40,8 @@ open class Spell(
         return book.endsWith("(2014)")
     }
 
+    fun isRitual(): Boolean = (properties.Ritual?.contains("Yes") == true)
+
     fun isBonusAction(): Boolean {
         return properties.CastingTime == "Bonus Action"
     }

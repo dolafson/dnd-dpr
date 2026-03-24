@@ -270,7 +270,7 @@ open class Character(
             if (spell.properties.filterTags?.contains("Healing") == true) continue
 
             // ritual spells are not normally used in combat; they also do not consume a spell slot when read from a book
-            if (spell.properties.Ritual?.contains("Yes") == true) {
+            if (spell.isRitual()) {
                 println("excluding ritual spell from prepared list")
                 continue
             }

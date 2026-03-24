@@ -125,7 +125,8 @@ data class EditableCharacter (
         }
 
         // always prepped spells are usually not tracked in the plan; they get added here
-        println ("getSpellSelectionsBySpellLevel, prepared = ${ getPreparedSpells() } ")
+
+        //println ("getSpellSelectionsBySpellLevel, prepared = ${ getPreparedSpells() } ")
         for (prep in getPreparedSpells()) {
             val spellLevel = prep.properties.Level
             if (result[spellLevel] == null) continue
@@ -133,7 +134,7 @@ data class EditableCharacter (
             val spellNames = result[spellLevel]!!.map { it.name }
 
             if (! spellNames.contains(prep.name)) {
-                println("result[$spellLevel] = ${result[spellLevel]!!} , adding prepped spell ${prep.name}")
+                // println("result[$spellLevel] = ${result[spellLevel]!!} , adding prepped spell ${prep.name}")
                 result[spellLevel]!!.add(prep)
             }
         }
