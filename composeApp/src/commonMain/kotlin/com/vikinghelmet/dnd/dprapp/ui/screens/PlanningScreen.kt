@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -7,20 +8,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.PlanViewModel
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.FeatMenu
-import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlin.uuid.ExperimentalUuidApi
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 fun PlanningScreen(viewModel: DprViewModel,
-                    onDismiss: () -> Unit,
-                    onConfirm: () -> Unit)
+                   navHostController: NavHostController)
 {
     var character: EditableCharacter = viewModel.getCurrentCharacter()!!
     var planViewModel = remember { PlanViewModel(character) }
@@ -29,7 +29,8 @@ fun PlanningScreen(viewModel: DprViewModel,
         modifier = Modifier
             .padding(20.dp)
             .safeContentPadding()
-            .fillMaxSize(),
+            .fillMaxSize()
+            .combinedClickable(onClick = {}, onDoubleClick =  { navHostController.popBackStack() })
     ) {
         for (p in planViewModel.plan)
         {
@@ -83,15 +84,17 @@ fun PlanningScreen(viewModel: DprViewModel,
             modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onDismiss) { Text("Dismiss") }
+            TextButton(onClick = { navHostController.popBackStack() }) { Text("Dismiss") }
+
             Spacer(Modifier.width(8.dp))
+
             Button( onClick = {
                 //println("after updates, plan = $planViewModel")
                 println ("saving plan to local file")
                 character.editableFields.plan = planViewModel.toPersistentFormat()
                 dprFiles.saveEditableCharacter(character.editableFields)
 
-                onConfirm()
+                navHostController.popBackStack()
             }) {
                 Text("OK")
             }

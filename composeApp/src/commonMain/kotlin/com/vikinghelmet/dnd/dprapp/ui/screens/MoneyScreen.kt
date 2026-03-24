@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -11,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.data.CoinType
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
@@ -18,7 +20,7 @@ import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
-fun MoneyScreen(onConfirm: () -> Unit)
+fun MoneyScreen(navHostController: NavHostController)
 {
     val playerCount by remember { mutableStateOf(NumericRange(0,10,0)) }
 
@@ -44,7 +46,9 @@ fun MoneyScreen(onConfirm: () -> Unit)
     LaunchedEffect(Unit) {
     }
 
-    Column(modifier = Modifier.padding(20.dp).safeContentPadding().fillMaxSize())
+    Column(modifier = Modifier.padding(20.dp).safeContentPadding().fillMaxSize()
+                .combinedClickable(onClick = {}, onDoubleClick =  { navHostController.popBackStack() })
+    )
     {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp))
         {
@@ -120,7 +124,7 @@ fun MoneyScreen(onConfirm: () -> Unit)
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            Button( onClick = { onConfirm() }) { Text("OK") }
+            Button( onClick = { navHostController.popBackStack() }) { Text("OK") }
         }
     }
 }

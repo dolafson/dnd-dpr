@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -10,15 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dprapp.DprViewModel
+import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.data.Loader.addEditableCharacter
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
-import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
@@ -29,10 +31,8 @@ fun isUrlOrID(str: String): Boolean {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
-fun CharacterScreen(viewModel: DprViewModel,
-                    onDismiss: () -> Unit,
-                    onPlan: (EditableCharacter) -> Unit,
-                    onConfirm: (EditableCharacter) -> Unit) {
+fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostController)
+{
     var viewCharacter: EditableCharacter? = viewModel.getCurrentCharacter()
     // val focusManager = LocalFocusManager.current
 
@@ -143,7 +143,8 @@ fun CharacterScreen(viewModel: DprViewModel,
         modifier = Modifier
             .padding(20.dp)
             .safeContentPadding()
-            .fillMaxSize(),
+            .fillMaxSize()
+            .combinedClickable(onClick = {}, onDoubleClick =  { navHostController.popBackStack() })
     ) {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             CharacterMenu(
@@ -167,7 +168,7 @@ fun CharacterScreen(viewModel: DprViewModel,
                 modifier = Modifier.padding(start = 20.dp),
                 enabled = (textFieldState.text.isNotBlank() && options.contains(textFieldState.text.toString())),
                 onClick = {
-                    onPlan(viewCharacter!!)
+                    navHostController.navigate(ViewType.plan.name)
                 }
             ) { Text("Plan") } // running out of room on ios screen width
 
@@ -227,10 +228,10 @@ fun CharacterScreen(viewModel: DprViewModel,
                         Text("Subclass")
                     }
 
-                    Text("Proficiency Bonus")
+                    Text("Prof Bonus")
 
                     if (character.getSpellAbilityType() != "n/a") {
-                        Text("Spell Save DC")
+                        Text("Spell DC")
                     }
                     // currently unable to calculate: AC, HP
                 }
@@ -345,17 +346,23 @@ fun CharacterScreen(viewModel: DprViewModel,
                     }
                 }
             }
-
         }
-
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onDismiss) { Text("Dismiss") }
+            TextButton(onClick = {
+                navHostController.popBackStack()
+            }) { Text("Dismiss") }
+
             Spacer(Modifier.width(8.dp))
-            Button(onClick = { onConfirm(viewCharacter!!) }) { Text("OK") } // TODO: double check this
+
+            Button(onClick = {
+                viewModel.setMainCharacter(viewCharacter!!)
+                saveSettings(viewModel)
+                navHostController.popBackStack()
+            }) { Text("OK") }
         }
     }
 }

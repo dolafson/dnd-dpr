@@ -1,16 +1,18 @@
 package com.vikinghelmet.dnd.dpr.util
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.characterBaselineDir
-import com.vikinghelmet.dnd.dpr.characterEditableDir
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
-import com.vikinghelmet.dnd.dpr.exportDir
-import com.vikinghelmet.dnd.dpr.settingsPath
 import kotlinx.io.*
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.json.Json
+
+const val settingsPath = ".dpr/settings.json"
+const val characterBaselineDir = ".dpr/character/baseline"
+const val characterEditableDir = ".dpr/character/editable"
+const val exportDir = ".dpr/export"
+
 
 class DprFiles(val appDataDir: String)
 {

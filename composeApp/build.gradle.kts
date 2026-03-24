@@ -65,7 +65,17 @@ kotlin {
             implementation(project(":dprlib"))
 
             implementation(compose.components.resources)
-            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.9.0-beta03") // Check for the latest compatible version
+
+            //implementation("org.jetbrains.androidx.navigation:navigation-compose:2.9.0-beta03") // Check for the latest compatible version
+            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.9.2") // Check for the latest compatible version
+            //implementation("org.jetbrains.compose.material:material-icons-core:1.7.3")
+
+            // https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.10.3
+            //implementation("org.jetbrains.androidx.navigation:navigation-*:2.9.2")
+            //implementation("org.jetbrains.androidx.navigation3:navigation3-*:1.0.0-alpha06")
+            //implementation("org.jetbrains.androidx.navigationevent:navigationevent-compose:1.0.1")
+
+
             implementation("org.jetbrains.compose.material:material-icons-core:1.7.3")
 //            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 //            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")//2.6.1")

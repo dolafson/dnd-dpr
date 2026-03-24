@@ -3,7 +3,6 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.CmdTest.getCharacterApiURL
 import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
@@ -14,6 +13,8 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.util.CharacterAPI
+import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.DprFiles
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -37,7 +38,7 @@ fun getFileOrURL(fileOrUrl: String): String? {
     return if (fileOrUrl.startsWith("http")) {
         var body = ""
         runBlocking {
-            body = CmdTest.getRequest(fileOrUrl)
+            body = CharacterAPI.getRequest(fileOrUrl)
         }
         body
     }
@@ -49,7 +50,7 @@ fun getFileOrURL(fileOrUrl: String): String? {
 fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     runBlocking {
-        character = CmdTest.getRemoteCharacterByUrl (getCharacterApiURL (arg)).second
+        character = CharacterAPI.getRemoteCharacterByUrl (getCharacterApiURL (arg)).second
     }
     return character
 }
@@ -299,5 +300,5 @@ fun main(args : Array<String>) {
         println (scenarioResult.output())
     }
 
-    CmdTest.closeHttpClient() // don't forget to do this, otherwise the program may run forever
+    CharacterAPI.closeHttpClient() // don't forget to do this, otherwise the program may run forever
 }

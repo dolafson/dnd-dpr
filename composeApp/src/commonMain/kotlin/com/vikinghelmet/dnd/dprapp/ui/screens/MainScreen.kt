@@ -11,27 +11,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dprapp.DprViewModel
-import com.vikinghelmet.dnd.dprapp.isShareCsvSupported
-import com.vikinghelmet.dnd.dprapp.isTinyCpu
-import com.vikinghelmet.dnd.dprapp.shareCsv
-import com.vikinghelmet.dnd.dprapp.ui.widgets.*
+import com.vikinghelmet.dnd.dprapp.*
+import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 //@Preview
-fun MainScreen(viewModel: DprViewModel,
-               onCharacterButtonClicked: () -> Unit,
-               onMonsterButtonClicked: () -> Unit,
-               onAttackButtonClicked: (Int) -> Unit,
-               onMoneyButtonClicked: () -> Unit,
-               modifier: Modifier = Modifier
-) {
+fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
+{
     var currentProgress by remember { mutableFloatStateOf(0f) }
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope() // Create a coroutine scope
@@ -54,7 +50,8 @@ fun MainScreen(viewModel: DprViewModel,
         }
     }
 
-    Column(modifier = modifier) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp))
+    {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
             Column() {
@@ -106,14 +103,15 @@ fun MainScreen(viewModel: DprViewModel,
             Column() {
                 Button(onClick = {
                     println("Main: show view -> character")
-                    onCharacterButtonClicked()
+                    viewModel.setCurrentCharacter(viewModel.getMainCharacter())
+                    navHostController.navigate(ViewType.character.name)
                 }) { Text("C") }
 
                 Box(modifier = Modifier.height(60.dp)) {}
 
                 Button(onClick = {
                     println("Main: show view -> monster")
-                    onMonsterButtonClicked()
+                    navHostController.navigate(ViewType.monster.name)
                 }) { Text("M") }
 
                 Button(
@@ -125,7 +123,8 @@ fun MainScreen(viewModel: DprViewModel,
                             println(outputText)
                         } else {
                             val proximityInt = viewModel.getProximity()
-                            onAttackButtonClicked(proximityInt)
+                            viewModel.setProximity(proximityInt)
+                            saveSettings(viewModel)
 
                             val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getMainMonster()!!)
                             viewModel.setScenarioBuilder(builder)
@@ -229,7 +228,9 @@ fun MainScreen(viewModel: DprViewModel,
         }
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Button(onClick = onMoneyButtonClicked )  { Text("$") }
+            Button(onClick = {
+                navHostController.navigate(ViewType.money.name)
+            } )  { Text("$") }
         }
     }
 }

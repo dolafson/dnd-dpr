@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dprapp.ui.screens
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -8,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
@@ -15,9 +17,7 @@ import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 //@Preview
-fun MonsterScreen(viewModel: DprViewModel,
-                  onDismiss: () -> Unit,
-                  onConfirm: (String) -> Unit)
+fun MonsterScreen(viewModel: DprViewModel, navHostController: NavHostController)
 {
     var monster by remember { mutableStateOf(viewModel.getCurrentMonster()) }
     val textFieldState = rememberTextFieldState()
@@ -45,6 +45,7 @@ fun MonsterScreen(viewModel: DprViewModel,
             .padding(20.dp)
             .safeContentPadding()
             .fillMaxSize()
+            .combinedClickable(onClick = {}, onDoubleClick =  { navHostController.popBackStack() })
     ) {
         MonsterMenu(textFieldState, true) { selectedMonster ->
             monster = selectedMonster
@@ -115,9 +116,17 @@ fun MonsterScreen(viewModel: DprViewModel,
             modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onDismiss) { Text("Dismiss") }
+            TextButton(onClick = {
+                navHostController.popBackStack()
+            }) { Text("Dismiss") }
+
             Spacer(Modifier.width(8.dp))
-            Button(onClick = { onConfirm(monsterName ?: "") }) { Text("OK") }
+
+            Button(onClick = {
+                viewModel.setMainMonster(viewModel.getCurrentMonster())
+                saveSettings(viewModel)
+                navHostController.popBackStack()
+            }) { Text("OK") }
         }
     }
 }

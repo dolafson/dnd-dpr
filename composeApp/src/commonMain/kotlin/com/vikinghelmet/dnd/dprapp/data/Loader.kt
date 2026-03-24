@@ -1,10 +1,10 @@
 package com.vikinghelmet.dnd.dprapp.data
 
-import com.vikinghelmet.dnd.dpr.CmdTest
+import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
-import com.vikinghelmet.dnd.dprapp.ui.widgets.dprFiles
+import com.vikinghelmet.dnd.dprapp.ui.screens.dprFiles
 import kotlinx.coroutines.runBlocking
 
 object Loader {
@@ -16,7 +16,7 @@ object Loader {
     fun addEditableCharacter(urlOrId: String): EditableCharacter?
     {
         var result: EditableCharacter? = null
-        var remoteId: String? = CmdTest.getCharacterId(urlOrId)
+        var remoteId: String? = CharacterAPI.getCharacterId(urlOrId)
 
         println("addCharacter: urlOrId = $urlOrId")
 
@@ -29,10 +29,10 @@ object Loader {
         try {
             runBlocking {
                 // build a new URL if needed
-                val url = if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) CmdTest.getCharacterApiURL(remoteId!!)
+                val url = if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) CharacterAPI.getCharacterApiURL(remoteId!!)
                             else urlOrId
 
-                val resultPair = CmdTest.getRemoteCharacterByUrl(url)
+                val resultPair = CharacterAPI.getRemoteCharacterByUrl(url)
 
                 val json = resultPair.first
                 val baseline: Character = resultPair.second
