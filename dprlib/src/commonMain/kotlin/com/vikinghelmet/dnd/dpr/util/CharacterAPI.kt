@@ -2,12 +2,15 @@ package com.vikinghelmet.dnd.dpr.util
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
+import dev.shivathapaa.logger.api.LoggerFactory
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.serialization.json.Json
 
 object CharacterAPI {
+    val logger = LoggerFactory.get(CharacterAPI::class.simpleName ?: "no simpleName")
+
     const val characterUrlPrefix = "https://character-service.dndbeyond.com/character/v5"
 
     var client: HttpClient? = null
@@ -39,7 +42,7 @@ object CharacterAPI {
         val json = getRequest(url)
         val character: Character = Json.Default.decodeFromString(json)
         val alwaysPrepared = getAlwaysPreparedSpellList(character)
-        println("# alwaysPrepared: $alwaysPrepared")
+        logger.info { "# alwaysPrepared: $alwaysPrepared" }
         character.alwaysPrepared = alwaysPrepared?.data ?: mutableListOf()
         return Pair(json, character)
     }

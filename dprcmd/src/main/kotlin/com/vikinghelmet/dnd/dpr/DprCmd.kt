@@ -127,59 +127,23 @@ Attacks:
 }
 
 fun initLogger(level: LogLevel) {
-/*
-    val context = org.slf4j.LoggerFactory.getILoggerFactory() as LoggerContext
-    context.stop() // Clear existing configuration
-
-    // 1. Create Encoder
-    val encoder = PatternLayoutEncoder().apply {
-        this.context = context
-        pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-        start()
-    }
-
-    // 2. Create Console Appender
-    val consoleAppender = ConsoleAppender<ILoggingEvent>().apply {
-        this.context = context
-        name = "console"
-        this.encoder = encoder
-        start()
-    }
-
-    // 3. Configure Root Logger
-    val root = context.getLogger(Logger.ROOT_LOGGER_NAME)
-    root.level = Level.INFO
-    root.addAppender(consoleAppender)
-
-    context.start() // Restart context
-
-    val myLogger = org.slf4j.LoggerFactory.getLogger("foo")
-    myLogger.info("Example log ...")
-*/
-
     // notes:
     //      ConsoleSink writes to /dev/stdout
     //      DefaultLogSink writes to /dev/stderr
-
     val config = LoggerConfig.Builder()
         .minLevel(level)
+        //.minLevel(LogLevel.VERBOSE)
+        //.override("MyApp", level)
         .addSink(
-            //ConsoleSink(
                 DefaultLogSink(
-                    //logFormatter = LogFormatters.compact(showEmoji = false)
-                    logFormatter = LogFormatters.default(false)
+                    logFormatter = LogFormatters.compact(showEmoji = false)
+                    //logFormatter = LogFormatters.default(false)
                     //logFormatter = LogFormatters.pretty(false)
                     //logFormatter = LogFormatters.json(false)
                 )
             )  // Choose predefined sink or create custom
         .build()
-/*
-DefaultLogFormatter
-CompactLogFormatter
-PrettyLogFormatter
-JsonLogFormatter
 
- */
     LoggerFactory.install(config)
 }
 
@@ -193,9 +157,24 @@ fun main(args : Array<String>) {
         System.exit(0)
     }
 
-    initLogger(if (args.contains("-d")) LogLevel.VERBOSE
+    /*
+Level	Priority	Usage
+VERBOSE	0	Most detailed
+DEBUG	1	Debugging information
+INFO	2	General informational messages
+WARN	3	Warning messages for potential issues
+ERROR	4	Error messages for failures
+FATAL	5	Critical errors (flushes sinks and crashes)
+OFF	6	Disables all logging
+     */
+    initLogger(if (args.contains("-v")) LogLevel.VERBOSE
+                else if (args.contains("-d")) LogLevel.DEBUG
                 else if (args.contains("-i")) LogLevel.INFO
                 else LogLevel.WARN)
+
+    val logger = LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName")   // DprCmd
+    //val logger = LoggerFactory.get(DprCmd::class.qualifiedName ?: "no qualifiedName") // com.vikinghelmet.dnd.dpr.DprCmd
+
 
     for (filename in mutableListOf("spells.json","extra.spells.json")) {
         Globals.addSpells(getResource(filename) ?: "[]")
@@ -223,7 +202,7 @@ fun main(args : Array<String>) {
         }
         else if (arg.startsWith("-")) {
             when (arg) {
-                "-i" -> { }//initLogger(LogLevel.DEBUG) }
+                "-i", "-v" -> { }//initLogger(LogLevel.DEBUG) }
                 "-d" -> { Globals.debug = true ; }//initLogger(LogLevel.DEBUG) }
 
                 "--csv" -> AttackResultFormatter.isCSV = true;
@@ -270,7 +249,7 @@ fun main(args : Array<String>) {
             }
             else if (jsonString.contains("\"remoteId\"")) {
                 character = getEditableCharacter(jsonString)
-                println("# loaded editable character: $character")
+                logger.debug { "# loaded editable character: $character" }
             }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
@@ -278,7 +257,7 @@ fun main(args : Array<String>) {
             else if (jsonString.contains("\"Always prepared spells successfully received.\"")) {
                 val alwaysPrepared: AlwaysPreparedSpells = Json.decodeFromString(jsonString)
                 val names = alwaysPrepared.data.map { it.definition.name }
-                println("# alwaysPrepared: ${ names }")
+                logger.info { "# alwaysPrepared: ${ names }" }
             }
             else {
                 println("# unsupported json file: $arg")
@@ -370,12 +349,13 @@ fun main(args : Array<String>) {
     }
 
     CharacterAPI.closeHttpClient() // don't forget to do this, otherwise the program may run forever
-
-    val logger = LoggerFactory.get("MyApp")
-
+/*
     logger.verbose { "This is a verbose message" }
     logger.debug { "This is a debug message" }
     logger.info { "This is an info message" }
+    logger.warn { "This is a warning message" }
     logger.error { "This is an error message" }
     //logger.fatal { "This is a fatal message" }
+ */
+
 }
