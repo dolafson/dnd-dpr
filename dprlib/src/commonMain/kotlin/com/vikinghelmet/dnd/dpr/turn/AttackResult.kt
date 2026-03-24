@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.turn
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.turn.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class AttackResult(
@@ -37,75 +38,72 @@ data class AttackResult(
         this.spellAttack = spellAttack
     }
 
-    fun output(scenarioName: String): String {
-        val attackLabel = if (spellAttack != null) spellAttack.toString() else attack.getLabel()
-        val buf = StringBuilder("")
-
-        if (AttackResultFormatter.isCSV || !AttackResultFormatter.isTxtFirstResultDone) {
-            buf.append(AttackResultFormatter.format("level", character.getLevel()))
-            buf.append(AttackResultFormatter.format("characterName", character.getName()))
-            buf.append(AttackResultFormatter.format("spellBonusToHit", character.getSpellBonusToHit()))
-            buf.append(AttackResultFormatter.format("spellSaveDC", character.getSpellSaveDC()))
-
-            // TODO: abilities: Str, Dex, ... ?
-
-            buf.append(AttackResultFormatter.format("monsterName", attack.monster.name))
-            buf.append(AttackResultFormatter.format("monsterAC", attack.monster.properties.dataAcNum))
-            // TODO: abilities: Str, Dex, ... ?
-
-            if (!AttackResultFormatter.isCSV) {
-                println(buf)
-                AttackResultFormatter.separate()
-                buf.clear()
-            }
-        }
-
-        buf.append(AttackResultFormatter.format("scenario",scenarioName))
-
-        buf.append(AttackResultFormatter.format("turn", turnId))
-        buf.append(AttackResultFormatter.format("action", if (attack.isBonusAction == true) "BA" else ""+actionId))
-        buf.append(AttackResultFormatter.format("effect", effectId))
-        buf.append(AttackResultFormatter.format("attack", attackLabel))
-
-        if (attack.action is Weapon) {
-            val weapon = attack.action as Weapon
-            val damageBonus = character.getDamageBonus(weapon, attack.isBonusAction?:false)
-            buf.append(AttackResultFormatter.format("weaponDamage", weapon.damage!!))
-            buf.append(AttackResultFormatter.format("weaponDamageBonus", damageBonus))
-            buf.append(AttackResultFormatter.format("weaponAttackBonus", character.getAttackBonus(weapon)))
-
-            // for weapons, if fmt=txt, do not dump save data
-            buf.append(AttackResultFormatter.formatCSVOnly("spellSaveAbility", ""))
-            buf.append(AttackResultFormatter.formatCSVOnly("targetSaveBonus", ""))
-        } else {
-            // for spells, if fmt=txt, do not dump weapon data
-            buf.append(AttackResultFormatter.formatCSVOnly("weaponDamageDice", ""))
-            buf.append(AttackResultFormatter.formatCSVOnly("weaponDamageBonus", ""))
-            buf.append(AttackResultFormatter.formatCSVOnly("weaponAttackBonus", ""))
-
-            val spellSaveAbility = spellAttack!!.getSaveAbility()
-            val targetSaveBonus = if (spellSaveAbility.isEmpty()) "" else attack.monster.properties.getMod(spellSaveAbility)
-
-            buf.append(AttackResultFormatter.format("spellSaveAbility", spellSaveAbility))
-            buf.append(AttackResultFormatter.format("targetSaveBonus", targetSaveBonus))
-        }
-
-        buf.append(AttackResultFormatter.format("startCondition", Globals.wrapWithQuotes(startCondition)))
-        buf.append(AttackResultFormatter.format("numTargets", numTargets))
-
-        val selection = getAvgMinMaxSelection()
-
-        buf.append(AttackResultFormatter.format("chanceToHit", chanceToHit.select(selection)))
-        buf.append(AttackResultFormatter.format("damagePerHit", damagePerHit.select(selection)))
-        buf.append(AttackResultFormatter.format("duration", duration.select(selection)))
-        buf.append(AttackResultFormatter.format("damageFullEffect", damageFullEffect.select(selection)))
-
-        return buf.toString()
-    }
-
     fun getAvgMinMaxSelection(): AvgMinMaxSelection {
         return if (attackerHadAdvantage == true || targetHadDisadvantageOnSave == true)
             AvgMinMaxSelection.max else AvgMinMaxSelection.avg
+    }
+
+
+    fun getValue(field: AttackResultField): Any {
+        // first check for fields that vary for weapon VS spell attack
+        if (listOf(weaponDamageDice,weaponDamageBonus,weaponAttackBonus,
+                spellSaveAbility,targetSaveBonus).contains(field))
+        {
+            if (this.attack.action is Weapon) {
+                val weapon = this.attack.action as Weapon
+                val damageBonus = character.getDamageBonus(weapon, this.attack.isBonusAction ?: false)
+                return when (field) {
+                    weaponDamageDice -> weapon.damage!!
+                    weaponDamageBonus -> damageBonus
+                    weaponAttackBonus -> character.getAttackBonus(weapon)
+                    spellSaveAbility -> ""
+                    targetSaveBonus -> ""
+                    else -> {}
+                }
+            }
+
+            val ability = spellAttack!!.getSaveAbility()
+            val bonus = if (ability.isEmpty()) "" else this.attack.monster.properties.getMod(ability)
+
+            return when (field) {
+                weaponDamageDice -> ""
+                weaponDamageBonus -> ""
+                weaponAttackBonus -> ""
+                spellSaveAbility -> ability
+                targetSaveBonus -> bonus
+                else -> {}
+            }
+        }
+
+        val selection = this.getAvgMinMaxSelection()
+
+        return when (field) {
+            level           -> character.getLevel()
+            characterName   -> character.getName()
+            spellBonusToHit -> character.getSpellBonusToHit()
+            spellSaveDC     -> character.getSpellSaveDC()
+
+            monsterName -> this.attack.monster.name
+            monsterAC   -> this.attack.monster.properties.dataAcNum
+
+            turn        -> this.turnId
+            action      -> if (this.attack.isBonusAction == true) "BA" else ""+this.actionId
+            effect      -> this.effectId
+
+            AttackResultField.attack -> if (spellAttack != null) spellAttack.toString() else this.attack.getLabel()
+
+            AttackResultField.startCondition -> Globals.wrapWithQuotes(this.startCondition)
+            AttackResultField.numTargets -> this.numTargets
+
+            AttackResultField.chanceToHit -> this.chanceToHit.select(selection)
+            AttackResultField.damagePerHit -> this.damagePerHit.select(selection)
+            AttackResultField.duration -> this.duration.select(selection)
+            fullEffectDamage -> this.damageFullEffect.select(selection)
+            else -> {
+                println("WARNING: unhandled field: $field")
+                Exception("warning").printStackTrace()
+            }
+        }
     }
 }
 

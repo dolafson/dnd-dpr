@@ -42,7 +42,7 @@ object CmdTest {
         val json = getRequest(url)
         val character: Character = Json.decodeFromString(json)
         val alwaysPrepared = getAlwaysPreparedSpellList(character)
-        println("alwaysPrepared: $alwaysPrepared")
+        println("# alwaysPrepared: $alwaysPrepared")
         character.alwaysPrepared = alwaysPrepared?.data ?: mutableListOf()
         return Pair(json, character)
     }

@@ -1,86 +1,70 @@
 package com.vikinghelmet.dnd.dpr.turn
 
+import com.vikinghelmet.dnd.dpr.turn.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 object AttackResultFormatter {
     val txtLineSeparator = "#######################################################\n"
-    var isTxtFirstResultDone = false
     var isCSV: Boolean = false
+    var scenarioName = ""
 
-
+    fun format(field: AttackResultField, attackResult: AttackResult): String {
+        return format(field.name, if (field == scenario) scenarioName else attackResult.getValue(field))
+    }
+    
     fun format(fieldName: String, value: Any): String {
-        isTxtFirstResultDone = true
         val strValue = if (value is Float) Globals.getPercent(value) else value.toString()
 
-//            String.format("\t%-20s %s\n",fieldName, strValue)
-        return if (isCSV) "$strValue," else "\t"+Globals.rightPad(fieldName,20)+" $strValue\n"
+        return if (isCSV) "$strValue," else "\t${ Globals.rightPad(fieldName,20) }${strValue}\n"
     }
 
-    fun formatFloat(fieldName: String, value: Float): String {
-        isTxtFirstResultDone = true
-        val strValue = if (value is Float) Globals.getPercent(value) else value.toString()
-
-//            String.format("\t%-20s %s\n",fieldName, strValue)
-        return if (isCSV) "$strValue," else "\t"+Globals.rightPad(fieldName,20)+" $strValue\n"
-    }
-
-    fun formatCSVOnly(fieldName: String, value: Any): String {
-        return if (isCSV) format(fieldName, value) else ""
-    }
-
-    fun footer(turnId: Any, actionLabel: String, totalDamage: Float, scenarioName: String): String {
-        if (isCSV) {
-            val damagePct = Globals.getPercent(totalDamage)
-            return ",,,,,,$scenarioName,$turnId,$actionLabel,,,,,,,,,,,,,$damagePct,"
-        } else {
+    fun footer(currentTurnId: Any, actionLabel: String, totalDamage: Float): String {
+        if (!isCSV) {
             return format(actionLabel, totalDamage)
         }
+
+        val buf = StringBuilder()
+        AttackResultField.entries.forEach {
+            val value = when (it) {
+                scenario -> scenarioName
+                turn -> currentTurnId
+                action -> actionLabel
+                fullEffectDamage -> Globals.getPercent(totalDamage)
+                else -> null
+            }
+            if (value != null) buf.append(value)
+            buf.append(",")
+        }
+        return buf.toString()
     }
 
     fun separate() { println(txtLineSeparator) }
 
-    fun header(scenarioName: String): String {
-        if (!isCSV) {
-            separate();
-            //println(format("scenario",scenarioName))
-            //println(String.format("\t%-20s %s\n","scenario",scenarioName))
-            //println()
-            return ""
+    fun header(scenarioName: String, firstAttackResult: AttackResult): String {
+        this.scenarioName = scenarioName
+        val buf = StringBuilder("")
+        if (isCSV) {
+            AttackResultField.entries.forEach { buf.append(it.name).append(",") }
+            return buf.toString()
         }
 
-        val buf = StringBuilder("")
+        // for plain text output, display a block of turn-invariant fields first
+        // no need to display them on every turn
+        separate();
 
-        buf.append("level").append(",")
-        buf.append("characterName").append(",")
-        buf.append("spellBonusToHit").append(",")
-        buf.append("spellSaveDC").append(",")
-
-        // TODO: abilities: Str, Dex, ... ?
-
-        buf.append("monsterName").append(",")
-        buf.append("monsterAC").append(",")
-        // TODO: abilities: Str, Dex, ... ?
-
-        buf.append("scenario").append(",")
-        buf.append("turn").append(",")
-        buf.append("action").append(",")
-        buf.append("effect").append(",")
-        buf.append("attack").append(",")
-
-        buf.append("weaponDamageDice").append(",")
-        buf.append("weaponDamageBonus").append(",")
-        buf.append("weaponAttackBonus").append(",")
-
-        buf.append("spellSaveAbility").append(",")
-        buf.append("targetSaveBonus").append(",")
-
-        buf.append("startCondition").append(",")
-        buf.append("numTargets").append(",")
-
-        buf.append("chanceToHit").append(",")
-        buf.append("damagePerHit").append(",")
-        buf.append("duration").append(",")
-        buf.append("fullEffectDamage").append(",")
+        AttackResultField.entries.filter { it.constantAcrossTurns }.forEach {
+            buf.append(format(it, firstAttackResult))
+        }
         return buf.toString()
     }
+
+    fun output(attackResult: AttackResult): String {
+        val buf = StringBuilder("")
+
+        AttackResultField.entries.filter { isCSV || ! it.constantAcrossTurns }.forEach {
+            buf.append(format(it, attackResult))
+        }
+        return buf.toString()
+    }
+
 }

@@ -200,7 +200,7 @@ fun main(args : Array<String>) {
             }
             else if (jsonString.contains("\"remoteId\"")) {
                 character = getEditableCharacter(jsonString)
-                println("loaded editable character: $character")
+                println("# loaded editable character: $character")
             }
             else if (jsonString.contains("\"username\"")) {
                 character = Json.decodeFromString(jsonString)
@@ -208,10 +208,10 @@ fun main(args : Array<String>) {
             else if (jsonString.contains("\"Always prepared spells successfully received.\"")) {
                 val alwaysPrepared: AlwaysPreparedSpells = Json.decodeFromString(jsonString)
                 val names = alwaysPrepared.data.map { it.definition.name }
-                println("alwaysPrepared: ${ names }")
+                println("# alwaysPrepared: ${ names }")
             }
             else {
-                println("unsupported json file: $arg")
+                println("# unsupported json file: $arg")
                 exitEarly = true
             }
         }

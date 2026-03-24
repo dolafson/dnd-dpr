@@ -247,7 +247,7 @@ open class Character(
                 result.add (PreparedSpell(psRemote.alwaysPrepared, spell))
             }
             catch (e: Exception) {
-                println("unable to add preparedSpell ${psRemote.definition.name}: $e")
+                println("# unable to add preparedSpell ${psRemote.definition.name}: $e")
             }
         }
         return result
@@ -271,7 +271,7 @@ open class Character(
 
             // ritual spells are not normally used in combat; they also do not consume a spell slot when read from a book
             if (spell.isRitual()) {
-                println("excluding ritual spell from prepared list")
+                println("# excluding ritual spell from prepared list")
                 continue
             }
 
