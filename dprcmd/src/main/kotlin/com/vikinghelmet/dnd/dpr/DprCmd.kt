@@ -296,7 +296,7 @@ fun main(args : Array<String>) {
     else if (turns.isNotEmpty()) {
         val scenario = Scenario(character, turns)
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
-        scenarioResult.output()
+        println (scenarioResult.output())
     }
 
     CmdTest.closeHttpClient() // don't forget to do this, otherwise the program may run forever
