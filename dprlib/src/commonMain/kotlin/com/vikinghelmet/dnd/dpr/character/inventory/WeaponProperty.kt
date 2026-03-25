@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.character.inventory
 
-enum class WeaponProperty {
+enum class WeaponProperty(val supported: Boolean = false) {
 
     Ammunition, // You can use a weapon that has the Ammunition property to make a ranged
                 // attack only if you have ammunition to fire from it. The type of ammunition
@@ -8,7 +8,7 @@ enum class WeaponProperty {
                 // of ammunition. Drawing the ammunition is part of the attack (you need a free
                 // hand to load a one-handed weapon). After a fight, you can spend 1 minute to
                 // recover half the ammunition (round down) you used in the fight; the rest is lost.
-    Finesse,    // When making an attack with a Finesse weapon, use your choice of your Strength
+    Finesse(true),    // When making an attack with a Finesse weapon, use your choice of your Strength
                 // or Dexterity modifier for the attack and damage rolls. You must use the same
                 // modifier for both rolls.
 
@@ -16,7 +16,7 @@ enum class WeaponProperty {
                 // and your Strength score isn't at least 13 or if it's a Ranged weapon and your
                 // Dexterity score isn't at least 13.
 
-    Light,      // When you take the Attack action on your turn and attack with a Light weapon,
+    Light(true),      // When you take the Attack action on your turn and attack with a Light weapon,
                 // you can make one extra attack as a Bonus Action later on the same turn. That
                 // extra attack must be made with a different Light weapon, and you don’t add your
                 // ability modifier to the extra attack’s damage unless that modifier is negative.

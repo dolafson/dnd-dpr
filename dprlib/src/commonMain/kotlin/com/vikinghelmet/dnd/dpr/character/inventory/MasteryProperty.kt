@@ -1,8 +1,8 @@
 package com.vikinghelmet.dnd.dpr.character.inventory
 
-enum class MasteryProperty {
+enum class MasteryProperty(val supported: Boolean = false) {
 
-    Cleave, // If you hit a creature with a melee attack roll using this weapon,
+    Cleave(true), // If you hit a creature with a melee attack roll using this weapon,
             // you can make a melee attack roll with the weapon against a second creature
             // within 5 feet of the first that is also within your reach. On a hit, the
             // second creature takes the weapon’s damage, but don't add your ability modifier
