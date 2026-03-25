@@ -282,11 +282,13 @@ class ScenarioBuilder(
 
     fun topResults(max: Int): List<ScenarioResult> {
         // first prioritize totalDPR, and if multiple scenarios have the same total, sort them by highest first round damage
+        logger.info { "resultList.size = ${resultList.size}" }
+        if (resultList.size == 0) return resultList
 
         // NOTE: THERE IS NO ROUND ZERO; START AT ONE
         return resultList.sortedWith(
             compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(1) }
-        ).take(max)
+        ).take(kotlin.math.min(max,resultList.size))
     }
 
     fun logDuration(label: String, task: () -> Unit) {

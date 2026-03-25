@@ -108,7 +108,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 }
 
                 Row(modifier = Modifier.padding(bottom = 10.dp)) {
-                    Text(text = "Spacing", modifier = Modifier.padding(end = 30.dp))
+                    Text(text = "Spacing", modifier = Modifier.padding(end = 20.dp))
 /*
                     NumericMenu(NumericRange(5, 20, 5), { newNumTargets ->
                         numTargets = newNumTargets
@@ -181,16 +181,18 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                                     println("currentProgress: $currentProgress")
                                 }
 
-                                val scenarioResult = builder.topResults(1).first()
+                                val scenarioResult = builder.topResults(1).firstOrNull()
 
-                                val buf = StringBuilder("Highest Avg Damage = ")
-                                    .append(Globals.getPercent(scenarioResult.totalDPR)).append("\n").append("\n")
+                                if (scenarioResult != null) {
+                                    val buf = StringBuilder("Highest Avg Damage = ")
+                                        .append(Globals.getPercent(scenarioResult.totalDPR)).append("\n").append("\n")
 
-                                for (turn in scenarioResult.scenario.turns) {
-                                    buf.append(turn.attacks.map { it.getLabel() }).append("\n")
+                                    for (turn in scenarioResult.scenario.turns) {
+                                        buf.append(turn.attacks.map { it.getLabel() }).append("\n")
+                                    }
+
+                                    outputText += buf.toString()
                                 }
-
-                                outputText += buf.toString()
 
                                 loading = false
                             }

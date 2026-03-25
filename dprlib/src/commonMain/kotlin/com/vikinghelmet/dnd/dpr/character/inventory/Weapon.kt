@@ -8,7 +8,7 @@ import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Weapon (
+open class Weapon (
     val name: String,
     val damage: String? = null,
 
@@ -34,8 +34,12 @@ data class Weapon (
     }
 
     // other methods
-    fun hasWeaponProperty(wp: WeaponProperty): Boolean {
-        return properties?.contains(wp.name) == true
+    fun hasWeaponProperty(prop: WeaponProperty): Boolean {
+        return properties?.contains(prop.name) == true
+    }
+
+    fun hasMasteryProperty(prop: MasteryProperty): Boolean {
+        return properties?.contains(prop.name) == true
     }
 
     override fun toString(): String {

@@ -10,7 +10,7 @@ data class Attack(
     val monster: Monster,
     val action: AttackAction, // weapon or spell
 
-    val actionModifiers: ArrayList<ActionModifier> = ArrayList(), // named, non-spell preconditions (eg Colossus Slayer)
+    val actionModifiers: MutableList<ActionModifier> = mutableListOf(), // named, non-spell preconditions (eg Colossus Slayer)
 
     // optional fields
     var preconditions: Preconditions? = null,

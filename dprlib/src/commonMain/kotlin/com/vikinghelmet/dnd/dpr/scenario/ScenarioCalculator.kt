@@ -1,7 +1,10 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatWithDuration
+import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
@@ -53,9 +56,25 @@ class ScenarioCalculator(
         val dpr = ActionCalculator(scenario, effectManager)
 
         if (attack.action is Weapon) {
-            val attackResult = dpr.getMeleeOrRangeDPR (attack.action, attack)
+            val resultList = mutableListOf<AttackResult>()
+            val weapon = attack.action
+            var effect = 1
 
-            attackResult.update(turnId, actionId, 1)
+            val attackResult = dpr.getMeleeOrRangeDPR (weapon, attack)
+            attackResult.update(turnId, actionId, effect++)
+            resultList.add(attackResult)
+
+            if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5)
+            {
+                val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.damage) {
+                    override fun getBonusDamage(character: Character, isBonusAction: Boolean) = 0
+                }
+
+                val secondAttack = Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
+                val attackResult = dpr.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack)
+                attackResult.update(turnId, actionId, effect++)
+                resultList.add(attackResult)
+            }
 
             if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
                 // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons)
@@ -67,7 +86,7 @@ class ScenarioCalculator(
             }
 
             effectManager.pruneSpellsWaitingForNextAttack(null)
-            return listOf(attackResult)
+            return resultList
         }
 
         if (spell == null) return emptyList() // should not get here due to if(w/s) above; this is just to make the compiler happy
