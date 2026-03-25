@@ -495,10 +495,13 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // 28. Average Duration (In Rounds)
         //  =IF(AND($G$20="Save Every Round",Y6<1), IF($H$19,(1/(1-Y6)-1)*(1-Y6^$I$19),1/(1-Y6)-1),IF($H$19,$I$19*Y6,"INFINITE"))
 
+        val maxDuration = if (spell.getDuration() == null) null else min(spell.getDuration()!!, scenario.turns.size)
+        logger.debug{"Spell duration = ${spell.getDuration()}, numTurns = ${scenario.turns.size}, Max Duration: "+maxDuration}
+
         val averageDuration = AvgMinMax(
-            durationInRounds(saveEvery, chanceToHit.avg, spell.getDuration()),
-            durationInRounds(saveEvery, chanceToHit.min, spell.getDuration()),
-            durationInRounds(saveEvery, chanceToHit.max, spell.getDuration()),
+            durationInRounds(saveEvery, chanceToHit.avg, maxDuration),
+            durationInRounds(saveEvery, chanceToHit.min, maxDuration),
+            durationInRounds(saveEvery, chanceToHit.max, maxDuration),
         )
 
         logger.debug{"Average Duration (In Rounds): "+averageDuration}

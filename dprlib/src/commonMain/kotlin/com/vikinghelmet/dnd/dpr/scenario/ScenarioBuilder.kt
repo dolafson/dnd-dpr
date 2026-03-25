@@ -280,13 +280,11 @@ class ScenarioBuilder(
     }
 
     fun topResults(max: Int): List<ScenarioResult> {
-        // sorting is fast enough that there's little point in measuring it
-        //return resultList.sortedByDescending { it.totalDPR }.take(max)
+        // first prioritize totalDPR, and if multiple scenarios have the same total, sort them by highest first round damage
 
-        // first prioritize totalDPR, and if multiple scenarios have the same total, sort them by highest damage at the start of the round
-
+        // NOTE: THERE IS NO ROUND ZERO; START AT ONE
         return resultList.sortedWith(
-            compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(0)}
+            compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(1) }
         ).take(max)
     }
 
