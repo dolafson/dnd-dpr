@@ -34,8 +34,8 @@ data class Weapon (
     }
 
     // other methods
-    fun isLight(): Boolean { // this may get used often,
-        return properties?.contains("Light") == true
+    fun hasWeaponProperty(wp: WeaponProperty): Boolean {
+        return properties?.contains(wp.name) == true
     }
 
     override fun toString(): String {

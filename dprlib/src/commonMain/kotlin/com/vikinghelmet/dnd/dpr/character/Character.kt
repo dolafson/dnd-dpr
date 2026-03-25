@@ -9,6 +9,7 @@ import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
+import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
@@ -181,7 +182,7 @@ open class Character(
         val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
 
         val props = w.properties ?: emptyList()
-        return if (props.contains("Finesse")) kotlin.math.max(strBonus, dexBonus)
+        return if (w.hasWeaponProperty(WeaponProperty.Finesse)) kotlin.math.max(strBonus, dexBonus)
         else if (w.attackType == 1) strBonus
         else dexBonus
     }

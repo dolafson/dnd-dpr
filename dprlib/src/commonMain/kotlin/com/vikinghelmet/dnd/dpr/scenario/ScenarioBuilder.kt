@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
+import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
@@ -74,11 +75,11 @@ class ScenarioBuilder(
             //var foundAtLeastOneLightWeaponPair = false
 
             // note: actionList is already filtered by range, which is good
-            val lightWeapons = actionList.filter { it is Weapon && it.isLight() }
+            val lightWeapons = actionList.filter { it is Weapon && it.hasWeaponProperty(WeaponProperty.Light) }
             println("# all light weapons = ${ lightWeapons }")
 
             // light weapon ?  see if you have a 2nd one to use in a BA
-            if (action.isLight() && lightWeapons.size > 1)
+            if (action.hasWeaponProperty(WeaponProperty.Light) && lightWeapons.size > 1)
             {
                 println("# light weapon 1=$action, hashcode =${action.hashCode()}, all light weapons = ${ lightWeapons }")
 
