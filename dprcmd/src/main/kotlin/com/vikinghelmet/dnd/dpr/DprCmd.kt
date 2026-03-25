@@ -331,7 +331,7 @@ OFF	6	Disables all logging
         println("no character data")
     }
     else if (turns.isNotEmpty()) {
-        val scenario = Scenario(character, turns)
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
         println (scenarioResult.output())
     }

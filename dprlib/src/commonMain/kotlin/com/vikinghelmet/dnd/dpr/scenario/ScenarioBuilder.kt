@@ -27,7 +27,7 @@ class ScenarioBuilder(
     constructor(character: Character, monster: Monster) : this(character,monster,character.getActionsAvailable()) {
 
     }
-    fun build(targetProximity: Int, numberOfTurns: Int, numTargets: Int, targetRadius: Int) {
+    fun build(targetProximity: Int, numberOfTurns: Int, numTargets: Int, targetSpacing: Int) {
         turnOptions.clear()
         scenarioList.clear()
         resultList.clear()
@@ -39,7 +39,7 @@ class ScenarioBuilder(
             buildScenarios(
                 numberOfTurns,
                 turnOptions,
-                Scenario(character, emptyList(), numTargets, targetRadius),
+                Scenario(character, emptyList(), numTargets, targetSpacing),
                 scenarioList
             )
         })
@@ -172,7 +172,7 @@ class ScenarioBuilder(
             a -> Attack(a.monster, a.action, ArrayList(), null, a.isBonusAction)
         }.toMutableList())
 
-        return Scenario (character, currentScenario.turns.map { it.copy() } + copy)
+        return Scenario (character, currentScenario.turns.map { it.copy() } + copy, currentScenario.numTargets, currentScenario.targetSpacing)
     }
 
     fun buildScenarios(rounds: Int, turnOptions: List<Turn>, currentScenario: Scenario, scenarioList: ArrayList<Scenario>) {

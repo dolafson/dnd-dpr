@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 {
     var numTargets by remember { mutableStateOf(1) }
-    var targetRadius by remember { mutableStateOf(5) }
+    var targetSpacing by remember { mutableStateOf(5) }
 
     var currentProgress by remember { mutableFloatStateOf(0f) }
     var loading by remember { mutableStateOf(false) }
@@ -108,16 +108,16 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 }
 
                 Row(modifier = Modifier.padding(bottom = 10.dp)) {
-                    Text(text = "Radius", modifier = Modifier.padding(end = 30.dp))
+                    Text(text = "Spacing", modifier = Modifier.padding(end = 30.dp))
 /*
                     NumericMenu(NumericRange(5, 20, 5), { newNumTargets ->
                         numTargets = newNumTargets
                     }) */
 
-                    val radiusOptions = listOf("5","10","15","20").map { Pair(it, Color.Black )}
-                    BasicTextMenu("${targetRadius}", radiusOptions, 40.dp, 90.dp) { newValue ->
-                        targetRadius = newValue.toInt()
-                        println("new radius: $targetRadius")
+                    val spacingOptions = listOf("5","10","15","20").map { Pair(it, Color.Black )}
+                    BasicTextMenu("${targetSpacing}", spacingOptions, 40.dp, 90.dp) { newValue ->
+                        targetSpacing = newValue.toInt()
+                        println("new radius: $targetSpacing")
                     }
 
                     Text(text = "Targets", modifier = Modifier.padding(start = 20.dp, end = 10.dp))
@@ -166,7 +166,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                                 outputText = "Building scenario list ...\n"
                                 delay(1)
 
-                                builder.build(proximityInt, viewModel.getNumberOfTurns().current, numTargets, targetRadius)
+                                builder.build(proximityInt, viewModel.getNumberOfTurns().current, numTargets, targetSpacing)
 
                                 outputText += "Number of turn options = ${ builder.turnOptions.size }\n"
                                 outputText += "Number of scenarios = ${ builder.scenarioList.size }\n"

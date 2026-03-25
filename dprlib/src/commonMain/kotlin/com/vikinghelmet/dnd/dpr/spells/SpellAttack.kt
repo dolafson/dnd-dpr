@@ -59,7 +59,7 @@ data class SpellAttack(
 
         //if (targetSpacing > size) return 1 // redundant?
 
-        val numTargetsInArea = (1 + 2*(size / scenario.targetRadius)).toDouble().pow(2.0).toInt()
+        val numTargetsInArea = (1 + 2*(size / scenario.targetSpacing)).toDouble().pow(2.0).toInt()
 
         return kotlin.math.min (scenario.numTargets, numTargetsInArea)
     }

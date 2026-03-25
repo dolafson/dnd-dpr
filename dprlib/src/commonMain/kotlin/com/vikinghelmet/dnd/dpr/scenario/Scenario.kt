@@ -4,16 +4,14 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class Scenario(
     val character: Character,
     val turns: List<Turn>,
-    val numTargets: Int = DEFAULT_NUM_TARGETS,
-    val targetRadius: Int = DEFAULT_TARGET_RADIUS,
+    val numTargets: Int,
+    val targetSpacing: Int,
 )
 {
     fun getSpellsAcrossTurns(): List<Spell> {
