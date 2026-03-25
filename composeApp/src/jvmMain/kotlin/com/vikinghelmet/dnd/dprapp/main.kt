@@ -6,8 +6,11 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import com.vikinghelmet.dnd.dpr.JulConfigurator
 
 fun main() = application {
+    JulConfigurator()
+
     val state = rememberWindowState(
         size = DpSize(400.dp, 650.dp),
         position = WindowPosition(300.dp, 300.dp)

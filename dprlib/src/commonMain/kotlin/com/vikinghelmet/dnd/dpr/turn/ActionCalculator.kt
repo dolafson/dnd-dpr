@@ -1,15 +1,17 @@
 package com.vikinghelmet.dnd.dpr.turn
-import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
+import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+
 
 enum class AvgMinMaxSelection { avg, min, max }
 
@@ -27,27 +29,26 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())
     }
 
-    fun debug(label: String) {
-        if (Globals.debug) {
-            val avgPct = Globals.getPercent(avg)
-            val minPct = Globals.getPercent(min)
-            val maxPct = Globals.getPercent(max)
-            println("# $label, (avg, min, max) = ($avgPct, $minPct, $maxPct)")
-        }
+    override fun toString(): String {
+        val avgPct = Globals.getPercent(avg)
+        val minPct = Globals.getPercent(min)
+        val maxPct = Globals.getPercent(max)
+        return "(avg, min, max) = ($avgPct, $minPct, $maxPct)"
     }
 }
 
-
 //    https://docs.google.com/document/d/11eTMZPPxWXHY0rQEhK1msO-40BcCGrzArSl4GX4CiJE/edit?tab=t.0
 
-
-class DamagePerRound(var character: Character, val effectManager: EffectManager)
+class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 {
+    val logger = LoggerFactory.get(ActionCalculator::class.simpleName ?: "no simpleName")
+
+    val character = scenario.character
     val effectSaveDC = character.getSpellSaveDC()
     val isLucky = character.isLucky()
 
-    fun debug() { if (Globals.debug) println() }
-    fun debug(str:String) { if (Globals.debug) println("# "+str) }
+    fun debug() { logger.debug { "" } }
+    fun debug(str:String) { logger.debug { str } }
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
         val avg = averageDamage(diceBlock, bonusDamage, character.isGreatWeaponFighting(), character.isElementalAdept())
@@ -374,9 +375,8 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
         // (this can be done manually via bonusDamageOnFirstHit, but more explicit support would be good)
 
-        val maxNumberOfTargets = spellAttack.maxNumberOfTargets!! // if (spellAttack.isAreaOfEffectBig()) 3 else 1 // TODO: improve this
-
-        val numberOfTargets = maxNumberOfTargets // Math.min(attack.numTargets ?: 1, maxNumberOfTargets)
+        // TODO: only include
+        val numberOfTargets = spellAttack.getNumTargetsAffected(scenario)
         val saveResult = spellAttack.getSaveResult()
         debug()
         debug("spell duration (max): " + spell.getDuration())
@@ -418,7 +418,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             chanceToHit = AvgMinMax(1f, 1f, 1f)
         }
 
-        chanceToHit.debug("Chance to Hit")
+        logger.debug { "Chance to Hit, "+chanceToHit }
 
         if (spellAttack.getDamageDice().isEmpty()) {
             debug ("This spell never directly creates damage")
@@ -430,24 +430,24 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
         }
 
         val fullDamage: AvgMinMax = getAvgMinMax(spellAttack.getDamageDice(), bonusDamage)
-        fullDamage.debug("Full Damage")
+        logger.debug{"Full Damage: "+fullDamage}
 
         val halfDamage = fullDamage.half(spellAttack.getDamageDice())
-        halfDamage.debug("Half Damage")
+        logger.debug{"Half Damage: "+halfDamage}
         debug()
 
         val fullDamageFirstHit: AvgMinMax = getAvgMinMax(bonusDamageOnFirstHit, bonusDamage)
-        fullDamageFirstHit.debug("Full Damage (First Hit)")
+        logger.debug{"Full Damage (First Hit): "+fullDamageFirstHit}
 
         val halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit)
-        halfDamageFirstHit.debug("Half Damage (First Hit)")
+        logger.debug{"Half Damage (First Hit): "+halfDamageFirstHit}
 
         val chanceofAtLeastOneHit = AvgMinMax(
             1 - (1 - chanceToHit.avg).pow(numberOfTargets),
             1 - (1 - chanceToHit.min).pow(numberOfTargets),
             1 - (1 - chanceToHit.max).pow(numberOfTargets),
         )
-        chanceofAtLeastOneHit.debug("Chance of at least one hit")
+        logger.debug{"Chance of at least one hit: "+chanceofAtLeastOneHit }
         debug()
 
         val damagePerTarget = AvgMinMax(
@@ -455,7 +455,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             chanceToHit.min * fullDamage.avg + (1 - chanceToHit.min) * halfDamage.avg,
             chanceToHit.max * fullDamage.avg + (1 - chanceToHit.max) * halfDamage.avg,
         )
-        damagePerTarget.debug("Damage Per Target")
+        logger.debug{"Damage Per Target: "+damagePerTarget}
 
         // 12. Damage per Failed Save       =IF(G15="Evasion",D228,D225)
         val damagePerFailedSave = AvgMinMax(
@@ -463,7 +463,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             if (isTargetEvasive) halfDamage.min else fullDamage.min,
             if (isTargetEvasive) halfDamage.max else fullDamage.max
         )
-        damagePerFailedSave.debug("Damage Per Failed Save")
+        logger.debug{"Damage Per Failed Save: "+damagePerFailedSave}
 
         // 15. Damage per Successful Save   =IF(G15="No Save",D225,IF(G15="Save for Half",D228,0))
         val damagePerSuccessfulSave = AvgMinMax(
@@ -471,7 +471,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             if (noSave) fullDamage.min else if (saveForHalf) halfDamage.min else 0f,
             if (noSave) fullDamage.max else if (saveForHalf) halfDamage.max else 0f,
         )
-        damagePerSuccessfulSave.debug("Damage Per Successful Save")
+        logger.debug{"Damage Per Successful Save: "+damagePerSuccessfulSave}
 
         // 21. Damage per Hit               =Y6*Y12+(1-Y6)*Y15
         val damagePerHit = AvgMinMax(
@@ -479,7 +479,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             chanceToHit.min * damagePerFailedSave.avg + (1 - chanceToHit.min) * damagePerSuccessfulSave.avg,
             chanceToHit.max * damagePerFailedSave.avg + (1 - chanceToHit.max) * damagePerSuccessfulSave.avg,
         )
-        damagePerHit.debug("Damage Per Hit")
+        logger.debug{"Damage Per Hit: "+damagePerHit}
         debug()
 
         // 9. Average DPR                  =L13*Y21+Y18*IF(G15="Evasion",D234,D231)
@@ -490,7 +490,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             numberOfTargets * damagePerHit.min + chanceofAtLeastOneHit.min * evasion,
             numberOfTargets * damagePerHit.max + chanceofAtLeastOneHit.max * evasion,
         )
-        averageDPR.debug("Average Damage Per Round")
+        logger.debug{"Average Damage Per Round: "+averageDPR}
 
         // 28. Average Duration (In Rounds)
         //  =IF(AND($G$20="Save Every Round",Y6<1), IF($H$19,(1/(1-Y6)-1)*(1-Y6^$I$19),1/(1-Y6)-1),IF($H$19,$I$19*Y6,"INFINITE"))
@@ -501,7 +501,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             durationInRounds(saveEvery, chanceToHit.max, spell.getDuration()),
         )
 
-        averageDuration.debug("Average Duration (In Rounds)")
+        logger.debug{"Average Duration (In Rounds): "+averageDuration}
 
         // 31. Average Total Damage Over Time
         // if spell duration is "Instantaneous", damage over time = damage in first round
@@ -512,7 +512,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             averageDuration.max * damagePerFailedSave.avg + damagePerSuccessfulSave.avg
         )
 
-        averageTotalDamageOverTime.debug("Average Total Damage Over Time")
+        logger.debug{"Average Total Damage Over Time: "+averageTotalDamageOverTime}
 
         debug("avg %hit:         "+Globals.getPercent(chanceToHit.avg))
         debug("avg duration:     "+Globals.getPercent(averageDuration.avg))
@@ -575,7 +575,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             totalProb(attackBonus, AC, "Advantage", isElemental, isLucky, autoHit, bonusDiceToHit, penaltyDiceToHit),
             totalProb(attackBonus, AC,"Disadvantage", isElemental, isLucky,autoHit, bonusDiceToHit, penaltyDiceToHit),
         )
-        chanceToHit.debug("Chance to Hit")
+        logger.debug { "Chance to Hit, "+chanceToHit }
 
         val mainAttack = !(attack.isBonusAction ?: false)
         val mainOrBonus = if (mainAttack) "main" else "bonus"
@@ -583,11 +583,11 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
 
         // DPH:                             (B205, F205, J205)
         val damagePerHit = getAvgMinMax(damageDice, bonusDamage)
-        damagePerHit.debug("Full Damage")
+        logger.debug{"Full Damage: "+damagePerHit}
 
         // DPC (damage per crit)          (B208, F208, J208)
         val critDamage = getAvgMinMax(damageDice.double(), bonusDamage)
-        critDamage.debug("Crit Damage")
+        logger.debug{"Crit Damage: "+critDamage}
 
         debug()
 
@@ -599,7 +599,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
         )
-        critChance.debug("Crit %Hit")
+        logger.debug{"Crit %Hit: "+critChance}
 
         // Normal Attack DPR (does not include bonus attack):          (B202, F202, J202)
 
@@ -612,7 +612,7 @@ class DamagePerRound(var character: Character, val effectManager: EffectManager)
             numTargets * ((chanceToHit.max - critChance.max) * damagePerHit.max + (critChance.max * critDamage.max)),
             numTargets * ((chanceToHit.min - critChance.min) * damagePerHit.min + (critChance.min * critDamage.min)),
         )
-        attackDPR.debug("Attack DPR (main="+mainAttack+")")
+        logger.debug{"Attack DPR (main="+mainAttack+"): "+attackDPR}
 
         /* Avg DPR:  (Y9, AC9, AG9) ->
 

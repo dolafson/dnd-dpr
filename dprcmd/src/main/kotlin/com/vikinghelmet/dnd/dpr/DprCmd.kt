@@ -16,15 +16,15 @@ import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.NUM_TURNS_PER_SCENARIO
 import com.vikinghelmet.dnd.dpr.util.DprFiles
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.monsters
 import com.vikinghelmet.dnd.dpr.util.Globals.spells
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
-import dev.shivathapaa.logger.core.LoggerConfig
-import dev.shivathapaa.logger.formatters.LogFormatters
-import dev.shivathapaa.logger.sink.DefaultLogSink
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -120,34 +120,16 @@ Search:
 
 Attacks:
 
-     -a  <monster turn[;turn...] >   one/more turns, each a comma-separated list of spell or weapon name
-     -z  <monster proximityInFeet>   run all possible 5-turn scenarios, then sort by total damage
+     -a  <monster> <turn[;turn...] >   one/more turns, each a comma-separated list of spell or weapon name
+     
+     -z  <monster> <proximityInFeet>  [numTurns (${NUM_TURNS_PER_SCENARIO})]  [numTargets (${DEFAULT_NUM_TARGETS})]  [targetRadius (${DEFAULT_TARGET_RADIUS})]
   
 """)
 }
 
-fun initLogger(level: LogLevel) {
-    // notes:
-    //      ConsoleSink writes to /dev/stdout
-    //      DefaultLogSink writes to /dev/stderr
-    val config = LoggerConfig.Builder()
-        .minLevel(level)
-        //.minLevel(LogLevel.VERBOSE)
-        //.override("MyApp", level)
-        .addSink(
-                DefaultLogSink(
-                    logFormatter = LogFormatters.compact(showEmoji = false)
-                    //logFormatter = LogFormatters.default(false)
-                    //logFormatter = LogFormatters.pretty(false)
-                    //logFormatter = LogFormatters.json(false)
-                )
-            )  // Choose predefined sink or create custom
-        .build()
-
-    LoggerFactory.install(config)
-}
-
 fun main(args : Array<String>) {
+    JulConfigurator()
+
     var exitEarly = false
     var character: com.vikinghelmet.dnd.dpr.character.Character? = null
     val turns = ArrayList<Turn>()
@@ -167,7 +149,7 @@ ERROR	4	Error messages for failures
 FATAL	5	Critical errors (flushes sinks and crashes)
 OFF	6	Disables all logging
      */
-    initLogger(if (args.contains("-v")) LogLevel.VERBOSE
+    Globals.initLogger(if (args.contains("-v")) LogLevel.VERBOSE
                 else if (args.contains("-d")) LogLevel.DEBUG
                 else if (args.contains("-i")) LogLevel.INFO
                 else LogLevel.WARN)
@@ -175,6 +157,7 @@ OFF	6	Disables all logging
     val logger = LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName")   // DprCmd
     //val logger = LoggerFactory.get(DprCmd::class.qualifiedName ?: "no qualifiedName") // com.vikinghelmet.dnd.dpr.DprCmd
 
+    logger.warn { "logging initialized" }
 
     for (filename in mutableListOf("spells.json","extra.spells.json")) {
         Globals.addSpells(getResource(filename) ?: "[]")
@@ -202,8 +185,8 @@ OFF	6	Disables all logging
         }
         else if (arg.startsWith("-")) {
             when (arg) {
-                "-i", "-v" -> { }//initLogger(LogLevel.DEBUG) }
-                "-d" -> { Globals.debug = true ; }//initLogger(LogLevel.DEBUG) }
+                "-i" -> { Globals.initLogger(LogLevel.INFO) }
+                "-d" -> { Globals.initLogger(LogLevel.DEBUG) }
 
                 "--csv" -> AttackResultFormatter.isCSV = true;
                 "-a" -> {
@@ -226,10 +209,15 @@ OFF	6	Disables all logging
                 }
                 "-z" -> {
                     val monster = Globals.getMonster(args[i+1])
-                    val proximity = args[i+2].toInt()
                     val builder = ScenarioBuilder(character!!,monster)
 
-                    builder.build(proximity, Constants.NUM_TURNS_PER_SCENARIO)
+                    fun optionalArg(index: Int, default: Int) = if (index < args.size) args[index].toInt() else default
+
+                    builder.build (args[i+2].toInt(),
+                        optionalArg (i+3, NUM_TURNS_PER_SCENARIO),
+                        optionalArg (i+4, DEFAULT_NUM_TARGETS),
+                        optionalArg (i+5, DEFAULT_TARGET_RADIUS))
+
                     while (builder.hasNext()) { builder.addNext() }
                     builder.showResults()
                 }
@@ -296,7 +284,7 @@ OFF	6	Disables all logging
         }
         else if (arg.startsWith("test:turnOptions")) {
             val builder =ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
-            builder.build(args[i+1].toInt(), args[i+2].toInt())
+            builder.build(args[i+1].toInt(), args[i+2].toInt(), DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
 
             builder.turnOptions.forEach {
                 val buf = StringBuilder()
@@ -314,7 +302,7 @@ OFF	6	Disables all logging
         }
         else if (arg.startsWith("test:build")) {
             val builder = ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
-            builder.build(args[i+1].toInt(), args[i+2].toInt())
+            builder.build(args[i+1].toInt(), args[i+2].toInt(), DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
             builder.scenarioList.forEach {
                 println("scenario = ${it.getLabel()}")
             }
@@ -356,6 +344,15 @@ OFF	6	Disables all logging
     logger.warn { "This is a warning message" }
     logger.error { "This is an error message" }
     //logger.fatal { "This is a fatal message" }
- */
 
+    Globals.initLogger(LogLevel.INFO)
+
+    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").info { "first info msg" }
+    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").debug { "first debug msg" }
+
+    Globals.initLogger(LogLevel.DEBUG)
+
+    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").info { "second info msg" }
+    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").debug { "second debug msg" }
+ */
 }

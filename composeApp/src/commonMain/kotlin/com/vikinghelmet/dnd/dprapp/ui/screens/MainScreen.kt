@@ -16,6 +16,7 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.*
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
@@ -29,6 +30,9 @@ import kotlinx.coroutines.launch
 //@Preview
 fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 {
+    var numTargets by remember { mutableStateOf(1) }
+    var targetRadius by remember { mutableStateOf(5) }
+
     var currentProgress by remember { mutableFloatStateOf(0f) }
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope() // Create a coroutine scope
@@ -58,12 +62,13 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
             Column() {
-                CharacterMenu("Select Character", dprFiles.getEditableCharacterList(),
+                CharacterMenu(
+                    "Select Character", dprFiles.getEditableCharacterList(),
                     characterTextFieldState, true, {},
                     { selectedOption ->
-                    viewModel.setMainCharacter (dprFiles.getEditableCharacter(selectedOption))
-                    println("from menu selection, set main character = ${ viewModel.getMainCharacter()!!.getName() }")
-                })
+                        viewModel.setMainCharacter(dprFiles.getEditableCharacter(selectedOption))
+                        println("from menu selection, set main character = ${viewModel.getMainCharacter()!!.getName()}")
+                    })
 
                 Row(modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)) {
                     Text(text = "Level", modifier = Modifier.padding(end = 10.dp))
@@ -79,7 +84,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                     monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.name ?: "")
                 }
 
-                Row(modifier = Modifier.padding(top = 20.dp, bottom= 10.dp)) {
+                Row(modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)) {
                     Text(text = "Proximity", modifier = Modifier.padding(end = 10.dp))
 
                     val options =
@@ -87,7 +92,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                             Pair("$it", Color.Black)
                         }
 
-                    BasicTextMenu("${ viewModel.getProximity() }", options, 40.dp, 90.dp) { newValue ->
+                    BasicTextMenu("${viewModel.getProximity()}", options, 40.dp, 90.dp) { newValue ->
                         println("new proximity: $newValue")
                         viewModel.setProximity(newValue.toInt())
                     }
@@ -99,6 +104,27 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                     NumericMenu(viewModel.getNumberOfTurns(), { turnCount ->
                         viewModel.getNumberOfTurns().current = turnCount
                         outputText = ""
+                    })
+                }
+
+                Row(modifier = Modifier.padding(bottom = 10.dp)) {
+                    Text(text = "Radius", modifier = Modifier.padding(end = 30.dp))
+/*
+                    NumericMenu(NumericRange(5, 20, 5), { newNumTargets ->
+                        numTargets = newNumTargets
+                    }) */
+
+                    val radiusOptions = listOf("5","10","15","20").map { Pair(it, Color.Black )}
+                    BasicTextMenu("${targetRadius}", radiusOptions, 40.dp, 90.dp) { newValue ->
+                        targetRadius = newValue.toInt()
+                        println("new radius: $targetRadius")
+                    }
+
+                    Text(text = "Targets", modifier = Modifier.padding(start = 20.dp, end = 10.dp))
+
+                    NumericMenu(NumericRange(1, 10, numTargets), { newNumTargets ->
+                        numTargets = newNumTargets
+                        println("new numTargets: $numTargets")
                     })
                 }
             }
@@ -140,7 +166,8 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                                 outputText = "Building scenario list ...\n"
                                 delay(1)
 
-                                builder.build(proximityInt, viewModel.getNumberOfTurns().current)
+                                builder.build(proximityInt, viewModel.getNumberOfTurns().current, numTargets, targetRadius)
+
                                 outputText += "Number of turn options = ${ builder.turnOptions.size }\n"
                                 outputText += "Number of scenarios = ${ builder.scenarioList.size }\n"
                                 delay(1)

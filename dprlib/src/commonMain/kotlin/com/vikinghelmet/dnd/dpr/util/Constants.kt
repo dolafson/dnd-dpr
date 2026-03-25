@@ -4,6 +4,9 @@ object Constants {
     var NUM_TURNS_PER_SCENARIO = 5
     var SCENARIO_OUTPUT_MAX = 30
 
+    var DEFAULT_NUM_TARGETS = 1
+    var DEFAULT_TARGET_RADIUS = 5
+
     val SPELL_LEVELS = 1..9
     val CHARACTER_LEVELS = 1..20
 
@@ -103,8 +106,4 @@ object Constants {
     19 to 6,
     20 to 6,
     )
-
-    override fun toString(): String { 
-        return "NEW STUFF: NUM_TURNS_PER_SCENARIO = $NUM_TURNS_PER_SCENARIO, SCENARIO_OUTPUT_MAX=$SCENARIO_OUTPUT_MAX"
-    }
 }

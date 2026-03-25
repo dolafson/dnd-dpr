@@ -7,16 +7,18 @@ import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Turn
+import dev.shivathapaa.logger.api.LogLevel
+import dev.shivathapaa.logger.api.LoggerFactory
+import dev.shivathapaa.logger.core.LoggerConfig
+import dev.shivathapaa.logger.formatters.LogFormatters
+import dev.shivathapaa.logger.sink.DefaultLogSink
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.math.round
 
 object Globals {
-    var debug = false
     val spells = ArrayList<Spell>()
     val monsters = ArrayList<Monster>()
-
-    fun debug(str: String) { if (debug) println("# "+str) }
 
     @Serializable
     data class FeatureSet(
@@ -141,5 +143,31 @@ object Globals {
 
     fun addWStoCamelCase(input: String): String {
         return input.replace(Regex("(?<!^)([A-Z])"), " $1")
+    }
+
+    // logging ...
+    fun debug(str: String) {
+        LoggerFactory.get(Globals::class.simpleName ?: "no simpleName").debug{str}
+    }
+
+    fun initLogger(level: LogLevel) {
+        // notes:
+        //      ConsoleSink writes to /dev/stdout
+        //      DefaultLogSink writes to /dev/stderr
+        val config = LoggerConfig.Builder()
+            .minLevel(level)
+            //.minLevel(LogLevel.VERBOSE)
+            //.override("MyApp", level)
+            .addSink(
+                DefaultLogSink(
+                    logFormatter = LogFormatters.compact(showEmoji = false)
+                    //logFormatter = LogFormatters.default(false)
+                    //logFormatter = LogFormatters.pretty(false)
+                    //logFormatter = LogFormatters.json(false)
+                )
+            )  // Choose predefined sink or create custom
+            .build()
+
+        LoggerFactory.install(config)
     }
 }

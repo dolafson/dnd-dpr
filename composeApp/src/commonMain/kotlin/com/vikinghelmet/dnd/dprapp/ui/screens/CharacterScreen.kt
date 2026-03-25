@@ -15,12 +15,15 @@ import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.data.Loader.addEditableCharacter
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
+import dev.shivathapaa.logger.api.LogLevel
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
@@ -33,6 +36,8 @@ fun isUrlOrID(str: String): Boolean {
 @Composable
 fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostController)
 {
+    val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.screens.CharacterScreen")
+
     var viewCharacter: EditableCharacter? = viewModel.getCurrentCharacter()
     // val focusManager = LocalFocusManager.current
 
@@ -91,7 +96,14 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
     }
 
     fun addCharacter(addText: String) {
-        if (addText == "party") {
+        if (addText == "debug") {
+            println("attempting to set debug logging")
+            Globals.initLogger(LogLevel.DEBUG)
+            logger.info { "debug logging enabled" }
+            textFieldState.setTextAndPlaceCursorAtEnd("")
+            return
+        }
+        else if (addText == "party") {
             scope.launch { addPartyBackground() }
             reset(viewModel, textFieldState)
         }

@@ -5,9 +5,9 @@ import com.vikinghelmet.dnd.dpr.character.feats.FeatWithDuration
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
-import com.vikinghelmet.dnd.dpr.turn.DamagePerRound
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
@@ -50,7 +50,7 @@ class ScenarioCalculator(
         val spell = if (attack.action is Spell) attack.action else null
         attack.preconditions = effectManager.getPreconditions(attack, spell)
 
-        val dpr = DamagePerRound(scenario.character, effectManager)
+        val dpr = ActionCalculator(scenario, effectManager)
 
         if (attack.action is Weapon) {
             val attackResult = dpr.getMeleeOrRangeDPR (attack.action, attack)
@@ -77,7 +77,7 @@ class ScenarioCalculator(
 
         for (spellAttack in spell.getSpellAttacks()) {
             // if there is nothing special going on, simply process the spell and collect its results
-            if (effectManager.runningEffectList.isEmpty() || spellAttack.maxNumberOfTargets!! <= 1) {
+            if (effectManager.runningEffectList.isEmpty() || spellAttack.getNumTargetsAffected(scenario) <= 1) {
                 resultList.add (processSpellAttack (dpr, spellAttack, spell, attack, turnId, actionId, effectCount++))
                 continue
             }
@@ -85,9 +85,7 @@ class ScenarioCalculator(
             // this weird bit of logic is needed for AreaOfEffect spells, which hit multiple targets
             // one of the targets may have a save penalty, while others may not
             // to handle that, break them apart into separate spellAttacks, with varying conditions ...
-            val copyMinusOne = SpellAttack(spellAttack.attackPayload, spellAttack.damagePayload, spellAttack.maxNumberOfTargets!!-1)
-
-            spellAttack.maxNumberOfTargets = 1
+            val copyMinusOne = SpellAttack(spellAttack, scenario)
             resultList.add (processSpellAttack (dpr, spellAttack, spell, attack, turnId, actionId, effectCount++))
             resultList.add (processSpellAttack (dpr, copyMinusOne, spell, attack, turnId, actionId, effectCount++))
         }
@@ -101,7 +99,7 @@ class ScenarioCalculator(
     }
 
     private fun processSpellAttack(
-        dpr: DamagePerRound,
+        dpr: ActionCalculator,
         spellAttack: SpellAttack,
         spell: Spell,
         attack: Attack,

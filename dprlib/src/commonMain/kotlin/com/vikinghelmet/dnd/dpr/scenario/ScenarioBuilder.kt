@@ -9,18 +9,25 @@ import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.time.measureTime
 
-class ScenarioBuilder(val character: Character, val monster: Monster, val actionsAvailable: ActionsAvailable) {
+class ScenarioBuilder(
+    val character: Character,
+    val monster: Monster,
+    val actionsAvailable: ActionsAvailable
+) {
+    val logger = LoggerFactory.get(ScenarioBuilder::class.simpleName ?: "no simpleName")
+
     var turnOptions: MutableList<Turn> = mutableListOf()
     var scenarioList = ArrayList<Scenario>()
     var resultList: MutableList<ScenarioResult> = mutableListOf()
     var runIterator: Iterator<Scenario> = scenarioList.iterator()
 
-    constructor(character: Character, monster: Monster): this(character,monster,character.getActionsAvailable()) {
+    constructor(character: Character, monster: Monster) : this(character,monster,character.getActionsAvailable()) {
 
     }
-    fun build(targetProximity: Int, numberOfTurns: Int) {
+    fun build(targetProximity: Int, numberOfTurns: Int, numTargets: Int, targetRadius: Int) {
         turnOptions.clear()
         scenarioList.clear()
         resultList.clear()
@@ -32,7 +39,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
             buildScenarios(
                 numberOfTurns,
                 turnOptions,
-                Scenario(character, emptyList()),
+                Scenario(character, emptyList(), numTargets, targetRadius),
                 scenarioList
             )
         })
@@ -132,7 +139,7 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
         if (spell.properties.Concentration == "Yes") {
             // check spells across all turns in current scenario to determine if any of them might still be running
             for (priorSpell in currentScenario.getSpellsAcrossTurns()) {
-                if ((priorSpell.getDuration() ?: 0) > Constants.NUM_TURNS_PER_SCENARIO) {
+                if ((priorSpell.getDuration() ?: 0) > currentScenario.turns.size) {
                     Globals.debug("prior spell still running, new spell requires concentration, so skip it; prior = $priorSpell; skip = $spell")
                     return false
                 }
@@ -173,22 +180,9 @@ class ScenarioBuilder(val character: Character, val monster: Monster, val action
             scenarioList.add(currentScenario)
             return
         }
-/*
-        val lastSpell = currentScenario.getSpellsAcrossTurns().lastOrNull()
-        if (lastSpell != null) {
-            val turnLabels = turnOptions.map { t -> t.attacks.map { a -> a.action.toString() } }
-            Globals.debug("lastSpell = $lastSpell, turnOptions = " + turnLabels)
-        }
-*/
-        for (turn in turnOptions) {
-/*
-            if (lastSpell != null) {
-                val turnLabels = turn.attacks.map { a -> a.action.toString() }
-                Globals.debug("lastSpell = $lastSpell, turn = " + turnLabels)
-            }
-*/
-            val nextScenario = addTurnToScenarioIfValid(turn, currentScenario) ?: continue // if this one didn't work, try the next option
 
+        for (turn in turnOptions) {
+            val nextScenario = addTurnToScenarioIfValid(turn, currentScenario) ?: continue // if this one didn't work, try the next option
             buildScenarios(rounds - 1, turnOptions, nextScenario, scenarioList) // note: recursion
         }
     }
