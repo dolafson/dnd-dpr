@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
+import com.vikinghelmet.dnd.dpr.character.spells.SpellsChanged2024
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Turn
@@ -105,8 +106,21 @@ object Globals {
     }
 
     fun getSpell(name: String, is2014: Boolean): Spell { //  character!!.is2014()
-        for (spell in spells) {
-            if (spell.name == name && (spell.isSameIn2014And2024() || (is2014 == spell.is2014()))) return spell
+        val matches = spells.filter { it.name == name }
+
+        if (!matches.isEmpty()) {
+            val spellChanged = SpellsChanged2024.entries.filter { it.getNameWithWS() == name }.isNotEmpty()
+            val spellIn2024 = matches.firstOrNull { !it.is2014() }
+
+            if (!spellChanged && (spellIn2024 != null)) {
+                return spellIn2024
+            }
+
+            for (spell in matches) {
+                if (spell.isASingleRecordFor2014And2024() || (is2014 == spell.is2014())) {
+                    return spell
+                }
+            }
         }
         throw IllegalArgumentException("spell not found: "+name)
     }
@@ -114,10 +128,22 @@ object Globals {
     fun getSpellOrNull(name: String, is2014: Boolean): Spell? = try { getSpell(name, is2014) } catch (e: Exception) { null }
 
     fun getSpellsForClass(className: String, is2014: Boolean): List<Spell> {
-        return spells.filter { spell ->
-            (spell.properties.Classes ?: "").contains(className) &&
-                (spell.isSameIn2014And2024() || (is2014 == spell.is2014()))
-        }
+        // make multiple passes thru the spell list
+        // this is less efficient, but easier to handle the SpellsChanged2024 logic
+        // TODO: optimize
+        return spells.filter {
+                spell -> (spell.properties.Classes ?: "").contains(className)
+            }
+            .map { it.name }
+            .distinct()
+            .mapNotNull { name ->
+                try { getSpell(name, is2014) } catch (e: Exception) {
+                    LoggerFactory.get(Globals::class.simpleName ?: "").error{
+                        "getSpellsForClass: spell not found: $name"
+                    }
+                    null
+                }
+            }.toList()
     }
 
     fun getMonster(name: String): Monster {

@@ -39,6 +39,8 @@ class PlanViewLevel(
         c.getLevelsForFightingStyle().contains(level),
         c.getSubclassLevel() == level
     ) {
+        val spellsForClass = c.getSpellsForClass()
+
         // the rest of this constructor is all about building spellsToAdd,
         // a combination of available spell slots, interleaved with planned spells
         val spellsToAdd = mutableListOf<PlanViewSpell>()
@@ -61,7 +63,7 @@ class PlanViewLevel(
             val iter = mapOfSpellLevelToSpellsChosen[spellLevel]!!
             val spell = if (iter.hasNext()) iter.next() else null
 
-            val options = c.getSpellsForClass().filter { it.properties.Level == spellLevel }.map { it.name }
+            val options = spellsForClass.filter { it.properties.Level == spellLevel }.map { it.name }
 
             spellsToAdd.add(
                 PlanViewSpell(spellLevel, spell?.name ?: "", options.map { it -> Pair(it, Color.Black) }.toList())
@@ -71,7 +73,7 @@ class PlanViewLevel(
         // check for any unassigned spells ... ugh
         // somehow the character is able to prepare more spells than the slot table allows
         for (spellLevel in Constants.SPELL_LEVELS) {
-            val options = c.getSpellsForClass().filter { it.properties.Level == spellLevel }.map { it.name }
+            val options = spellsForClass.filter { it.properties.Level == spellLevel }.map { it.name }
 
             val iterator = mapOfSpellLevelToSpellsChosen[spellLevel]!!
             while (iterator.hasNext()) {

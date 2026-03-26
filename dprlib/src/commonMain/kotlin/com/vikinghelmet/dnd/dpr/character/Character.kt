@@ -19,6 +19,8 @@ import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LoggerFactory
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -34,6 +36,8 @@ open class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
+    @Contextual val logger = LoggerFactory.get(Character::class.simpleName ?: "")
+
     var alwaysPrepared: List<PreparedSpellRemote> = mutableListOf()
 
     open fun getAlwaysPreparedSpells(): List<PreparedSpellRemote> = alwaysPrepared
@@ -226,7 +230,8 @@ open class Character(
 
                 val nickname = getWeaponNicknameMap().get(""+item.id)
 
-                list.add(Weapon (def.name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange, nickname))
+                val name = def.name.replace(",.*".toRegex(),"")
+                list.add(Weapon (name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange, nickname))
             }
         }
         return list
@@ -240,7 +245,11 @@ open class Character(
     // ----------------------------------------------------------------------------------------
     // SPELLS
 
-    private fun transformSpellList(input: List<PreparedSpellRemote>): List<PreparedSpell> {
+    private fun transformSpellList(origin: String, input: List<PreparedSpellRemote>): List<PreparedSpell>
+    {
+        val originNameList = input.map { it.definition.name }
+        logger.debug { "transformSpellList($origin), before transform = ${ originNameList  }" }
+
         val result = mutableListOf<PreparedSpell>()
         for (psRemote in input) {
             try {
@@ -256,11 +265,13 @@ open class Character(
 
     open fun getPreparedSpells(): List<PreparedSpell> {
         val result = mutableListOf<PreparedSpell>()
-        for (classSpellList in characterData.classSpells!!)  result.addAll (transformSpellList (classSpellList.spells))
-        result.addAll (transformSpellList (characterData.spells.classSpells))
-        result.addAll (transformSpellList (characterData.spells.raceSpells))
-        result.addAll (transformSpellList (characterData.spells.featSpells))
-        result.addAll (transformSpellList (getAlwaysPreparedSpells()))
+        for (classSpellList in characterData.classSpells!!) {
+            result.addAll (transformSpellList ("topClass", classSpellList.spells))
+        }
+        result.addAll (transformSpellList ("class", characterData.spells.classSpells))
+        result.addAll (transformSpellList ("race", characterData.spells.raceSpells))
+        result.addAll (transformSpellList ("feat", characterData.spells.featSpells))
+        result.addAll (transformSpellList ("always", getAlwaysPreparedSpells()))
         return result
     }
 
@@ -381,6 +392,7 @@ open class Character(
         }
 
         for (spell in getPreparedAttackSpells()) {
+            logger.debug { "getActionsAvailable, spell = $spell" }
             actionsAvailable.add(spell.getRange(), spell)
         }
         return actionsAvailable

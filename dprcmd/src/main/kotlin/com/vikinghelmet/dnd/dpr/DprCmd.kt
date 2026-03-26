@@ -199,6 +199,8 @@ OFF	6	Disables all logging
                                 attackList.add (Attack (monster, character!!.getWeapon(attackName)))
                             }
                             catch (e: Exception) {
+                                val spell = Globals.getSpell(attackName, character!!.is2014())
+                                logger.debug { "spell = ${spell.fullString()}" }
                                 attackList.add (Attack (monster, Globals.getSpell(attackName, character!!.is2014())))
                             }
                         }
@@ -331,8 +333,12 @@ OFF	6	Disables all logging
         println("no character data")
     }
     else if (turns.isNotEmpty()) {
+        val attackNames = turns.map { it.attacks.map { it.action.toString() }}
+        logger.debug { "attackNames = $attackNames" }
+
         val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
+        logger.debug { "scenario = ${ scenarioResult.attackResults }" }
         println (scenarioResult.output())
     }
 

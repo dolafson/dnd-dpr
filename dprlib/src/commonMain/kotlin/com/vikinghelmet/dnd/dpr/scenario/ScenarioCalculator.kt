@@ -93,8 +93,11 @@ class ScenarioCalculator(
 
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
+        Globals.debug("spell = ${spell.fullString()}")
 
         for (spellAttack in spell.getSpellAttacks()) {
+            Globals.debug("spell = ${spell.name}, spellAttack = $spellAttack")
+
             // if there is nothing special going on, simply process the spell and collect its results
             if (effectManager.runningEffectList.isEmpty() || spellAttack.getNumTargetsAffected(scenario) <= 1) {
                 resultList.add (processSpellAttack (dpr, spellAttack, spell, attack, turnId, actionId, effectCount++))

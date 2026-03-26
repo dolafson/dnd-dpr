@@ -36,6 +36,10 @@ open class Spell(
         return name
     }
 
+    fun fullString(): String {
+        return "book=$book, publisher=$publisher, name=$name, properties=$properties"
+    }
+
     fun is2014(): Boolean {
         return book.endsWith("(2014)")
     }
@@ -83,7 +87,7 @@ open class Spell(
         return properties.dataRangeNum ?: 0
     }
 
-    fun isSameIn2014And2024(): Boolean {
+    fun isASingleRecordFor2014And2024(): Boolean {
         return book.endsWith("(2014 and 2024)")
     }
 
