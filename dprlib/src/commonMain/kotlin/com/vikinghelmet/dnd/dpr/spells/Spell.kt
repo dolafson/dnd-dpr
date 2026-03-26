@@ -10,7 +10,9 @@ import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 // https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
 
@@ -31,6 +33,8 @@ open class Spell(
     val publisher: String
 ) : AttackAction, EffectWithDuration {
     // override fun getActionName(): String { return name }
+
+    @Transient private val logger = LoggerFactory.get(Spell::class.simpleName ?: "")
 
     override fun toString(): String {
         return name
@@ -126,6 +130,13 @@ open class Spell(
                         break
                     }
                 }
+
+                // 2014 spells: damage is stored differently
+                if (damagePayload == null) {
+                    logger.debug { "spell name=$name properties.Damage = ${properties.Damage}" }
+                    damagePayload = Damage(DiceBlockHelper.get(properties.Damage))
+                }
+
                 attackList.add(SpellAttack(d.payload, damagePayload))
             }
         }

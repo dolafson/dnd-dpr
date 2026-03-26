@@ -45,46 +45,27 @@ data class AttackResult(
 
 
     fun getValue(field: AttackResultField): Any {
-        // first check for fields that vary for weapon VS spell attack
-        if (listOf(weaponDamageDice,weaponDamageBonus,weaponAttackBonus,
-                spellSaveAbility,targetSaveBonus).contains(field))
-        {
-            if (this.attack.action is Weapon) {
-                val weapon = this.attack.action as Weapon
-                val damageBonus = character.getDamageBonus(weapon, this.attack.isBonusAction ?: false)
-                return when (field) {
-                    weaponDamageDice -> weapon.damage!!
-                    weaponDamageBonus -> damageBonus
-                    weaponAttackBonus -> character.getAttackBonus(weapon)
-                    spellSaveAbility -> ""
-                    targetSaveBonus -> ""
-                    else -> {}
-                }
-            }
+        val meleeOrRangeAction: MeleeOrRangeAction =
+            if (this.attack.action is Weapon) { this.attack.action as Weapon } else spellAttack!!
 
-            val ability = spellAttack!!.getSaveAbility()
-            val bonus = if (ability.isEmpty()) "" else this.attack.monster.properties.getMod(ability)
-
-            return when (field) {
-                weaponDamageDice -> ""
-                weaponDamageBonus -> ""
-                weaponAttackBonus -> ""
-                spellSaveAbility -> ability
-                targetSaveBonus -> bonus
-                else -> {}
-            }
-        }
+        val saveAbility = if (this.attack.action is Weapon) "" else spellAttack!!.getSaveAbility()
 
         val selection = this.getAvgMinMaxSelection()
 
         return when (field) {
             level           -> character.getLevel()
             characterName   -> character.getName()
-            spellBonusToHit -> character.getSpellBonusToHit()
             spellSaveDC     -> character.getSpellSaveDC()
 
             monsterName -> this.attack.monster.name
             monsterAC   -> this.attack.monster.properties.dataAcNum
+
+            damageDice  -> meleeOrRangeAction.getDamageDice()
+            damageBonus -> meleeOrRangeAction.getBonusDamage(character, this.attack.isBonusAction ?: false)
+            attackBonus -> meleeOrRangeAction.getBonusToHit(character, this.attack.isBonusAction ?: false)
+
+            spellSaveAbility -> saveAbility
+            targetSaveBonus  -> if (saveAbility.isEmpty()) "" else this.attack.monster.properties.getMod(saveAbility)
 
             turn        -> this.turnId
             action      -> if (this.attack.isBonusAction == true) "BA" else ""+this.actionId

@@ -20,10 +20,10 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
@@ -36,7 +36,7 @@ open class Character(
     val message: String? = null,
     val success: Boolean? = null
 ) {
-    @Contextual val logger = LoggerFactory.get(Character::class.simpleName ?: "")
+    @Transient private val logger = LoggerFactory.get(Character::class.simpleName ?: "")
 
     var alwaysPrepared: List<PreparedSpellRemote> = mutableListOf()
 

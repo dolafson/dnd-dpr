@@ -27,6 +27,16 @@ object DiceBlockHelper {
 @Serializable
 data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d12: Int)
 {
+    override fun toString(): String {
+        val buf = StringBuilder()
+        if (d4 != 0) buf.append("${d4}d4")
+        if (d6 != 0) buf.append("${d6}d6")
+        if (d8 != 0) buf.append("${d8}d8")
+        if (d10 != 0) buf.append("${d10}d10")
+        if (d12 != 0) buf.append("${d12}d12")
+        return buf.toString()
+    }
+
     operator fun get(i: Int): Int {
         return when(i) {
             0 -> d4

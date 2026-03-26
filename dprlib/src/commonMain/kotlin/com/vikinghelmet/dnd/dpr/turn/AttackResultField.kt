@@ -7,9 +7,9 @@ enum class AttackResultField(val constantAcrossTurns: Boolean = false)
 
     turn,action,effect,attack,fullEffectDamage,scenario,
 
-    spellBonusToHit(true),spellSaveDC(true),monsterName(true),monsterAC(true),
-    weaponDamageDice,weaponDamageBonus,weaponAttackBonus,
-    spellSaveAbility,targetSaveBonus,startCondition,
+    monsterName(true),monsterAC(true),
+    damageDice,damageBonus,attackBonus,
+    spellSaveDC(true),spellSaveAbility,targetSaveBonus,startCondition,
     numTargets,chanceToHit,damagePerHit,duration,
     ;
 }
