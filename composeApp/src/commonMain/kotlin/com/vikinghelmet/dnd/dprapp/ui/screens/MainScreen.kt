@@ -19,15 +19,12 @@ import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.NumericRange
-import com.vikinghelmet.dnd.dprapp.DprViewModel
-import com.vikinghelmet.dnd.dprapp.ViewType
-import com.vikinghelmet.dnd.dprapp.isTinyCpu
+import com.vikinghelmet.dnd.dprapp.*
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import dev.shivathapaa.logger.api.Log
-import dpr.composeapp.generated.resources.Res
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -235,47 +232,42 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             )
         }
 
-        // export button does not yet work on ios ...
-        if (viewModel.getScenarioBuilder() != null)
+        // export button behavior is different on mobile vs desktop
+        val csvUploadUrl = Secrets.getCsvUploadUrl()
+
+        if (viewModel.getScenarioBuilder() != null && (isShareCsvSupported() || csvUploadUrl != null))
         {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
 
                 Button(
-                    //modifier = Modifier.padding(start = 20.dp, top = 10.dp),
                     onClick = {
                         AttackResultFormatter.isCSV = true
 
                         val scenarioBuilder = viewModel.getScenarioBuilder()!!
-                        val buf = StringBuilder()
+                        val fileContent = StringBuilder()
                         for (result in scenarioBuilder.topResults(Constants.SCENARIO_OUTPUT_MAX)) {
-                            buf.append(result.output()).append("\n")
+                            fileContent.append(result.output()).append("\n")
                         }
 
-                        dprFiles.saveAttackCSV(buf.toString())
-/*
+                        // TODO: remove ...
+                        // we don't really need to write the CSV to the dpr directory (for desktop or mobile)
+                        // dprFiles.saveAttackCSV (fileContent.toString())
+
                         if (isShareCsvSupported()) {
-                            shareCsv("attack.csv", buf.toString())
-                        } else {
-
+                            shareCsv("attack.csv", fileContent.toString())
                         }
- */
-                        var csvDownloadUrl: String? = null
+                        else {
+                            var csvDownloadUrl: String? = null
 
-                        runBlocking {
-                            val props = getProperties("files/secret.properties")
-                            val csvUploadUrl = props["csvUploadUrl"]
-                            println("csvUploadUrl = $csvUploadUrl")
-
-                            if (csvUploadUrl != null) {
-                                csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl, buf.toString())
+                            if (csvUploadUrl != null) runBlocking {
+                                println("csvUploadUrl = $csvUploadUrl")
+                                csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl, fileContent.toString())
                                 println("csvDownloadUrl = $csvDownloadUrl")
-                                //val fetch = CharacterAPI.getRequest(csvDownloadUrl)
-                                //println("csvDownload, fetched data size= ${fetch.length}")
                             }
-                        }
 
-                        if (csvDownloadUrl != null) {
-                            uriHandler.openUri(csvDownloadUrl.trim())
+                            if (csvDownloadUrl != null) {
+                                uriHandler.openUri(csvDownloadUrl.trim())
+                            }
                         }
                     }
                 ) { Text("Export") }
@@ -296,13 +288,4 @@ suspend fun loadProgress(updateProgress: (Float) -> Unit) {
         updateProgress(i.toFloat() / 100)
         delay(100)
     }
-}
-
-suspend fun getProperties(filename: String): Map<String, String> {
-    val content = Res.readBytes(filename).decodeToString()
-    return content.lines().filter { it.isNotBlank() }
-        .associate { line ->
-            val (key, value) = line.split("=")
-            key to value
-        }
 }

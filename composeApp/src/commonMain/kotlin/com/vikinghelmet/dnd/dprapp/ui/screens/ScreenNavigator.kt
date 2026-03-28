@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.vikinghelmet.dnd.dpr.util.DprFiles
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.DprViewModel
+import com.vikinghelmet.dnd.dprapp.Secrets
 import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.getDocumentsDirPath
@@ -40,6 +41,10 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             Globals.addSpells(Res.readBytes(filename).decodeToString())
         }
         Globals.addMonsters(Res.readBytes("files/monsters.json").decodeToString())
+
+        try { // it's ok if this file is missing ...
+            Secrets.setProperties(Res.readBytes("files/secret.properties").decodeToString())
+        } catch (e: Exception) {}
 
         dprFiles.init()
         try {
