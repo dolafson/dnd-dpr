@@ -95,4 +95,10 @@ tasks {
     }
 }
 
-
+tasks.named<Delete>("clean") {
+    // currently all json resources originate from shared folder, we don't need to keep them in src/main/resources/
+    // however, we do need to keep logging.properties ...
+    delete(fileTree("src/main/resources") {
+        include("*.json")
+    })
+}

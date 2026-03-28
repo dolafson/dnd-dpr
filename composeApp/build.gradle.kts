@@ -180,3 +180,11 @@ tasks.configureEach {
     }
 }
 
+tasks.named<Delete>("clean") {
+    // currently all resources originate from shared folder, we don't need to keep anything under .../composeResources/files
+    delete(fileTree("src/commonMain/composeResources/files"))
+
+//    delete(fileTree("src/commonMain/composeResources/files") {
+//        include("**/spells.json")
+//    })
+}
