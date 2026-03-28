@@ -32,7 +32,7 @@ open class Spell(
     val properties: Properties,
     val publisher: String
 ) : AttackAction, EffectWithDuration {
-    // override fun getActionName(): String { return name }
+    override fun getActionName(): String { return name }
 
     @Transient private val logger = LoggerFactory.get(Spell::class.simpleName ?: "")
 

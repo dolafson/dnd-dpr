@@ -161,9 +161,14 @@ In no particular order ...
 
 - roughly 20% of spells are missing
   - these should be manually added to the resource file **extra.spells.json** 
-- some weapons - Dagger, HandAxe - support both melee and range
-  - currently these weapons are treated as range-only 
+- spell effect propagation is overly optimistic
+  - when a spell causes immediate damage, the result is correctly based on probability
+  - however, for spell effects (eg, Sleep), we currently propagate the effect 100% of the time
+  - the effect manager should 
+    - have a probability assigned to each ongoing effect
+    - if round 1 creates an effect w/ prob = P, round 2 result should be ...
+    - P * (result if effect was present) + (1-P) * (result if effect was NOT present)
 - not yet supported:
-  - weapon mastery: Nick, Vex, Cleave
+  - weapon mastery: Nick, Vex
   - Dragonborn Breath Weapon
   - Extra Attack at Level 5 (fighter, monk, paladin, ranger)

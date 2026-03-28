@@ -53,7 +53,7 @@ class ScenarioBuilder(
 
     fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn> {
 
-        val actionList = actionsAvailable.getList(targetProximity)
+        val actionList = actionsAvailable.getPrimaryAction(targetProximity)
         println("# possibleTurns, actionsAvailable = $actionsAvailable")
         println("# possibleTurns, actionList(prox) = $actionList")
 
@@ -72,23 +72,14 @@ class ScenarioBuilder(
 
             // remainder pertains to weapon attacks
             var turn: Turn? = null
-            //var foundAtLeastOneLightWeaponPair = false
-
-            // note: actionList is already filtered by range, which is good
-            val lightWeapons = actionList.filter { it is Weapon && it.hasWeaponProperty(WeaponProperty.Light) }
-            println("# all light weapons = ${ lightWeapons }")
 
             // light weapon ?  see if you have a 2nd one to use in a BA
-            if (action.hasWeaponProperty(WeaponProperty.Light) && lightWeapons.size > 1)
+            if (action.hasWeaponProperty(WeaponProperty.Light))
             {
-                println("# light weapon 1=$action, hashcode =${action.hashCode()}, all light weapons = ${ lightWeapons }")
+                val lightWeapons = actionsAvailable.getLightWeaponsForBA(targetProximity, action)
+                logger.debug { "light weapon 1=$action, light weapons for BA = ${ lightWeapons }" }
 
                 for (w2 in lightWeapons) {
-                    if (action.hashCode() == w2.hashCode()) {
-                        continue // the same physical weapon cannot be used for action and BA
-                    }
-                    // println("# light weapon comparison 1=$action:${action.hashCode()}, 2=$w2:${w2.hashCode()}")
-
                     turn = Turn(
                         attacks = listOf(
                             // TODO: use weapon nicnkames ?
@@ -260,10 +251,10 @@ class ScenarioBuilder(
         println()
         println("available map: "+actionsAvailable.mapOfLists)
         println()
-        println("MELEE:  actions       = "+actionsAvailable.getList(Constants.MELEE_RANGE))
+        println("MELEE:  actions       = "+actionsAvailable.getPrimaryAction(Constants.MELEE_RANGE))
         println("MELEE:  bonus actions = "+character.getPreparedBonusActionSpells(Constants.MELEE_RANGE).map { it.name })
         println()
-        println("RANGE:  actions       = "+actionsAvailable.getList(Constants.MELEE_RANGE*2))
+        println("RANGE:  actions       = "+actionsAvailable.getPrimaryAction(Constants.MELEE_RANGE*2))
         println("RANGE:  bonus actions = "+character.getPreparedBonusActionSpells(Constants.MELEE_RANGE*2).map { it.name })
         println()
     }

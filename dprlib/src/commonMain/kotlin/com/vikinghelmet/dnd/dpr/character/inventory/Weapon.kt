@@ -21,6 +21,8 @@ open class Weapon (
     val nickname: String? = null,
 
 ) : MeleeOrRangeAction, AttackAction {
+    override fun getActionName(): String { return name }
+
     override fun getBonusDamage(character: Character, isBonusAction: Boolean): Int {
         return character.getDamageBonus(this, isBonusAction)
     }
