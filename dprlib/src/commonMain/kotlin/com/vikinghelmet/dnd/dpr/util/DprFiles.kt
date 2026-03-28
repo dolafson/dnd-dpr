@@ -52,6 +52,10 @@ class DprFiles(val appDataDir: String)
         write(csv, exportDir +"/attack.csv")
     }
 
+    fun readAttackCSV(): String? {
+        return read(exportDir +"/attack.csv")
+    }
+
     fun getAttackCSVLocalUrl(): String {
         return "file://$appDataDir/${exportDir}/attack.csv"
     }

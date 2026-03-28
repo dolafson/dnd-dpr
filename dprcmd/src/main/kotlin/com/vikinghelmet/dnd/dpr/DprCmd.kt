@@ -29,6 +29,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.InputStream
+import java.util.*
 
 
 class DprCmd {
@@ -80,6 +81,12 @@ fun getResource(fileName: String): String? {
     }
 }
 
+fun getProperties(fileName: String): java.util.Properties {
+    val properties = Properties()
+    val inputStream = object {}.javaClass.getResourceAsStream("/$fileName") ?: return properties
+    inputStream.use { properties.load(it) }
+    return properties
+}
 
 fun showUsage() {
     println("""
@@ -164,6 +171,7 @@ OFF	6	Disables all logging
     }
 
     Globals.addMonsters(getResource("monsters.json") ?: "[]")
+    logger.debug { "monsters loaded from resource = ${monsters.size}" }
 
     // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
     for (i in args.indices) {
@@ -317,6 +325,25 @@ OFF	6	Disables all logging
         else if (arg.startsWith("test:file:read")) {
             val result = dprFiles.read("example.txt")
             println("read result = $result")
+            exitEarly = true
+        }
+        else if (arg.startsWith("test:csvUp")) {
+            val csvContent = dprFiles.readAttackCSV()
+            println("attack csv size = ${ csvContent?.length ?: 0 }")
+            if (csvContent != null) {
+                val props = getProperties("secret.properties")
+                val csvUploadUrl = props["csvUploadUrl"]
+                println("csvUploadUrl = $csvUploadUrl")
+
+                if (csvUploadUrl != null && csvUploadUrl is String) runBlocking {
+                    var csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl,csvContent)
+                    println("csvDownloadUrl = $csvDownloadUrl")
+
+                    val fetch = CharacterAPI.getRequest(csvDownloadUrl)
+                    println("csvDownload, fetched data size= ${fetch.length}")
+                }
+            }
+            //LocalUriHandler
             exitEarly = true
         }
     }

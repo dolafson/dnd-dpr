@@ -65,6 +65,19 @@ application {
 }
 
 tasks {
+    val copySharedResources = register<Copy>("copySharedResources") {
+        // Source: Where your files are currently located
+        from(layout.projectDirectory.dir("../shared/resources"))
+
+        // Destination: The standard composeResources directory for commonMain
+        // Subfolders must follow conventions: drawable, font, values, or files
+        into(layout.projectDirectory.dir("src/main/resources"))
+    }
+
+    processResources {
+        dependsOn(copySharedResources)
+    }
+
     val fatJar = register<Jar>("fatJar") {
         dependsOn.addAll(listOf("compileJava", "compileKotlin", "processResources")) // We need this for Gradle optimization to work
         archiveClassifier.set("standalone") // Naming the jar
@@ -77,7 +90,8 @@ tasks {
         from(contents)
     }
     build {
-        dependsOn(fatJar) // Trigger fat jar creation during build
+        dependsOn(copySharedResources)
+        dependsOn(fatJar)
     }
 }
 

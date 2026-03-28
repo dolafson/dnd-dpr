@@ -10,21 +10,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.NumericRange
-import com.vikinghelmet.dnd.dprapp.*
+import com.vikinghelmet.dnd.dprapp.DprViewModel
+import com.vikinghelmet.dnd.dprapp.ViewType
+import com.vikinghelmet.dnd.dprapp.isTinyCpu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import dev.shivathapaa.logger.api.Log
+import dpr.composeapp.generated.resources.Res
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
 //@Preview
@@ -40,7 +46,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     val characterTextFieldState = rememberTextFieldState()
     val monsterTextFieldState = rememberTextFieldState()
 
-    //al uriHandler = LocalUriHandler.current
+    val uriHandler = LocalUriHandler.current
     //val fileOpener = LocalFileOpener.current
 
     var outputText  by remember { mutableStateOf("") }
@@ -230,7 +236,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         }
 
         // export button does not yet work on ios ...
-        if (isShareCsvSupported() && viewModel.getScenarioBuilder() != null)
+        if (viewModel.getScenarioBuilder() != null)
         {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
 
@@ -246,14 +252,31 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                         }
 
                         dprFiles.saveAttackCSV(buf.toString())
+/*
+                        if (isShareCsvSupported()) {
+                            shareCsv("attack.csv", buf.toString())
+                        } else {
 
-                        //val fileURL = dprFiles.getAttackCSVLocalUrl()  // "file:///path/to/your/file.csv"
+                        }
+ */
+                        var csvDownloadUrl: String? = null
 
-                        //uriHandler.openUri(fileURL)
-                        //fileOpener.openCsvFile(fileURL)
-                        //openCsvFile(fileURL.replace("file://", ""))
+                        runBlocking {
+                            val props = getProperties("files/secret.properties")
+                            val csvUploadUrl = props["csvUploadUrl"]
+                            println("csvUploadUrl = $csvUploadUrl")
 
-                        shareCsv("attack.csv", buf.toString())
+                            if (csvUploadUrl != null) {
+                                csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl, buf.toString())
+                                println("csvDownloadUrl = $csvDownloadUrl")
+                                //val fetch = CharacterAPI.getRequest(csvDownloadUrl)
+                                //println("csvDownload, fetched data size= ${fetch.length}")
+                            }
+                        }
+
+                        if (csvDownloadUrl != null) {
+                            uriHandler.openUri(csvDownloadUrl.trim())
+                        }
                     }
                 ) { Text("Export") }
             }
@@ -275,3 +298,11 @@ suspend fun loadProgress(updateProgress: (Float) -> Unit) {
     }
 }
 
+suspend fun getProperties(filename: String): Map<String, String> {
+    val content = Res.readBytes(filename).decodeToString()
+    return content.lines().filter { it.isNotBlank() }
+        .associate { line ->
+            val (key, value) = line.split("=")
+            key to value
+        }
+}

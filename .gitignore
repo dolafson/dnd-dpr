@@ -19,3 +19,10 @@ out/
 
 # other junk
 example.txt
+
+# ignore this file anywhere it may appear
+**/secret.properties
+
+# shared/resources get copied from shared dir to target-specific dirs during build
+dprcmd/src/main/resources/*.json
+composeApp/src/commonMain/composeResources/files/*.json

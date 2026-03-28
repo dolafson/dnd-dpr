@@ -149,3 +149,34 @@ compose.desktop {
         }
     }
 }
+
+/*
+tasks {
+    val copySecrets = register<Copy>("copySecrets") {
+        from(layout.projectDirectory.file("secret.properties"))
+        into(layout.buildDirectory.dir("generated/secrets"))
+    }
+    build {
+        dependsOn(copySecrets)
+    }
+}
+*/
+
+tasks.register<Copy>("copySharedResources") {
+    // Source: Where your files are currently located
+    from(layout.projectDirectory.dir("../shared/resources"))
+
+    // Destination: The standard composeResources directory for commonMain
+    // Subfolders must follow conventions: drawable, font, values, or files
+    //into(layout.buildDirectory.dir("src/commonMain/composeResources/files"))
+    into(layout.projectDirectory.dir("src/commonMain/composeResources/files"))
+}
+
+tasks.configureEach {
+    // Ensure files are copied BEFORE the resource accessors are generated
+    if (name.startsWith("generateResourceAccessors") || name.startsWith("copyNonXmlValueResourcesForCommonMain") ||
+        name.startsWith("processResources")) {
+        dependsOn("copySharedResources")
+    }
+}
+
