@@ -93,6 +93,11 @@ open class Spell(
     override fun getDuration(): Int? {
         val dur = properties.filterDuration ?: return null
 
+        if (SpellsWithComplexRules.WindWall == SpellsWithComplexRules.fromNameWithWS(name)) {
+            logger.warn { "WindWall, force duration = 1 "} // spell only does instantaneous damage; does nothing after round 1
+            return 1
+        }
+
         when (dur) {
             "Instantaneous" -> return 0
             "Permanent" -> return Int.MAX_VALUE

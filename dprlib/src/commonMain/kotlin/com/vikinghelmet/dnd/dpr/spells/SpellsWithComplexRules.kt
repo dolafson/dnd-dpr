@@ -19,6 +19,7 @@ enum class SpellsWithComplexRules {
     RayOfEnfeeblement,
     ShiningSmite,
     ViciousMockery,
+    WindWall,
     ;
 
     fun getNameWithWS(): String {
