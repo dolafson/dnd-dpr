@@ -18,7 +18,7 @@ package com.vikinghelmet.dnd.dprapp
 import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +37,7 @@ class DprViewModel : ViewModel() {
     fun getCurrentCharacter(): EditableCharacter? = _uiState.value.currentCharacter
     fun getCurrentMonster(): Monster? = _uiState.value.currentMonster
     fun getCharacterLevel(): NumericRange = _uiState.value.characterLevel
-    fun getScenarioBuilder(): ScenarioBuilder? = _uiState.value.scenarioBuilder
+    fun getScenarioResultList(): List<ScenarioResult>? = _uiState.value.scenarioResultList
 
     // ------------------------------------------
     fun isReadyForAttack(): Boolean {
@@ -77,9 +77,9 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setScenarioBuilder(scenarioBuilder: ScenarioBuilder) {
+    fun setScenarioResultList(scenarioResultList: List<ScenarioResult>) {
         _uiState.update { currentState ->
-            currentState.copy(scenarioBuilder = scenarioBuilder)
+            currentState.copy(scenarioResultList = scenarioResultList)
         }
     }
 

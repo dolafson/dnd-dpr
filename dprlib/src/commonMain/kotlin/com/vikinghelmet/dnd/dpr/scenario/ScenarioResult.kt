@@ -41,4 +41,16 @@ data class ScenarioResult(
         buf.append(AttackResultFormatter.footer("", "SCENARIO TOTAL", totalDPR)).append("\n")
         return buf.toString()
     }
+
+    companion object {
+        fun topResults(resultList: List<ScenarioResult>, max: Int): List<ScenarioResult> {
+            // first prioritize totalDPR, and if multiple scenarios have the same total, sort them by highest first round damage
+            if (resultList.size == 0) return resultList
+
+            // NOTE: THERE IS NO ROUND ZERO; START AT ONE
+            return resultList.sortedWith(
+                compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(1) }
+            ).take(kotlin.math.min(max,resultList.size))
+        }
+    }
 }

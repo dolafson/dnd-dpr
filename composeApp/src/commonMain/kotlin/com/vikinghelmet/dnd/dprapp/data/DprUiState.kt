@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dprapp.data
 
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.Serializable
@@ -24,7 +24,7 @@ data class DprUiState(
     var characterLevel: NumericRange = NumericRange(0,0,0),
     var numberOfTurns: NumericRange = NumericRange(1,5,1),
 
-    var scenarioBuilder: ScenarioBuilder? = null,
+    var scenarioResultList: List<ScenarioResult>? = null,
 ) {
     fun getSettings(): DprSettings {
         return DprSettings(

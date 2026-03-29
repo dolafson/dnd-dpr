@@ -7,9 +7,7 @@ import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.*
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.turn.Turn
@@ -86,6 +84,23 @@ fun getProperties(fileName: String): java.util.Properties {
     val inputStream = object {}.javaClass.getResourceAsStream("/$fileName") ?: return properties
     inputStream.use { properties.load(it) }
     return properties
+}
+
+fun showResults(resultList: List<ScenarioResult>) {
+    val buf = StringBuilder()
+
+    ScenarioResult.topResults(resultList, Constants.SCENARIO_OUTPUT_MAX).forEach {
+        buf.append("# ")
+            .append(Globals.getPercent(it.totalDPR))
+            .append(" \t")
+            .append(it.scenario.getLabel())
+            .append("\n")
+    }
+    println(buf.toString())
+
+    for (scenarioResult in resultList) {
+        println(scenarioResult.output())
+    }
 }
 
 fun showUsage() {
@@ -223,13 +238,14 @@ OFF	6	Disables all logging
 
                     fun optionalArg(index: Int, default: Int) = if (index < args.size) args[index].toInt() else default
 
-                    builder.build (args[i+2].toInt(),
+                    val iterator = ScenarioIterator (builder.build (args[i+2].toInt(),
                         optionalArg (i+3, NUM_TURNS_PER_SCENARIO),
                         optionalArg (i+4, DEFAULT_NUM_TARGETS),
-                        optionalArg (i+5, DEFAULT_TARGET_RADIUS))
+                        optionalArg (i+5, DEFAULT_TARGET_RADIUS)))
 
-                    while (builder.hasNext()) { builder.addNext() }
-                    builder.showResults()
+                    val resultList: MutableList<ScenarioResult> = mutableListOf()
+                    iterator.forEach { resultList.add(ScenarioCalculator(it).calculateDPRForAllTurns()) }
+                    showResults(resultList)
                 }
                 else -> println("invalid argument: $arg")
             }

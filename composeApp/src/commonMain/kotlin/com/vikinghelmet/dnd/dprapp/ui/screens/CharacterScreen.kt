@@ -130,16 +130,13 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                     options.add(currentText)
                 }
             }
-            else if (isUrlOrID(currentText)) {
+            else {
                 val addResult = Loader.addEditableCharacter(currentText)
                 if (addResult != null) {
                     options.add(addResult.getName())
                     viewModel.setCurrentCharacter(addResult)
                     textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
                 }
-            }
-            else {
-                logger.warn { "addCharacter, not URL or ID ... how did we get here?" }
             }
 
             viewCharacter = newCharacter

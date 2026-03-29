@@ -20,18 +20,14 @@ class ScenarioBuilder(
 ) {
     val logger = LoggerFactory.get(ScenarioBuilder::class.simpleName ?: "no simpleName")
 
-    var turnOptions: MutableList<Turn> = mutableListOf()
-    var scenarioList = ArrayList<Scenario>()
-    var resultList: MutableList<ScenarioResult> = mutableListOf()
-    var runIterator: Iterator<Scenario> = scenarioList.iterator()
+    var turnOptions: MutableList<Turn> = mutableListOf() // these intermediate results may be displayed to user
 
     constructor(character: Character, monster: Monster) : this(character,monster,character.getActionsAvailable()) {
 
     }
-    fun build(targetProximity: Int, numberOfTurns: Int, numTargets: Int, targetSpacing: Int) {
-        turnOptions.clear()
-        scenarioList.clear()
-        resultList.clear()
+    fun build(targetProximity: Int, numberOfTurns: Int, numTargets: Int, targetSpacing: Int): List<Scenario>
+    {
+        var scenarioList = ArrayList<Scenario>()
 
         logDuration("possibleTurns", { turnOptions.addAll(possibleTurns(actionsAvailable, targetProximity)) })
         println("# num(possibleTurns) = ${turnOptions.size}")
@@ -47,12 +43,11 @@ class ScenarioBuilder(
 
         println("# num(scenarios) = ${scenarioList.size}")
         logDuration("addActionModifiers", { addActionModifiers(scenarioList) })
-
-        runIterator = scenarioList.iterator()
+        return scenarioList
     }
 
-    fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn> {
-
+    fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn>
+    {
         val actionList = actionsAvailable.getPrimaryAction(targetProximity)
         println("# possibleTurns, actionsAvailable = $actionsAvailable")
         println("# possibleTurns, actionList(prox) = $actionList")
@@ -259,52 +254,8 @@ class ScenarioBuilder(
         println()
     }
 
-    fun hasNext(): Boolean {
-        return getPercentComplete() < 100.0f
-    }
-
-    fun addNext() {
-        resultList.add(ScenarioCalculator(runIterator.next()).calculateDPRForAllTurns())
-    }
-
-    fun getPercentComplete(): Float {
-        return if (!runIterator.hasNext()) { 100.0f } else { (resultList.size * 1.0f) / (scenarioList.size * 1.0f) }
-    }
-
-    fun topResults(max: Int): List<ScenarioResult> {
-        // first prioritize totalDPR, and if multiple scenarios have the same total, sort them by highest first round damage
-        logger.info { "resultList.size = ${resultList.size}" }
-        if (resultList.size == 0) return resultList
-
-        // NOTE: THERE IS NO ROUND ZERO; START AT ONE
-        return resultList.sortedWith(
-            compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(1) }
-        ).take(kotlin.math.min(max,resultList.size))
-    }
-
     fun logDuration(label: String, task: () -> Unit) {
         val dur = measureTime { task.invoke() }
         println("# dur($label) = ${dur.inWholeMilliseconds}")
     }
-
-    fun getResultSummary(max: Int): String { // previously, stderr ...
-        val buf = StringBuilder()
-        for (scenarioResult in topResults(max)) {
-            buf.append("# ")
-                .append(Globals.getPercent(scenarioResult.totalDPR))
-                .append(" \t")
-                .append(scenarioResult.scenario.getLabel())
-                .append("\n")
-        }
-        return buf.toString()
-    }
-
-    fun showResults() {
-        println(getResultSummary(Constants.SCENARIO_OUTPUT_MAX))
-
-        for (scenarioResult in resultList) {
-            println(scenarioResult.output())
-        }
-    }
-
 }

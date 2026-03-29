@@ -14,6 +14,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioIterator
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -159,38 +162,46 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                             saveSettings(viewModel)
 
                             val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getMainMonster()!!)
-                            viewModel.setScenarioBuilder(builder)
-
-                            loading = true
-                            currentProgress = 5f
-//                      scope.launch { loadProgress { progress -> currentProgress = progress }; loading = false }
 
                             scope.launch {
                                 outputText = "Building scenario list ...\n"
                                 delay(1)
 
-                                builder.build(proximityInt, viewModel.getNumberOfTurns().current, numTargets, targetSpacing)
+                                val scenarioList = builder.build(proximityInt, viewModel.getNumberOfTurns().current, numTargets, targetSpacing)
 
                                 outputText += "Number of turn options = ${ builder.turnOptions.size }\n"
-                                outputText += "Number of scenarios = ${ builder.scenarioList.size }\n"
+                                outputText += "Number of scenarios = ${ scenarioList.size }\n"
                                 delay(1)
 
-                                while (builder.hasNext()) {
-                                    repeat (if (isTinyCpu()) 50 else 1000) { if (builder.hasNext()) {
-                                        builder.addNext()
-                                        currentProgress = builder.getPercentComplete()
+                                // avoid showing the progress bar for small data sets (avoid UI flicker)
+                                if (scenarioList.size > 100) {
+                                    loading = true
+                                    currentProgress = 5f
+                                }
+
+                                val resultList: MutableList<ScenarioResult> = mutableListOf()
+
+                                val iterator = ScenarioIterator(scenarioList)
+                                while (iterator.hasNext()) {
+                                    repeat (if (isTinyCpu()) 50 else 1000) { if (iterator.hasNext()) {
+                                        val scenario = iterator.next()
+                                        resultList.add (ScenarioCalculator(scenario).calculateDPRForAllTurns())
+                                        currentProgress = iterator.getPercentComplete()
                                     }}
                                     delay(1)
                                     println("currentProgress: $currentProgress")
                                 }
 
-                                val scenarioResult = builder.topResults(1).firstOrNull()
+                                viewModel.setScenarioResultList(resultList)
 
-                                if (scenarioResult != null) {
+                                val topResultList = ScenarioResult.topResults(resultList, 1)
+                                if (topResultList.isNotEmpty()) {
+                                    val topResult = topResultList[0]
+
                                     val buf = StringBuilder("Highest Avg Damage = ")
-                                        .append(Globals.getPercent(scenarioResult.totalDPR)).append("\n").append("\n")
+                                        .append(Globals.getPercent(topResult.totalDPR)).append("\n").append("\n")
 
-                                    for (turn in scenarioResult.scenario.turns) {
+                                    for (turn in topResult.scenario.turns) {
                                         buf.append(turn.attacks.map { it.getLabel() }).append("\n")
                                     }
 
@@ -206,7 +217,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             }
         }
 
-        if (loading && viewModel.getScenarioBuilder()!!.scenarioList.size > 100) {
+        if (loading) {
             Spacer(Modifier.height(20.dp))
 
             LinearProgressIndicator(
@@ -235,23 +246,21 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         // export button behavior is different on mobile vs desktop
         val csvUploadUrl = Secrets.getCsvUploadUrl()
 
-        if (viewModel.getScenarioBuilder() != null && (isShareCsvSupported() || csvUploadUrl != null))
+        if (viewModel.getScenarioResultList() != null &&
+            viewModel.getScenarioResultList()!!.isNotEmpty() &&
+            (isShareCsvSupported() || csvUploadUrl != null))
         {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
 
                 Button(
                     onClick = {
                         AttackResultFormatter.isCSV = true
-
-                        val scenarioBuilder = viewModel.getScenarioBuilder()!!
                         val fileContent = StringBuilder()
-                        for (result in scenarioBuilder.topResults(Constants.SCENARIO_OUTPUT_MAX)) {
-                            fileContent.append(result.output()).append("\n")
-                        }
 
-                        // TODO: remove ...
-                        // we don't really need to write the CSV to the dpr directory (for desktop or mobile)
-                        // dprFiles.saveAttackCSV (fileContent.toString())
+                        ScenarioResult.topResults (viewModel.getScenarioResultList()!!, Constants.SCENARIO_OUTPUT_MAX)
+                            .forEach {
+                                fileContent.append(it.output()).append("\n")
+                            }
 
                         if (isShareCsvSupported()) {
                             shareCsv("attack.csv", fileContent.toString())

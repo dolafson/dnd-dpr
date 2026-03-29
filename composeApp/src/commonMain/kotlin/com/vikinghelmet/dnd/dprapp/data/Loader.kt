@@ -1,11 +1,12 @@
 package com.vikinghelmet.dnd.dprapp.data
 
-import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dprapp.ui.screens.dprFiles
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 
 object Loader {
 
@@ -28,29 +29,40 @@ object Loader {
         // ID appears valid; fetch from remote storage
         try {
             runBlocking {
-                // build a new URL if needed
-                val url = if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) CharacterAPI.getCharacterApiURL(remoteId!!)
-                            else urlOrId
+                var json: String?
+                var baseline: Character?
 
-                val resultPair = CharacterAPI.getRemoteCharacterByUrl(url)
+                if (urlOrId.startsWith("/")) {
+                    json = dprFiles.read(urlOrId, false)
+                    baseline = Json.Default.decodeFromString(json!!)
+                }
+                else {
+                    // build a new URL if needed
+                    val url = if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) {
+                        CharacterAPI.getCharacterApiURL(remoteId!!)
+                    }
+                    else urlOrId
 
-                val json = resultPair.first
-                val baseline: Character = resultPair.second
+                    val resultPair = CharacterAPI.getRemoteCharacterByUrl(url)
+                    json = resultPair.first
+                    baseline = resultPair.second
+                }
 
-                // on a good fetch, update local storage as well as the menu
-                result = EditableCharacter(baseline, EditableFields(baseline))
+                if (baseline != null) {
+                    // on a good fetch, update local storage as well as the menu
+                    result = EditableCharacter(baseline, EditableFields(baseline))
 
-                println("always prepared: baseline = ${ baseline.getAlwaysPreparedSpells() }, editable = ${ result.getAlwaysPreparedSpells() }")
+                    println("always prepared: baseline = ${ baseline.getAlwaysPreparedSpells() }, editable = ${ result.getAlwaysPreparedSpells() }")
 
-                // update remoteId based on parsed data; this will be used as the local filename
-                remoteId = baseline.characterData.id.toString()
+                    // update remoteId based on parsed data; this will be used as the local filename
+                    remoteId = baseline.characterData.id.toString()
 
-                // save raw json (large), so we have local access to ALL remote data, even if we don't know what to do with it yet
-                dprFiles.saveCharacter(json, remoteId)
+                    // save raw json (large), so we have local access to ALL remote data, even if we don't know what to do with it yet
+                    dprFiles.saveCharacter(json, remoteId)
 
-                // also save the (smaller) editable version, this drives the menu display
-                dprFiles.saveEditableCharacter(result.editableFields)
-
+                    // also save the (smaller) editable version, this drives the menu display
+                    dprFiles.saveEditableCharacter(result.editableFields)
+                }
             }
         } catch (e: Exception) {
             println("Error getting character, $e")
