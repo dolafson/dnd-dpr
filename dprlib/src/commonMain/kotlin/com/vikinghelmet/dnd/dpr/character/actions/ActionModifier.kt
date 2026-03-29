@@ -3,6 +3,8 @@ package com.vikinghelmet.dnd.dpr.character.actions
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 enum class ActionModifier {
+
+    BreathWeapon,
     HuntersLore,
     HordeBreaker,
     ColossusSlayer,
@@ -21,6 +23,9 @@ enum class ActionModifier {
     companion object {
         fun fromName(name: String): com.vikinghelmet.dnd.dpr.character.actions.ActionModifier? {
             return entries.firstOrNull { it.getNameWithWS() == name }
+        }
+        fun partialMatch(name: String): com.vikinghelmet.dnd.dpr.character.actions.ActionModifier? {
+            return entries.firstOrNull { name.startsWith(it.getNameWithWS()) }
         }
     }
 }

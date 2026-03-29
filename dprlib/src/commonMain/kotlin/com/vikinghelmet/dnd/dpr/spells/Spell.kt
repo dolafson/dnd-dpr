@@ -16,14 +16,6 @@ import kotlinx.serialization.Transient
 
 // https://github.com/nick-aschenbach/dnd-data/blob/main/data/spells.json
 
-object SpellHelper {
-    fun getSpellNames(list: List<Spell>): MutableList<String> {
-        val result = mutableListOf<String>()
-        for (spell in list) result.add(spell.name)
-        return result
-    }
-}
-
 @Serializable
 open class Spell(
     val book: String,

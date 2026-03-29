@@ -24,7 +24,7 @@ data class Properties(
     // Free Basic Rules (2024)
     val Classes: String? = null,
     val Concentration: String? = null,
-    val Damage: String? = null,
+    var Damage: String? = null,
     val Duration: String? = null,
     @SerialName("Higher Spell Slot Desc") val HigherSpellSlotDesc: String? = null,
     val Material: String? = null,
@@ -39,10 +39,10 @@ data class Properties(
     @SerialName("data-CastNum") val dataCastNum: Int? = null,
     @SerialName("data-DurationNum") val dataDurationNum: Int? = null,
     @SerialName("data-List") val dataList: String? = null,
-    @SerialName("data-RangeNum") val dataRangeNum: Int? = null,
+    @SerialName("data-RangeNum") var dataRangeNum: Int? = null,
     @SerialName("data-description") val dataDescription: String? = null,
 
-    @SerialName("data-datarecords") val dataDatarecords:  List<DataDatarecord>? = null,
+    @SerialName("data-datarecords") var dataDatarecords:  List<DataDatarecord>? = null,
 
     @SerialName("filter-Casting Time") val filterCastingTime: String? = null,
     @SerialName("filter-Components") val filterComponents: String? = null,

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,10 +15,14 @@ import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.text.input.ImeAction
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LogLevel
+import dev.shivathapaa.logger.api.LoggerFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuItemSelected: (Monster?) -> Unit) {
+    val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu")
+
     val options = Globals.monsters.map { it.name }
 
     var expanded by remember { mutableStateOf(false) }
@@ -26,6 +31,25 @@ fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuIte
     // filter options based on text field value
     val filteringOptions =
         options.filter { it.contains(textFieldState.text, ignoreCase = true) }
+
+    fun handleEnterKey() {
+        if (textFieldState.text.toString() == "debug") {
+            println("attempting to set debug logging")
+            Globals.initLogger(LogLevel.DEBUG)
+            logger.info { "debug logging enabled" }
+            textFieldState.setTextAndPlaceCursorAtEnd("")
+        }
+        else {
+            val selection = if (filteringOptions.size == 1) filteringOptions[0]
+            else filteringOptions.firstOrNull { it.equals(textFieldState.text.toString(), ignoreCase = true) }
+
+            println("handleEnterKey, selection = $selection")
+
+            if (selection != null) {
+                onMenuItemSelected(Globals.getMonsterOrNull(selection))
+            }
+        }
+    }
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         TextField(
@@ -45,18 +69,8 @@ fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuIte
                 .onKeyEvent { keyEvent ->
                     expanded = true
 
-                    // for enter key, look for a single selection, or a full-text match (ignoring case)
-                    val selection = if (filteringOptions.size == 1) filteringOptions[0]
-                        else filteringOptions.firstOrNull { it.equals(textFieldState.text.toString(), ignoreCase = true) }
-
-                    // println ("keyEvent, key  = ${keyEvent.key}")
-                    // println ("keyEvent, utf  = ${keyEvent.utf16CodePoint}")
-                    // println ("keyEvent, type = ${keyEvent.type}")
-                    // println ("keyEvent, native = ${keyEvent.nativeKeyEvent}")
-
-                    if (selection != null && (keyEvent.key == Key.Enter || keyEvent.utf16CodePoint == 10)) {
-                        //println ("enterKey: firstOption: $firstOption, currentText: $currentText, filteringOptions: $filteringOptions")
-                        onMenuItemSelected(Globals.getMonsterOrNull(selection))
+                    if (keyEvent.key == Key.Enter || keyEvent.utf16CodePoint == 10) {
+                        handleEnterKey()
                         true // Event handled
                     } else {
                         false // Event propagated
@@ -65,9 +79,7 @@ fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuIte
             // handle Return key for Mobile
             keyboardOptions  = KeyboardOptions( imeAction = ImeAction.Done ),
             onKeyboardAction = {
-                if (filteringOptions.size == 1) {
-                    onMenuItemSelected(Globals.getMonsterOrNull(filteringOptions[0]))
-                }
+                handleEnterKey()
             }
         )
 

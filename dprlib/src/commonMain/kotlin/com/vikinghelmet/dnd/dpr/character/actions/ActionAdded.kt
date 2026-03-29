@@ -7,7 +7,13 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 data class ActionAdded(
     val name: String,
+    val description: String? = null,
     val snippet: String,
+
+    val saveStatId: Int? = null,
+    val saveFailDescription: String? = null,
+    val saveSuccessDescription: String? = null,
+
     val limitedUse: com.vikinghelmet.dnd.dpr.character.actions.LimitedUse? = null,
     val activation: com.vikinghelmet.dnd.dpr.character.actions.Activation? = null,
     val dice: com.vikinghelmet.dnd.dpr.character.actions.Dice? = null,

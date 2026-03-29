@@ -16,7 +16,9 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -272,6 +274,7 @@ open class Character(
         result.addAll (transformSpellList ("race", characterData.spells.raceSpells))
         result.addAll (transformSpellList ("feat", characterData.spells.featSpells))
         result.addAll (transformSpellList ("always", getAlwaysPreparedSpells()))
+        result.addAll (getSpellLikeActionList())
         return result
     }
 
@@ -393,7 +396,13 @@ open class Character(
 
         for (spell in getPreparedAttackSpells()) {
             logger.debug { "getActionsAvailable, spell = $spell" }
+
             actionsAvailable.add(spell.getRange(), spell)
+
+            // BreathWeapon should appear in both melee and range selection
+            if (spell.name.startsWith(ActionModifier.BreathWeapon.getNameWithWS())) {
+                actionsAvailable.add(Constants.MELEE_RANGE, spell)
+            }
         }
         return actionsAvailable
     }
@@ -418,7 +427,37 @@ open class Character(
         return result
     }
 
-    // ----------------------------------------------------------------------------------------
+    private fun getSpellLikeActionList(): List<SpellLikeAction>
+    {
+        val result = mutableListOf<SpellLikeAction>()
+        val actionList = (
+                characterData.actions.race +
+                characterData.actions.feat +
+                characterData.actions.classActions
+            ).filter { a -> !a.name.contains("Circle Spell") }
+
+        for (action in actionList) {
+            try {
+                val mod = ActionModifier.partialMatch(action.name)
+                when (mod) {
+                    ActionModifier.BreathWeapon -> {
+                        val props = Properties("Instantaneous", "Spells", 0, "")
+                        val spellAction = SpellLikeAction(mod, action, props)
+                        logger.debug { "getSpellLikeActionList, spell = $spellAction" }
+                        result.add(spellAction)
+                    }
+                    else -> {}
+                }
+
+            }
+            catch (e: IllegalArgumentException) {
+                Globals.debug("action is unsupported: " + action.name)
+            }
+        }
+        return result
+    }
+
+        // ----------------------------------------------------------------------------------------
     // CLASS INFO
 
     fun getSpellsForClass(): List<Spell> {
