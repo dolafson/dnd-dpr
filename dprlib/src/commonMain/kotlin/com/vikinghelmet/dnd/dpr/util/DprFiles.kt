@@ -85,7 +85,7 @@ class DprFiles(val appDataDir: String)
             baseline.alwaysPrepared = result.getAlwaysPreparedSpells()
         }
 
-        println("on file load, always prepared: baseline = ${ baseline.getAlwaysPreparedSpells() }, editable = ${ result.getAlwaysPreparedSpells() }")
+        //println("on file load, always prepared: baseline = ${ baseline.getAlwaysPreparedSpells() }, editable = ${ result.getAlwaysPreparedSpells() }")
         return result
     }
 

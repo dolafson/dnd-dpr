@@ -13,6 +13,12 @@ data class ScenarioResult(
 ) {
     @Transient private val logger = LoggerFactory.get(Character::class.simpleName ?: "")
 
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is ScenarioResult) return false
+        //return (scenario == other.scenario && totalDPR == other.totalDPR)
+        return (totalDPR == other.totalDPR)
+    }
+
     fun dprAtRound(round: Int):Float {
         return attackResults.firstOrNull { it.turnId == round }?.dpr() ?: 0f
     }
@@ -50,7 +56,14 @@ data class ScenarioResult(
             // NOTE: THERE IS NO ROUND ZERO; START AT ONE
             return resultList.sortedWith(
                 compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(1) }
-            ).take(kotlin.math.min(max,resultList.size))
+            ).distinct().take(kotlin.math.min(max,resultList.size))
         }
+    }
+
+    override fun hashCode(): Int {
+        var result = totalDPR.hashCode()
+//        result = 31 * result + scenario.hashCode()
+//        result = 31 * result + attackResults.hashCode()
+        return result
     }
 }

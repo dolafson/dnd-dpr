@@ -14,6 +14,14 @@ data class Scenario(
     val targetSpacing: Int,
 )
 {
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is Scenario) return false
+        if (this.character != other.character) return false
+        if (this.numTargets != other.numTargets) return false
+        if (this.targetSpacing != other.targetSpacing) return false
+        return turns.size == other.turns.size && turns.containsAll(other.turns) && other.turns.containsAll(turns)
+    }
+
     fun getSpellsAcrossTurns(): List<Spell> {
         val result = ArrayList<Spell>()
         for (turn in turns) for (a in turn.attacks) {

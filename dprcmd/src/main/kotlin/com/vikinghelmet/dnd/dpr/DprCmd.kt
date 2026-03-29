@@ -3,6 +3,7 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
@@ -87,9 +88,12 @@ fun getProperties(fileName: String): java.util.Properties {
 }
 
 fun showResults(resultList: List<ScenarioResult>) {
-    val buf = StringBuilder()
 
-    ScenarioResult.topResults(resultList, Constants.SCENARIO_OUTPUT_MAX).forEach {
+    val sortedResults = ScenarioResult.topResults(resultList, Constants.SCENARIO_OUTPUT_MAX)
+
+    // result summaries, prefixed with "#"
+    val buf = StringBuilder()
+    sortedResults.forEach {
         buf.append("# ")
             .append(Globals.getPercent(it.totalDPR))
             .append(" \t")
@@ -98,9 +102,26 @@ fun showResults(resultList: List<ScenarioResult>) {
     }
     println(buf.toString())
 
-    for (scenarioResult in resultList) {
-        println(scenarioResult.output())
+    // full results
+    sortedResults.forEach {
+        println(it.output())
     }
+}
+
+fun runScenarios(character: Character, args : Array<String>, i: Int): List<ScenarioResult> {
+    val monster = Globals.getMonster(args[i+1])
+    val builder = ScenarioBuilder(character,monster)
+
+    fun optionalArg(index: Int, default: Int) = if (index < args.size) args[index].toInt() else default
+
+    val iterator = ScenarioIterator (builder.build (args[i+2].toInt(),
+        optionalArg (i+3, NUM_TURNS_PER_SCENARIO),
+        optionalArg (i+4, DEFAULT_NUM_TARGETS),
+        optionalArg (i+5, DEFAULT_TARGET_RADIUS)))
+
+    val resultList: MutableList<ScenarioResult> = mutableListOf()
+    iterator.forEach { resultList.add(ScenarioCalculator(it).calculateDPRForAllTurns()) }
+    return resultList
 }
 
 fun showUsage() {
@@ -145,7 +166,12 @@ Attacks:
      -a  <monster> <turn[;turn...] >   one/more turns, each a comma-separated list of spell or weapon name
      
      -z  <monster> <proximityInFeet>  [numTurns (${NUM_TURNS_PER_SCENARIO})]  [numTargets (${DEFAULT_NUM_TARGETS})]  [targetRadius (${DEFAULT_TARGET_RADIUS})]
+
+     -p  <level>  <monster> <proximityInFeet>  [numTurns (${NUM_TURNS_PER_SCENARIO})]  [numTargets (${DEFAULT_NUM_TARGETS})]  [targetRadius (${DEFAULT_TARGET_RADIUS})]
   
+  
+Note: '-a' and '-z' operate on a single character.  The '-p' option iterates over an entire party, from ~/.dpr/character/editable, and calculates results at the specified character level 
+
 """)
 }
 
@@ -233,18 +259,20 @@ OFF	6	Disables all logging
                     break
                 }
                 "-z" -> {
-                    val monster = Globals.getMonster(args[i+1])
-                    val builder = ScenarioBuilder(character!!,monster)
-
-                    fun optionalArg(index: Int, default: Int) = if (index < args.size) args[index].toInt() else default
-
-                    val iterator = ScenarioIterator (builder.build (args[i+2].toInt(),
-                        optionalArg (i+3, NUM_TURNS_PER_SCENARIO),
-                        optionalArg (i+4, DEFAULT_NUM_TARGETS),
-                        optionalArg (i+5, DEFAULT_TARGET_RADIUS)))
-
+                    exitEarly = true
+                    showResults(runScenarios(character!!, args, i))
+                }
+                "-p" -> {
+                    exitEarly = true
+                    val level = args[i+1].toInt()
                     val resultList: MutableList<ScenarioResult> = mutableListOf()
-                    iterator.forEach { resultList.add(ScenarioCalculator(it).calculateDPRForAllTurns()) }
+
+                    dprFiles.getEditableCharacterList().forEach { name ->
+                        val c = dprFiles.getEditableCharacter(name)
+                        c!!.editableFields.level = level
+                        resultList.addAll(runScenarios(c!!, args, i+1))
+                    }
+
                     showResults(resultList)
                 }
                 else -> println("invalid argument: $arg")
@@ -328,8 +356,7 @@ OFF	6	Disables all logging
         }
         else if (arg.startsWith("test:build")) {
             val builder = ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
-            builder.build(args[i+1].toInt(), args[i+2].toInt(), DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-            builder.scenarioList.forEach {
+            builder.build(args[i+1].toInt(), args[i+2].toInt(), DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS).forEach {
                 println("scenario = ${it.getLabel()}")
             }
             exitEarly = true
@@ -386,22 +413,4 @@ OFF	6	Disables all logging
     }
 
     CharacterAPI.closeHttpClient() // don't forget to do this, otherwise the program may run forever
-/*
-    logger.verbose { "This is a verbose message" }
-    logger.debug { "This is a debug message" }
-    logger.info { "This is an info message" }
-    logger.warn { "This is a warning message" }
-    logger.error { "This is an error message" }
-    //logger.fatal { "This is a fatal message" }
-
-    Globals.initLogger(LogLevel.INFO)
-
-    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").info { "first info msg" }
-    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").debug { "first debug msg" }
-
-    Globals.initLogger(LogLevel.DEBUG)
-
-    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").info { "second info msg" }
-    LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName").debug { "second debug msg" }
- */
 }

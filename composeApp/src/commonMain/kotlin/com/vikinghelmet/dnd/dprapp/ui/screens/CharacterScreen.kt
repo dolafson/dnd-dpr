@@ -118,7 +118,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                 reset(viewModel,textFieldState)
                 options.clear()
             }
-            else if (options.isNotEmpty() && !isUrlOrID(currentText)) {
+            else if (options.isNotEmpty() && !isUrlOrID(currentText) && !currentText.contains("/")) {
                 // old character, new name
                 val editableFields = EditableFields(currentText, oldCharacter!!, viewModel.getCharacterLevel())
 
