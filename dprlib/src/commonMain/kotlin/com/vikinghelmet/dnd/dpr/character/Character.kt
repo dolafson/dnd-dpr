@@ -466,9 +466,18 @@ open class Character(
 
     fun getSubclassOptions(): List<String> {
         return when (getClass()) {
-            ClassName.Ranger -> listOf("Hunter", "Beast Master", "Gloom Stalker", "Fey Wanderer", "Winter Walker")
-            ClassName.Cleric -> listOf("Knowledge Domain",  "Life Domain", "Light Domain",
-                "Nature Domain",  "Tempest Domain",  "Trickery Domain", "War Domain",)
+            ClassName.Barbarian -> listOf("Path of the Berserker","Path of the Wild Heart","Path of the World Tree","Path of the Zealot")
+            ClassName.Bard      -> listOf("College of Dance","College of Glamour","College of Lore","College of Valor","College of the Moon")
+            ClassName.Cleric    -> listOf("Life Domain","Light Domain","Trickery Domain","War Domain","Knowledge Domain")
+            ClassName.Druid     -> listOf("Circle of the Land","Circle of the Moon","Circle of the Sea","Circle of the Stars")
+            ClassName.Fighter   -> listOf("Battle Master","Champion","Eldritch Knight","Psi Warrior","Benneret")
+            ClassName.Monk      -> listOf("Warrior of Mercy","Warrior of Shadow","Warrior of the Elements","Warrior of the Open Hand")
+            ClassName.Paladin   -> listOf("Oath of Devotion","Oath of Glory","Oath of the Ancients","Oath of Vengeance","Oath ofthe Noble Genies")
+            ClassName.Ranger    -> listOf("Beast Master","Fey Wanderer","Gloom Stalker","Hunter","Winter Walker")
+            ClassName.Rogue     -> listOf("Arcane Trickster","Assassin","Soulknife","Thief","Scion of the Three")
+            ClassName.Sorcerer  -> listOf("Aberrant Sorcery","Clockwork Sorcery","Draconic Sorcery","Wild Magic Sorcery","Spellfire Sorcery")
+            ClassName.Warlock   -> listOf("Archfey Patron","Celestial Patron","Fiend Patron","Great Old One Patron")
+            ClassName.Wizard    -> listOf("Abjurer","Diviner","Evoker","Illusionist","Bladesinger")
             else -> listOf()
         }
     }
