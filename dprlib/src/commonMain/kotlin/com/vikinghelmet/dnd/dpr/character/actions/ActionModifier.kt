@@ -11,6 +11,8 @@ enum class ActionModifier {
     DreadfulStrike,
     PolarStrikes,
 
+    ExtraAttack,
+
     Cleave, // not sure yet if this belongs here ... looking for a way to make this extra attack
             // rationale visible in attack results ... see WeaponMastery.Cleave for details
     ;

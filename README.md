@@ -147,18 +147,15 @@ In no particular order ...
 - add unit tests
 - add support for damage types, and Resistance / Immunity
 - add support for more class features / feats
-- add support for weapon effects, similar to spell effects
-  - (eg Vex [weapon mastery](http://dnd2024.wikidot.com/equipment:weapon) -> advantage on next attack)
 - add support for spell damage upcasting (by character level, or spell level) 
 - add simulated battles
   - give the monster(s) a chance to fight back
   - calculate probability of character death
-- in the mobile app ...
-  - add export to txt/csv; this currently works on jvm desktop, but not iOS
-  - add numeric menus for numberOfTargets and distanceBetweenTargets
 
 ## Known Issues
 
+- not yet supported:
+  - weapon mastery: Nick, Vex
 - roughly 20% of spells are missing
   - these should be manually added to the resource file **extra.spells.json** 
 - spell effect propagation is overly optimistic
@@ -168,7 +165,3 @@ In no particular order ...
     - have a probability assigned to each ongoing effect
     - if round 1 creates an effect w/ prob = P, round 2 result should be ...
     - P * (result if effect was present) + (1-P) * (result if effect was NOT present)
-- not yet supported:
-  - weapon mastery: Nick, Vex
-  - Dragonborn Breath Weapon
-  - Extra Attack at Level 5 (fighter, monk, paladin, ranger)

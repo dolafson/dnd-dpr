@@ -493,6 +493,12 @@ open class Character(
         return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
     }
 
+    fun getExtraAttacks(): Int {
+        // most martial classes get one extra at level 5, and thats it
+        // fighters get an extra at L5, another at L11, and a third at L20
+        return getClassFeaturesByLevel().filter { it.key.contains("Extra Attack") && it.value <= getLevel() }.count()
+    }
+
     fun getLevelsForFightingStyle(): List<Int> {
         return getClassFeaturesByLevel().filter { it.key.contains("Fighting Style")}.map { it.value}
     }

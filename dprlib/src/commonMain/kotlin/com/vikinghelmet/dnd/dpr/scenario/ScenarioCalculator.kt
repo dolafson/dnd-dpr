@@ -64,6 +64,17 @@ class ScenarioCalculator(
             attackResult.update(turnId, actionId, effect++)
             resultList.add(attackResult)
 
+            repeat (scenario.character.getExtraAttacks()) {
+                // compute a fresh attack result, to avoid carrying forward any Action Modifiers
+                // (like Polar Strikes) that are valid only once/round
+                val extraAttack = attack.copy(actionModifiers = mutableListOf(ActionModifier.ExtraAttack))
+                extraAttack.preconditions = effectManager.getPreconditions(extraAttack, null)
+
+                val attackResult = dpr.getMeleeOrRangeDPR (weapon, extraAttack)
+                attackResult.update(turnId, actionId, effect++)
+                resultList.add(attackResult)
+            }
+
             if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5)
             {
                 val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.damage) {
@@ -77,7 +88,7 @@ class ScenarioCalculator(
             }
 
             if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
-                // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons)
+                // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
                 effectManager.add(turnId,
                     FeatWithDuration(Feat.ColdCaster, 1,
                         TargetEffect(savePenalty = mutableListOf("1d4"))))
