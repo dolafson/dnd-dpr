@@ -9,7 +9,9 @@ import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
@@ -19,6 +21,8 @@ data class EditableCharacter (
     val editableFields: EditableFields
 ) : Character(from.characterData, from.id, from.message, from.success)
 {
+    @Transient private val logger = LoggerFactory.get(EditableCharacter::class.simpleName ?: "")
+
     override fun getAlwaysPreparedSpells(): List<PreparedSpellRemote> = editableFields.alwaysPreparedSpells
 
     override fun getModifiedAbilityScore(a: AbilityType): Int {
@@ -72,6 +76,20 @@ data class EditableCharacter (
                if (! result.map {it.name}.contains(spellName)) {
                    try { result.add (PreparedSpell(spellName, is2014())) } catch (e: Exception) {}
                }
+            }
+        }
+
+        // add spells granted by subclass, up to selected level
+        //   ("at level X you will always have spell ABC prepared")
+        val subclass = getSubclassName()
+        logger.warn { "subclass = $subclass" }
+        logger.warn { "subclassAll = ${ Globals.subclassSpellsPrepared }" }
+        if (subclass != null) {
+            Globals.getSubclassSpellsPrepared(subclass).forEach {
+                logger.warn { "subclass spellprep = $it" }
+                if (it.level <= getLevel()) {
+                    it.spells.forEach { spellName -> result.add (PreparedSpell(spellName, is2014()))  }
+                }
             }
         }
 

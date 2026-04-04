@@ -211,6 +211,8 @@ OFF	6	Disables all logging
         Globals.addSpells(getResource(filename) ?: "[]")
     }
 
+    Globals.addSubclassSpellsPrepared(getResource("subclass.spellprep.json") ?: "[]")
+
     Globals.addMonsters(getResource("monsters.json") ?: "[]")
     logger.debug { "monsters loaded from resource = ${monsters.size}" }
 
@@ -310,7 +312,10 @@ OFF	6	Disables all logging
             println("unknown file type: $arg")
         }
         else if (arg.startsWith("character") || arg.startsWith("https://www.dndbeyond.com/characters")) {
-            character = getCharacter(arg)
+            var remoteId: String? = CharacterAPI.getCharacterId(arg)
+            if (remoteId != null) {
+                character = getCharacter(remoteId)
+            }
         }
         else if (arg.startsWith("dump")) {
             Globals.dump(arg, character, turns)
@@ -322,6 +327,11 @@ OFF	6	Disables all logging
         }
         else if (arg.startsWith("test:character")) {
             println(character!!.toStringAll())
+            exitEarly = true
+        }
+        else if (arg.startsWith("test:subclass")) {
+            val result = Globals.getSubclassSpellsPrepared(arg.substringAfterLast(':'))
+            result.forEach { println("level = ${it.level}, spells = ${it.spells}") }
             exitEarly = true
         }
         else if (arg.startsWith("test:plan")) {
@@ -350,8 +360,11 @@ OFF	6	Disables all logging
             exitEarly = true
         }
         else if (arg.startsWith("test:spells")) {
-            character!!.getPreparedSpells().forEach { spell ->
-                println("alwaysPrepared = ${spell.alwaysPrepared}, spell = ${spell.name}")
+//            character!!.getPreparedSpells().forEach { spell ->
+//                println("alwaysPrepared = ${spell.alwaysPrepared}, spell = ${spell.name}")
+//            }
+            character!!.getAlwaysPreparedSpells().forEach { spell ->
+                println("alwaysPrepared2 = ${spell.alwaysPrepared}, spell = ${spell.definition.name}")
             }
         }
         else if (arg.startsWith("test:build")) {

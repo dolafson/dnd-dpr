@@ -40,6 +40,8 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
         for (filename in mutableListOf("files/spells.json", "files/extra.spells.json")) {
             Globals.addSpells(Res.readBytes(filename).decodeToString())
         }
+        Globals.addSubclassSpellsPrepared(Res.readBytes("files/subclass.spellprep.json").decodeToString())
+
         Globals.addMonsters(Res.readBytes("files/monsters.json").decodeToString())
 
         try { // it's ok if this file is missing ...

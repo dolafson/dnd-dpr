@@ -77,6 +77,7 @@ object CharacterAPI {
         return Pair(json, character)
     }
 
+    // this method is needed to support a 2014 Cleric; not clear yet if it has wider utility
     suspend fun getAlwaysPreparedSpellList(character: Character): AlwaysPreparedSpells? {
         val params = character.getApiRequestParameters()
 

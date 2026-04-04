@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.SpellsChanged2024
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SubclassSpellsPrepared
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -20,6 +21,7 @@ import kotlin.math.round
 object Globals {
     val spells = ArrayList<Spell>()
     val monsters = ArrayList<Monster>()
+    val subclassSpellsPrepared  = ArrayList<SubclassSpellsPrepared>()
 
     @Serializable
     data class FeatureSet(
@@ -103,6 +105,14 @@ object Globals {
 
     fun addMonsters(jsonArrayAsString: String) {
         monsters.addAll (Json.decodeFromString (jsonArrayAsString))
+    }
+
+    fun addSubclassSpellsPrepared(jsonArrayAsString: String) {
+        subclassSpellsPrepared.addAll (Json.decodeFromString (jsonArrayAsString))
+    }
+
+    fun getSubclassSpellsPrepared(subclass: String): List<SubclassSpellsPrepared> {
+        return subclassSpellsPrepared.filter { it.subclass == subclass }
     }
 
     fun getSpell(name: String, is2014: Boolean): Spell { //  character!!.is2014()
