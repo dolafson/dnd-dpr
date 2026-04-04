@@ -16,8 +16,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E911A3C20E74F5A7AF56EF0D"
                BuildableName = "dprapp.app"
-               BlueprintName = "iosApp"
-               ReferencedContainer = "container:iosApp.xcodeproj">
+               BlueprintName = "dndDpr"
+               ReferencedContainer = "container:dndDpr.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,8 +47,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E911A3C20E74F5A7AF56EF0D"
             BuildableName = "dprapp.app"
-            BlueprintName = "iosApp"
-            ReferencedContainer = "container:iosApp.xcodeproj">
+            BlueprintName = "dndDpr"
+            ReferencedContainer = "container:dndDpr.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <LocationScenarioReference
