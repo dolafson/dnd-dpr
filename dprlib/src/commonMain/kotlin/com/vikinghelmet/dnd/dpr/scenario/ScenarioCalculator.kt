@@ -6,6 +6,7 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatWithDuration
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
@@ -43,7 +44,7 @@ class ScenarioCalculator(
                 attackResults.addAll(resultsForAttack)
             }
 
-            effectManager.pruneRunningSpells(turnId)
+            effectManager.pruneEffectsAtEndOfTurn(turnId)
             turnId++
         }
 
@@ -108,7 +109,7 @@ class ScenarioCalculator(
             Globals.debug("after adding CC feat, effects = " + effectManager)
         }
 
-        effectManager.pruneSpellsWaitingForNextAttack(null)
+        effectManager.pruneEffectsWaitingForNextAttack(null)
         return resultList
     }
 
@@ -156,11 +157,21 @@ class ScenarioCalculator(
 
         val attackResult = actionCalculator.getSpellDPR(spellAttack, spell, attack)
 
-        spell.postProcessEffectsOfOldSpells(effectManager.getRunningSpells(), attackResult)
+        // for reporting purposes only: post-process disadvantageOnSave -> attackResult
+        val saveAbility = spell.getSpellSaveAbility()
+        for (oldSpell in effectManager.getRunningSpells()) {
+            val effect = oldSpell.getTargetEffect()
+            for (ability in effect.disadvantageOnSave) {
+                if (ability == AbilityType.ALL  || ability == saveAbility) {
+                    attackResult.targetHadDisadvantageOnSave = true
+                }
+            }
+        }
+
 
         attackResult.update(turnId, actionId, effectCount, spellAttack)
 
-        effectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
+        effectManager.pruneEffectsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
         return attackResult
     }
 

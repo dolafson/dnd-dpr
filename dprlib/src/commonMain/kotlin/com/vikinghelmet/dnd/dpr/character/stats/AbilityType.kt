@@ -13,6 +13,8 @@ enum class AbilityType {
         return name.uppercase().substring(0,3)
     }
 
+    fun match(other: AbilityType?) = (this == other || ALL == other)
+
     companion object {
         fun fromShortName(shortName: String): AbilityType? {
             return entries.firstOrNull { it.name.lowercase().startsWith(shortName.lowercase()) }

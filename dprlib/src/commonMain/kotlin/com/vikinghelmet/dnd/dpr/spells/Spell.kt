@@ -5,8 +5,6 @@ import com.vikinghelmet.dnd.dpr.scenario.EffectWithDuration
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
-import com.vikinghelmet.dnd.dpr.turn.AttackResult
-import com.vikinghelmet.dnd.dpr.turn.Preconditions
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
@@ -176,46 +174,6 @@ open class Spell(
     }
 
     // ----------------------------------------------------------------------------------------------------------
-    // pre/post process effects:  see also: ScenarioCalculator, EffectManager
-
-    fun postProcessEffectsOfOldSpells(oldSpells: List<Spell>, attackResult: AttackResult) {
-        val saveAbility = getSpellSaveAbility()
-        for (oldSpell in oldSpells) {
-            val effect = oldSpell.getTargetEffect()
-            for (ability in effect.disadvantageOnSave) {
-                if (ability == AbilityType.ALL  || ability == saveAbility) {
-                    attackResult.targetHadDisadvantageOnSave = true
-                }
-            }
-        }
-    }
-
-    fun preProcessEffectsOfOldSpell(oldSpell: EffectWithDuration, precondition: Preconditions) {
-        val effect = oldSpell.getTargetEffect()
-        val saveAbility = getSpellSaveAbility()
-
-        for (ability in effect.autoFailSave) {
-            if (ability == AbilityType.ALL || ability == saveAbility) {
-                precondition.autoFailSave = true
-            }
-        }
-
-        for (penalty in effect.savePenalty) {
-            if (effect.savePenaltyFilter.isEmpty() ||
-                effect.savePenaltyFilter.contains(AbilityType.ALL) ||
-                effect.savePenaltyFilter.contains(saveAbility))
-            {
-                if (precondition.penaltyDiceToSave == null) {
-                    precondition.penaltyDiceToSave = DiceBlockHelper.get(penalty)
-                }
-                else {
-                    precondition.penaltyDiceToSave!! += DiceBlockHelper.get(penalty)
-                }
-            }
-        }
-    }
-
-    // ----------------------------------------------------------------------------------------------------------
     // EffectWithDuration interface:  see also: EffectManager
 
     private fun appliesToNextAttackOnly(): Boolean {
@@ -230,7 +188,7 @@ open class Spell(
         return false
     }
 
-    override fun appliesEffectToNextTargetSaveOnly(): Boolean {
+    override fun appliesToNextTargetSaveOnly(): Boolean {
         val effect = getTargetEffect()
         return appliesToNextAttackOnly() &&
                 (effect.disadvantageOnSave.isNotEmpty() || effect.savePenalty.isNotEmpty() || effect.autoFailSave.isNotEmpty())
