@@ -127,7 +127,7 @@ object Globals {
             }
 
             for (spell in matches) {
-                if (spell.isASingleRecordFor2014And2024() || (is2014 == spell.is2014())) {
+                if (spell.is2014And2024() || (is2014 == spell.is2014())) {
                     return spell
                 }
             }

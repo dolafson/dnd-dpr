@@ -1,13 +1,12 @@
 package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.EffectWithDuration
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
-import com.vikinghelmet.dnd.dpr.util.TargetEffect
+import com.vikinghelmet.dnd.dpr.util.TargetEffectCause
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -21,74 +20,31 @@ open class Spell(
     val name: String,
     val properties: Properties,
     val publisher: String
-) : AttackAction, EffectWithDuration {
+) : AttackAction, TargetEffectCause {
     override fun getActionName(): String { return name }
 
     @Transient private val logger = LoggerFactory.get(Spell::class.simpleName ?: "")
 
-    override fun toString(): String {
-        return name
-    }
+    override fun toString() = name
+    fun fullString() = "book=$book, publisher=$publisher, name=$name, properties=$properties"
 
-    fun fullString(): String {
-        return "book=$book, publisher=$publisher, name=$name, properties=$properties"
-    }
+    fun is2014()                = book.endsWith("(2014)")
+    fun is2014And2024()         = book.endsWith("(2014 and 2024)")
+    fun isRitual()              = (properties.Ritual?.contains("Yes") == true)
+    fun isBonusAction()         = (properties.CastingTime == "Bonus Action")
+    fun isMeleeOrRangeAttack()  = getSpellAttacks().any { it.isMeleeOrRangeAttack() }
+    fun triggersSavingThrow()   = getSpellAttacks().any { it.isSavingThrowAttack() }
+    fun getRange()              = properties.dataRangeNum ?: 0
+    private fun dd()            = properties.dataDescription ?: ""
+    fun takeImmediatelyAfterHitting() = dd().startsWith("Bonus Action, which you take immediately after hitting")
+    fun isMeleeWeaponBonusAction()  = takeImmediatelyAfterHitting() && (dd().contains("Melee weapon") || dd().contains("with a weapon"))
+    fun isRangedWeaponBonusAction() = takeImmediatelyAfterHitting() && (dd().contains("Ranged weapon") || dd().contains("with a weapon"))
 
-    fun is2014(): Boolean {
-        return book.endsWith("(2014)")
-    }
-
-    fun isRitual(): Boolean = (properties.Ritual?.contains("Yes") == true)
-
-    fun isBonusAction(): Boolean {
-        return properties.CastingTime == "Bonus Action"
-    }
-
-    fun triggersSavingThrow(): Boolean {
-        for (a in getSpellAttacks()) if (a.isSavingThrowAttack()) return true
-        return false
-    }
-
-    fun takeImmediatelyAfterHitting(): Boolean {
-        val dd = properties.dataDescription ?: ""
-        return dd.startsWith("Bonus Action, which you take immediately after hitting")
-    }
-
-    fun isMeleeWeaponBonusAction(): Boolean { // only a few of these exist
-        val dd = properties.dataDescription ?: ""
-        return takeImmediatelyAfterHitting() && (dd.contains("Melee weapon") || dd.contains("with a weapon"))
-    }
-
-    fun isRangedWeaponBonusAction(): Boolean { // only a few of these exist
-        val dd = properties.dataDescription ?: ""
-        return takeImmediatelyAfterHitting() && (dd.contains("Ranged weapon") || dd.contains("with a weapon"))
-    }
-
-    /* notes on RANGE data
-
-        2024 spells:
-            {"Range":"10 feet","filter-Range":"Close (30 feet or less)","data-RangeNum":10}
-            {"Range":"120 feet","filter-Range":"Far (more than 60 feet)","data-RangeNum":120}
-            {"Range":"Self","filter-Range":"Self","data-RangeNum":null}
-
-        2014 spells:
-            {"Range":"10 feet","filter-Range":null,"data-RangeNum":10}
-            {"Range":"120 feet","filter-Range":null,"data-RangeNum":120}
-            {"Range":"Self (10-foot radius)","filter-Range":null,"data-RangeNum":-6}
-     */
-
-    fun getRange(): Int {
-        return properties.dataRangeNum ?: 0
-    }
-
-    fun isASingleRecordFor2014And2024(): Boolean {
-        return book.endsWith("(2014 and 2024)")
-    }
 
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage
     // note, in 2024 the spell was changed to Instantaneous (Bonus Action)
-    override fun getDuration(): Int? {
+    fun getDuration(): Int? {
         val dur = properties.filterDuration ?: return null
 
         if (SpellsWithComplexRules.WindWall == SpellsWithComplexRules.fromNameWithWS(name)) {
@@ -172,32 +128,5 @@ open class Spell(
         }
         return null
     }
-
-    // ----------------------------------------------------------------------------------------------------------
-    // EffectWithDuration interface:  see also: EffectManager
-
-    private fun appliesToNextAttackOnly(): Boolean {
-        return (getDuration() ?: 0) <= 1 // TODO: is this the best representation ?
-    }
-
-    override fun appliesToNextMeleeOrRangeAttackOnly(): Boolean {
-        if (!appliesToNextAttackOnly()) return false
-        for (spellAttack in getSpellAttacks()) {
-            if (spellAttack.isMeleeOrRangeAttack()) return true
-        }
-        return false
-    }
-
-    override fun getTargetEffect(): TargetEffect {
-        val result = TargetEffect()
-        val conditions = getSpellFailConditions()
-        for (cond in conditions) {
-            result.applyCondition(cond)
-        }
-
-        result.applySpellName(name)
-        return result
-    }
-
 
 }

@@ -3,10 +3,8 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
-import com.vikinghelmet.dnd.dpr.character.feats.FeatWithDuration
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
@@ -105,7 +103,7 @@ class ScenarioCalculator(
             // you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next
             // saving throw it makes before the end of your next turn.
             // TODO: should also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
-            effectManager.add(turnId, FeatWithDuration(Feat.ColdCaster, 1, TargetEffect(savePenalty = mutableListOf("1d4"))))
+            effectManager.add(TargetEffect(turnId, cause = Feat.ColdCaster, savePenalty = mutableListOf("1d4")))
             Globals.debug("after adding CC feat, effects = " + effectManager)
         }
 
@@ -136,11 +134,7 @@ class ScenarioCalculator(
             resultList.add (processSpellAttack (copyMinusOne, spell, attack, turnId, actionId, effectCount++))
         }
 
-        if (!spell.getTargetEffect().isEmpty()) { // we only track spells with a non-empty effect
-            effectManager.add(turnId, spell)
-            Globals.debug("adding to running list: "+spell.name)
-        }
-
+        effectManager.add(turnId, spell)
         return resultList
     }
 
@@ -157,17 +151,7 @@ class ScenarioCalculator(
 
         val attackResult = actionCalculator.getSpellDPR(spellAttack, spell, attack)
 
-        // for reporting purposes only: post-process disadvantageOnSave -> attackResult
-        val saveAbility = spell.getSpellSaveAbility()
-        for (oldSpell in effectManager.getRunningSpells()) {
-            val effect = oldSpell.getTargetEffect()
-            for (ability in effect.disadvantageOnSave) {
-                if (ability == AbilityType.ALL  || ability == saveAbility) {
-                    attackResult.targetHadDisadvantageOnSave = true
-                }
-            }
-        }
-
+        attackResult.targetHadDisadvantageOnSave = effectManager.targetHadDisadvantageOnSave (spell.getSpellSaveAbility())
 
         attackResult.update(turnId, actionId, effectCount, spellAttack)
 

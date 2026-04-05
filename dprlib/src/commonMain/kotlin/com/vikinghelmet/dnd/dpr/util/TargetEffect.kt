@@ -1,9 +1,15 @@
 package com.vikinghelmet.dnd.dpr.util
 
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 
+interface TargetEffectCause {}
+
 data class TargetEffect (
+    val startTurn: Int,
+    var cause: TargetEffectCause? = null,
 
     var attackerHasAdvantage: Boolean? = false,
     var attackerAutoCrit: Boolean? = false, // when target is hit, does attack automatically crit (double damage) ? // TODO ...
@@ -24,6 +30,10 @@ data class TargetEffect (
     var damagePenalty: MutableList<String> = mutableListOf(),
 
     ) {
+    fun getSpell() = if (cause != null && cause is Spell) cause as Spell else null
+    fun getFeat()  = if (cause != null && cause is Feat) cause as Feat else null
+    fun getDuration() = if (getSpell() == null) 1 else getSpell()?.getDuration() ?: 0
+
     fun hasSaveImpact() = savePenalty.isNotEmpty() || disadvantageOnSave.isNotEmpty() || autoFailSave.isNotEmpty()
 
     fun isEmpty(): Boolean {

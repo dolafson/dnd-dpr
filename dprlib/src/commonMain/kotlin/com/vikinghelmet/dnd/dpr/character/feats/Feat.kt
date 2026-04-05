@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.character.feats
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.TargetEffectCause
 
 private val strAndDex = listOf(Strength,Dexterity)
 private val str = listOf(Strength)
@@ -19,7 +20,7 @@ enum class Feat(
     val asiPrerequisite: List<AbilityType> = emptyList(),
     val asiChoices: List<AbilityType> = asiPrerequisite,
     val isFightingStyle: Boolean = false,
-)
+) : TargetEffectCause
 {
     // https://www.dndbeyond.com/sources/dnd/phb-2024/feats
 

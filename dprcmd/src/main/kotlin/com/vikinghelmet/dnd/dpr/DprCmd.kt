@@ -363,8 +363,13 @@ OFF	6	Disables all logging
 //            character!!.getPreparedSpells().forEach { spell ->
 //                println("alwaysPrepared = ${spell.alwaysPrepared}, spell = ${spell.name}")
 //            }
-            character!!.getAlwaysPreparedSpells().forEach { spell ->
-                println("alwaysPrepared2 = ${spell.alwaysPrepared}, spell = ${spell.definition.name}")
+            //character!!.getAlwaysPreparedSpells().forEach { spell ->
+            //    println("alwaysPrepared2 = ${spell.alwaysPrepared}, spell = ${spell.definition.name}")
+            //}
+
+            // spells with more than one failed-save condition
+            spells.filter {  it.getSpellFailConditions().size > 1 }.forEach { spell ->
+                println("name = ${spell.name}, conditions = ${spell.getSpellFailConditions()}")
             }
         }
         else if (arg.startsWith("test:build")) {
