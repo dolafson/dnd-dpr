@@ -19,6 +19,8 @@ class ScenarioCalculator(
     val effectManager: EffectManager = EffectManager(ArrayList())
 )
 {
+    val actionCalculator = ActionCalculator(scenario, effectManager)
+
     fun calculateDPRForAllTurns(): ScenarioResult {
         var turnId = 1
         var scenarioTotalDamage = 0f
@@ -48,60 +50,73 @@ class ScenarioCalculator(
         return ScenarioResult(scenario, attackResults, scenarioTotalDamage)
     }
 
-    fun calculateDPR(turnId: Int, actionId: Int, attack: Attack): List<AttackResult>
-    {
+    private fun calculateDPR(turnId: Int, actionId: Int, attack: Attack): List<AttackResult> {
         val spell = if (attack.action is Spell) attack.action else null
         attack.preconditions = effectManager.getPreconditions(attack, spell)
 
-        val dpr = ActionCalculator(scenario, effectManager)
+        return if (attack.action is Weapon) {
+            getWeaponAttackDpr(turnId, actionId, attack)
+        }
+        else if (spell != null) {
+            calculateSpellDPR(turnId, actionId, attack, spell)
+        }
+        else {
+            emptyList()
+        }
+    }
 
-        if (attack.action is Weapon) {
-            val resultList = mutableListOf<AttackResult>()
-            val weapon = attack.action
-            var effect = 1
+    private fun getWeaponAttackDpr(turnId: Int, actionId: Int, attack: Attack): MutableList<AttackResult> {
+        val resultList = mutableListOf<AttackResult>()
+        val weapon = attack.action as Weapon
+        var effect = 1
 
-            val attackResult = dpr.getMeleeOrRangeDPR (weapon, attack)
+        val attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, attack)
+        attackResult.update(turnId, actionId, effect++)
+        resultList.add(attackResult)
+
+        // some classes gain extra attacks at level 5; fighters get even more extra attacks later
+        repeat(scenario.character.getExtraAttacks()) {
+            // compute a fresh attack result, to avoid carrying forward any Action Modifiers
+            // (like Polar Strikes) that are valid only once/round
+            val extraAttack = attack.copy(actionModifiers = mutableListOf(ActionModifier.ExtraAttack))
+            extraAttack.preconditions = effectManager.getPreconditions(extraAttack, null)
+
+            val attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, extraAttack)
             attackResult.update(turnId, actionId, effect++)
             resultList.add(attackResult)
-
-            repeat (scenario.character.getExtraAttacks()) {
-                // compute a fresh attack result, to avoid carrying forward any Action Modifiers
-                // (like Polar Strikes) that are valid only once/round
-                val extraAttack = attack.copy(actionModifiers = mutableListOf(ActionModifier.ExtraAttack))
-                extraAttack.preconditions = effectManager.getPreconditions(extraAttack, null)
-
-                val attackResult = dpr.getMeleeOrRangeDPR (weapon, extraAttack)
-                attackResult.update(turnId, actionId, effect++)
-                resultList.add(attackResult)
-            }
-
-            if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5)
-            {
-                val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.damage) {
-                    override fun getBonusDamage(character: Character, isBonusAction: Boolean) = 0
-                }
-
-                val secondAttack = Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
-                val attackResult = dpr.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack)
-                attackResult.update(turnId, actionId, effect++)
-                resultList.add(attackResult)
-            }
-
-            if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
-                // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
-                effectManager.add(turnId,
-                    FeatWithDuration(Feat.ColdCaster, 1,
-                        TargetEffect(savePenalty = mutableListOf("1d4"))))
-
-                Globals.debug("after adding CC feat, effects = "+effectManager)
-            }
-
-            effectManager.pruneSpellsWaitingForNextAttack(null)
-            return resultList
         }
 
-        if (spell == null) return emptyList() // should not get here due to if(w/s) above; this is just to make the compiler happy
+        if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
+            val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.damage) {
+                override fun getBonusDamage(character: Character, isBonusAction: Boolean) = 0
+            }
 
+            val secondAttack =
+                Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
+            val attackResult = actionCalculator.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack)
+            attackResult.update(turnId, actionId, effect++)
+            resultList.add(attackResult)
+        }
+
+        if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
+            // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
+            effectManager.add(
+                turnId,
+                FeatWithDuration(
+                    Feat.ColdCaster, 1,
+                    TargetEffect(savePenalty = mutableListOf("1d4"))
+                )
+            )
+
+            Globals.debug("after adding CC feat, effects = " + effectManager)
+        }
+
+        effectManager.pruneSpellsWaitingForNextAttack(null)
+        return resultList
+    }
+
+    private fun calculateSpellDPR(turnId: Int, actionId: Int, attack: Attack, spell: Spell): List<AttackResult>
+    {
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
         Globals.debug("spell = ${spell.fullString()}")
@@ -111,7 +126,7 @@ class ScenarioCalculator(
 
             // if there is nothing special going on, simply process the spell and collect its results
             if (effectManager.runningEffectList.isEmpty() || spellAttack.getNumTargetsAffected(scenario) <= 1) {
-                resultList.add (processSpellAttack (dpr, spellAttack, spell, attack, turnId, actionId, effectCount++))
+                resultList.add (processSpellAttack (spellAttack, spell, attack, turnId, actionId, effectCount++))
                 continue
             }
 
@@ -119,8 +134,8 @@ class ScenarioCalculator(
             // one of the targets may have a save penalty, while others may not
             // to handle that, break them apart into separate spellAttacks, with varying conditions ...
             val copyMinusOne = SpellAttack(spellAttack, scenario)
-            resultList.add (processSpellAttack (dpr, spellAttack, spell, attack, turnId, actionId, effectCount++))
-            resultList.add (processSpellAttack (dpr, copyMinusOne, spell, attack, turnId, actionId, effectCount++))
+            resultList.add (processSpellAttack (spellAttack, spell, attack, turnId, actionId, effectCount++))
+            resultList.add (processSpellAttack (copyMinusOne, spell, attack, turnId, actionId, effectCount++))
         }
 
         if (!spell.getTargetEffect().isEmpty()) { // we only track spells with a non-empty effect
@@ -132,7 +147,6 @@ class ScenarioCalculator(
     }
 
     private fun processSpellAttack(
-        dpr: ActionCalculator,
         spellAttack: SpellAttack,
         spell: Spell,
         attack: Attack,
@@ -143,7 +157,7 @@ class ScenarioCalculator(
         // preconditions need to be computed each time, as they may vary between initial spell attack and subsequent spell effects
         attack.preconditions = effectManager.getPreconditions(attack, spell)
 
-        val attackResult = dpr.getSpellDPR(spellAttack, spell, attack)
+        val attackResult = actionCalculator.getSpellDPR(spellAttack, spell, attack)
 
         spell.postProcessEffectsOfOldSpells(effectManager.getRunningSpells(), attackResult)
 
@@ -152,4 +166,5 @@ class ScenarioCalculator(
         effectManager.pruneSpellsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
         return attackResult
     }
+
 }
