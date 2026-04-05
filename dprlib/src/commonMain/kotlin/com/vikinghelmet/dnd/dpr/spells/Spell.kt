@@ -175,34 +175,8 @@ open class Spell(
         return null
     }
 
-    private fun appliesToNextAttackOnly(): Boolean {
-        return (getDuration() ?: 0) <= 1 // TODO: is this the best representation ?
-    }
-
-    override fun appliesToNextMeleeOrRangeAttackOnly(): Boolean {
-        if (!appliesToNextAttackOnly()) return false
-        for (spellAttack in getSpellAttacks()) {
-            if (spellAttack.isMeleeOrRangeAttack()) return true
-        }
-        return false
-    }
-
-    override fun appliesEffectToNextTargetSaveOnly(): Boolean {
-        val effect = getTargetEffect()
-        return appliesToNextAttackOnly() &&
-                (effect.disadvantageOnSave.isNotEmpty() || effect.savePenalty.isNotEmpty() || effect.autoFailSave.isNotEmpty())
-    }
-
-    override fun getTargetEffect(): TargetEffect {
-        val result = TargetEffect()
-        val conditions = getSpellFailConditions()
-        for (cond in conditions) {
-            result.applyCondition(cond)
-        }
-
-        result.applySpellName(name)
-        return result
-    }
+    // ----------------------------------------------------------------------------------------------------------
+    // pre/post process effects:  see also: ScenarioCalculator, EffectManager
 
     fun postProcessEffectsOfOldSpells(oldSpells: List<Spell>, attackResult: AttackResult) {
         val saveAbility = getSpellSaveAbility()
@@ -240,5 +214,38 @@ open class Spell(
             }
         }
     }
+
+    // ----------------------------------------------------------------------------------------------------------
+    // EffectWithDuration interface:  see also: EffectManager
+
+    private fun appliesToNextAttackOnly(): Boolean {
+        return (getDuration() ?: 0) <= 1 // TODO: is this the best representation ?
+    }
+
+    override fun appliesToNextMeleeOrRangeAttackOnly(): Boolean {
+        if (!appliesToNextAttackOnly()) return false
+        for (spellAttack in getSpellAttacks()) {
+            if (spellAttack.isMeleeOrRangeAttack()) return true
+        }
+        return false
+    }
+
+    override fun appliesEffectToNextTargetSaveOnly(): Boolean {
+        val effect = getTargetEffect()
+        return appliesToNextAttackOnly() &&
+                (effect.disadvantageOnSave.isNotEmpty() || effect.savePenalty.isNotEmpty() || effect.autoFailSave.isNotEmpty())
+    }
+
+    override fun getTargetEffect(): TargetEffect {
+        val result = TargetEffect()
+        val conditions = getSpellFailConditions()
+        for (cond in conditions) {
+            result.applyCondition(cond)
+        }
+
+        result.applySpellName(name)
+        return result
+    }
+
 
 }

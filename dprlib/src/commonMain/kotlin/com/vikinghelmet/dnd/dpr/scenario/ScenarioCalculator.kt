@@ -99,15 +99,12 @@ class ScenarioCalculator(
         }
 
         if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
-            // TODO: must also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
-            effectManager.add(
-                turnId,
-                FeatWithDuration(
-                    Feat.ColdCaster, 1,
-                    TargetEffect(savePenalty = mutableListOf("1d4"))
-                )
-            )
-
+            // http://dnd2024.wikidot.com/feat:cold-caster ...
+            // Frostbite. Once per turn when you hit a creature with an attack roll and deal Cold damage,
+            // you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next
+            // saving throw it makes before the end of your next turn.
+            // TODO: should also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
+            effectManager.add(turnId, FeatWithDuration(Feat.ColdCaster, 1, TargetEffect(savePenalty = mutableListOf("1d4"))))
             Globals.debug("after adding CC feat, effects = " + effectManager)
         }
 
