@@ -12,10 +12,6 @@ data class FeatWithDuration(val feat: com.vikinghelmet.dnd.dpr.character.feats.F
         return effect
     }
 
-    override fun appliesToNextTargetSaveOnly(): Boolean {
-        return true // TODO: in the future may vary by feat
-    }
-
     override fun appliesToNextMeleeOrRangeAttackOnly(): Boolean {
         return false // TODO: in the future may vary by feat
     }

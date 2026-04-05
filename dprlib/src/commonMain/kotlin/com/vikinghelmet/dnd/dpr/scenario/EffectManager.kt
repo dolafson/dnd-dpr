@@ -13,7 +13,6 @@ import com.vikinghelmet.dnd.dpr.util.TargetEffect
 interface EffectWithDuration {
     fun getDuration(): Int?
     fun getTargetEffect(): TargetEffect
-    fun appliesToNextTargetSaveOnly(): Boolean
     fun appliesToNextMeleeOrRangeAttackOnly(): Boolean
 }
 
@@ -48,12 +47,11 @@ data class EffectManager(
     fun pruneEffectsAtEndOfTurn(turnId: Int) {
         val iterator = runningEffectList.listIterator()
         while (iterator.hasNext()) {
-            val running = iterator.next()
-            val deltaT = turnId - running.startTurn
-            val effect = running.effect
-            val duration = effect.getDuration() ?: 0
+            val running  = iterator.next()
+            val deltaT   = turnId - running.startTurn
+            val duration = running.effect.getDuration() ?: 0
             if (deltaT >= duration) {
-                Globals.debug("effect is complete, remove from running list: "+effect.toString())
+                Globals.debug("effect is complete, remove from running list: "+running.effect.toString())
                 iterator.remove()
             }
         }
@@ -63,8 +61,9 @@ data class EffectManager(
         val iterator = runningEffectList.listIterator()
         while (iterator.hasNext()) {
             val running = iterator.next()
+            val oneShot = (running.effect.getDuration() ?: 0) <= 1
 
-            if (running.effect.appliesToNextTargetSaveOnly() && spellAttack != null && spellAttack.isSavingThrowAttack()) {
+            if (running.effect.getTargetEffect().hasSaveImpact() && oneShot && spellAttack != null && spellAttack.isSavingThrowAttack()) {
                 Globals.debug("effect was waiting for next saving throw, removing it from running list: "+running.effect.toString())
                 iterator.remove()
             }

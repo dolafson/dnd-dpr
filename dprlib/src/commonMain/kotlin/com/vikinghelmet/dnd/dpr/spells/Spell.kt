@@ -188,12 +188,6 @@ open class Spell(
         return false
     }
 
-    override fun appliesToNextTargetSaveOnly(): Boolean {
-        val effect = getTargetEffect()
-        return appliesToNextAttackOnly() &&
-                (effect.disadvantageOnSave.isNotEmpty() || effect.savePenalty.isNotEmpty() || effect.autoFailSave.isNotEmpty())
-    }
-
     override fun getTargetEffect(): TargetEffect {
         val result = TargetEffect()
         val conditions = getSpellFailConditions()

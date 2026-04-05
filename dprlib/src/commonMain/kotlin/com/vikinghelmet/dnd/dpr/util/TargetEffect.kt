@@ -24,6 +24,8 @@ data class TargetEffect (
     var damagePenalty: MutableList<String> = mutableListOf(),
 
     ) {
+    fun hasSaveImpact() = savePenalty.isNotEmpty() || disadvantageOnSave.isNotEmpty() || autoFailSave.isNotEmpty()
+
     fun isEmpty(): Boolean {
         return !attackerHasAdvantage!! && !disadvantageOnAttacks!! && !noActionOrBA!! && !attackerAutoCrit!! &&
                 disadvantageOnAbilityChecks.isEmpty() &&
