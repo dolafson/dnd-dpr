@@ -334,15 +334,24 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
     // ==========================================================
     // this is where the fun really begins
 
-    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack): AttackResult {
-        return if (spellAttack.isNoDamageAttack()) {
+    fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, turnId: Int, actionId: Int, effectCount: Int): AttackResult {
+        val attackResult = if (spellAttack.isNoDamageAttack()) {
             getNoDamageSpellDPR (spell, attack)
         }
         else if (spellAttack.isSavingThrowAttack()) {
             getSavingThrowSpellDPR (spellAttack, spell, attack)
         } else {
-            getMeleeOrRangeDPR (spellAttack, attack)
+            getMeleeOrRangeDPR (spellAttack, attack, turnId, actionId, effectCount)
         }
+
+        attackResult.update(turnId, actionId, effectCount, spellAttack)
+
+        if (effectManager.attackerHasAdvantage()) {
+            attackResult.avgMinMaxSelection = AvgMinMaxSelection.max
+        }
+
+        effectManager.pruneEffectsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
+        return attackResult
     }
 
     fun getNoDamageSpellDPR(spell: Spell, attack: Attack): AttackResult {
@@ -362,7 +371,10 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
     {
         debug("\n##### getSavingThrowSpellDPR: $spellAttack")
         val isTargetEvasive = attack.monster.properties.isEvasive()
-        val preconditions = attack.preconditions ?: Preconditions()
+
+        //val preconditions = attack.preconditions ?: Preconditions()
+        val preconditions = effectManager.getPreconditions(attack, spell)
+
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val bonusDamageOnFirstHit = preconditions.bonusDamageOnFirstHit ?: DiceBlock(0, 0, 0, 0, 0)
@@ -535,12 +547,14 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
     }
 
     // ==========================================================
-    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAction, attack: Attack): AttackResult
+    fun getMeleeOrRangeDPR(meleeOrRangeAttack: MeleeOrRangeAction, attack: Attack, turnId: Int, actionId: Int, effect: Int): AttackResult
     {
         // debug("\n##### getMeleeOrRangeDPR: $meleeOrRangeAttack")
         debug("\n##### getMeleeOrRangeDPR: "+attack.getLabel())
 
-        val preconditions = attack.preconditions ?: Preconditions()
+        // val preconditions = attack.preconditions ?: Preconditions()
+        val preconditions = effectManager.getPreconditions(attack, if (attack.action is Spell) attack.action else null)
+
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
         val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
         val isBonusAction = attack.isBonusAction ?: false
@@ -554,12 +568,11 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         debug()
 
         // bonus DD is how we cover effects like Hunters Mark
-        val bonusDamageDice = attack.preconditions?.bonusDamageDice ?: DiceBlock(0, 0, 0, 0, 0)
-
+        val bonusDamageDice = preconditions.bonusDamageDice ?: DiceBlock(0, 0, 0, 0, 0)
         val damageDice = meleeOrRangeAttack.getDamageDice().add(bonusDamageDice)
 
-        debug("bonus damageDice: " + (attack.preconditions?.bonusDamageDice)) // include bonusDamageDice ...
-        debug("meleeOrRange damage: " + damageDice) // include bonusDamageDice ...
+        debug("bonus damageDice: " + (preconditions.bonusDamageDice))
+        debug("meleeOrRange damage: " + damageDice)
         debug()
 
         val AC = attack.monster.properties.dataAcNum
@@ -624,7 +637,10 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR,
             character = character, attack = attack, startCondition = effectManager.toString())
-        result.attackerHadAdvantage = effectManager.attackerHasAdvantage() // stash this now, for future use
+        if (effectManager.attackerHasAdvantage()) {
+            result.avgMinMaxSelection = AvgMinMaxSelection.max
+        }
+        result.update(turnId, actionId, effect)
         return result
     }
 }

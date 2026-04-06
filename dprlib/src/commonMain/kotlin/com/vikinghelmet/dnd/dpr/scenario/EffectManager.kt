@@ -1,7 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
-import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.Attack
@@ -13,12 +12,11 @@ import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
 data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
 {
-    fun attackerHasAdvantage() = runningEffectList.any { it.attackerHasAdvantage == true }
-    fun isAutoCrit() = runningEffectList.any { it.attackerAutoCrit == true }
+    var assumeSpellEffectSuccess = true
 
-    fun targetHadDisadvantageOnSave(saveAbility: AbilityType?) = runningEffectList.any {
-        it.disadvantageOnSave.any { it2 -> it2.match(saveAbility) }
-    }
+    fun attackerHasAdvantage() = runningEffectList.any { it.attackerHasAdvantage == true }
+    fun isAutoCrit() = assumeSpellEffectSuccess && runningEffectList.any { it.attackerAutoCrit == true }
+
 
     override fun toString(): String {
         val buf = StringBuilder()
@@ -94,6 +92,10 @@ data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
 
         for (priorEffect in runningEffectList)
         {
+            if (priorEffect.probability < 100f && !assumeSpellEffectSuccess) {
+                continue
+            }
+
             for (penalty in priorEffect.savePenalty) {
                 precondition.penaltyDiceToSave += DiceBlockHelper.get(penalty)
             }
@@ -116,7 +118,17 @@ data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
                 }
             }
         }
-
         return precondition
     }
+
+    /*
+        var bonusDiceToSave: DiceBlock = DiceBlock(0, 0, 0, 0, 0),      // not used yet
+        var penaltyDiceToSave: DiceBlock = DiceBlock(0, 0, 0, 0, 0),    // used
+
+        var bonusDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0),       // not used yet
+        var penaltyDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0),     // not used yet
+
+        var bonusDamageDice: DiceBlock = DiceBlock(0, 0, 0, 0, 0),      // used
+        var autoFailSave: Boolean = false,                              // used
+     */
 }

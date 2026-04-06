@@ -13,7 +13,6 @@ data class Attack(
     val actionModifiers: MutableList<ActionModifier> = mutableListOf(), // named, non-spell preconditions (eg Colossus Slayer)
 
     // optional fields
-    var preconditions: Preconditions? = null,
     val isBonusAction: Boolean? = false
 ) {
     override fun equals(other: Any?): Boolean {
@@ -34,7 +33,6 @@ data class Attack(
         result = 31 * result + monster.hashCode()
         result = 31 * result + action.hashCode()
         result = 31 * result + actionModifiers.hashCode()
-        result = 31 * result + (preconditions?.hashCode() ?: 0)
         return result
     }
 }

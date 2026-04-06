@@ -18,17 +18,16 @@ data class AttackResult(
     var attack: Attack,
     var startCondition: String,
 
-    var targetHadDisadvantageOnSave: Boolean? = false,
-    var attackerHadAdvantage: Boolean? = false,
-
     // fields that get updated via post-processing ...
     var turnId: Int = -1,
     var actionId: Int = -1,
     var effectId: Int = -1,
     var spellAttack: SpellAttack? = null,
 ) {
+    var avgMinMaxSelection = AvgMinMaxSelection.avg
+
     fun dpr(): Float {
-        return damagePerRound.select (getAvgMinMaxSelection())
+        return damagePerRound.select (avgMinMaxSelection)
     }
 
     fun update(turnId: Int, actionId: Int, effectId: Int, spellAttack: SpellAttack? = null) {
@@ -38,19 +37,11 @@ data class AttackResult(
         this.spellAttack = spellAttack
     }
 
-    fun getAvgMinMaxSelection(): AvgMinMaxSelection {
-        return if (attackerHadAdvantage == true || targetHadDisadvantageOnSave == true)
-            AvgMinMaxSelection.max else AvgMinMaxSelection.avg
-    }
-
-
     fun getValue(field: AttackResultField): Any {
         val meleeOrRangeAction: MeleeOrRangeAction =
             if (this.attack.action is Weapon) { this.attack.action as Weapon } else spellAttack!!
 
         val saveAbility = if (this.attack.action is Weapon) "" else spellAttack!!.getSaveAbility()
-
-        val selection = this.getAvgMinMaxSelection()
 
         return when (field) {
             level           -> character.getLevel()
@@ -76,10 +67,10 @@ data class AttackResult(
             AttackResultField.startCondition -> Globals.wrapWithQuotes(this.startCondition)
             AttackResultField.numTargets -> this.numTargets
 
-            AttackResultField.chanceToHit -> this.chanceToHit.select(selection)
-            AttackResultField.damagePerHit -> this.damagePerHit.select(selection)
-            AttackResultField.duration -> this.duration.select(selection)
-            fullEffectDamage -> this.damageFullEffect.select(selection)
+            AttackResultField.chanceToHit -> this.chanceToHit.select(avgMinMaxSelection)
+            AttackResultField.damagePerHit -> this.damagePerHit.select(avgMinMaxSelection)
+            AttackResultField.duration -> this.duration.select(avgMinMaxSelection)
+            fullEffectDamage -> this.damageFullEffect.select(avgMinMaxSelection)
             else -> {
                 println("WARNING: unhandled field: $field")
                 Exception("warning").printStackTrace()

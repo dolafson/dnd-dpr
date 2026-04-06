@@ -156,7 +156,7 @@ class ScenarioBuilder(
 
         // make a deep copy of proposed turn, as turn can be modified later (when we add action mods)
         val copy = Turn (proposedTurn.attacks.map {
-            a -> Attack(a.monster, a.action, ArrayList(), null, a.isBonusAction)
+            a -> Attack(a.monster, a.action, ArrayList(), a.isBonusAction)
         }.toMutableList())
 
         return Scenario (character, currentScenario.turns.map { it.copy() } + copy, currentScenario.numTargets, currentScenario.targetSpacing)

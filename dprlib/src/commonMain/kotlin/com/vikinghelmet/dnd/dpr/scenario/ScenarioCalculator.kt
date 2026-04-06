@@ -32,10 +32,8 @@ class ScenarioCalculator(
             for (attack in turn.attacks) {
                 val resultsForAttack = calculateDPR(turnId, actionCount, attack)
                 for (result in resultsForAttack) {
-                    dpr += result.damagePerRound.select (result.getAvgMinMaxSelection())
-
-                    val fullEffect = result.damageFullEffect.select (result.getAvgMinMaxSelection())
-                    scenarioTotalDamage += fullEffect
+                    dpr += result.damagePerRound.select (result.avgMinMaxSelection)
+                    scenarioTotalDamage += result.damageFullEffect.select (result.avgMinMaxSelection)
                 }
                 actionCount++
 
@@ -51,7 +49,6 @@ class ScenarioCalculator(
 
     private fun calculateDPR(turnId: Int, actionId: Int, attack: Attack): List<AttackResult> {
         val spell = if (attack.action is Spell) attack.action else null
-        attack.preconditions = effectManager.getPreconditions(attack, spell)
 
         return if (attack.action is Weapon) {
             getWeaponAttackDpr(turnId, actionId, attack)
@@ -69,20 +66,12 @@ class ScenarioCalculator(
         val weapon = attack.action as Weapon
         var effect = 1
 
-        val attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, attack)
-        attackResult.update(turnId, actionId, effect++)
-        resultList.add(attackResult)
+        resultList.add(actionCalculator.getMeleeOrRangeDPR(weapon, attack, turnId, actionId, effect++))
 
         // some classes gain extra attacks at level 5; fighters get even more extra attacks later
         repeat(scenario.character.getExtraAttacks()) {
-            // compute a fresh attack result, to avoid carrying forward any Action Modifiers
-            // (like Polar Strikes) that are valid only once/round
             val extraAttack = attack.copy(actionModifiers = mutableListOf(ActionModifier.ExtraAttack))
-            extraAttack.preconditions = effectManager.getPreconditions(extraAttack, null)
-
-            val attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, extraAttack)
-            attackResult.update(turnId, actionId, effect++)
-            resultList.add(attackResult)
+            resultList.add(actionCalculator.getMeleeOrRangeDPR(weapon, extraAttack, turnId, actionId, effect++))
         }
 
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
@@ -90,11 +79,8 @@ class ScenarioCalculator(
                 override fun getBonusDamage(character: Character, isBonusAction: Boolean) = 0
             }
 
-            val secondAttack =
-                Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
-            val attackResult = actionCalculator.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack)
-            attackResult.update(turnId, actionId, effect++)
-            resultList.add(attackResult)
+            val secondAttack = Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
+            resultList.add(actionCalculator.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack, turnId, actionId, effect++))
         }
 
         if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
@@ -123,7 +109,7 @@ class ScenarioCalculator(
 
             // if there is nothing special going on, simply process the spell and collect its results
             if (effectManager.runningEffectList.isEmpty() || spellAttack.getNumTargetsAffected(scenario) <= 1) {
-                resultList.add (processSpellAttack (spellAttack, spell, attack, turnId, actionId, effectCount++))
+                resultList.add (actionCalculator.getSpellDPR(spellAttack, spell, attack, turnId, actionId, effectCount++))
                 continue
             }
 
@@ -131,33 +117,11 @@ class ScenarioCalculator(
             // one of the targets may have a save penalty, while others may not
             // to handle that, break them apart into separate spellAttacks, with varying conditions ...
             val copyMinusOne = SpellAttack(spellAttack, scenario)
-            resultList.add (processSpellAttack (spellAttack, spell, attack, turnId, actionId, effectCount++))
-            resultList.add (processSpellAttack (copyMinusOne, spell, attack, turnId, actionId, effectCount++))
+            resultList.add (actionCalculator.getSpellDPR(spellAttack, spell, attack, turnId, actionId, effectCount++))
+            resultList.add (actionCalculator.getSpellDPR(copyMinusOne, spell, attack, turnId, actionId, effectCount++))
         }
 
         effectManager.add(TargetEffect(turnId, spell, resultList.first().chanceToHit.avg))
         return resultList
     }
-
-    private fun processSpellAttack(
-        spellAttack: SpellAttack,
-        spell: Spell,
-        attack: Attack,
-        turnId: Int,
-        actionId: Int,
-        effectCount: Int
-    ): AttackResult {
-        // preconditions need to be computed each time, as they may vary between initial spell attack and subsequent spell effects
-        attack.preconditions = effectManager.getPreconditions(attack, spell)
-
-        val attackResult = actionCalculator.getSpellDPR(spellAttack, spell, attack)
-
-        attackResult.targetHadDisadvantageOnSave = effectManager.targetHadDisadvantageOnSave (spell.getSpellSaveAbility())
-
-        attackResult.update(turnId, actionId, effectCount, spellAttack)
-
-        effectManager.pruneEffectsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
-        return attackResult
-    }
-
 }
