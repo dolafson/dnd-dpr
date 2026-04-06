@@ -103,7 +103,8 @@ class ScenarioCalculator(
             // you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next
             // saving throw it makes before the end of your next turn.
             // TODO: should also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
-            effectManager.add(TargetEffect(turnId, cause = Feat.ColdCaster, savePenalty = mutableListOf("1d4")))
+            val probability = resultList.first().chanceToHit.avg
+            effectManager.add(TargetEffect(turnId, Feat.ColdCaster, probability, savePenalty = mutableListOf("1d4")))
             Globals.debug("after adding CC feat, effects = " + effectManager)
         }
 
@@ -134,7 +135,7 @@ class ScenarioCalculator(
             resultList.add (processSpellAttack (copyMinusOne, spell, attack, turnId, actionId, effectCount++))
         }
 
-        effectManager.add(TargetEffect(turnId, spell))
+        effectManager.add(TargetEffect(turnId, spell, resultList.first().chanceToHit.avg))
         return resultList
     }
 
