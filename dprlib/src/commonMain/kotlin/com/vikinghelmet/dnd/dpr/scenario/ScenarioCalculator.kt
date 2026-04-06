@@ -31,6 +31,14 @@ class ScenarioCalculator(
 
             for (attack in turn.attacks) {
                 val resultsForAttack = calculateDPR(turnId, actionCount, attack)
+
+                if (effectManager.hasChanceOfFailure()) {
+                    effectManager.assumeSpellEffectSuccess = false
+                    val resultsForAttackWithNoSpellPreconditions = calculateDPR(turnId, actionCount, attack)
+                    effectManager.assumeSpellEffectSuccess = true
+                    // TODO: find a way to merge the two sets of results ...
+                }
+                
                 for (result in resultsForAttack) {
                     dpr += result.damagePerRound.select (result.avgMinMaxSelection)
                     scenarioTotalDamage += result.damageFullEffect.select (result.avgMinMaxSelection)

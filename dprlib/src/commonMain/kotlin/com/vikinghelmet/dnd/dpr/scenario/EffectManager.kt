@@ -15,6 +15,9 @@ data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
     var assumeSpellEffectSuccess = true
 
     fun attackerHasAdvantage() = runningEffectList.any { it.attackerHasAdvantage == true }
+
+    fun hasChanceOfFailure()   = runningEffectList.any { it.probability < 100f }
+
     fun isAutoCrit() = assumeSpellEffectSuccess && runningEffectList.any { it.attackerAutoCrit == true }
 
 
