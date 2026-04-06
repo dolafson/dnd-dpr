@@ -11,13 +11,8 @@ data class Preconditions (
     // If the target has a penalty to their saving throw determined by a die roll (such as by the Bane spell) then enter those dice here.
     var penaltyDiceToSave: DiceBlock = DiceBlock(0, 0, 0, 0, 0),
 
-    //
     var bonusDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0),
-
-    //
     var penaltyDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0),
-
-    var bonusDamage: Int? = 0,
     var bonusDamageDice: DiceBlock = DiceBlock(0, 0, 0, 0, 0),
 
     // If you get a bonus on only one hit or target, such as with the Evoker's "Empowered Evocation" ability, you can enter the bonus here.

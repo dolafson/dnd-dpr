@@ -134,7 +134,7 @@ class ScenarioCalculator(
             resultList.add (processSpellAttack (copyMinusOne, spell, attack, turnId, actionId, effectCount++))
         }
 
-        effectManager.add(turnId, spell)
+        effectManager.add(TargetEffect(turnId, spell))
         return resultList
     }
 

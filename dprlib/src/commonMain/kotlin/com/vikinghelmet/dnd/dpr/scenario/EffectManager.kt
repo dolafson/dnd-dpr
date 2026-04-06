@@ -42,17 +42,6 @@ data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
         Globals.debug("adding to running list: "+effect)
     }
 
-    fun add(turnId: Int, spell: Spell) {
-        val effect = TargetEffect(turnId, cause = spell)
-        val conditions = spell.getSpellFailConditions()
-        for (cond in conditions) {
-            effect.applyCondition(cond)
-        }
-
-        effect.applySpellName(spell.name)
-        add(effect)
-    }
-
     fun pruneEffectsAtEndOfTurn(turnId: Int) {
         val iterator = runningEffectList.listIterator()
         while (iterator.hasNext()) {
@@ -105,15 +94,10 @@ data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
 
         for (priorEffect in runningEffectList)
         {
-            if (priorEffect.savePenalty.isNotEmpty()) {
-                Globals.debug("adding priorEffect savePenalty  = "+priorEffect.savePenalty)
-
-                for (penalty in priorEffect.savePenalty) {
-                    precondition.penaltyDiceToSave += DiceBlockHelper.get(penalty)
-                }
+            for (penalty in priorEffect.savePenalty) {
+                precondition.penaltyDiceToSave += DiceBlockHelper.get(penalty)
             }
 
-            // extra damage from old spells can be applied independently (does not depend on "currentSpell")
             for (damage in priorEffect.attackerExtraDamageOnHit) {
                 precondition.bonusDamageDice += DiceBlockHelper.get (damage)
             }

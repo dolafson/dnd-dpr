@@ -365,11 +365,6 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val preconditions = attack.preconditions ?: Preconditions()
         val bonusDiceToSave = preconditions.bonusDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
         val penaltyDiceToSave = preconditions.penaltyDiceToSave ?: DiceBlock(0, 0, 0, 0, 0)
-
-        // ----------------------------------------------------------------------------------------------------
-        // If you get a bonus on only one hit or target, such as with the Evoker's "Empowered Evocation" ability, you can enter the bonus here.
-        // we may be able to extract this from spell properties ?
-        val bonusDamage = preconditions.bonusDamage ?: 0
         val bonusDamageOnFirstHit = preconditions.bonusDamageOnFirstHit ?: DiceBlock(0, 0, 0, 0, 0)
 
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
@@ -429,14 +424,14 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             )
         }
 
-        val fullDamage: AvgMinMax = getAvgMinMax(spellAttack.getDamageDice(), bonusDamage)
+        val fullDamage: AvgMinMax = getAvgMinMax(spellAttack.getDamageDice(), 0)
         logger.debug{"Full Damage: "+fullDamage}
 
         val halfDamage = fullDamage.half(spellAttack.getDamageDice())
         logger.debug{"Half Damage: "+halfDamage}
         debug()
 
-        val fullDamageFirstHit: AvgMinMax = getAvgMinMax(bonusDamageOnFirstHit, bonusDamage)
+        val fullDamageFirstHit: AvgMinMax = getAvgMinMax(bonusDamageOnFirstHit, 0)
         logger.debug{"Full Damage (First Hit): "+fullDamageFirstHit}
 
         val halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit)
@@ -549,7 +544,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
         val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
         val isBonusAction = attack.isBonusAction ?: false
-        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(character, isBonusAction) + (preconditions.bonusDamage ?: 0)
+        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(character, isBonusAction)
         debug()
 
         val attackBonus = meleeOrRangeAttack.getBonusToHit(character, isBonusAction)

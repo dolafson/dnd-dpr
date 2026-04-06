@@ -10,12 +10,13 @@ interface TargetEffectCause {}
 data class TargetEffect (
     val startTurn: Int,
     var cause: TargetEffectCause? = null,
+    val probability: Float = 100f,
 
     var attackerHasAdvantage: Boolean? = false,
     var attackerAutoCrit: Boolean? = false, // when target is hit, does attack automatically crit (double damage) ? // TODO ...
     var attackerExtraDamageOnHit: MutableList<String> = mutableListOf(), // 1d4, 1d6, ...
 
-    // some effects are dependent on abilityType; these aren't modelled in Preconditions,
+    // some effects are dependent on abilityType; these aren't modeled in Preconditions,
     // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
     var disadvantageOnSave: MutableList<AbilityType> = mutableListOf(),
     var autoFailSave: MutableList<AbilityType> = mutableListOf(),
@@ -30,6 +31,17 @@ data class TargetEffect (
     var damagePenalty: MutableList<String> = mutableListOf(),
 
     ) {
+    val conditions: MutableList<Condition> = mutableListOf() // TODO: include these in CSV output
+
+    constructor(startTurn: Int, spell: Spell): this(startTurn = startTurn, cause = spell) {
+        conditions.addAll (spell.getSpellFailConditions())
+
+        for (cond in conditions) {
+            applyCondition(cond)
+        }
+        applySpellName(spell.name)
+    }
+
     fun getSpell() = if (cause != null && cause is Spell) cause as Spell else null
     fun getFeat()  = if (cause != null && cause is Feat) cause as Feat else null
     fun getDuration() = if (getSpell() == null) 1 else getSpell()?.getDuration() ?: 0
