@@ -12,64 +12,69 @@ import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
+import dev.shivathapaa.logger.api.LoggerFactory
+import kotlinx.serialization.Transient
 
 class ScenarioCalculator(
     val scenario: Scenario,    
     val effectManager: EffectManager = EffectManager(ArrayList())
 )
 {
-    val actionCalculator = ActionCalculator(scenario, effectManager)
+    @Transient private val logger = LoggerFactory.get(ScenarioCalculator::class.simpleName ?: "")
 
     fun calculateDPRForAllTurns(): ScenarioResult {
         var turnId = 1
         var scenarioTotalDamage = 0f
-        val attackResults = ArrayList<AttackResult>()
+        val allResults = ArrayList<AttackResult>()
 
         for (turn in scenario.turns) {
-            var dpr = 0f
+            val turnResult = ArrayList<AttackResult>()
+            val chanceOfSuccess = effectManager.chanceOfSuccess()
+            logger.warn { "turn = $turnId, chanceOfSuccess = $chanceOfSuccess, runningList = ${ effectManager.runningEffectList }" }
+
+            val effectsAtTurnStart = EffectManager(effectManager, false) // copy of effects, with pruned conditionals
             var actionCount = 1
 
+            // compute initial results for turn
             for (attack in turn.attacks) {
-                val resultsForAttack = calculateDPR(turnId, actionCount, attack)
-
-                if (effectManager.hasChanceOfFailure()) {
-                    effectManager.assumeSpellEffectSuccess = false
-                    val resultsForAttackWithNoSpellPreconditions = calculateDPR(turnId, actionCount, attack)
-                    effectManager.assumeSpellEffectSuccess = true
-                    // TODO: find a way to merge the two sets of results ...
-                }
-                
-                for (result in resultsForAttack) {
-                    dpr += result.damagePerRound.select (result.avgMinMaxSelection)
-                    scenarioTotalDamage += result.damageFullEffect.select (result.avgMinMaxSelection)
-                }
-                actionCount++
-
-                attackResults.addAll(resultsForAttack)
+                turnResult.addAll (calculateDPR(turnId, actionCount++, attack, ActionCalculator(scenario, effectManager)))
             }
 
+            // if priorEffects are conditional, apply probability
+            if (chanceOfSuccess != 100f) {
+                val secondary = ArrayList<AttackResult>()
+                actionCount = 1
+                for (attack in turn.attacks) {
+                    secondary.addAll (calculateDPR(turnId, actionCount++, attack, ActionCalculator(scenario, effectsAtTurnStart)))
+                }
+                for (i in 0 until turnResult.size) {
+                    logger.warn { "before merge, turnResult[$i] = ${ turnResult[i] }" }
+                    turnResult[i] = turnResult[i].merge (secondary[i], chanceOfSuccess)
+                    logger.warn { "after merge, turnResult[$i] = ${ turnResult[i] }" }
+                }
+            }
+
+            // update total and end the turn
+            scenarioTotalDamage += turnResult.map { it.damageFullEffect.select (it.avgMinMaxSelection) }.sum()
+            allResults.addAll(turnResult)
             effectManager.pruneEffectsAtEndOfTurn(turnId)
             turnId++
         }
 
-        return ScenarioResult(scenario, attackResults, scenarioTotalDamage)
+        return ScenarioResult(scenario, allResults, scenarioTotalDamage)
     }
 
-    private fun calculateDPR(turnId: Int, actionId: Int, attack: Attack): List<AttackResult> {
-        val spell = if (attack.action is Spell) attack.action else null
-
+    private fun calculateDPR(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult>
+    {
         return if (attack.action is Weapon) {
-            getWeaponAttackDpr(turnId, actionId, attack)
-        }
-        else if (spell != null) {
-            calculateSpellDPR(turnId, actionId, attack, spell)
+            getWeaponAttackDpr(turnId, actionId, attack, actionCalculator)
         }
         else {
-            emptyList()
+            getSpellDPR(turnId, actionId, attack, actionCalculator)
         }
     }
 
-    private fun getWeaponAttackDpr(turnId: Int, actionId: Int, attack: Attack): MutableList<AttackResult> {
+    private fun getWeaponAttackDpr(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult> {
         val resultList = mutableListOf<AttackResult>()
         val weapon = attack.action as Weapon
         var effect = 1
@@ -106,8 +111,9 @@ class ScenarioCalculator(
         return resultList
     }
 
-    private fun calculateSpellDPR(turnId: Int, actionId: Int, attack: Attack, spell: Spell): List<AttackResult>
+    private fun getSpellDPR(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult>
     {
+        val spell = attack.action as Spell
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
         Globals.debug("spell = ${spell.fullString()}")

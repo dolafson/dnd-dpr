@@ -20,7 +20,7 @@ data class ScenarioResult(
     }
 
     fun dprAtRound(round: Int):Float {
-        return attackResults.firstOrNull { it.turnId == round }?.dpr() ?: 0f
+        return attackResults.map { if (it.turnId == round ) it.dpr() else 0.0f }.sum()
     }
 
     fun output(): String {

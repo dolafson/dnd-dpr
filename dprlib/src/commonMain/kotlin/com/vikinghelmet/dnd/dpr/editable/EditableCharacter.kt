@@ -82,11 +82,11 @@ data class EditableCharacter (
         // add spells granted by subclass, up to selected level
         //   ("at level X you will always have spell ABC prepared")
         val subclass = getSubclassName()
-        logger.warn { "subclass = $subclass" }
-        logger.warn { "subclassAll = ${ Globals.subclassSpellsPrepared }" }
+        logger.debug { "subclass = $subclass" }
+        logger.debug { "subclassAll = ${ Globals.subclassSpellsPrepared }" }
         if (subclass != null) {
             Globals.getSubclassSpellsPrepared(subclass).forEach {
-                logger.warn { "subclass spellprep = $it" }
+                logger.debug { "subclass spellprep = $it" }
                 if (it.level <= getLevel()) {
                     it.spells.forEach { spellName -> result.add (PreparedSpell(spellName, is2014()))  }
                 }

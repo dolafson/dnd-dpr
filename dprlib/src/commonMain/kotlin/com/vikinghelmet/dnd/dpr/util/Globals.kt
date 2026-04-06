@@ -8,6 +8,7 @@ import com.vikinghelmet.dnd.dpr.character.spells.SpellsChanged2024
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SubclassSpellsPrepared
+import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -206,4 +207,10 @@ object Globals {
 
         LoggerFactory.install(config)
     }
+
+    fun probableResult(valueIfSuccess: Float, valueIfFail: Float, chanceOfSuccess: Float): Float {
+        return chanceOfSuccess * valueIfSuccess + (1-chanceOfSuccess)*valueIfFail
+    }
+
+    fun toAvg(value: Float) = AvgMinMax(value,0f,0f)
 }

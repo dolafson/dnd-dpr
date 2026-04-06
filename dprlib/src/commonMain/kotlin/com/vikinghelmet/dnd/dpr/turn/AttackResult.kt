@@ -5,6 +5,10 @@ import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.Globals.probableResult
+import com.vikinghelmet.dnd.dpr.util.Globals.toAvg
+import dev.shivathapaa.logger.api.LoggerFactory
+import kotlinx.serialization.Transient
 
 data class AttackResult(
     val numTargets: Int,
@@ -23,8 +27,24 @@ data class AttackResult(
     var actionId: Int = -1,
     var effectId: Int = -1,
     var spellAttack: SpellAttack? = null,
+    var avgMinMaxSelection:AvgMinMaxSelection = AvgMinMaxSelection.avg
 ) {
-    var avgMinMaxSelection = AvgMinMaxSelection.avg
+    @Transient private val logger = LoggerFactory.get(AttackResult::class.simpleName ?: "")
+
+    override fun toString(): String = "($turnId,$actionId,$effectId): chanceToHit=$chanceToHit, damagePerRound=$damagePerRound"
+
+    fun merge(secondary: AttackResult, chanceOfSuccess: Float): AttackResult
+    {
+        logger.warn { "before merge, secondary = $secondary" }
+
+        return AttackResult (numTargets,
+          toAvg (probableResult (chanceToHit.select(avgMinMaxSelection),    secondary.chanceToHit.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
+          toAvg (probableResult (damagePerHit.select(avgMinMaxSelection),   secondary.damagePerHit.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
+          toAvg (probableResult (damagePerRound.select(avgMinMaxSelection), secondary.damagePerRound.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
+          toAvg (probableResult (duration.select(avgMinMaxSelection),         secondary.duration.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
+          toAvg (probableResult (damageFullEffect.select(avgMinMaxSelection), secondary.damageFullEffect.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
+          character, attack, startCondition, turnId, actionId, effectId, spellAttack)
+    }
 
     fun dpr(): Float {
         return damagePerRound.select (avgMinMaxSelection)

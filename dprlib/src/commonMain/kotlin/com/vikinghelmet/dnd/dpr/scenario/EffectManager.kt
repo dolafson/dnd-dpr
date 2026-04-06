@@ -10,16 +10,15 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
 
-data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
+data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
 {
-    var assumeSpellEffectSuccess = true
-
+    fun chanceOfSuccess(): Float = if (runningEffectList.isEmpty()) 100f else runningEffectList.minOf { it.probability }
     fun attackerHasAdvantage() = runningEffectList.any { it.attackerHasAdvantage == true }
 
-    fun hasChanceOfFailure()   = runningEffectList.any { it.probability < 100f }
+    fun isAutoCrit() = runningEffectList.any { it.attackerAutoCrit == true }
 
-    fun isAutoCrit() = assumeSpellEffectSuccess && runningEffectList.any { it.attackerAutoCrit == true }
-
+    constructor(other: EffectManager, allowFailure: Boolean):
+            this(runningEffectList = other.runningEffectList.filter { it.probability == 100f || allowFailure}.toMutableList())
 
     override fun toString(): String {
         val buf = StringBuilder()
@@ -95,10 +94,6 @@ data class EffectManager(val runningEffectList: ArrayList<TargetEffect>)
 
         for (priorEffect in runningEffectList)
         {
-            if (priorEffect.probability < 100f && !assumeSpellEffectSuccess) {
-                continue
-            }
-
             for (penalty in priorEffect.savePenalty) {
                 precondition.penaltyDiceToSave += DiceBlockHelper.get(penalty)
             }

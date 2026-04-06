@@ -29,17 +29,16 @@ data class TargetEffect (
     var disadvantageOnAbilityChecks: MutableList<AbilityType> = mutableListOf(), // this only matters when monsters fight back
     var attackPenalty: MutableList<String> = mutableListOf(),
     var damagePenalty: MutableList<String> = mutableListOf(),
-
+    var conditions: MutableList<Condition> = mutableListOf() // TODO: include these in CSV output
     ) {
-    val conditions: MutableList<Condition> = mutableListOf() // TODO: include these in CSV output
 
-    constructor(startTurn: Int, spell: Spell): this(startTurn = startTurn, cause = spell) {
-        conditions.addAll (spell.getSpellFailConditions())
-
-        for (cond in conditions) {
-            applyCondition(cond)
+    init {
+        if (cause is Spell) {
+            val spell = cause as Spell
+            conditions.addAll(spell.getSpellFailConditions())
+            conditions.forEach { applyCondition(it) }
+            applySpellName(spell.name)
         }
-        applySpellName(spell.name)
     }
 
     fun getSpell() = if (cause != null && cause is Spell) cause as Spell else null
@@ -240,6 +239,7 @@ data class TargetEffect (
         if (disadvantageOnAbilityChecks.isNotEmpty()) buf.append("disadvantageOnAbilityChecks="+disadvantageOnAbilityChecks).append(";")
         if (attackPenalty.isNotEmpty()) buf.append("attackPenalty="+attackPenalty).append(";")
         if (damagePenalty.isNotEmpty()) buf.append("damagePenalty="+damagePenalty).append(";")
-        return buf.toString()
+
+        return if (buf.length == 0) "" else "${Globals.getPercent(probability*100)}% = $buf"
     }
 }
