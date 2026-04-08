@@ -212,5 +212,5 @@ object Globals {
         return chanceOfSuccess * valueIfSuccess + (1-chanceOfSuccess)*valueIfFail
     }
 
-    fun toAvg(value: Float) = AvgMinMax(value,0f,0f)
+    fun toAvg(value: Float) = AvgMinMax(value,value,value) // (value,0f,0f)
 }

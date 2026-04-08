@@ -1,6 +1,5 @@
 package com.vikinghelmet.dnd.dpr.util
 
-import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
@@ -42,7 +41,6 @@ data class TargetEffect (
     }
 
     fun getSpell() = if (cause != null && cause is Spell) cause as Spell else null
-    fun getFeat()  = if (cause != null && cause is Feat) cause as Feat else null
     fun getDuration() = if (getSpell() == null) 1 else getSpell()?.getDuration() ?: 0
 
     fun hasSaveImpact() = savePenalty.isNotEmpty() || disadvantageOnSave.isNotEmpty() || autoFailSave.isNotEmpty()

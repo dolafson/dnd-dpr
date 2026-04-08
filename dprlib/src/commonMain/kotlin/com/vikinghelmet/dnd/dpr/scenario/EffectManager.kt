@@ -1,6 +1,8 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.Attack
@@ -14,6 +16,13 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
 {
     fun chanceOfSuccess(): Float = if (runningEffectList.isEmpty()) 100f else runningEffectList.minOf { it.probability }
     fun attackerHasAdvantage() = runningEffectList.any { it.attackerHasAdvantage == true }
+
+    fun targetHasDisadvantageOnSave(abilityName: String?): Boolean
+    {
+        if (abilityName == null) return false
+        val ability = AbilityType.valueOf(abilityName)
+        return runningEffectList.any { it.disadvantageOnSave.any { it2 -> it2.match(ability) }}
+    }
 
     fun isAutoCrit() = runningEffectList.any { it.attackerAutoCrit == true }
 
@@ -32,7 +41,10 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
         }
 
         for (runningEffect in runningEffectList) {
-            if (runningEffect.cause == effect.cause) {
+            // TODO: fix conflict between
+            //  - "no double dip on effects that occur once per round"
+            //  - "Vex continues until end of next round"
+            if (runningEffect.cause == effect.cause && !(effect.cause is MasteryProperty)) {
                 Globals.debug("no double dipping on effect cause")
                 return
             }

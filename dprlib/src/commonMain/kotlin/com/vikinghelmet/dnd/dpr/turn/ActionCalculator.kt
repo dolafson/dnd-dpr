@@ -346,10 +346,6 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         attackResult.update(turnId, actionId, effectCount, spellAttack)
 
-        if (effectManager.attackerHasAdvantage()) {
-            attackResult.avgMinMaxSelection = AvgMinMaxSelection.max
-        }
-
         effectManager.pruneEffectsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
         return attackResult
     }
@@ -533,7 +529,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         //  (a) calc damage for each round individually
         //  (b) calc total damage across all rounds (some spells have multi-round impact)
 
-        return AttackResult(
+        val attackResult = AttackResult(
             numberOfTargets,
             chanceToHit,
             damagePerHit,
@@ -544,6 +540,12 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             attack = attack,
             startCondition = effectManager.toString()
         )
+
+        if (effectManager.targetHasDisadvantageOnSave(save?.saveAbility)) {
+            attackResult.avgMinMaxSelection = AvgMinMaxSelection.max
+        }
+
+        return attackResult
     }
 
     // ==========================================================
@@ -581,10 +583,12 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val isElemental = character.isElementalAdept()
 
         // # Hit%:     (Y6, AC6, AG6) -> (B199, F199, J199)
+        // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
+        // we want Advantage last, so it lands in the "max" value
         val chanceToHit = AvgMinMax(
             totalProb(attackBonus, AC,"No Advantage", isElemental, isLucky, autoHit, bonusDiceToHit,penaltyDiceToHit),
-            totalProb(attackBonus, AC, "Advantage", isElemental, isLucky, autoHit, bonusDiceToHit, penaltyDiceToHit),
             totalProb(attackBonus, AC,"Disadvantage", isElemental, isLucky,autoHit, bonusDiceToHit, penaltyDiceToHit),
+            totalProb(attackBonus, AC, "Advantage", isElemental, isLucky, autoHit, bonusDiceToHit, penaltyDiceToHit),
         )
         logger.debug { "Chance to Hit, "+chanceToHit }
 
@@ -605,10 +609,12 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // TODO: "autoCrit" from paralyzed/unconscious should only apply to melee attacks (not range)
 
         // Crit%:        (B211, F211, J211)
+        // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
+        // we want Advantage last, so it lands in the "max" value
         val critChance = if (effectManager.isAutoCrit()) AvgMinMax(1f,1f,1f) else AvgMinMax(
             critChance(autoHit, "No Advantage", character.isElementalAdept(), isLucky),
-            critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
+            critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
         )
         logger.debug{"Crit %Hit: "+critChance}
 
@@ -618,10 +624,12 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // (ignore 'numTargets' in user input, that only applies to spells with AOE impact)
 
         val numTargets = 1
+        // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
+        // we want Advantage last, so it lands in the "max" value
         val attackDPR = AvgMinMax(
             numTargets * ((chanceToHit.avg - critChance.avg) * damagePerHit.avg + (critChance.avg * critDamage.avg)),
-            numTargets * ((chanceToHit.max - critChance.max) * damagePerHit.max + (critChance.max * critDamage.max)),
             numTargets * ((chanceToHit.min - critChance.min) * damagePerHit.min + (critChance.min * critDamage.min)),
+            numTargets * ((chanceToHit.max - critChance.max) * damagePerHit.max + (critChance.max * critDamage.max)),
         )
         logger.debug{"Attack DPR (main="+mainAttack+"): "+attackDPR}
 

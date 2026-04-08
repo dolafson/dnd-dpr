@@ -155,6 +155,6 @@ In no particular order ...
 ## Known Issues
 
 - not yet supported:
-  - weapon mastery: Nick, Vex
+  - several forms of weapon mastery, in particular: Nick
 - roughly 20% of spells are missing
   - these should be manually added to the resource file **extra.spells.json** 

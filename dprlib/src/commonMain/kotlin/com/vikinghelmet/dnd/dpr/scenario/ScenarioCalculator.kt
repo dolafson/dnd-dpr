@@ -30,7 +30,7 @@ class ScenarioCalculator(
         for (turn in scenario.turns) {
             val turnResult = ArrayList<AttackResult>()
             val chanceOfSuccess = effectManager.chanceOfSuccess()
-            logger.warn { "turn = $turnId, chanceOfSuccess = $chanceOfSuccess, runningList = ${ effectManager.runningEffectList }" }
+            logger.debug { "turn = $turnId, chanceOfSuccess = $chanceOfSuccess, runningList = ${ effectManager.runningEffectList }" }
 
             val effectsAtTurnStart = EffectManager(effectManager, false) // copy of effects, with pruned conditionals
             var actionCount = 1
@@ -48,9 +48,7 @@ class ScenarioCalculator(
                     secondary.addAll (calculateDPR(turnId, actionCount++, attack, ActionCalculator(scenario, effectsAtTurnStart)))
                 }
                 for (i in 0 until turnResult.size) {
-                    logger.warn { "before merge, turnResult[$i] = ${ turnResult[i] }" }
                     turnResult[i] = turnResult[i].merge (secondary[i], chanceOfSuccess)
-                    logger.warn { "after merge, turnResult[$i] = ${ turnResult[i] }" }
                 }
             }
 
@@ -96,14 +94,18 @@ class ScenarioCalculator(
             resultList.add(actionCalculator.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack, turnId, actionId, effect++))
         }
 
+        if (weapon.hasMasteryProperty(MasteryProperty.Vex)) {
+            logger.debug { "turn=$turnId, vex = true" }
+            effectManager.add(TargetEffect(turnId, MasteryProperty.Vex, resultList.first().chanceToHit.avg, attackerHasAdvantage = true))
+        }
+
         if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
             // http://dnd2024.wikidot.com/feat:cold-caster ...
             // Frostbite. Once per turn when you hit a creature with an attack roll and deal Cold damage,
             // you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next
             // saving throw it makes before the end of your next turn.
             // TODO: should also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
-            val probability = resultList.first().chanceToHit.avg
-            effectManager.add(TargetEffect(turnId, Feat.ColdCaster, probability, savePenalty = mutableListOf("1d4")))
+            effectManager.add(TargetEffect(turnId, Feat.ColdCaster, resultList.first().chanceToHit.avg, savePenalty = mutableListOf("1d4")))
             Globals.debug("after adding CC feat, effects = " + effectManager)
         }
 

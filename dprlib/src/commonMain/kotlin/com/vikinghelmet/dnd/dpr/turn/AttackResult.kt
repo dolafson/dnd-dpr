@@ -31,11 +31,19 @@ data class AttackResult(
 ) {
     @Transient private val logger = LoggerFactory.get(AttackResult::class.simpleName ?: "")
 
-    override fun toString(): String = "($turnId,$actionId,$effectId): chanceToHit=$chanceToHit, damagePerRound=$damagePerRound"
+    override fun toString(): String = "($turnId,$actionId,$effectId): chanceToHit=$chanceToHit, damagePerRound=$damagePerRound, selection=$avgMinMaxSelection"
 
     fun merge(secondary: AttackResult, chanceOfSuccess: Float): AttackResult
     {
-        logger.warn { "before merge, secondary = $secondary" }
+        logger.debug { "before merge, primary   = ${toString()}" }
+        logger.debug { "before merge, secondary = $secondary" }
+
+        logger.debug { "primary chanceToHit     = ${ chanceToHit.select(avgMinMaxSelection) }" }
+        logger.debug { "secondary chanceToHit   = ${ secondary.chanceToHit.select(secondary.avgMinMaxSelection) }" }
+        logger.debug { "probable chanceToHit    = ${
+            probableResult (chanceToHit.select(avgMinMaxSelection),
+                secondary.chanceToHit.select(secondary.avgMinMaxSelection), chanceOfSuccess)
+        }" }
 
         return AttackResult (numTargets,
           toAvg (probableResult (chanceToHit.select(avgMinMaxSelection),    secondary.chanceToHit.select(secondary.avgMinMaxSelection), chanceOfSuccess)),

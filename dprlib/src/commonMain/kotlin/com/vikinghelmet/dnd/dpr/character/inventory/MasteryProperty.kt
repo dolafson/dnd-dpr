@@ -1,6 +1,8 @@
 package com.vikinghelmet.dnd.dpr.character.inventory
 
-enum class MasteryProperty(val supported: Boolean = false) {
+import com.vikinghelmet.dnd.dpr.util.TargetEffectCause
+
+enum class MasteryProperty(val supported: Boolean = false) : TargetEffectCause {
 
     Cleave(true), // If you hit a creature with a melee attack roll using this weapon,
             // you can make a melee attack roll with the weapon against a second creature

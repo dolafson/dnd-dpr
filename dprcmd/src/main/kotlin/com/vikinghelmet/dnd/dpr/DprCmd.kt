@@ -426,7 +426,11 @@ OFF	6	Disables all logging
 
         val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
-        logger.debug { "scenario = ${ scenarioResult.attackResults }" }
+
+        scenarioResult.attackResults.forEach {
+            logger.debug { "scenario result = ${ it }" }
+        }
+
         println (scenarioResult.output())
     }
 
