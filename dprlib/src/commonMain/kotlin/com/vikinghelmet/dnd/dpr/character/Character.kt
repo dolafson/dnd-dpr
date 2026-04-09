@@ -70,7 +70,7 @@ open class Character(
         return false
     }
 
-    fun getRawAbilityScore(a: AbilityType): Int {
+    private fun getRawAbilityScore(a: AbilityType): Int {
         for (stat in characterData.stats) {
             if (stat.id == a.ordinal) return stat.value
         }
@@ -83,7 +83,7 @@ open class Character(
         }
     }
 
-    fun getBonusModifierSum(a: AbilityType, list: List<Modifier>): Int {
+    private fun getBonusModifierSum(a: AbilityType, list: List<Modifier>): Int {
         var mod = 0
         for (modifier in list) {
             if (modifier.type == "bonus" && modifier.entityId == a.ordinal) {
@@ -96,6 +96,10 @@ open class Character(
         return getRawAbilityScore(a) +
                 getBonusModifierSum(a, characterData.modifiers.race) +
                 getBonusModifierSum(a, characterData.modifiers.feat)
+    }
+
+    fun getModifiedAbilityScoreMap(): Map<AbilityType,Int> {
+        return AbilityType.entries.filter { it != AbilityType.ALL }.associateWith { getModifiedAbilityScore(it) }
     }
 
     fun getProficiencyBonus(): Int {
