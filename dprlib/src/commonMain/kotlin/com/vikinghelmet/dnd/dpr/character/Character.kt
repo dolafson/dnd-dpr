@@ -98,9 +98,8 @@ open class Character(
                 getBonusModifierSum(a, characterData.modifiers.feat)
     }
 
-    fun getModifiedAbilityScoreMap(): Map<AbilityType,Int> {
-        return AbilityType.entries.filter { it != AbilityType.ALL }.associateWith { getModifiedAbilityScore(it) }
-    }
+    fun getRawAbilityScoreMap()      = AbilityType.getAllNotALL().associateWith { getRawAbilityScore(it) }
+    fun getModifiedAbilityScoreMap() = AbilityType.getAllNotALL().associateWith { getModifiedAbilityScore(it) }
 
     fun getProficiencyBonus(): Int {
         return Constants.levelToProficiencyMap[getLevel()] ?: 0
@@ -157,9 +156,9 @@ open class Character(
     // ----------------------------------------------------------------------------------------
     // COMBAT MODIFIERS
 
-    fun getSpellAbilityType(): String {
-        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
-        return if (abilityId == null) "n/a" else AbilityType.entries[abilityId].name
+    fun getSpellAbilityType(): AbilityType? {
+        val abilityId: Int = characterData.classes.first().definition.spellCastingAbilityId ?: return null
+        return AbilityType.entries[abilityId]
     }
 
     fun getSpellAbilityBonusWithoutPB(): Int {
@@ -191,7 +190,6 @@ open class Character(
         val strBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Strength)] ?: 0
         val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
 
-        val props = w.properties ?: emptyList()
         return if (w.hasWeaponProperty(WeaponProperty.Finesse)) kotlin.math.max(strBonus, dexBonus)
         else if (w.attackType == 1) strBonus
         else dexBonus
@@ -228,16 +226,9 @@ open class Character(
 
             val def = item.definition
             if (def.filterType == "Weapon") {
-                var props = mutableListOf<String>()
-                if (def.properties != null) {
-                    for (prop in def.properties) props.add(prop.name)
-                }
-                val diceString = def.damage?.diceString ?: "0d4"
-
+                val name     = def.name.replace(",.*".toRegex(),"")
                 val nickname = getWeaponNicknameMap().get(""+item.id)
-
-                val name = def.name.replace(",.*".toRegex(),"")
-                list.add(Weapon (name, diceString, props, def.magic, def.attackType ?: 1, def.range ?: 5, def.longRange, nickname))
+                list.add(Weapon (name, nickname, item))
             }
         }
         return list

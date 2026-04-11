@@ -237,7 +237,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
 
                     Text("Prof Bonus")
 
-                    if (character.getSpellAbilityType() != "n/a") {
+                    if (character.getSpellAbilityType() != null) {
                         Text("Spell DC")
                     }
                     // currently unable to calculate: AC, HP
@@ -254,7 +254,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                         color = highlightIncrease(character.from.getProficiencyBonus(), current)
                     )
 
-                    if (character.getSpellAbilityType() != "n/a") {
+                    if (character.getSpellAbilityType() != null) {
                         current = character.getSpellSaveDC()
                         Text(current.toString(), color = highlightIncrease(character.from.getSpellSaveDC(), current))
                     }

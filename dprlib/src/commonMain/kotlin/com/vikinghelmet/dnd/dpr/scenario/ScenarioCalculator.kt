@@ -86,7 +86,7 @@ class ScenarioCalculator(
         }
 
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
-            val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.damage) {
+            val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.nickname, weapon.item) {
                 override fun getBonusDamage(character: Character, isBonusAction: Boolean) = 0
             }
 

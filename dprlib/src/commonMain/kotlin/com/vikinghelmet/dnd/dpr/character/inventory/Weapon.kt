@@ -10,42 +10,55 @@ import kotlinx.serialization.Serializable
 @Serializable
 open class Weapon (
     val name: String,
-    val damage: String? = null,
-
-    // data from dndbeyond character sheet
-    val properties: List<String>? = null,
-    val magic: Boolean? = false,
-    val attackType: Int? = 1,    // 1=melee, 2=range
-    val range: Int? = 5,
-    val longRange: Int? = 5,
     val nickname: String? = null,
+    val item: InventoryItem
+) : MeleeOrRangeAction, AttackAction
+{
+    val magic      = item.definition.magic
+    val attackType = item.definition.attackType ?: 1    // 1=melee, 2=range
+    val range      = item.definition.range ?: 5
+    val longRange  = item.definition.longRange
+    val damage     = item.definition.damage?.diceString ?: "0d4"
 
-) : MeleeOrRangeAction, AttackAction {
     override fun getActionName(): String { return name }
 
     override fun getBonusDamage(character: Character, isBonusAction: Boolean): Int {
-        return character.getDamageBonus(this, isBonusAction)
+        return getMagicBonus() + character.getDamageBonus(this, isBonusAction)
     }
 
     override fun getBonusToHit(character: Character, isBonusAction: Boolean): Int {
-        return character.getAttackBonus(this)
+        return getMagicBonus() + character.getAttackBonus(this)
     }
 
     override fun getDamageDice(): DiceBlock {
         return DiceBlockHelper.get(damage)
     }
 
+    fun getPropertyNames() = item.definition.properties?.map {it.name}
+
     // other methods
     fun hasWeaponProperty(prop: WeaponProperty): Boolean {
-        return properties?.contains(prop.name) == true
+        return getPropertyNames()?.contains(prop.name) == true
     }
 
     fun hasMasteryProperty(prop: MasteryProperty): Boolean {
-        return properties?.contains(prop.name) == true
+        return getPropertyNames()?.contains(prop.name) == true
+    }
+
+    // for now, just handle magic weapons that get the same bonus to attack and damage
+    fun getMagicBonus(): Int {
+        return item.definition.grantedModifiers?.firstOrNull {
+            it.type == "bonus" && it.subType == "magic" && it.modifierTypeId == 1 && it.modifierSubTypeId == 312
+        }?.value ?: 0
     }
 
     override fun toString(): String {
         return name
     }
+
+     fun toFullString(): String {
+        return "Weapon(name='$name', damage=$damage, properties=${getPropertyNames()}, magic=$magic, attackType=$attackType, range=$range, longRange=$longRange, nickname=$nickname, magicBonus=${getMagicBonus()})"
+    }
+
     // override fun getActionName(): String { return name }
 }

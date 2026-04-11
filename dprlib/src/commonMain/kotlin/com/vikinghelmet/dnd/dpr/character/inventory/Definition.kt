@@ -22,6 +22,7 @@ data class Definition(
     val damageType: String? = null,
     val properties: List<com.vikinghelmet.dnd.dpr.character.inventory.Property>? = null,
 
+    val grantedModifiers: List<GrantedModifier>? = null,
     val range: Int? = null,
     val longRange: Int? = null,
 )
