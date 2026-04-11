@@ -3,7 +3,6 @@
 package com.vikinghelmet.dnd.dpr.editable
 
 import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -38,7 +37,7 @@ data class EditableFields (
         character.getAlwaysPreparedSpells())
     {
         // set up iterators to populate plan with pre-selected values
-        val asiFeatIterator = character.getFeatAddedList().filter { it.isASI() }.mapNotNull { Feat.fromNameWithWS(it.definition.name) }.iterator()
+        val asiFeatIterator = character.getFeatAddedList().filter { it.isASI() }.mapNotNull { it.getFeat() }.iterator()
 
         val spellLevelMap = mutableMapOf<Int,Iterator<Spell>>()
         for (spellLevel in Constants.SPELL_LEVELS) {
@@ -56,7 +55,7 @@ data class EditableFields (
                 // addFS
                 planLevel.feat = character.getFeatAddedList()
                     .filter { it.isFightingStyle() }
-                    .mapNotNull { Feat.fromNameWithWS(it.definition.name) }
+                    .mapNotNull { it.getFeat() }
                     .firstOrNull()
             }
             else if (character.getLevelsForAbilityIncrease().contains(tmpLevel)) {

@@ -2,6 +2,7 @@
 
 package com.vikinghelmet.dnd.dpr.character
 
+import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.api.ApiRequestParameters
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
@@ -117,7 +118,7 @@ open class Character(
     }
 
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean {
-        for (trait in characterData.race.racialTraits) {
+        for (trait in getRacialTraitList()) {
             if (trait.definition.name == requested.getNameWithWS()) return true
         }
         return false
@@ -145,12 +146,19 @@ open class Character(
         return isFeatEnabled(Feat.GreatWeaponFighting.getNameWithWS())
     }
 
+    fun getRacialTraitList() = characterData.race.racialTraits
+    fun getRacialTraitNameList() = characterData.race.racialTraits.map { it.definition.name }
+
     fun getFeatAddedList(): List<FeatAdded> {
-        return characterData.feats.filter { f -> f.definition.name != "Dark Bargain" }
+        return characterData.feats.filter { f ->
+            f.definition.name != "Dark Bargain" &&
+            !f.definition.categories!!.any { it2 -> it2.tagName == "__DISGUISE_FEAT"} &&
+            !f.definition.categories.any { it2 -> it2.tagName == "__DISPLAY_WITH_DATA_ORIGIN"}
+        }
     }
 
     open fun getFeatList(): List<Feat> {
-        return getFeatAddedList().mapNotNull { Feat.fromNameWithWS(it.definition.name) }
+        return getFeatAddedList().mapNotNull { it.getFeat() }
     }
 
     // ----------------------------------------------------------------------------------------
@@ -422,16 +430,17 @@ open class Character(
         return result
     }
 
+    fun getActionList(): List<ActionAdded> {
+        return (characterData.actions.race +
+                characterData.actions.feat +
+                characterData.actions.classActions
+        ).filter { a -> !a.name.contains("Circle Spell") }
+    }
+
     private fun getSpellLikeActionList(): List<SpellLikeAction>
     {
         val result = mutableListOf<SpellLikeAction>()
-        val actionList = (
-                characterData.actions.race +
-                characterData.actions.feat +
-                characterData.actions.classActions
-            ).filter { a -> !a.name.contains("Circle Spell") }
-
-        for (action in actionList) {
+        for (action in getActionList()) {
             try {
                 val mod = ActionModifier.partialMatch(action.name)
                 when (mod) {
@@ -594,7 +603,7 @@ open class Character(
     fun toStringExtra(): String {
         val buf = StringBuilder("")
 
-        for (trait in characterData.race.racialTraits) {
+        for (trait in getRacialTraitList()) {
             buf.append ("racial trait: "+trait.definition.name).append("\n")
         }
 
