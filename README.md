@@ -144,7 +144,6 @@ and [CSV](example/attackResult/HuntersMark.then.HailOfThorns.csv)
 
 In no particular order ...
 
-- add unit tests
 - add support for damage types, and Resistance / Immunity
 - add support for more class features / feats
 - add support for spell damage upcasting (by character level, or spell level) 
