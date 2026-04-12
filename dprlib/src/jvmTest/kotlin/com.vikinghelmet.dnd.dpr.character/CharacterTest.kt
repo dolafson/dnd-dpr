@@ -273,5 +273,85 @@ class CharacterTest {
                 "Divine Intervention" to 10,
             ),
             getClassFeaturesExceptFirstLevelAndASI(kael))
+
+        assertEquals(
+            mapOf(
+                "Cunning Action" 	 to 2,
+                "Rogue Subclass" 	 to 3,
+                "Steady Aim" 	 to 3,
+                "Cunning Strike" 	 to 5,
+                "Uncanny Dodge" 	 to 5,
+                "6: Expertise" 	 to 6,
+                "Evasion" 	 to 7,
+                "Reliable Talent" 	 to 7,
+                "Improved Cunning Strike" 	 to 11,
+                "Devious Strikes" 	 to 14,
+                "Slippery Mind" 	 to 15,
+                "Elusive" 	 to 18,
+                "Epic Boon" 	 to 19,
+                "Stroke of Luck" 	 to 20,
+            ),
+            getClassFeaturesExceptFirstLevelAndASI(lars))
+
+        assertEquals(
+        mapOf(
+                "Deft Explorer" 	 to 2,
+                "Fighting Style" 	 to 2,
+                "Ranger Subclass" 	 to 3,
+                "Extra Attack" 	 to 5,
+                "Roving" 	 to 6,
+                "Expertise" 	 to 9,
+                "Tireless" 	 to 10,
+                "Relentless Hunter" 	 to 13,
+                "Nature’s Veil" 	 to 14,
+                "Precise Hunter" 	 to 17,
+                "Feral Senses" 	 to 18,
+                "Epic Boon" 	 to 19,
+                "Foe Slayer" 	 to 20,
+            ),
+            getClassFeaturesExceptFirstLevelAndASI(leif))
+
+        assertEquals(
+        mapOf(
+                "Danger Sense" 	 to 2,
+                "Reckless Attack" 	 to 2,
+                "Barbarian Subclass" 	 to 3,
+                "Primal Knowledge" 	 to 3,
+                "4: Weapon Mastery" 	 to 4,
+                "Extra Attack" 	 to 5,
+                "Fast Movement" 	 to 5,
+                "Feral Instinct" 	 to 7,
+                "Instinctive Pounce" 	 to 7,
+                "Brutal Strike" 	 to 9,
+                "10: Weapon Mastery" 	 to 10,
+                "Relentless Rage" 	 to 11,
+                "Improved Brutal Strike" 	 to 17,
+                "Persistent Rage" 	 to 15,
+                "Indomitable Might" 	 to 18,
+                "Epic Boon" 	 to 19,
+                "Primal Champion" 	 to 20,
+            ),
+            getClassFeaturesExceptFirstLevelAndASI(oleg))
+
+        //# Rhogar
+        assertEquals(
+            mapOf(
+                "Action Surge" 	 to 2,
+                "Tactical Mind" 	 to 2,
+                "Fighter Subclass" 	 to 3,
+                "4: Weapon Mastery" 	 to 4,
+                "Extra Attack" 	 to 5,
+                "Tactical Shift" 	 to 5,
+                "Indomitable" 	 to 9,
+                "Tactical Master" 	 to 9,
+                "10: Weapon Mastery" 	 to 10,
+                "Two Extra Attacks" 	 to 11,
+                "Studied Attacks" 	 to 13,
+                "16: Weapon Mastery" 	 to 16,
+                "Epic Boon" 	 to 19,
+                "Three Extra Attacks" 	 to 20,
+            ),
+            getClassFeaturesExceptFirstLevelAndASI(rhogar))
+
     }
 }
