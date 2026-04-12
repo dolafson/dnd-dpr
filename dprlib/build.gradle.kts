@@ -82,6 +82,18 @@ kotlin {
     }
 }
 
+tasks.register<Copy>("copySharedResourcesForTest") {
+    from(layout.projectDirectory.dir("../shared/resources"))
+    into(layout.buildDirectory.dir("processedResources/jvm/test"))
+}
+
+tasks.configureEach {
+    // Ensure files are copied BEFORE the resource accessors are generated
+    if (name.startsWith("jvmTest")) {
+        dependsOn("copySharedResourcesForTest")
+    }
+}
+
 mavenPublishing {
     publishToMavenCentral()
 

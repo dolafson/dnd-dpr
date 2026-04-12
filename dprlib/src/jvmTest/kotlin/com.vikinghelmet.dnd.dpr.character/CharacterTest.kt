@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.util.Globals
 import junit.framework.TestCase.assertEquals
 import kotlinx.serialization.json.Json
 import java.io.InputStream
@@ -352,6 +353,24 @@ class CharacterTest {
                 "Three Extra Attacks" 	 to 20,
             ),
             getClassFeaturesExceptFirstLevelAndASI(rhogar))
+    }
 
+
+    @Test
+    fun getSpellsForClass() {
+        for (filename in mutableListOf("spells.json","extra.spells.json")) {
+            Globals.addSpells(getResource(filename) ?: "[]")
+        }
+/*
+        party.forEach {
+            println(it.getName())
+            it.getSpellsForClass().forEach { println("\t ${it.name}") }
+        }
+*/
+        listOf(lars,oleg,rhogar).forEach { assertEquals(0, it.getSpellsForClass().size)}
+
+        assertEquals(47, leif.getSpellsForClass().size)
+        assertEquals(108, kael.getSpellsForClass().size)
+        assertEquals(216, eldir.getSpellsForClass().size)
     }
 }
