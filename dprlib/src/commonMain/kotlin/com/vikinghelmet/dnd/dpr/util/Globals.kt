@@ -1,15 +1,10 @@
 package com.vikinghelmet.dnd.dpr.util
 
-import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
-import com.vikinghelmet.dnd.dpr.character.feats.Feat
-import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.SpellsChanged2024
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SubclassSpellsPrepared
 import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
-import com.vikinghelmet.dnd.dpr.turn.Turn
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
 import dev.shivathapaa.logger.core.LoggerConfig
@@ -45,59 +40,6 @@ object Globals {
         result.append(input)
         while (result.length < pad) { result.append(" ") }
         return result.toString()
-    }
-
-    fun leftPad(input: String, pad: Int): String {
-        val result = StringBuilder()
-        repeat(pad - input.length) { result.append(" ") }
-        result.append(input)
-        return result.toString()
-    }
-
-
-    fun dumpFeatures() {
-        println(Json.encodeToString(FeatureSet(
-            RacialTrait.entries.map { e -> e.name },
-            ActionModifier.entries.map { e -> e.name },
-            Feat.entries.map { e -> e.name }
-        )))
-    }
-
-    fun dump(arg: String, character: Character?, turns: List<Turn>) {
-        if (!arg.contains(":")) {
-            for (item in spells)    println(Json.encodeToString(item))
-            for (item in monsters)  println(Json.encodeToString(item))
-            for (item in turns)     println(Json.encodeToString(item))
-            character?.dump()
-            dumpFeatures()
-            return
-        }
-
-        val dumpType = arg.split(":")[1]
-        when (dumpType) {
-            "spells" -> {
-                for (item in spells)  println(Json.encodeToString(item))
-            }
-            "monsters" -> {
-                for (item in monsters)  println(Json.encodeToString(item))
-            }
-            "attacks" -> {
-                for (item in turns)  println(Json.encodeToString(item))
-            }
-            "features" -> {
-                dumpFeatures()
-            }
-            "character" -> {
-                debug("dump:character")
-                character?.dump()
-            }
-        }
-    }
-
-    fun search(arg: String) {
-        val searchValue = arg.split(":")[1]
-        for (item in spells) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
-        for (item in monsters) if (item.name.contains(searchValue))  println(Json.encodeToString(item))
     }
 
     fun addSpells(jsonArrayAsString: String) {

@@ -126,14 +126,13 @@ fun runScenarios(character: Character, args : Array<String>, i: Int): List<Scena
 
 fun showUsage() {
     println("""
-Usage:  [-d] [--csv] [+feat=name] [+aaa=N]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> >
+Usage:  [-d] [--csv] [+feat=name] [+aaa=N]  [file.json ...]  [character]  <attacks> 
 
 Options:
 
     -d              debug logging
     --csv           CSV output
     
-    --maxTurns=N    number of turns per scenario (default = 5)
     --maxResults=N  number of results in final output (default = 30), sorted by totalDamage (see -z below)
     
     +feat=name      add feat
@@ -148,22 +147,9 @@ Character:
      NumericID   read character from DND Beyond API (character must have public visibility)
      file.json   read character from a local file
 
-Dump:
-
-     dump:spells     export all known spells
-     dump:monsters   export all known monsters
-     dump:attacks    export attacks from user input
-     dump:character  export (minimal) character data from DND Beyond
-     dump:features   export supported features: racialTraits, actionModifiers, feats
-     dump            export all of the above
-
-Search:
-
-     search:NAME     search for NAME in list of spells/monsters, and display details if found
-
 Attacks:
 
-     -a  <monster> <turn[;turn...] >   one/more turns, each a comma-separated list of spell or weapon name
+     -a  <monster> <turn[;turn...] >   one/more turns (separated by semi-colon), each turn is a comma-separated list of spell or weapon name
      
      -z  <monster> <proximityInFeet>  [numTurns (${NUM_TURNS_PER_SCENARIO})]  [numTargets (${DEFAULT_NUM_TARGETS})]  [targetRadius (${DEFAULT_TARGET_RADIUS})]
 
@@ -227,9 +213,6 @@ OFF	6	Disables all logging
             val split = arg.substringAfter("+").split("=")
             val ability = com.vikinghelmet.dnd.dpr.character.stats.AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
             character!!.updateAbilityScore(ability, split[1].toInt())
-        }
-        else if (arg.startsWith("--maxTurns")) {
-            Constants.NUM_TURNS_PER_SCENARIO = arg.split("=")[1].toInt()
         }
         else if (arg.startsWith("--maxResults")) {
             Constants.SCENARIO_OUTPUT_MAX = arg.split("=")[1].toInt()
@@ -317,23 +300,6 @@ OFF	6	Disables all logging
                 character = getCharacter(remoteId)
             }
         }
-        else if (arg.startsWith("dump")) {
-            Globals.dump(arg, character, turns)
-            exitEarly = true
-        }
-        else if (arg.startsWith("search")) {
-            Globals.search(arg)
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:character")) {
-            println(character!!.toStringAll())
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:subclass")) {
-            val result = Globals.getSubclassSpellsPrepared(arg.substringAfterLast(':'))
-            result.forEach { println("level = ${it.level}, spells = ${it.spells}") }
-            exitEarly = true
-        }
         else if (arg.startsWith("test:plan")) {
             val editableCharacter = dprFiles.getEditableCharacter(args[i+1])
             println("plan = ${editableCharacter!!.editableFields.toPrettyPlan() }")
@@ -342,80 +308,15 @@ OFF	6	Disables all logging
             }
             exitEarly = true
         }
-        else if (arg.startsWith("test:available")) {
-            ScenarioBuilder(character!!, Globals.getMonster("Goblin")).testActionsAvailable()
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:turnOptions")) {
-            val builder =ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
-            builder.build(args[i+1].toInt(), args[i+2].toInt(), DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-
-            builder.turnOptions.forEach {
-                val buf = StringBuilder()
-                it.attacks.forEach { buf.append(it.getLabel()).append(",") }
-                println("turn option = { $buf }")
-            }
-            //println("turnOptions = ${ builder.turnOptions }")
-
-            exitEarly = true
-        }
         else if (arg.startsWith("test:spells")) {
-//            character!!.getPreparedSpells().forEach { spell ->
-//                println("alwaysPrepared = ${spell.alwaysPrepared}, spell = ${spell.name}")
-//            }
-            //character!!.getAlwaysPreparedSpells().forEach { spell ->
-            //    println("alwaysPrepared2 = ${spell.alwaysPrepared}, spell = ${spell.definition.name}")
-            //}
-
             // spells with more than one failed-save condition
             spells.filter {  it.getSpellFailConditions().size > 1 }.forEach { spell ->
                 println("name = ${spell.name}, conditions = ${spell.getSpellFailConditions()}")
             }
         }
-        else if (arg.startsWith("test:build")) {
-            val builder = ScenarioBuilder(character!!, Globals.getMonster("Goblin"))
-            builder.build(args[i+1].toInt(), args[i+2].toInt(), DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS).forEach {
-                println("scenario = ${it.getLabel()}")
-            }
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:file:write")) {
-            dprFiles.write("this is a test", "example.txt")
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:file:read")) {
-            val result = dprFiles.read("example.txt")
-            println("read result = $result")
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:csvUp")) {
-            val csvContent = dprFiles.readAttackCSV()
-            println("attack csv size = ${ csvContent?.length ?: 0 }")
-            if (csvContent != null) {
-                val props = getProperties("secret.properties")
-                val csvUploadUrl = props["csvUploadUrl"]
-                println("csvUploadUrl = $csvUploadUrl")
-
-                if (csvUploadUrl != null && csvUploadUrl is String) runBlocking {
-                    var csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl,csvContent)
-                    println("csvDownloadUrl = $csvDownloadUrl")
-
-                    val fetch = CharacterAPI.getRequest(csvDownloadUrl)
-                    println("csvDownload, fetched data size= ${fetch.length}")
-                }
-            }
-            //LocalUriHandler
-            exitEarly = true
-        }
     }
 
     if (exitEarly) {
-    }
-    else if (spells.isEmpty()) {
-        println("no spell data")
-    }
-    else if (monsters.isEmpty()) {
-        println("no monsters data")
     }
     else if (character == null) {
         println("no character data")

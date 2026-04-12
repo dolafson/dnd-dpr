@@ -8,7 +8,6 @@ import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.time.measureTime
@@ -238,20 +237,6 @@ class ScenarioBuilder(
                 turnId++
             }
         }
-    }
-
-    fun testActionsAvailable() {
-        val actionsAvailable = character.getActionsAvailable()
-
-        println()
-        println("available map: "+actionsAvailable.mapOfLists)
-        println()
-        println("MELEE:  actions       = "+actionsAvailable.getPrimaryAction(Constants.MELEE_RANGE))
-        println("MELEE:  bonus actions = "+character.getPreparedBonusActionSpells(Constants.MELEE_RANGE).map { it.name })
-        println()
-        println("RANGE:  actions       = "+actionsAvailable.getPrimaryAction(Constants.MELEE_RANGE*2))
-        println("RANGE:  bonus actions = "+character.getPreparedBonusActionSpells(Constants.MELEE_RANGE*2).map { it.name })
-        println()
     }
 
     fun logDuration(label: String, task: () -> Unit) {
