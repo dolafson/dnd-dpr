@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.spells.payload
 
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -21,7 +22,7 @@ data class Attack(
 {
     @Serializable
     data class Save (
-        val saveAbility: String,        // "Wisdom",
+        val saveAbility: AbilityType,   // "Wisdom",
         val onFail: String? = null,     // "onFail": "Take 5d8 Force damage.",
         val onSucceed: String? = null,  // "onSucceed": "Half as much damage."
     )

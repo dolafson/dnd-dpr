@@ -28,6 +28,8 @@ object TestUtil {
         Globals.addMonsters(getResource("monsters.json") ?: "[]")
     }
 
+    fun dependency() {}
+
     val eldir = getCharacter("party/eldir.json")
     val kael =  getCharacter("party/kael.json")
     val lars =  getCharacter("party/lars.json")

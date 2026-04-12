@@ -32,8 +32,6 @@ open class Spell(
     fun is2014And2024()         = book.endsWith("(2014 and 2024)")
     fun isRitual()              = (properties.Ritual?.contains("Yes") == true)
     fun isBonusAction()         = (properties.CastingTime == "Bonus Action")
-    fun isMeleeOrRangeAttack()  = getSpellAttacks().any { it.isMeleeOrRangeAttack() }
-    fun triggersSavingThrow()   = getSpellAttacks().any { it.isSavingThrowAttack() }
     fun getRange()              = properties.dataRangeNum ?: 0
     private fun dd()            = properties.dataDescription ?: ""
     fun takeImmediatelyAfterHitting() = dd().startsWith("Bonus Action, which you take immediately after hitting")
@@ -120,13 +118,7 @@ open class Spell(
     }
 
     fun getSpellSaveAbility(): AbilityType? {
-        for (spellAttack in getSpellAttacks()) {
-            val abilityName = spellAttack.getSaveAbility()
-            if (abilityName.isNotEmpty()) {
-                return AbilityType.valueOf(abilityName)
-            }
-        }
-        return null
+        return getSpellAttacks().firstNotNullOfOrNull { it.getSaveAbility() }
     }
 
 }

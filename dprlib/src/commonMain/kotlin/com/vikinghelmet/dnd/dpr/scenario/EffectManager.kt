@@ -17,11 +17,8 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
     fun chanceOfSuccess(): Float = if (runningEffectList.isEmpty()) 100f else runningEffectList.minOf { it.probability }
     fun attackerHasAdvantage() = runningEffectList.any { it.attackerHasAdvantage == true }
 
-    fun targetHasDisadvantageOnSave(abilityName: String?): Boolean
-    {
-        if (abilityName == null) return false
-        val ability = AbilityType.valueOf(abilityName)
-        return runningEffectList.any { it.disadvantageOnSave.any { it2 -> it2.match(ability) }}
+    fun targetHasDisadvantageOnSave(abilityType: AbilityType?): Boolean {
+        return (abilityType != null) && runningEffectList.any { it.disadvantageOnSave.any { it2 -> it2.match(abilityType) }}
     }
 
     fun isAutoCrit() = runningEffectList.any { it.attackerAutoCrit == true }

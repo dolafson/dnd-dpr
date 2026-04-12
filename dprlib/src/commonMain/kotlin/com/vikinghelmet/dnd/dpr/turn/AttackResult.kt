@@ -69,7 +69,7 @@ data class AttackResult(
         val meleeOrRangeAction: MeleeOrRangeAction =
             if (this.attack.action is Weapon) { this.attack.action as Weapon } else spellAttack!!
 
-        val saveAbility = if (this.attack.action is Weapon) "" else spellAttack!!.getSaveAbility()
+        val saveAbility = spellAttack?.getSaveAbility()
 
         return when (field) {
             level           -> character.getLevel()
@@ -77,14 +77,14 @@ data class AttackResult(
             spellSaveDC     -> character.getSpellSaveDC()
 
             monsterName -> this.attack.monster.name
-            monsterAC   -> this.attack.monster.properties.dataAcNum
+            monsterAC   -> this.attack.monster.getAC()
 
             damageDice  -> meleeOrRangeAction.getDamageDice()
             damageBonus -> meleeOrRangeAction.getBonusDamage(character, this.attack.isBonusAction ?: false)
             attackBonus -> meleeOrRangeAction.getBonusToHit(character, this.attack.isBonusAction ?: false)
 
-            spellSaveAbility -> saveAbility
-            targetSaveBonus  -> if (saveAbility.isEmpty()) "" else this.attack.monster.properties.getMod(saveAbility)
+            spellSaveAbility -> saveAbility ?: ""
+            targetSaveBonus  -> if (saveAbility == null) "" else this.attack.monster.getAbilityModifier(saveAbility)
 
             turn        -> this.turnId
             action      -> if (this.attack.isBonusAction == true) "BA" else ""+this.actionId

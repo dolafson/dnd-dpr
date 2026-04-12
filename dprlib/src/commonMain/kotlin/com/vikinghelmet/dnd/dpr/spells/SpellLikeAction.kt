@@ -26,7 +26,7 @@ class SpellLikeAction(
 
         if (actionAdded.saveStatId != null) {
             val abilityType = AbilityType.entries[actionAdded.saveStatId]
-            save = Attack.Save(abilityType.name, actionAdded.saveFailDescription, actionAdded.saveSuccessDescription)
+            save = Attack.Save(abilityType, actionAdded.saveFailDescription, actionAdded.saveSuccessDescription)
         }
 
         if (actionModifier == ActionModifier.BreathWeapon) {

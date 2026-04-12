@@ -366,7 +366,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
     fun getSavingThrowSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack): AttackResult
     {
         debug("\n##### getSavingThrowSpellDPR: $spellAttack")
-        val isTargetEvasive = attack.monster.properties.isEvasive()
+        val isTargetEvasive = attack.monster.isEvasive()
 
         //val preconditions = attack.preconditions ?: Preconditions()
         val preconditions = effectManager.getPreconditions(attack, spell)
@@ -394,7 +394,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val ability = save?.saveAbility
         if (ability != null) {
             debug("spell save ability      = $ability")
-            targetSaveBonus = attack.monster.properties.getMod(ability)
+            targetSaveBonus = attack.monster.getAbilityModifier(ability)
             debug("target save proficiency = $targetSaveBonus")
             debug("spell caster save DC    = "+character.getSpellSaveDC())
             debug("spell save result:      = $saveResult")
@@ -565,7 +565,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         val attackBonus = meleeOrRangeAttack.getBonusToHit(character, isBonusAction)
 
-        debug("target AC:     "+attack.monster.properties.dataAcNum)
+        debug("target AC:     "+attack.monster.getAC())
         debug("attack Bonus:  "+attackBonus)
         debug()
 
@@ -577,7 +577,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         debug("meleeOrRange damage: " + damageDice)
         debug()
 
-        val AC = attack.monster.properties.dataAcNum
+        val AC = attack.monster.getAC()
 
         val autoHit = 20 // for a champion, this could be 19 or 18      // E13
         val isElemental = character.isElementalAdept()

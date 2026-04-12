@@ -78,21 +78,16 @@ data class SpellAttack(
 
     // non-interface methods
 
-    fun isMeleeOrRangeAttack(): Boolean {
-        return !isNoDamageAttack() && !isSavingThrowAttack()
-    }
+    fun isMeleeOrRangeAttack() = (!isNoDamageAttack() && !isSavingThrowAttack())
 
     fun isNoDamageAttack(): Boolean {
         return (attackPayload.description == null && damagePayload == null) // TODO: find a cleaner way to represent this
     }
 
-    fun isSavingThrowAttack(): Boolean {
-        return attackPayload.save != null
-    }
+    fun isSavingThrowAttack() = (attackPayload.save != null)
 
-    fun getSaveAbility(): String {
-        return if (attackPayload.save == null) "" else  attackPayload.save.saveAbility
-    }
+    fun getSaveAbility() = attackPayload.save?.saveAbility
+
 
     fun getSaveResult(): SaveResult {
         val onSucceed = attackPayload.save?.onSucceed
@@ -117,17 +112,6 @@ data class SpellAttack(
         else {
             SaveResult.NOT_APPLICABLE
         }
-    }
-
-    fun isAreaOfEffectBig(): Boolean {
-        //   AreaOfEffect(var shape: AreaOfEffectShape, var size: String)
-        // println("isBig, size = "+size)
-
-        // first field in size is almost always numeric; for now, treat 2-digit size as big
-        //return "[0-9][0-9].*".toRegex().matches(size)
-
-        // for now, always true ... ?
-        return attackPayload.aoe != null // TODO
     }
 
     override fun toString(): String {

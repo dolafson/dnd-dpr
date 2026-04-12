@@ -1,5 +1,7 @@
 package com.vikinghelmet.dnd.dpr.monsters
 
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -13,6 +15,10 @@ data class Monster(
     val properties: MonsterProperties,
     val publisher: String
 ) {
+    fun getAC() = properties.dataAcNum
+    fun getAbilityModifier(abilityType: AbilityType) = properties.getAbilityModifier(abilityType)
+    fun isEvasive() = properties.isEvasive()
+
 }
 
 @Serializable
@@ -120,15 +126,15 @@ data class MonsterProperties(
     @SerialName("data-XP")
     val dataXP: String
 ) {
-    fun getMod(modName: String): Int {
-        return when (modName) {
-            "Strength" -> dataSTRmod
-            "Dexterity" -> dataDEXmod
-            "Constitution" -> dataCONmod
-            "Intelligence" -> dataINTmod
-            "Wisdom" -> dataWISmod
-            "Charisma" -> dataCHAmod
-            else -> throw IllegalArgumentException("invalid mod name: {$modName}")
+    fun getAbilityModifier(abilityType: AbilityType): Int {
+        return when (abilityType) {
+            Strength -> dataSTRmod
+            Dexterity -> dataDEXmod
+            Constitution -> dataCONmod
+            Intelligence -> dataINTmod
+            Wisdom -> dataWISmod
+            Charisma -> dataCHAmod
+            else -> throw IllegalArgumentException("invalid mod name: {$abilityType}")
         }.toInt()
     }
 
