@@ -1,38 +1,21 @@
 package com.vikinghelmet.dnd.dpr.character
 
+import com.vikinghelmet.dnd.dpr.character.TestUtil.eldir
+import com.vikinghelmet.dnd.dpr.character.TestUtil.kael
+import com.vikinghelmet.dnd.dpr.character.TestUtil.lars
+import com.vikinghelmet.dnd.dpr.character.TestUtil.leif
+import com.vikinghelmet.dnd.dpr.character.TestUtil.oleg
+import com.vikinghelmet.dnd.dpr.character.TestUtil.party
+import com.vikinghelmet.dnd.dpr.character.TestUtil.rhogar
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.util.Globals
 import junit.framework.TestCase.assertEquals
-import kotlinx.serialization.json.Json
-import java.io.InputStream
 import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class CharacterTest {
-
-    val eldir = getCharacter("eldir")
-    val kael = getCharacter("kael")
-    val lars = getCharacter("lars")
-    val leif = getCharacter("leif")
-    val oleg = getCharacter("oleg")
-    val rhogar = getCharacter("rhogar")
-    val party = listOf(eldir, kael, lars, leif, oleg, rhogar)
-
-    fun getResource(fileName: String): String? {
-        val inputStream: InputStream = object {}.javaClass.getResourceAsStream("/$fileName") ?: return null
-        try {
-            return inputStream.bufferedReader().use { it.readText() }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
-    }
-
-    fun getCharacter(name: String): Character = Json.Default.decodeFromString(getResource("party/$name.json")!!)
-
     @Test
     fun getNameTest() {
         assertEquals("Eldir Ashenfell", eldir.getName())
@@ -198,10 +181,7 @@ class CharacterTest {
 
     @Test
     fun getRacialTraitList() {
-        // party.forEach { println("${it.getName()} \t ${it.getRacialTraitList().map { it2 -> it2.definition.name }}") }
-
         party.forEach {
-            //println("${it.getName()} \t ${it.getRacialTraitNameList()}")
             assertTrue (it.getRacialTraitNameList().containsAll(listOf("Size", "Speed", "Languages")))
         }
         listOf(eldir,lars,leif,rhogar).forEach {
@@ -221,17 +201,6 @@ class CharacterTest {
         assertTrue (oleg.getRacialTraitNameList().containsAll(listOf("Menacing", "Relentless Endurance", "Savage Attacks")))
         assertTrue (rhogar.getRacialTraitNameList().containsAll(listOf("Draconic Ancestry", "Breath Weapon", "Damage Resistance", "Draconic Flight")))
     }
-
-    /*
-
-        buf.append("classFeatures    = ${ getClassFeatureNames() }").append("\n")
-        buf.append("subclassFeatures = ${ getSubclassFeatureNames() }").append("\n")
-
-        buf.append("feats by level = ${ getClassFeaturesByLevel() }").append("\n")
-        buf.append("levels for ASI = ${ getLevelsForAbilityIncrease() }").append("\n")
-        buf.append("className      = ${ getClassName() }").append("\n")
-        buf.append("spellsForClass = ${ getSpellsForClass() }").append("\n")
-     */
 
     fun getClassFeaturesExceptFirstLevelAndASI(c: Character) =
         c.getClassFeaturesByLevel().filter { it.value > 1 && !it.key.contains("Ability Score")}
@@ -256,8 +225,7 @@ class CharacterTest {
             assertTrue (it.getClassFeatureNames().contains("Spellcasting"))
         }
 
-        assertEquals(
-            mapOf(
+        assertEquals(mapOf(
                 "Scholar" to 2,
                 "Wizard Subclass" to 3,
                 "Memorize Spell" to 5,
@@ -267,16 +235,14 @@ class CharacterTest {
             ),
             getClassFeaturesExceptFirstLevelAndASI(eldir))
 
-        assertEquals(
-            mapOf(
+        assertEquals(mapOf(
                 "Channel Divinity" to 2,
                 "Destroy Undead" to 5,
                 "Divine Intervention" to 10,
             ),
             getClassFeaturesExceptFirstLevelAndASI(kael))
 
-        assertEquals(
-            mapOf(
+        assertEquals(mapOf(
                 "Cunning Action" 	 to 2,
                 "Rogue Subclass" 	 to 3,
                 "Steady Aim" 	 to 3,
@@ -294,8 +260,7 @@ class CharacterTest {
             ),
             getClassFeaturesExceptFirstLevelAndASI(lars))
 
-        assertEquals(
-        mapOf(
+        assertEquals(mapOf(
                 "Deft Explorer" 	 to 2,
                 "Fighting Style" 	 to 2,
                 "Ranger Subclass" 	 to 3,
@@ -312,8 +277,7 @@ class CharacterTest {
             ),
             getClassFeaturesExceptFirstLevelAndASI(leif))
 
-        assertEquals(
-        mapOf(
+        assertEquals(mapOf(
                 "Danger Sense" 	 to 2,
                 "Reckless Attack" 	 to 2,
                 "Barbarian Subclass" 	 to 3,
@@ -334,9 +298,7 @@ class CharacterTest {
             ),
             getClassFeaturesExceptFirstLevelAndASI(oleg))
 
-        //# Rhogar
-        assertEquals(
-            mapOf(
+        assertEquals(mapOf(
                 "Action Surge" 	 to 2,
                 "Tactical Mind" 	 to 2,
                 "Fighter Subclass" 	 to 3,
@@ -358,15 +320,7 @@ class CharacterTest {
 
     @Test
     fun getSpellsForClass() {
-        for (filename in mutableListOf("spells.json","extra.spells.json")) {
-            Globals.addSpells(getResource(filename) ?: "[]")
-        }
-/*
-        party.forEach {
-            println(it.getName())
-            it.getSpellsForClass().forEach { println("\t ${it.name}") }
-        }
-*/
+        //TestUtil.init()
         listOf(lars,oleg,rhogar).forEach { assertEquals(0, it.getSpellsForClass().size)}
 
         assertEquals(47, leif.getSpellsForClass().size)
