@@ -92,6 +92,14 @@ class CharacterTest {
         assertEquals(12, leif.getSpellSaveDC())
         assertEquals(13, kael.getSpellSaveDC())
         assertEquals(14, eldir.getSpellSaveDC())
+
+        assertEquals(listOf(2, 0, 0, 0, 0, 0, 0, 0, 0), leif.getSpellSlots())
+        assertEquals(listOf(3, 0, 0, 0, 0, 0, 0, 0, 0), kael.getSpellSlots())
+        assertEquals(listOf(3, 0, 0, 0, 0, 0, 0, 0, 0), eldir.getSpellSlots())
+
+        assertEquals(listOf(3, 0, 0, 0, 0, 0, 0, 0, 0), leif.getSpellSlotsIncludingExtraForPrepared(leif.getLevel()))
+        assertEquals(listOf(3, 0, 0, 0, 0, 0, 0, 0, 0), kael.getSpellSlotsIncludingExtraForPrepared(kael.getLevel()))
+        assertEquals(listOf(5, 0, 0, 0, 0, 0, 0, 0, 0), eldir.getSpellSlotsIncludingExtraForPrepared(eldir.getLevel()))
     }
 
     @Test
@@ -213,4 +221,57 @@ class CharacterTest {
         assertTrue (rhogar.getRacialTraitNameList().containsAll(listOf("Draconic Ancestry", "Breath Weapon", "Damage Resistance", "Draconic Flight")))
     }
 
+    /*
+
+        buf.append("classFeatures    = ${ getClassFeatureNames() }").append("\n")
+        buf.append("subclassFeatures = ${ getSubclassFeatureNames() }").append("\n")
+
+        buf.append("feats by level = ${ getClassFeaturesByLevel() }").append("\n")
+        buf.append("levels for ASI = ${ getLevelsForAbilityIncrease() }").append("\n")
+        buf.append("className      = ${ getClassName() }").append("\n")
+        buf.append("spellsForClass = ${ getSpellsForClass() }").append("\n")
+     */
+
+    fun getClassFeaturesExceptFirstLevelAndASI(c: Character) =
+        c.getClassFeaturesByLevel().filter { it.value > 1 && !it.key.contains("Ability Score")}
+
+    @Test
+    fun getClassFeatures() {
+        party.forEach {
+            println(it.getName())
+            getClassFeaturesExceptFirstLevelAndASI(it).forEach { string, i ->  println("\t $i: $string") }
+        }
+
+        party.forEach {
+            assertTrue (it.getClassFeatureNames().contains("Ability Score Improvement"))
+        }
+        listOf(eldir,lars,leif,oleg,rhogar).forEach {
+            assertTrue (it.getClassFeatureNames().containsAll(listOf("8: Ability Score Improvement","12: Ability Score Improvement","16: Ability Score Improvement")))
+        }
+        // rhogar (fighter) gets 2 more ASI bumps than everyone else
+        assertTrue (rhogar.getClassFeatureNames().containsAll(listOf("6: Ability Score Improvement","14: Ability Score Improvement")))
+
+        listOf(eldir,kael,leif).forEach {
+            assertTrue (it.getClassFeatureNames().contains("Spellcasting"))
+        }
+
+        assertEquals(
+            mapOf(
+                "Scholar" to 2,
+                "Wizard Subclass" to 3,
+                "Memorize Spell" to 5,
+                "Spell Mastery" to 18,
+                "Epic Boon" to 19,
+                "Signature Spells" to 20,
+            ),
+            getClassFeaturesExceptFirstLevelAndASI(eldir))
+
+        assertEquals(
+            mapOf(
+                "Channel Divinity" to 2,
+                "Destroy Undead" to 5,
+                "Divine Intervention" to 10,
+            ),
+            getClassFeaturesExceptFirstLevelAndASI(kael))
+    }
 }

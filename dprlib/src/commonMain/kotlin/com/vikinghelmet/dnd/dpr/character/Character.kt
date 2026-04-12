@@ -364,7 +364,7 @@ open class Character(
         return slotList[spellLevel-1] // 1-based to 0-based indexing
     }
 
-    private fun getSpellSlotsIncludingExtraForPrepared(characterLevel: Int): List<Int> {
+    fun getSpellSlotsIncludingExtraForPrepared(characterLevel: Int): List<Int> {
         // TODO: support multi-class spell casters
         val result = mutableListOf<Int>()
         if (characterLevel == 0) return result
