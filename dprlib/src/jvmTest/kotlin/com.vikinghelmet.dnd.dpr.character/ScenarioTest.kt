@@ -1,6 +1,13 @@
 package com.vikinghelmet.dnd.dpr.character
 
+import com.vikinghelmet.dnd.dpr.scenario.EffectManager
+import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
+import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
+import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
@@ -82,5 +89,73 @@ class ScenarioTest {
             listOf("Mind Sliver"),
         ),  rangeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
 
+    }
+
+    @Test
+    fun actionCalculatorMelee() {
+        val character = TestUtil.leif
+        val weapon   = character.getWeapon("Shortsword")
+        val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), weapon))))
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        // calculate single action via action calculator
+        val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
+        var attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, turns[0].attacks[0], 1, 1, 1)
+
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(4.675f, 2.70875f, 6.6412497f), attackResult.damagePerRound)
+
+        // calculate single turn via scenario calculator
+        val attackResultList = ScenarioCalculator(scenario).calculateDPR(1, 1, turns[0].attacks[0], actionCalculator)
+
+        attackResult = attackResultList[0]
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(4.675f, 2.70875f, 6.6412497f), attackResult.damagePerRound)
+
+        // calculate entire scenario via scenario calculator
+        val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
+
+        attackResult = scenarioResult.attackResults[0]
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(4.675f, 2.70875f, 6.6412497f), attackResult.damagePerRound)
+    }
+
+    @Test
+    fun actionCalculatorRange() {
+        val character = TestUtil.leif
+        val weapon = character.getWeapon("Longbow")
+        val turns = listOf(Turn(listOf(Attack(Globals.getMonster("Goblin"), weapon))))
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        // calculate single action via action calculator
+        val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
+        var attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, turns[0].attacks[0], 1, 1, 1)
+
+        println ("attackResult.chanceToHit    = ${attackResult.chanceToHit.toFullString()}")
+        println ("attackResult.damagePerRound = ${attackResult.damagePerRound.toFullString()}")
+
+        // character has Archery Fighting Style, which gives +2 to range attack
+        // this yields higher %hit on Longbow vs Shortsword above
+        assertEquals(AvgMinMax(0.7f, 0.48999998f, 0.90999997f), attackResult.chanceToHit)
+
+        // Longbow is d8, while shortsword is d6; that combined with higher %hit (above) yields higher DPR
+        assertEquals(AvgMinMax(6.1749997f, 4.1762495f, 8.17375f), attackResult.damagePerRound)
+    }
+
+
+    @Test
+    fun actionCalculatorBonusAction() {
+        val character = TestUtil.leif
+        val weapon   = character.getWeapon("Shortsword")
+        val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), weapon, isBonusAction = true))))
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        // calculate single action via action calculator
+        val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
+        var attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, turns[0].attacks[0], 1, 1, 1)
+
+        // bonus action has the same odds of hitting, but lower damage (you can't add PB to BA damage)
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(2.275f, 1.2687501f, 3.28125f), attackResult.damagePerRound)
     }
 }

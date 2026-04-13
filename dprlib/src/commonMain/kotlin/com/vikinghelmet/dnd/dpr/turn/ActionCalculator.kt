@@ -29,6 +29,10 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())
     }
 
+    fun toFullString(): String {
+        return "(avg, min, max) = ($avg, $min, $max)"
+    }
+
     override fun toString(): String {
         val avgPct = Globals.getPercent(avg)
         val minPct = Globals.getPercent(min)
@@ -628,8 +632,8 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // we want Advantage last, so it lands in the "max" value
         val attackDPR = AvgMinMax(
             numTargets * ((chanceToHit.avg - critChance.avg) * damagePerHit.avg + (critChance.avg * critDamage.avg)),
-            numTargets * ((chanceToHit.min - critChance.min) * damagePerHit.min + (critChance.min * critDamage.min)),
-            numTargets * ((chanceToHit.max - critChance.max) * damagePerHit.max + (critChance.max * critDamage.max)),
+            numTargets * ((chanceToHit.min - critChance.min) * damagePerHit.avg + (critChance.min * critDamage.avg)),
+            numTargets * ((chanceToHit.max - critChance.max) * damagePerHit.avg + (critChance.max * critDamage.avg)),
         )
         logger.debug{"Attack DPR (main="+mainAttack+"): "+attackDPR}
 

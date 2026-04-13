@@ -62,7 +62,7 @@ class ScenarioCalculator(
         return ScenarioResult(scenario, allResults, scenarioTotalDamage)
     }
 
-    private fun calculateDPR(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult>
+    fun calculateDPR(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult>
     {
         return if (attack.action is Weapon) {
             getWeaponAttackDpr(turnId, actionId, attack, actionCalculator)
@@ -72,7 +72,7 @@ class ScenarioCalculator(
         }
     }
 
-    private fun getWeaponAttackDpr(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult> {
+    fun getWeaponAttackDpr(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult> {
         val resultList = mutableListOf<AttackResult>()
         val weapon = attack.action as Weapon
         var effect = 1
