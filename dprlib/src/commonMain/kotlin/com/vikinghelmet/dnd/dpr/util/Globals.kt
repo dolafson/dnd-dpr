@@ -4,7 +4,6 @@ import com.vikinghelmet.dnd.dpr.character.spells.SpellsChanged2024
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SubclassSpellsPrepared
-import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
 import dev.shivathapaa.logger.core.LoggerConfig
@@ -29,6 +28,10 @@ object Globals {
     fun getPercent(float: Float): String {
         val rounded = round(float * 100) / 100
         return "${rounded}"
+    }
+
+    fun closeEnough(f1: Float, f2: Float): Boolean {
+        return getPercent(f1) == getPercent(f2)
     }
 
     fun wrapWithQuotes(input: String): String {
@@ -153,6 +156,4 @@ object Globals {
     fun probableResult(valueIfSuccess: Float, valueIfFail: Float, chanceOfSuccess: Float): Float {
         return chanceOfSuccess * valueIfSuccess + (1-chanceOfSuccess)*valueIfFail
     }
-
-    fun toAvg(value: Float) = AvgMinMax(value,value,value) // (value,0f,0f)
 }

@@ -6,7 +6,6 @@ import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.probableResult
-import com.vikinghelmet.dnd.dpr.util.Globals.toAvg
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
@@ -27,35 +26,42 @@ data class AttackResult(
     var actionId: Int = -1,
     var effectId: Int = -1,
     var spellAttack: SpellAttack? = null,
-    var avgMinMaxSelection:AvgMinMaxSelection = AvgMinMaxSelection.avg
 ) {
     @Transient private val logger = LoggerFactory.get(AttackResult::class.simpleName ?: "")
 
-    override fun toString(): String = "($turnId,$actionId,$effectId): chanceToHit=$chanceToHit, damagePerRound=$damagePerRound, selection=$avgMinMaxSelection"
+    override fun toString(): String = "($turnId,$actionId,$effectId): chanceToHit=$chanceToHit, damagePerRound=$damagePerRound"
+
+    fun select(advantageProbability: Float) {
+        chanceToHit.select(advantageProbability)
+        damagePerHit.select(advantageProbability)
+        damagePerRound.select(advantageProbability)
+        duration.select(advantageProbability)
+        damageFullEffect.select(advantageProbability)
+    }
 
     fun merge(secondary: AttackResult, chanceOfSuccess: Float): AttackResult
     {
         logger.debug { "before merge, primary   = ${toString()}" }
         logger.debug { "before merge, secondary = $secondary" }
 
-        logger.debug { "primary chanceToHit     = ${ chanceToHit.select(avgMinMaxSelection) }" }
-        logger.debug { "secondary chanceToHit   = ${ secondary.chanceToHit.select(secondary.avgMinMaxSelection) }" }
+        logger.debug { "primary chanceToHit     = ${ chanceToHit.final }" }
+        logger.debug { "secondary chanceToHit   = ${ secondary.chanceToHit.final }" }
         logger.debug { "probable chanceToHit    = ${
-            probableResult (chanceToHit.select(avgMinMaxSelection),
-                secondary.chanceToHit.select(secondary.avgMinMaxSelection), chanceOfSuccess)
+            probableResult (chanceToHit.final,
+                secondary.chanceToHit.final, chanceOfSuccess)
         }" }
 
         return AttackResult (numTargets,
-          toAvg (probableResult (chanceToHit.select(avgMinMaxSelection),    secondary.chanceToHit.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
-          toAvg (probableResult (damagePerHit.select(avgMinMaxSelection),   secondary.damagePerHit.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
-          toAvg (probableResult (damagePerRound.select(avgMinMaxSelection), secondary.damagePerRound.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
-          toAvg (probableResult (duration.select(avgMinMaxSelection),         secondary.duration.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
-          toAvg (probableResult (damageFullEffect.select(avgMinMaxSelection), secondary.damageFullEffect.select(secondary.avgMinMaxSelection), chanceOfSuccess)),
+          AvgMinMax (0f,0f,0f,probableResult (chanceToHit.final,    secondary.chanceToHit.final, chanceOfSuccess)),
+          AvgMinMax (0f,0f,0f,probableResult (damagePerHit.final,   secondary.damagePerHit.final, chanceOfSuccess)),
+          AvgMinMax (0f,0f,0f,probableResult (damagePerRound.final, secondary.damagePerRound.final, chanceOfSuccess)),
+          AvgMinMax (0f,0f,0f,probableResult (duration.final,         secondary.duration.final, chanceOfSuccess)),
+          AvgMinMax (0f,0f,0f,probableResult (damageFullEffect.final, secondary.damageFullEffect.final, chanceOfSuccess)),
           character, attack, startCondition, turnId, actionId, effectId, spellAttack)
     }
 
     fun dpr(): Float {
-        return damagePerRound.select (avgMinMaxSelection)
+        return damagePerRound.final
     }
 
     fun update(turnId: Int, actionId: Int, effectId: Int, spellAttack: SpellAttack? = null) {
@@ -95,10 +101,10 @@ data class AttackResult(
             AttackResultField.startCondition -> Globals.wrapWithQuotes(this.startCondition)
             AttackResultField.numTargets -> this.numTargets
 
-            AttackResultField.chanceToHit -> this.chanceToHit.select(avgMinMaxSelection)
-            AttackResultField.damagePerHit -> this.damagePerHit.select(avgMinMaxSelection)
-            AttackResultField.duration -> this.duration.select(avgMinMaxSelection)
-            fullEffectDamage -> this.damageFullEffect.select(avgMinMaxSelection)
+            AttackResultField.chanceToHit -> this.chanceToHit.final
+            AttackResultField.damagePerHit -> this.damagePerHit.final
+            AttackResultField.duration -> this.duration.final
+            fullEffectDamage -> this.damageFullEffect.final
             else -> {
                 println("WARNING: unhandled field: $field")
                 Exception("warning").printStackTrace()

@@ -53,7 +53,7 @@ class ScenarioCalculator(
             }
 
             // update total and end the turn
-            scenarioTotalDamage += turnResult.map { it.damageFullEffect.select (it.avgMinMaxSelection) }.sum()
+            scenarioTotalDamage += turnResult.map { it.damageFullEffect.final }.sum()
             allResults.addAll(turnResult)
             effectManager.pruneEffectsAtEndOfTurn(turnId)
             turnId++
@@ -118,10 +118,10 @@ class ScenarioCalculator(
         val spell = attack.action as Spell
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
-        Globals.debug("spell = ${spell.fullString()}")
+        logger.verbose { "spell = ${spell.fullString()}" }
 
         for (spellAttack in spell.getSpellAttacks()) {
-            Globals.debug("spell = ${spell.name}, spellAttack = $spellAttack")
+            logger.debug { "spell = ${spell.name}, spellAttack = $spellAttack" }
 
             // if there is nothing special going on, simply process the spell and collect its results
             if (effectManager.runningEffectList.isEmpty() || spellAttack.getNumTargetsAffected(scenario) <= 1) {

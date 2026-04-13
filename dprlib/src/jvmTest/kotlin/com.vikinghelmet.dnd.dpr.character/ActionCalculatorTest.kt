@@ -102,22 +102,22 @@ class ActionCalculatorTest {
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
         var attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, turns[0].attacks[0], 1, 1, 1)
 
-        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
-        assertEquals (AvgMinMax(4.675f, 2.70875f, 6.6412497f), attackResult.damagePerRound)
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(4.68f, 2.71f, 6.64f, 4.68f), attackResult.damagePerRound)
 
         // calculate single turn via scenario calculator
         val attackResultList = ScenarioCalculator(scenario).calculateDPR(1, 1, turns[0].attacks[0], actionCalculator)
 
         attackResult = attackResultList[0]
-        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
-        assertEquals (AvgMinMax(4.675f, 2.70875f, 6.6412497f), attackResult.damagePerRound)
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(4.68f, 2.71f, 6.64f, 4.68f), attackResult.damagePerRound)
 
         // calculate entire scenario via scenario calculator
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
 
         attackResult = scenarioResult.attackResults[0]
-        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
-        assertEquals (AvgMinMax(4.675f, 2.70875f, 6.6412497f), attackResult.damagePerRound)
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(4.68f, 2.71f, 6.64f, 4.68f), attackResult.damagePerRound)
     }
 
     @Test
@@ -136,10 +136,10 @@ class ActionCalculatorTest {
 
         // character has Archery Fighting Style, which gives +2 to range attack
         // this yields higher %hit on Longbow vs Shortsword above
-        assertEquals(AvgMinMax(0.7f, 0.48999998f, 0.90999997f), attackResult.chanceToHit)
+        assertEquals(AvgMinMax(0.7f, 0.49f, 0.91f, 0.7f), attackResult.chanceToHit)
 
         // Longbow is d8, while shortsword is d6; that combined with higher %hit (above) yields higher DPR
-        assertEquals(AvgMinMax(6.1749997f, 4.1762495f, 8.17375f), attackResult.damagePerRound)
+        assertEquals(AvgMinMax(6.18f, 4.18f, 8.17f, 6.18f), attackResult.damagePerRound)
     }
 
 
@@ -155,7 +155,7 @@ class ActionCalculatorTest {
         var attackResult = actionCalculator.getMeleeOrRangeDPR(weapon, turns[0].attacks[0], 1, 1, 1)
 
         // bonus action has the same odds of hitting, but lower damage (you can't add PB to BA damage)
-        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
-        assertEquals (AvgMinMax(2.275f, 1.2687501f, 3.28125f), attackResult.damagePerRound)
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(2.28f, 1.27f, 3.28f, 2.28f), attackResult.damagePerRound)
     }
 }

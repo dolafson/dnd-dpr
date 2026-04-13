@@ -234,7 +234,7 @@ OFF	6	Disables all logging
                             }
                             catch (e: Exception) {
                                 val spell = Globals.getSpell(attackName, character!!.is2014())
-                                logger.debug { "spell = ${spell.fullString()}" }
+                                logger.verbose { "spell = ${spell.fullString()}" }
                                 attackList.add (Attack (monster, Globals.getSpell(attackName, character!!.is2014())))
                             }
                         }

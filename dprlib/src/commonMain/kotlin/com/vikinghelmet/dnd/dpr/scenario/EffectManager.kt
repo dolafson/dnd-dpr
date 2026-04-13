@@ -14,17 +14,30 @@ import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
 data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
 {
-    fun chanceOfSuccess(): Float = if (runningEffectList.isEmpty()) 100f else runningEffectList.minOf { it.probability }
-    fun attackerHasAdvantage() = runningEffectList.any { it.attackerHasAdvantage == true }
+    constructor(other: EffectManager, allowFailure: Boolean):
+            this(runningEffectList = other.runningEffectList.filter { it.probability == 100f || allowFailure}.toMutableList())
 
-    fun targetHasDisadvantageOnSave(abilityType: AbilityType?): Boolean {
-        return (abilityType != null) && runningEffectList.any { it.disadvantageOnSave.any { it2 -> it2.match(abilityType) }}
+    fun chanceOfSuccess(): Float {
+        //return if (runningEffectList.isEmpty()) 100f else runningEffectList.minOf { it.probability }
+
+        // prune advantage/disadvantage, as they get consumed by ActionCalculator (end of action),
+        // while this function is consumed by ScenarioCalculator (end of turn)
+        val filtered = runningEffectList.filter {
+            it.attackerHasAdvantage != true && it.disadvantageOnSave.isEmpty()
+        }
+        return if (filtered.isEmpty()) 100f else filtered.minOf { it.probability }
+    }
+
+    // TODO: support multiple forms of advantage on a single turn?
+    fun attackerHasAdvantage() = runningEffectList.firstOrNull { it.attackerHasAdvantage == true }
+
+    // TODO: support multiple forms of save disadvantage on a single turn?
+    fun targetHasDisadvantageOnSave(abilityType: AbilityType?): TargetEffect? {
+        return if (abilityType != null) null
+            else runningEffectList.firstOrNull { it.disadvantageOnSave.any { it2 -> it2.match(abilityType) }}
     }
 
     fun isAutoCrit() = runningEffectList.any { it.attackerAutoCrit == true }
-
-    constructor(other: EffectManager, allowFailure: Boolean):
-            this(runningEffectList = other.runningEffectList.filter { it.probability == 100f || allowFailure}.toMutableList())
 
     override fun toString(): String {
         val buf = StringBuilder()

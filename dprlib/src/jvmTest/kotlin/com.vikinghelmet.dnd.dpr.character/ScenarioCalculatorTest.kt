@@ -41,8 +41,13 @@ class ScenarioCalculatorTest {
 
         val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
         val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-
-        assertEquals(listOf("Dagger","Hunter's Mark"),  topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+/*
+        ScenarioResult.topResults(scenarioResultList, 5).forEach { r ->
+            println("${ Globals.getPercent(r.totalDPR) } \t ${ r.scenario.getLabel() }")
+            r.attackResults.forEach { println(it) }
+        }
+*/
+        assertEquals(listOf("Shortsword","Hunter's Mark"),  topResult.scenario.turns[0].attacks.map { it.getLabel() } )
         assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
     }
 

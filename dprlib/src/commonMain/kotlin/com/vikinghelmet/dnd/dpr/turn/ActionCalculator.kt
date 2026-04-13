@@ -15,29 +15,56 @@ import kotlin.math.pow
 
 enum class AvgMinMaxSelection { avg, min, max }
 
-data class AvgMinMax(var avg: Float, var min: Float, var max: Float) {
+data class AvgMinMax(var avg: Float, var min: Float, var max: Float, var final: Float = 0f) {
+    constructor(single: Float) : this(single, single, single, single)
+
+    fun select(advantageProbability: Float) {
+        final = Globals.probableResult(max, avg, advantageProbability)
+    }
+
     fun select(choice: AvgMinMaxSelection): Float {
-        return when(choice) {
+        final = when (choice) {
             AvgMinMaxSelection.avg -> avg
             AvgMinMaxSelection.min -> min
             else -> max
         }
+        return final
     }
 
     fun half(diceBlock: DiceBlock): AvgMinMax {
-        val halfAvg = if (diceBlock.isEmpty()) avg/2 else avg/2 - 0.25f
+        val halfAvg = if (diceBlock.isEmpty()) avg / 2 else avg / 2 - 0.25f
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())
     }
 
     fun toFullString(): String {
-        return "(avg, min, max) = ($avg, $min, $max)"
+        return "(avg, min, max, final) = ($avg, $min, $max, $final)"
     }
 
     override fun toString(): String {
         val avgPct = Globals.getPercent(avg)
         val minPct = Globals.getPercent(min)
         val maxPct = Globals.getPercent(max)
-        return "(avg, min, max) = ($avgPct, $minPct, $maxPct)"
+        val finalPct = Globals.getPercent(final)
+        return "(avg, min, max, final) = ($avgPct, $minPct, $maxPct, $finalPct)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as AvgMinMax
+        return Globals.closeEnough(avg, other.avg) &&
+                Globals.closeEnough(min, other.min) &&
+                Globals.closeEnough(max, other.max) &&
+                Globals.closeEnough(final, other.final)
+    }
+
+    override fun hashCode(): Int {
+        var result = avg.hashCode()
+        result = 31 * result + min.hashCode()
+        result = 31 * result + max.hashCode()
+        result = 31 * result + final.hashCode()
+        return result
     }
 }
 
@@ -350,7 +377,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         attackResult.update(turnId, actionId, effectCount, spellAttack)
 
-        effectManager.pruneEffectsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager (below)
+        effectManager.pruneEffectsWaitingForNextAttack(spellAttack) // do this pruning before adding current spell to the effectManager
         return attackResult
     }
 
@@ -358,11 +385,11 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val duration = 1f * (spell.getDuration() ?: 0)
         return AttackResult(
             1,
-            AvgMinMax(1f,1f,1f),
-            AvgMinMax(0f,0f,0f),
-            AvgMinMax(0f,0f,0f),
-            AvgMinMax(duration, duration, duration),
-            AvgMinMax(0f,0f,0f),
+            AvgMinMax(1f,1f,1f,1f),
+            AvgMinMax(0f,0f,0f,0f),
+            AvgMinMax(0f,0f,0f,0f),
+            AvgMinMax(duration, duration, duration,duration),
+            AvgMinMax(0f,0f,0f,0f),
             character = character, attack = attack, startCondition = effectManager.toString()
         )
     }
@@ -545,10 +572,8 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             startCondition = effectManager.toString()
         )
 
-        if (effectManager.targetHasDisadvantageOnSave(save?.saveAbility)) {
-            attackResult.avgMinMaxSelection = AvgMinMaxSelection.max
-        }
-
+        val targetEffect = effectManager.targetHasDisadvantageOnSave(save?.saveAbility)
+        attackResult.select (targetEffect?.probability ?: 0f)
         return attackResult
     }
 
@@ -649,9 +674,8 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR,
             character = character, attack = attack, startCondition = effectManager.toString())
-        if (effectManager.attackerHasAdvantage()) {
-            result.avgMinMaxSelection = AvgMinMaxSelection.max
-        }
+
+        result.select (effectManager.attackerHasAdvantage()?.probability ?: 0f)
         result.update(turnId, actionId, effect)
         return result
     }
