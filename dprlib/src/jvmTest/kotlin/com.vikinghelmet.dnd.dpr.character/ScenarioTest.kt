@@ -1,9 +1,6 @@
 package com.vikinghelmet.dnd.dpr.character
 
-import com.vikinghelmet.dnd.dpr.scenario.EffectManager
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.*
 import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
@@ -157,5 +154,66 @@ class ScenarioTest {
         // bonus action has the same odds of hitting, but lower damage (you can't add PB to BA damage)
         assertEquals (AvgMinMax(0.6f, 0.36f, 0.84000003f), attackResult.chanceToHit)
         assertEquals (AvgMinMax(2.275f, 1.2687501f, 3.28125f), attackResult.damagePerRound)
+    }
+
+    @Test
+    fun scenarioCalculatorBestResultMeleeOneTurn() {
+        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
+            .build(Constants.MELEE_RANGE, 1, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+
+        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+//         println("topResult = ${ topResult.scenario.turns[0].attacks.map { it.getLabel() }}")
+    }
+
+    @Test
+    fun scenarioCalculatorBestResultRangeOneTurn() {
+        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
+            .build(Constants.MELEE_RANGE*2, 1, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+
+        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+    }
+    
+    @Test
+    fun scenarioCalculatorBestResultMeleeTwoTurns() {
+        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
+            .build(Constants.MELEE_RANGE, 2, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+
+        assertEquals(listOf("Dagger","Hunter's Mark"),  topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
+//         println("topResult = ${ topResult.scenario.turns[0].attacks.map { it.getLabel() }}")
+    }
+
+    @Test
+    fun scenarioCalculatorBestResultRangeTwoTurns() {
+        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
+            .build(Constants.MELEE_RANGE*2, 2, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+
+        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
+    }
+
+    @Test
+    fun scenarioCalculatorBestResultRangeThreeTurns() {
+        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
+            .build(Constants.MELEE_RANGE*2, 3, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+
+        assertEquals(listOf("Longbow","Hunter's Mark"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
+        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[2].attacks.map { it.getLabel() } )
     }
 }
