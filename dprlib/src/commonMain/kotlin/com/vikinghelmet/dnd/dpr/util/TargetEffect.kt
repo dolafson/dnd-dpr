@@ -123,6 +123,7 @@ data class TargetEffect (
             }
             Condition.Unconscious ->    // Incapacitated+Prone++ ; speed=0; Attack rolls against you have Advantage; auto-fail STR and DEX saving throws;  auto-crit (5 ft)
             {
+                attackerHasAdvantage = true
                 applyCondition(Condition.Incapacitated)
                 applyCondition(Condition.Prone)
                 autoFailSave.addAll (listOf(AbilityType.Strength, AbilityType.Dexterity))

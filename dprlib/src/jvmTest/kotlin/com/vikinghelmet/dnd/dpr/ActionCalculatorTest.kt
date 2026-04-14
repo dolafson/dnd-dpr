@@ -12,6 +12,7 @@ import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -187,4 +188,47 @@ class ActionCalculatorTest {
         assertEquals (AvgMinMax(3.58f, 1.99f, 5.16f, 3.58f), attackResult.damagePerRound)
     }
 
+    @Test
+    fun spellConditionCarryForward() {
+        val character = TestUtil.eldir
+        val sleep    = Globals.getSpell("Sleep", character.is2014())
+        val fireBolt = Globals.getSpell("Fire Bolt", character.is2014())
+        val monster  = Globals.getMonster("Goblin")
+
+        val fireBoltAttack = Attack (monster, fireBolt)
+        val fireBoltTurn = listOf(Turn(listOf(fireBoltAttack)))
+
+        // first, calculate results without sleep
+        val noSleepScenario = Scenario(character, fireBoltTurn, 10, DEFAULT_TARGET_RADIUS)
+        val noSleepCalculator = ActionCalculator(noSleepScenario, EffectManager(ArrayList()))
+        var noSleepFBResult = noSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks()[0], fireBoltAttack, 1, 1, 1)
+
+        assertEquals(AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f),   noSleepFBResult.chanceToHit)
+        assertEquals(AvgMinMax(3.58f, 1.99f, 5.16f, 3.58f), noSleepFBResult.damagePerRound)
+
+        // second, construct a new scenario with sleep
+        val sleepEffectManager = EffectManager(ArrayList())
+        val sleepAttack = Attack (monster, sleep)
+        val sleepTurn = listOf(Turn(listOf(sleepAttack)))
+        val withSleepScenario = Scenario(character, sleepTurn + fireBoltTurn, 10, DEFAULT_TARGET_RADIUS)
+        val withSleepCalculator = ActionCalculator(withSleepScenario, sleepEffectManager)
+
+        var sleepResult = withSleepCalculator.getSavingThrowSpellDPR (sleep.getSpellAttacks()[0], sleep, sleepAttack)
+        assertEquals(AvgMinMax(0.7f, 0.49f, 0.91f, 0.7f), sleepResult.chanceToHit)
+        assertEquals(AvgMinMax(0f, 0f, 0f, 0f), sleepResult.damagePerRound)
+
+        sleepEffectManager.add(TargetEffect(1, sleep, sleepResult.chanceToHit.avg))
+        println("sleepEffectManager = $sleepEffectManager")
+
+        assertEquals(0.7f, sleepEffectManager.runningEffectList[0].probability)
+        assertEquals("70.0% = Incapacitated, Unconscious, Exhaustion", sleepEffectManager.toStringConditions())
+
+        println("sleepEffect = ${ sleepEffectManager.runningEffectList[0] }")
+        assertEquals(0.7f, sleepEffectManager.attackerHasAdvantage()?.probability)
+
+        // third: in the sleep scenario, cast firebolt
+        var withSleepFBResult = withSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks()[0], fireBoltAttack, 1, 1, 1)
+        assertEquals(AvgMinMax(0.6f, 0.36f, 0.84f, 0.77f), withSleepFBResult.chanceToHit)    // this i believe
+        assertEquals(AvgMinMax(8.8f, 7.48f, 10.12f, 8.8f), withSleepFBResult.damagePerRound) // TODO: not sure if i trust this result
+    }
 }

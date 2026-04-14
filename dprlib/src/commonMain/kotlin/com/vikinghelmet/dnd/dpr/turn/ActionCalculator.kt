@@ -458,13 +458,15 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         if (spellAttack.getDamageDice().isEmpty()) {
             debug ("This spell never directly creates damage")
-            return AttackResult(
+            val result = AttackResult(
                 numberOfTargets, chanceToHit, AvgMinMax(0f,0f,0f),
                 AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f),
                 character = character, attack = attack,
                 startEffects = effectManager.toString(),
                 startCondition = effectManager.toStringConditions()
             )
+            result.select (effectManager.attackerHasAdvantage()?.probability ?: 0f)
+            return result
         }
 
         val fullDamage: AvgMinMax = getAvgMinMax(spellAttack.getDamageDice(), 0)
