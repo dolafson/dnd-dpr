@@ -92,7 +92,7 @@ class ActionCalculatorTest {
     }
 
     @Test
-    fun actionCalculatorMelee() {
+    fun melee() {
         val character = TestUtil.leif
         val weapon   = character.getWeapon("Shortsword")
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), weapon))))
@@ -121,7 +121,7 @@ class ActionCalculatorTest {
     }
 
     @Test
-    fun actionCalculatorRange() {
+    fun range() {
         val character = TestUtil.leif
         val weapon = character.getWeapon("Longbow")
         val turns = listOf(Turn(listOf(Attack(Globals.getMonster("Goblin"), weapon))))
@@ -144,7 +144,7 @@ class ActionCalculatorTest {
 
 
     @Test
-    fun actionCalculatorBonusAction() {
+    fun bonusAction() {
         val character = TestUtil.leif
         val weapon   = character.getWeapon("Shortsword")
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), weapon, isBonusAction = true))))
@@ -158,4 +158,33 @@ class ActionCalculatorTest {
         assertEquals (AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f), attackResult.chanceToHit)
         assertEquals (AvgMinMax(2.28f, 1.27f, 3.28f, 2.28f), attackResult.damagePerRound)
     }
+
+    @Test
+    fun spellAttackSaveForHalf() {
+        val character = TestUtil.leif
+        val spell    = Globals.getSpell("Hail of Thorns", character.is2014())
+        val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), spell, isBonusAction = true))))
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
+        var attackResult = actionCalculator.getSavingThrowSpellDPR (spell.getSpellAttacks()[0], spell, turns[0].attacks[0])
+
+        assertEquals (AvgMinMax(0.45f, 0.2f, 0.7f, 0.45f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(3.85f, 3.11f, 4.59f, 3.85f), attackResult.damagePerRound)
+    }
+
+    @Test
+    fun rangeSpellAttack() {
+        val character = TestUtil.eldir
+        val spell    = Globals.getSpell("Fire Bolt", character.is2014())
+        val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), spell, isBonusAction = true))))
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
+        var attackResult = actionCalculator.getMeleeOrRangeDPR(spell.getSpellAttacks()[0], turns[0].attacks[0], 1, 1, 1)
+
+        assertEquals (AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f), attackResult.chanceToHit)
+        assertEquals (AvgMinMax(3.58f, 1.99f, 5.16f, 3.58f), attackResult.damagePerRound)
+    }
+
 }
