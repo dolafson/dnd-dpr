@@ -15,7 +15,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class EditableFields (
-    var remoteId: Int, // cross-reference to original character from dndbeyond
+    var remoteId: String, // cross-reference to original character from dndbeyond
     var level: Int,
     var name: String,
     var plan: MutableMap<String,PlanLevel> = mutableMapOf(),
@@ -30,7 +30,7 @@ data class EditableFields (
     }
 
     constructor(character: Character): this(
-        character.characterData.id!!,
+        character.characterData.id!!.toString(),
         character.getLevel(),
         character.getName(),
         mutableMapOf(),

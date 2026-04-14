@@ -73,11 +73,11 @@ class DprFiles(val appDataDir: String)
         //println("getEditableCharacter, settings name = $name")
         val editableFields = getEditableFields(name) ?: return null
         //println("getEditableCharacter, editableFields = $editableFields")
-        if (editableFields.remoteId == 0) {
+        if (editableFields.remoteId.isEmpty()) {
             println("getEditableCharacter, remoteId=0")
             return null
         }
-        val baseline = getCharacter(editableFields.remoteId.toString()) ?: return null
+        val baseline = getCharacter(editableFields.remoteId) ?: return null
         //println("getEditableCharacter, baseline = $baseline")
 
         val result = EditableCharacter(baseline, editableFields)

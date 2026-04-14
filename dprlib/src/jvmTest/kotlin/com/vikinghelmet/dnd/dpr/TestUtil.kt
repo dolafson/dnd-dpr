@@ -1,6 +1,8 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LogLevel
 import kotlinx.serialization.json.Json
@@ -19,6 +21,11 @@ object TestUtil {
     }
 
     fun getCharacter(filename: String): Character = Json.Default.decodeFromString(getResource(filename)!!)
+
+    fun getEditableCharacter(filename: String): EditableCharacter {
+        val editableFields: EditableFields = Json.Default.decodeFromString(getResource(filename)!!)
+        return EditableCharacter(getCharacter(editableFields.remoteId), editableFields)
+    }
 
     init {
         JulConfigurator()
@@ -46,4 +53,6 @@ object TestUtil {
     val ww = getCharacter("ranger.subclass/leif.ww.json")
     val gs = getCharacter("ranger.subclass/leif.gs.json")
     val hunter = getCharacter("ranger.subclass/leif.hunter.json")
+
+    val leifPlan = getEditableCharacter("plan/leif.json")
 }

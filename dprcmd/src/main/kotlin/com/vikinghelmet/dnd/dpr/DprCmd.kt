@@ -66,7 +66,7 @@ fun getEditableCharacter(json: String): EditableCharacter? {
     if (json.isEmpty()) return null
     val editableFields: EditableFields = Json.Default.decodeFromString(json)
 
-    val baseline = getCharacter(editableFields.remoteId.toString()) ?: return null
+    val baseline = getCharacter(editableFields.remoteId) ?: return null
     return EditableCharacter(baseline, editableFields)
 }
 

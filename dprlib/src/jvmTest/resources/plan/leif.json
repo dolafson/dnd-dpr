@@ -1,0 +1,80 @@
+{
+  "remoteId": "party/leif.json",
+  "level": 2,
+  "name": "Leif Lightfoot",
+  "plan": {
+    "1": {
+      "spells": [
+        "Cure Wounds",
+        "Entangle"
+      ]
+    },
+    "2": {
+      "feat": "Archery",
+      "spells": [
+        "Hail of Thorns"
+      ]
+    },
+    "3": {
+      "spells": [
+        ""
+      ]
+    },
+    "4": {
+      "spells": [
+        ""
+      ]
+    },
+    "5": {
+      "spells": [
+        "",
+        ""
+      ]
+    },
+    "6": {},
+    "7": {
+      "spells": [
+        ""
+      ]
+    },
+    "8": {},
+    "9": {
+      "spells": [
+        "",
+        ""
+      ]
+    },
+    "10": {},
+    "11": {
+      "spells": [
+        ""
+      ]
+    },
+    "12": {},
+    "13": {
+      "spells": [
+        ""
+      ]
+    },
+    "14": {},
+    "15": {
+      "spells": [
+        ""
+      ]
+    },
+    "16": {},
+    "17": {
+      "spells": [
+        "",
+        ""
+      ]
+    },
+    "18": {},
+    "19": {
+      "spells": [
+        ""
+      ]
+    },
+    "20": {}
+  }
+}
