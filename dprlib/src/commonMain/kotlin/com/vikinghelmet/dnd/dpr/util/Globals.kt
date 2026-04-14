@@ -151,6 +151,8 @@ object Globals {
             .build()
 
         LoggerFactory.install(config)
+
+        LoggerFactory.get(Globals::class.simpleName ?: "").warn { "logging initialized" }
     }
 
     fun probableResult(valueIfSuccess: Float, valueIfFail: Float, chanceOfSuccess: Float): Float {

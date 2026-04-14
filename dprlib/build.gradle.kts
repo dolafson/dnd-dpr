@@ -72,6 +72,10 @@ kotlin {
             implementation(libs.kotlin.test)
         }
 
+        jvmTest.dependencies {
+            implementation("org.slf4j:slf4j-api:2.0.16")
+            implementation("ch.qos.logback:logback-classic:1.5.11")
+        }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)

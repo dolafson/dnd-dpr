@@ -86,16 +86,21 @@ class ScenarioCalculatorTest {
         val fireBolt = Globals.getSpell("Fire Bolt", character.is2014())
         val monster  = Globals.getMonster("Goblin")
 
-        val fiveFirebolts = listOf(Turn(listOf(
-            Attack (monster, fireBolt), Attack (monster, fireBolt), Attack (monster, fireBolt),
-            Attack (monster, fireBolt), Attack (monster, fireBolt)
-        )))
+        val fourFirebolts = listOf(
+            Turn(listOf(Attack (monster, fireBolt))),
+            Turn(listOf(Attack (monster, fireBolt))),
+            Turn(listOf(Attack (monster, fireBolt))),
+            Turn(listOf(Attack (monster, fireBolt))),
+        )
+        val fiveFirebolts = fourFirebolts + listOf(Turn(listOf(Attack (monster, fireBolt))))
+
+        // compare two 5-turn scenarios:  5 firebolts -VS- 1 sleep + 4 firebolts
 
         val noSleepScenario = Scenario(character, fiveFirebolts, 10, DEFAULT_TARGET_RADIUS)
         val noSleepResults  = ScenarioCalculator(noSleepScenario).calculateDPRForAllTurns()
 
         val sleepTurn = listOf(Turn(listOf(Attack (monster, sleep))))
-        val withSleepScenario = Scenario(character, sleepTurn + fiveFirebolts, 10, DEFAULT_TARGET_RADIUS)
+        val withSleepScenario = Scenario(character, sleepTurn + fourFirebolts, 10, DEFAULT_TARGET_RADIUS)
         val withSleepResults  = ScenarioCalculator(withSleepScenario).calculateDPRForAllTurns()
 
         println("noSleepResults[1] = ${ noSleepResults.attackResults[1] }")
@@ -106,16 +111,16 @@ class ScenarioCalculatorTest {
 
         assertEquals("", noSleepResults.attackResults[1].startCondition)
         assertEquals("70.0% = attackerHasAdvantage;attackerAutoCrit;autoFailSave=[Strength, Dexterity];disadvantageOnAttacks;noActionOrBA;", withSleepResults.attackResults[1].startEffects)
-/*
-        assertEquals(withSleepResults.attackResults[1].chanceToHit.final, Globals.probableResult(
-            noSleepResults.attackResults[1].chanceToHit.max,
-            noSleepResults.attackResults[1].chanceToHit.avg, 0.7f))
-        assertEquals(3.575f, noSleepResults.attackResults[1].damagePerRound.final)
-        assertEquals(7.2325f, withSleepResults.attackResults[1].damagePerRound.final)
 
+        println("noSleepResults.totalDPR   = ${ noSleepResults.totalDPR }")
+        println("withSleepResults.totalDPR = ${ withSleepResults.totalDPR }")
+
+        assertEquals(3.575f, noSleepResults.attackResults[1].damagePerRound.final)
+        assertEquals(8.448001f, withSleepResults.attackResults[1].damagePerRound.final)
+
+        // 5 firebolts with no sleep is roughly 1/2 the damage of 4 firebolts with sleep
         assertEquals(17.875f, noSleepResults.totalDPR)
-        assertEquals(36.1625f, withSleepResults.totalDPR)
-*/
+        assertEquals(33.792004f, withSleepResults.totalDPR)
     }
 
 }

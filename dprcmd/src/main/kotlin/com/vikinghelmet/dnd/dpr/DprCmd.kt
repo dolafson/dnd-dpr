@@ -191,8 +191,6 @@ OFF	6	Disables all logging
     val logger = LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName")   // DprCmd
     //val logger = LoggerFactory.get(DprCmd::class.qualifiedName ?: "no qualifiedName") // com.vikinghelmet.dnd.dpr.DprCmd
 
-    logger.warn { "logging initialized" }
-
     for (filename in mutableListOf("spells.json","extra.spells.json")) {
         Globals.addSpells(getResource(filename) ?: "[]")
     }

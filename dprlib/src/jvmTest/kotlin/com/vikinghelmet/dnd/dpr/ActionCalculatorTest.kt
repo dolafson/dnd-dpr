@@ -15,6 +15,7 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ActionCalculatorTest {
 
@@ -220,15 +221,22 @@ class ActionCalculatorTest {
         sleepEffectManager.add(TargetEffect(1, sleep, sleepResult.chanceToHit.avg))
         println("sleepEffectManager = $sleepEffectManager")
 
-        assertEquals(0.7f, sleepEffectManager.runningEffectList[0].probability)
+        val expectedAdvantageProbability = 0.7f
+        assertEquals(expectedAdvantageProbability, sleepEffectManager.runningEffectList[0].probability)
         assertEquals("70.0% = Incapacitated, Unconscious, Exhaustion", sleepEffectManager.toStringConditions())
 
         println("sleepEffect = ${ sleepEffectManager.runningEffectList[0] }")
-        assertEquals(0.7f, sleepEffectManager.attackerHasAdvantage()?.probability)
+        assertEquals(expectedAdvantageProbability, sleepEffectManager.attackerHasAdvantage()?.probability)
 
         // third: in the sleep scenario, cast firebolt
         var withSleepFBResult = withSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks()[0], fireBoltAttack, 1, 1, 1)
-        assertEquals(AvgMinMax(0.6f, 0.36f, 0.84f, 0.77f), withSleepFBResult.chanceToHit)    // this i believe
-        assertEquals(AvgMinMax(8.8f, 7.48f, 10.12f, 8.8f), withSleepFBResult.damagePerRound) // TODO: not sure if i trust this result
+        assertEquals(AvgMinMax(0.6f, 0.36f, 0.84f, 0.77f), withSleepFBResult.chanceToHit)
+        assertEquals(AvgMinMax(6.6f, 3.96f, 9.24f, 8.45f), withSleepFBResult.damagePerRound)
+
+        // avg DPH for a d10 is 5.5, but here we double it because the spell condition includes autoCrit
+        assertEquals((5.5f * 2f) * withSleepFBResult.chanceToHit.avg, withSleepFBResult.damagePerRound.avg)
+
+        // just to hammer the point home ... FireBolt does more than 2x damage after sleep is cast
+        assertTrue(withSleepFBResult.damagePerRound.final > 2 * noSleepFBResult.damagePerRound.final)
     }
 }

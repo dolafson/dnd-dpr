@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LogLevel
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 
@@ -20,6 +21,9 @@ object TestUtil {
     fun getCharacter(filename: String): Character = Json.Default.decodeFromString(getResource(filename)!!)
 
     init {
+        JulConfigurator()
+        Globals.initLogger(LogLevel.WARN) // DEBUG
+
         for (filename in mutableListOf("spells.json","extra.spells.json")) {
             Globals.addSpells(getResource(filename) ?: "[]")
         }

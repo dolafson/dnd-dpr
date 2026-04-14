@@ -647,7 +647,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // Crit%:        (B211, F211, J211)
         // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
         // we want Advantage last, so it lands in the "max" value
-        val critChance = if (effectManager.isAutoCrit()) AvgMinMax(1f,1f,1f) else AvgMinMax(
+        val critChance = if (effectManager.isAutoCrit()) chanceToHit.copy() else AvgMinMax(
             critChance(autoHit, "No Advantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
             critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
