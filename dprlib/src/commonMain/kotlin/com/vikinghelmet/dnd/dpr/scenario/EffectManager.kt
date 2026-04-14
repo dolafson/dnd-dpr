@@ -45,6 +45,16 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
         return buf.toString()
     }
 
+    fun toStringConditions(): String {
+        val buf = StringBuilder()
+        for (running in runningEffectList) {
+            if (running.conditions.isNotEmpty()) {
+                buf.append("${Globals.getPercent(running.probability*100)}% = ${ running.conditions.joinToString() }")
+            }
+        }
+        return buf.toString()
+    }
+
     fun add(effect: TargetEffect) {
         if (effect.isEmpty()) {
             return // we only track spells with a non-empty effect

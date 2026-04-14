@@ -19,6 +19,7 @@ data class AttackResult(
 
     var character: Character,
     var attack: Attack,
+    var startEffects: String,
     var startCondition: String,
 
     // fields that get updated via post-processing ...
@@ -57,7 +58,7 @@ data class AttackResult(
           AvgMinMax (0f,0f,0f,probableResult (damagePerRound.final, secondary.damagePerRound.final, chanceOfSuccess)),
           AvgMinMax (0f,0f,0f,probableResult (duration.final,         secondary.duration.final, chanceOfSuccess)),
           AvgMinMax (0f,0f,0f,probableResult (damageFullEffect.final, secondary.damageFullEffect.final, chanceOfSuccess)),
-          character, attack, startCondition, turnId, actionId, effectId, spellAttack)
+          character, attack, startEffects, startCondition, turnId, actionId, effectId, spellAttack)
     }
 
     fun dpr(): Float {
@@ -99,6 +100,7 @@ data class AttackResult(
             AttackResultField.attack -> if (spellAttack != null) spellAttack.toString() else this.attack.getLabel()
 
             AttackResultField.startCondition -> Globals.wrapWithQuotes(this.startCondition)
+            AttackResultField.startEffects -> Globals.wrapWithQuotes(this.startEffects)
             AttackResultField.numTargets -> this.numTargets
 
             AttackResultField.chanceToHit -> this.chanceToHit.final

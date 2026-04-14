@@ -217,7 +217,6 @@ data class TargetEffect (
             else -> {}
         }
     }
-
     override fun toString(): String {
         val buf = StringBuilder()
         if (attackerHasAdvantage!!) buf.append("attackerHasAdvantage").append(";")

@@ -390,7 +390,9 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             AvgMinMax(0f,0f,0f,0f),
             AvgMinMax(duration, duration, duration,duration),
             AvgMinMax(0f,0f,0f,0f),
-            character = character, attack = attack, startCondition = effectManager.toString()
+            character = character, attack = attack,
+            startEffects = effectManager.toString(),
+            startCondition = effectManager.toStringConditions()
         )
     }
 
@@ -459,7 +461,9 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             return AttackResult(
                 numberOfTargets, chanceToHit, AvgMinMax(0f,0f,0f),
                 AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f),
-                character = character, attack = attack, startCondition = effectManager.toString()
+                character = character, attack = attack,
+                startEffects = effectManager.toString(),
+                startCondition = effectManager.toStringConditions()
             )
         }
 
@@ -569,7 +573,8 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             averageTotalDamageOverTime,
             character = character,
             attack = attack,
-            startCondition = effectManager.toString()
+            startEffects = effectManager.toString(),
+            startCondition = effectManager.toStringConditions()
         )
 
         val targetEffect = effectManager.targetHasDisadvantageOnSave(save?.saveAbility)
@@ -673,7 +678,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         */
 
         var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR,
-            character = character, attack = attack, startCondition = effectManager.toString())
+            character = character, attack = attack, startEffects = effectManager.toString(), startCondition = effectManager.toStringConditions())
 
         result.select (effectManager.attackerHasAdvantage()?.probability ?: 0f)
         result.update(turnId, actionId, effect)
