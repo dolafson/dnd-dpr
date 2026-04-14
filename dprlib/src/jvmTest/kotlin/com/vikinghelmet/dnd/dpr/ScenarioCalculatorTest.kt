@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator

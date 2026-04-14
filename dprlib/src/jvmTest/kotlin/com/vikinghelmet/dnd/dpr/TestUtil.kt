@@ -1,5 +1,6 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.json.Json
 import java.io.InputStream

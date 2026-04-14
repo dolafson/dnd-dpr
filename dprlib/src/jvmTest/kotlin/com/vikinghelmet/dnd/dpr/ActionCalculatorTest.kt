@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.scenario.Scenario

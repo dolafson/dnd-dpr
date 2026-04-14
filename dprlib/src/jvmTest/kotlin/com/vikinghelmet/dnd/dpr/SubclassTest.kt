@@ -1,8 +1,5 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.character.TestUtil.gs
-import com.vikinghelmet.dnd.dpr.character.TestUtil.hunter
-import com.vikinghelmet.dnd.dpr.character.TestUtil.ww
 import com.vikinghelmet.dnd.dpr.util.Globals
 import junit.framework.TestCase.assertEquals
 import kotlin.test.Test
@@ -11,20 +8,20 @@ class SubclassTest {
 
     @Test
     fun getSubclass() {
-        assertEquals("Winter Walker", ww.getSubclassName())
-        assertEquals("Gloom Stalker", gs.getSubclassName())
-        assertEquals("Hunter", hunter.getSubclassName())
+        assertEquals("Winter Walker", TestUtil.ww.getSubclassName())
+        assertEquals("Gloom Stalker", TestUtil.gs.getSubclassName())
+        assertEquals("Hunter", TestUtil.hunter.getSubclassName())
     }
 
     @Test
     fun getLevelTest() {
-        listOf(ww,gs,hunter).forEach { assertEquals(3, it.getLevel()) }
+        listOf(TestUtil.ww, TestUtil.gs, TestUtil.hunter).forEach { assertEquals(3, it.getLevel()) }
     }
 
     @Test
     fun getSubclassSpellsPrepared() {
 //        TestUtil.init()
-        assertEquals(0, Globals.getSubclassSpellsPrepared(hunter.getSubclassName()!!).size)
+        assertEquals(0, Globals.getSubclassSpellsPrepared(TestUtil.hunter.getSubclassName()!!).size)
 
         assertEquals(mapOf(
                 3 to listOf("Disguise Self"),
@@ -33,7 +30,7 @@ class SubclassTest {
                 13 to listOf("Greater Invisibility"),
                 17 to listOf("Seeming"),
             ),
-            Globals.getSubclassSpellsPrepared(gs.getSubclassName()!!).associate { it.level to it.spells }
+            Globals.getSubclassSpellsPrepared(TestUtil.gs.getSubclassName()!!).associate { it.level to it.spells }
         )
 
         assertEquals(mapOf(
@@ -43,7 +40,7 @@ class SubclassTest {
             13 to listOf("Ice Storm"),
             17 to listOf("Cone of Cold"),
         ),
-            Globals.getSubclassSpellsPrepared(ww.getSubclassName()!!).associate { it.level to it.spells }
+            Globals.getSubclassSpellsPrepared(TestUtil.ww.getSubclassName()!!).associate { it.level to it.spells }
         )
     }
 }

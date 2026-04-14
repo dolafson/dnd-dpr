@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.util.Globals
