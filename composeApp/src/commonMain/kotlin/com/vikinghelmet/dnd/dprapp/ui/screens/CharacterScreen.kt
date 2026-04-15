@@ -16,16 +16,19 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.Party
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.data.Loader.addEditableCharacter
+import com.vikinghelmet.dnd.dprapp.data.Loader.getRemoteJson
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 
 fun isUrlOrID(str: String): Boolean {
@@ -76,20 +79,21 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
         textFieldState.setTextAndPlaceCursorAtEnd("")
     }
 
-    suspend fun addPartyBackground() {
+    suspend fun addPartyBackground(party: Party) {
         currentProgress = 5f
         delay(1)
         loading = true
 
         println("fetching party ...")
         delay(1)
-        val party = Loader.getParty()
         var count = 1
+        val size = party.party.size
         // when loading party, update progress ...
-        party.forEach {
-            val added = addEditableCharacter("https://www.vikinghelmet.com/dnd/party/$it.json")
+        party.party.forEach {
+            val json = getRemoteJson(it)
+            val added = addEditableCharacter(json!!)
             if (added != null) options.add(added.getName())
-            currentProgress = (count++ * 1f) / (party.size * 1f)
+            currentProgress = (count++ * 1f) / (size * 1f)
             delay(1)
         }
         loading = false
@@ -103,22 +107,18 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
             textFieldState.setTextAndPlaceCursorAtEnd("")
             return
         }
-        else if (addText == "party") {
-            scope.launch { addPartyBackground() }
-            reset(viewModel, textFieldState)
+        else if (addText == "kaboom") {
+            dprFiles.deleteAll()
+            viewModel.setCurrentCharacter(null)
+            reset(viewModel,textFieldState)
+            options.clear()
         }
         else {
             val oldCharacter = viewCharacter
             var newCharacter: EditableCharacter? = viewCharacter // default: old -> new
-
             val currentText = textFieldState.text.toString()
-            if (currentText == "kaboom") {
-                dprFiles.deleteAll()
-                viewModel.setCurrentCharacter(null)
-                reset(viewModel,textFieldState)
-                options.clear()
-            }
-            else if (options.isNotEmpty() && !isUrlOrID(currentText) && !currentText.contains("/")) {
+
+            if (options.isNotEmpty() && !isUrlOrID(currentText) && !currentText.contains("/")) {
                 // old character, new name
                 val editableFields = EditableFields(currentText, oldCharacter!!, viewModel.getCharacterLevel())
 
@@ -131,11 +131,25 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                 }
             }
             else {
-                val addResult = Loader.addEditableCharacter(currentText)
-                if (addResult != null) {
-                    options.add(addResult.getName())
-                    viewModel.setCurrentCharacter(addResult)
-                    textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
+                logger.info { "loading, input text: $currentText"}
+                val json = Loader.getRemoteJson(currentText)
+                if (json.isNullOrBlank()) {
+                    logger.error { "addCharacter($currentText), json is null or blank" }
+                }
+                else if (json.contains("\"party\"")) {
+                    logger.info { "loading party: $json"}
+                    scope.launch { addPartyBackground(Json.decodeFromString(json)) }
+                    reset(viewModel, textFieldState)
+                }
+                else {
+                    logger.info { "loading editable character: ${json.substring(0,30)+"..."}" }
+
+                    val addResult = Loader.addEditableCharacter(json)
+                    if (addResult != null) {
+                        options.add(addResult.getName())
+                        viewModel.setCurrentCharacter(addResult)
+                        textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
+                    }
                 }
             }
 

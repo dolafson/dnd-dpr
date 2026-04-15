@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr.util
 
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import dev.shivathapaa.logger.api.LoggerFactory
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -70,18 +71,24 @@ object CharacterAPI {
 
     suspend fun getRemoteCharacterByUrl(url: String): Pair<String, Character> {
         val json = getRequest(url)
+        return Pair(json, getRemoteCharacterFromJson(json))
+    }
+
+    suspend fun getRemoteCharacterFromJson(json: String): Character {
         val character: Character = Json.Default.decodeFromString(json)
-        val alwaysPrepared = getAlwaysPreparedSpellList(character)
-        logger.info { "# alwaysPrepared: $alwaysPrepared" }
-        character.alwaysPrepared = alwaysPrepared?.data ?: mutableListOf()
-        return Pair(json, character)
+        character.alwaysPrepared = getAlwaysPreparedSpellList(character)
+        return character
+    }
+
+    suspend fun updateAlwaysPrepared(character: Character) {
+        character.alwaysPrepared = getAlwaysPreparedSpellList(character)
     }
 
     // this method is needed to support a 2014 Cleric; not clear yet if it has wider utility
-    suspend fun getAlwaysPreparedSpellList(character: Character): AlwaysPreparedSpells? {
+    suspend fun getAlwaysPreparedSpellList(character: Character): List<PreparedSpellRemote> {
         val params = character.getApiRequestParameters()
 
-        if (params.isIncomplete()) return null
+        if (params.isIncomplete()) return mutableListOf()
 
         val url = StringBuilder("$characterUrlPrefix/game-data/always-prepared-spells?")
             .append("campaignId=${params.campaignId}")
@@ -91,11 +98,17 @@ object CharacterAPI {
             .append("&backgroundId=${params.backgroundId}")
             .toString()
 
-        return Json.Default.decodeFromString(getRequest(url))
+        val alwaysPrepared: AlwaysPreparedSpells? = Json.Default.decodeFromString(getRequest(url))
+        logger.info { "# alwaysPrepared: $alwaysPrepared" }
+        return alwaysPrepared?.data ?: mutableListOf()
     }
 
-    fun getCharacterApiURL(id: String): String {
-        return "$characterUrlPrefix/character/$id"
-    }
+    fun getCharacterApiURL(urlOrId: String): String? {
+        var remoteId: String? = getCharacterId(urlOrId) ?: return null
 
+        return if (remoteId == urlOrId || urlOrId.contains("dndbeyond")) {
+            "$characterUrlPrefix/character/$remoteId"
+        }
+        else urlOrId
+    }
 }
