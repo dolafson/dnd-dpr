@@ -285,7 +285,7 @@ OFF	6	Disables all logging
                 logger.info { "# alwaysPrepared: ${ names }" }
             }
             else {
-                println("# unsupported json file: $arg")
+                logger.error { "unsupported json file: $arg" }
                 exitEarly = true
             }
         }

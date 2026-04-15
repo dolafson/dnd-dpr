@@ -130,7 +130,7 @@ data class TargetEffect (
                 attackerAutoCrit = true // TODO: within 5 feet
             }
             else -> {
-//                println("# condition does not currently impact target effect: "+cond)
+//                logger.warn { "condition does not currently impact target effect: "+cond }
             }
         }
     }

@@ -29,7 +29,7 @@ class ScenarioBuilder(
         var scenarioList = ArrayList<Scenario>()
 
         logDuration("possibleTurns", { turnOptions.addAll(possibleTurns(actionsAvailable, targetProximity)) })
-        println("# num(possibleTurns) = ${turnOptions.size}")
+        logger.debug { "# num(possibleTurns) = ${turnOptions.size}" }
 
         logDuration("buildScenarios", {
             buildScenarios(
@@ -40,7 +40,8 @@ class ScenarioBuilder(
             )
         })
 
-        println("# num(scenarios) = ${scenarioList.size}")
+        logger.debug {"# num(scenarios) = ${scenarioList.size}" }
+
         logDuration("addActionModifiers", { addActionModifiers(scenarioList) })
         return scenarioList
     }
@@ -48,8 +49,8 @@ class ScenarioBuilder(
     fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn>
     {
         val actionList = actionsAvailable.getPrimaryAction(targetProximity)
-        println("# possibleTurns, actionsAvailable = $actionsAvailable")
-        println("# possibleTurns, actionList(prox) = $actionList")
+        logger.debug {"# possibleTurns, actionsAvailable = $actionsAvailable" }
+        logger.debug {"# possibleTurns, actionList(prox) = $actionList" }
 
         val bonusActionNames = character.getPreparedBonusActionSpells(targetProximity).map { it.name }
         val turnOptions = ArrayList<Turn>()
@@ -241,6 +242,6 @@ class ScenarioBuilder(
 
     fun logDuration(label: String, task: () -> Unit) {
         val dur = measureTime { task.invoke() }
-        println("# dur($label) = ${dur.inWholeMilliseconds}")
+        logger.debug { "# dur($label) = ${dur.inWholeMilliseconds}" }
     }
 }

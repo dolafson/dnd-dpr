@@ -23,6 +23,10 @@ data class ScenarioResult(
         return attackResults.map { if (it.turnId == round ) it.dpr() else 0.0f }.sum()
     }
 
+    fun getAttackNames(): List<List<String>> {
+        return scenario.turns.map { it.attacks.map { it2 -> it2.getLabel() }.toList() }.toList()
+    }
+
     fun output(): String {
         val scenarioName = scenario.getLabel()
         val firstResult = attackResults.firstOrNull { it.turnId == 1 }
