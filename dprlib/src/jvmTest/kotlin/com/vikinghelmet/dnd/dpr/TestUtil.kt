@@ -56,6 +56,7 @@ object TestUtil {
 
     val leifPlan = getEditableCharacter("plan/leif.json")
     val wwPlan = getEditableCharacter("plan/leif.ww.json")
+    val wwCSPlan = getEditableCharacter("plan/leif.ww.cs.json")
     val gsPlan = getEditableCharacter("plan/leif.gs.json")
     val hunterPlan = getEditableCharacter("plan/leif.hunter.json")
 }

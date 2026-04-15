@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffectCause
+import kotlinx.serialization.SerialName
 
 private val strAndDex = listOf(Strength,Dexterity)
 private val str = listOf(Strength)
@@ -30,7 +31,7 @@ enum class Feat(
     Athlete (false, strAndDex),
     Charger (false, strAndDex),
     Chef (false, emptyList(), listOf(Constitution,Wisdom)),
-    ColdCaster(true, emptyList(), spellCaster),     // https://www.dndbeyond.com/sources/dnd/frhof/character-options#ColdCaster
+    @SerialName("Cold Caster") ColdCaster(true, emptyList(), spellCaster),     // https://www.dndbeyond.com/sources/dnd/frhof/character-options#ColdCaster
 
     CrossbowExpert (false, dex),
     Crusher (false, emptyList(), listOf(Strength,Constitution)),
