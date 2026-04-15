@@ -1,7 +1,7 @@
 {
   "remoteId": "ranger.subclass/leif.ww.json",
   "level": 4,
-  "name": "Leif - Winter Walker",
+  "name": "Leif - Winter Walker + Cold Caster",
   "plan": {
     "1": { "spells": [ "Cure Wounds", "Entangle" ] },
     "2": { "feat": "Archery", "spells": [ "Hail of Thorns" ] },
