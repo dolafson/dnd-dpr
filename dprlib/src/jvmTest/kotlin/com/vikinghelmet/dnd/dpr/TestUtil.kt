@@ -55,4 +55,7 @@ object TestUtil {
     val hunter = getCharacter("ranger.subclass/leif.hunter.json")
 
     val leifPlan = getEditableCharacter("plan/leif.json")
+    val wwPlan = getEditableCharacter("plan/leif.ww.json")
+    val gsPlan = getEditableCharacter("plan/leif.gs.json")
+    val hunterPlan = getEditableCharacter("plan/leif.hunter.json")
 }
