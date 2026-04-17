@@ -1,3 +1,4 @@
+
 import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -75,6 +76,7 @@ kotlin {
         jvmTest.dependencies {
             implementation("org.slf4j:slf4j-api:2.0.16")
             implementation("ch.qos.logback:logback-classic:1.5.11")
+            implementation("org.junit.jupiter:junit-jupiter:5.7.1")
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
@@ -96,6 +98,11 @@ tasks.configureEach {
     if (name.startsWith("jvmTest")) {
         dependsOn("copySharedResourcesForTest")
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    systemProperty("RunSlowTests", System.getProperty("RunSlowTests"))
 }
 
 mavenPublishing {

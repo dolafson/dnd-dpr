@@ -4,10 +4,8 @@ import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import junit.framework.TestCase.assertEquals
-import kotlin.test.Test
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 class CharacterTest {
     @Test

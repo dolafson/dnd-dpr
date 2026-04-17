@@ -2,10 +2,8 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.util.Globals
-import junit.framework.TestCase.assertFalse
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 class MonsterTest {
 

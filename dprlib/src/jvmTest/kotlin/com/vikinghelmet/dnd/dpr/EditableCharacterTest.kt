@@ -14,10 +14,11 @@ import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
-import junit.framework.TestCase.assertEquals
 import kotlinx.serialization.Transient
-import kotlin.test.Test
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 
 class EditableCharacterTest {
     @Transient private val logger = LoggerFactory.get(EditableCharacterTest::class.simpleName ?: "")
@@ -50,10 +51,10 @@ class EditableCharacterTest {
 
     @Test
     fun getNameTest() {
-        assertEquals("Leif Lightfoot - Hunter", hunterPlan.getName())
-        assertEquals("Leif Lightfoot - GS", gsPlan.getName())
-        assertEquals("Leif Lightfoot - Winter Walker", wwPlan.getName())
-        assertEquals("Leif Lightfoot - Winter Walker + Cold Caster", wwCSPlan.getName())
+        assertEquals("Leif - Hunter", hunterPlan.getName())
+        assertEquals("Leif - GS", gsPlan.getName())
+        assertEquals("Leif - Winter Walker", wwPlan.getName())
+        assertEquals("Leif - Winter Walker + Cold Caster", wwCSPlan.getName())
     }
 
     fun bestFiveTurnResult(character: com.vikinghelmet.dnd.dpr.character.Character, range: Int): ScenarioResult {
@@ -67,7 +68,7 @@ class EditableCharacterTest {
     }
 
     @Test
-    fun level3() {
+    fun asiLevel3() {
         // baseline: all stats the same at level 3
         listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach {
             it.editableFields.level = 3
@@ -75,6 +76,14 @@ class EditableCharacterTest {
             assertEquals(14, it.getModifiedAbilityScore(AbilityType.Wisdom))
             assertEquals(12, it.getModifiedAbilityScore(AbilityType.Strength))
             assertEquals(listOf(Feat.Archery), it.getFeatList())
+        }
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestDprLevel3() {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach {
+            it.editableFields.level = 3
         }
 
         var topResult: ScenarioResult
