@@ -92,9 +92,14 @@ class DprTest {
             listOf(listOf("Conjure Woodland Beings")) +
             listOf(listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword"))
 
-    val wwBestMeleeL16 = listOf(listOf("Cone of Cold")) +
+    val wwBestMeleeL17 = listOf(listOf("Cone of Cold")) +
                     List(3) { listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword")} +
                         listOf(listOf("Conjure Woodland Beings"))
+
+    val wwCsBestMeleeL17 =
+            List(3) { listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword")} +
+            listOf(listOf("Conjure Woodland Beings")) +
+            listOf(listOf("Cone of Cold"))
 
     // --------------------------------------------------------------------------
     // RANGE: Hunter
@@ -434,8 +439,8 @@ class DprTest {
     fun bestMeleeDprLevel17() {
         assertEquals (SimpleResult(197, hunterBestMeleeL13), bestDPR(17, hunterPlan, MELEE_RANGE), "hunter17")
         assertEquals (SimpleResult(227, gsBestMeleeL16),     bestDPR(17, gsPlan, MELEE_RANGE), "gs17")
-        assertEquals (SimpleResult(220, wwBestMeleeL16),     bestDPR(17, wwPlan, MELEE_RANGE), "ww17")
-        assertEquals (SimpleResult(220, wwBestMeleeL16),     bestDPR(17, wwCSPlan, MELEE_RANGE), "wwCS17")
+        assertEquals (SimpleResult(220, wwBestMeleeL17),     bestDPR(17, wwPlan, MELEE_RANGE), "ww17")
+        assertEquals (SimpleResult(224, wwCsBestMeleeL17),   bestDPR(17, wwCSPlan, MELEE_RANGE), "wwCS17")
     }
 
     @Test

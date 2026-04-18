@@ -101,6 +101,7 @@ tasks.configureEach {
 }
 
 tasks.withType<Test>().configureEach {
+    maxHeapSize = "2G"
     useJUnitPlatform()
     systemProperty("RunSlowTests", System.getProperty("RunSlowTests"))
 }
