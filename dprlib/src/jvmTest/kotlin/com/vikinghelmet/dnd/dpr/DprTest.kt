@@ -266,7 +266,7 @@ class DprTest {
         assertEquals (SimpleResult(78, hunterBestMelee), bestDPR(4, hunterPlan, MELEE_RANGE), "hunter4")
         assertEquals (SimpleResult(78, gsBestMeleeL4),   bestDPR(4, gsPlan, MELEE_RANGE), "gs4")
         assertEquals (SimpleResult(72, wwBestMelee),     bestDPR(4, wwPlan, MELEE_RANGE), "ww4")
-        assertEquals (SimpleResult(72, wwBestMelee),     bestDPR(4, wwCSPlan, MELEE_RANGE), "wwCS4")
+        assertEquals (SimpleResult(81, wwBestMelee),     bestDPR(4, wwCSPlan, MELEE_RANGE), "wwCS4")
     }
 
     @Test
@@ -275,19 +275,19 @@ class DprTest {
         assertEquals (SimpleResult(66, hunterBestRangeL3),  bestDPR(4, hunterPlan, MELEE_RANGE*2), "hunter4")
         assertEquals (SimpleResult(70, gsBestRangeL4),      bestDPR(4, gsPlan, MELEE_RANGE*2), "gs4")
         assertEquals (SimpleResult(62, wwBestRangeL4),      bestDPR(4, wwPlan, MELEE_RANGE*2), "ww4")
-        assertEquals (SimpleResult(62, wwCsBestRangeL4),    bestDPR(4, wwCSPlan, MELEE_RANGE*2), "wwCS4")
+        assertEquals (SimpleResult(69, wwCsBestRangeL4),    bestDPR(4, wwCSPlan, MELEE_RANGE*2), "wwCS4")
     }
 
     // --------------------------------------------------------------------------
 
     @Test
-    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    //@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     fun bestMeleeDprLevel5() {
         // big jump in DPR vs Level 4, thanks to extra attack
         assertEquals (SimpleResult(134, hunterBestMeleeL5), bestDPR(5, hunterPlan, MELEE_RANGE), "hunter5")
         assertEquals (SimpleResult(127, gsBestMeleeL5),     bestDPR(5, gsPlan, MELEE_RANGE), "gs5")
         assertEquals (SimpleResult(121, wwBestMeleeL5),     bestDPR(5, wwPlan, MELEE_RANGE), "ww5")
-        assertEquals (SimpleResult(121, wwBestMeleeL5),     bestDPR(5, wwCSPlan, MELEE_RANGE), "wwCS5")
+        assertEquals (SimpleResult(136, wwBestMeleeL5),     bestDPR(5, wwCSPlan, MELEE_RANGE), "wwCS5")
     }
 
     @Test
@@ -297,7 +297,7 @@ class DprTest {
         assertEquals (SimpleResult(125, hunterBestRangeL5), bestDPR(5, hunterPlan, MELEE_RANGE*2), "hunter5")
         assertEquals (SimpleResult(121, gsBestRangeL5),     bestDPR(5, gsPlan, MELEE_RANGE*2), "gs5")
         assertEquals (SimpleResult(131, wwBestRangeL5),     bestDPR(5, wwPlan, MELEE_RANGE*2), "ww5")
-        assertEquals (SimpleResult(130, wwBestRangeL5),     bestDPR(5, wwCSPlan, MELEE_RANGE*2), "wwCS5")
+        assertEquals (SimpleResult(141, wwBestRangeL5),     bestDPR(5, wwCSPlan, MELEE_RANGE*2), "wwCS5")
     }
 
     // --------------------------------------------------------------------------
