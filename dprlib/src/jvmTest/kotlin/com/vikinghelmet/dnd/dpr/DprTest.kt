@@ -63,6 +63,9 @@ class DprTest {
         listOf("Shortsword", "Shortsword", "Shortsword"),
     )
 
+    val gsBestMeleeL8  = gsBestMeleeL5.withIndex().map { (index, value) -> if (index != 3) value else gsBestMeleeL5[2] }
+    val gsBestMeleeL12 = gsBestMeleeL8.withIndex().map { (index, value) -> if (index != 4) value else gsBestMeleeL8[2] }
+
     // --------------------------------------------------------------------------
     // MELEE: WinterWalker
 
@@ -82,6 +85,7 @@ class DprTest {
         listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword"),
     )
 
+
     // --------------------------------------------------------------------------
     // RANGE: Hunter
 
@@ -97,6 +101,14 @@ class DprTest {
         listOf("Longbow", "Longbow", "Hunter's Mark"),
         listOf("Longbow[ColossusSlayer]", "Longbow", "Hail of Thorns"),
         listOf("Longbow", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[ColossusSlayer]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow", "Longbow", "Hail of Thorns"),
+    )
+
+    val hunterBestRangeL9 = listOf(
+        listOf("Longbow", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[ColossusSlayer]", "Longbow", "Hail of Thorns"),
+        listOf("Conjure Animals"),
         listOf("Longbow[ColossusSlayer]", "Longbow", "Hail of Thorns"),
         listOf("Longbow", "Longbow", "Hail of Thorns"),
     )
@@ -128,6 +140,22 @@ class DprTest {
         listOf("Longbow", "Longbow", "Hail of Thorns"),
     )
 
+    val gsBestRangeL8 = gsBestRangeL5.withIndex().map { (index, value) -> if (index != 3) value else gsBestRangeL5[1] }
+    val gsBestRangeL9 = listOf(
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+        listOf("Conjure Animals"),
+    )
+
+    val gsBestRangeL12 = listOf(
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+        listOf("Conjure Animals"),
+        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
+    )
     // --------------------------------------------------------------------------
     // RANGE: WinterWalker
 
@@ -160,6 +188,22 @@ class DprTest {
         listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
     )
 
+    val wwBestRangeL9 =listOf(
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Conjure Animals"),
+    )
+
+    val wwCsBestRangeL12 =listOf(
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Conjure Animals"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+    )
+
     // --------------------------------------------------------------------------
 
     fun bestFiveTurnResult(character: Character, range: Int): ScenarioResult {
@@ -171,6 +215,9 @@ class DprTest {
         logger.info  { "${character.getName()} : bestDPR = ${ topResult.totalDPR } , attacks = ${ topResult.getAttackNames() }" }
         return topResult
     }
+
+    // --------------------------------------------------------------------------
+    // LEVEL 3
 
     @Test
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
@@ -217,6 +264,9 @@ class DprTest {
         assertEquals(62.300003f, topResult.totalDPR)
         assertEquals(wwBestRangeL3, topResult.getAttackNames())
     }
+
+    // --------------------------------------------------------------------------
+    // LEVEL 4
 
     @Test
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
@@ -265,9 +315,12 @@ class DprTest {
         assertEquals(wwCsBestRangeL4, topResult.getAttackNames())
     }
 
-    /**
-     * Ranger gets an Extra Attack at L5, so DPR makes a pretty big jump ...
-     */
+    // --------------------------------------------------------------------------
+    // LEVEL 5
+    //
+    //      Ranger gets an Extra Attack at L5, so DPR makes a pretty big jump
+    //
+
     @Test
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     fun bestMeleeDprLevel5() {
@@ -292,7 +345,7 @@ class DprTest {
     }
 
     @Test
-    //@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     fun bestRangeDprLevel5() {
         listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach { it.editableFields.level = 5 }
 
@@ -314,4 +367,150 @@ class DprTest {
         assertEquals(wwBestRangeL5, topResult.getAttackNames())
     }
 
+    // --------------------------------------------------------------------------
+    // LEVEL 8
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestMeleeDprLevel8() {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach { it.editableFields.level = 8 }
+
+        var topResult: ScenarioResult
+        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE)
+        assertEquals(134.00911f, topResult.totalDPR)                    // L8 hunter: same as L5
+        assertEquals(hunterBestMeleeL5, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE)
+        assertEquals(134.01787f, topResult.totalDPR)                    // L8 GS: +6 over L5, thanks to WIS, DreadfulStrike
+        assertEquals(gsBestMeleeL8, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE)
+        assertEquals(121.201614f, topResult.totalDPR)                   // L8 WW: same as L5
+        assertEquals(wwBestMeleeL5, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE)
+        assertEquals(136.81436f, topResult.totalDPR)                    // L8 WW+CS = L5 + 15 !  // TODO: how ???
+        assertEquals(wwBestMeleeL5, topResult.getAttackNames())
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestRangeDprLevel8() {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach { it.editableFields.level = 8 }
+
+        var topResult: ScenarioResult
+        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE*2)
+        assertEquals(126.299995f, topResult.totalDPR)
+        assertEquals(hunterBestRangeL5, topResult.getAttackNames())     // all range attack sequences change at L5
+
+        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE*2)
+        assertEquals(127.99999f, topResult.totalDPR)
+        assertEquals(gsBestRangeL8, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE*2)
+        assertEquals(132.4375f, topResult.totalDPR)
+        assertEquals(wwBestRangeL5, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE*2)
+        assertEquals(142.384f, topResult.totalDPR)
+        assertEquals(wwBestRangeL5, topResult.getAttackNames())
+    }
+
+    // --------------------------------------------------------------------------
+    // LEVEL 9
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestMeleeDprLevel9() {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach { it.editableFields.level = 9 }
+
+        var topResult: ScenarioResult
+        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE)
+        assertEquals(140.83624f, topResult.totalDPR)
+        assertEquals(hunterBestMeleeL5, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE)
+        assertEquals(142.09912f, topResult.totalDPR)
+        assertEquals(gsBestMeleeL8, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE)
+        assertEquals(128.49136f, topResult.totalDPR)
+        assertEquals(wwBestMeleeL5, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE)
+        assertEquals(143.8125f, topResult.totalDPR)
+        assertEquals(wwBestMeleeL5, topResult.getAttackNames())
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestRangeDprLevel9() {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach { it.editableFields.level = 9 }
+
+        var topResult: ScenarioResult
+        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE*2)
+        assertEquals(157.70001f, topResult.totalDPR)
+        assertEquals(hunterBestRangeL9, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE*2)
+        assertEquals(167.925f, topResult.totalDPR)
+        assertEquals(gsBestRangeL9, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE*2)
+        assertEquals(152.625f, topResult.totalDPR)
+        assertEquals(wwBestRangeL9, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE*2)
+        assertEquals(158.6f, topResult.totalDPR)
+        assertEquals(wwBestRangeL9, topResult.getAttackNames())
+    }
+
+    // --------------------------------------------------------------------------
+    // LEVEL 12
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestMeleeDprLevel12() {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach { it.editableFields.level = 12 }
+
+        var topResult: ScenarioResult
+        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE)
+        assertEquals(140.83624f, topResult.totalDPR)
+        assertEquals(hunterBestMeleeL5, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE)
+        assertEquals(148.61087f, topResult.totalDPR)
+        assertEquals(gsBestMeleeL12, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE)
+        assertEquals(128.49136f, topResult.totalDPR)
+        assertEquals(wwBestMeleeL5, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE)
+        assertEquals(143.8125f, topResult.totalDPR)
+        assertEquals(wwBestMeleeL5, topResult.getAttackNames())
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestRangeDprLevel12() {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach { it.editableFields.level = 12 }
+
+        var topResult: ScenarioResult
+        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE*2)
+        assertEquals(162.425f, topResult.totalDPR)
+        assertEquals(hunterBestRangeL9, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE*2)
+        assertEquals(172.65001f, topResult.totalDPR)
+        assertEquals(gsBestRangeL12, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE*2)
+        assertEquals(157.35f, topResult.totalDPR)
+        assertEquals(wwBestRangeL9, topResult.getAttackNames())
+
+        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE*2)
+        assertEquals(163.32501f, topResult.totalDPR)
+        assertEquals(wwCsBestRangeL12, topResult.getAttackNames())
+    }
 }

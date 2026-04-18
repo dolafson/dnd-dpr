@@ -11,7 +11,7 @@
     "6": {},
     "7": { "spells": [ "Pass without Trace" ] },
     "8": { "feat": "AbilityScoreIncrease", "asi1": "Dexterity", "asi2": "Wisdom" },
-    "9": { "spells": [ "Conjure Animals", "Wind Wall" ] },
+    "9": { "spells": [ "Conjure Animals", "Protection from Energy" ] },
     "10": {},
     "11": { "spells": [ "Revivify" ] },
     "12": { "feat": "AbilityScoreIncrease", "asi1": "Wisdom", "asi2": "Wisdom" },

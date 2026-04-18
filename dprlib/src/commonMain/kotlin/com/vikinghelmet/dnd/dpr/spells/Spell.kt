@@ -47,6 +47,7 @@ open class Spell(
 
         if (SpellsWithComplexRules.WindWall == SpellsWithComplexRules.fromNameWithWS(name)) {
             logger.warn { "WindWall, force duration = 1 "} // spell only does instantaneous damage; does nothing after round 1
+            throw IllegalArgumentException("WindWall, force duration = 1 ")
             return 1
         }
 
