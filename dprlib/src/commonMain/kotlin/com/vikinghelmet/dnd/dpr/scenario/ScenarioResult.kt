@@ -24,7 +24,13 @@ data class ScenarioResult(
     }
 
     fun getAttackNames(): List<List<String>> {
-        return scenario.turns.map { it.attacks.map { it2 -> it2.getLabel() }.toList() }.toList()
+        val result: MutableList<List<String>> = mutableListOf()
+        val turnIds = attackResults.map { it.turnId }.distinct().sorted()
+
+        for (turnId in turnIds) {
+            result.add (attackResults.filter { it3 -> it3.turnId == turnId && it3.effectId == 1 }.map { it.attack.getLabel() }.toList())
+        }
+        return result
     }
 
     fun output(): String {

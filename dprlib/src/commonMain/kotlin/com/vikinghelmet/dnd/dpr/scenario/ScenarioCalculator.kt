@@ -78,13 +78,13 @@ class ScenarioCalculator(
         var effect = 1
 
         resultList.add(actionCalculator.getMeleeOrRangeDPR(weapon, attack, turnId, actionId, effect++))
-
+/*
         // some classes gain extra attacks at level 5; fighters get even more extra attacks later
         repeat(scenario.character.getExtraAttacks()) {
             val extraAttack = attack.copy(actionModifiers = mutableListOf(ActionModifier.ExtraAttack))
             resultList.add(actionCalculator.getMeleeOrRangeDPR(weapon, extraAttack, turnId, actionId, effect++))
         }
-
+*/
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
             val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.nickname, weapon.item) {
                 override fun getBonusDamage(character: Character, isBonusAction: Boolean) = 0

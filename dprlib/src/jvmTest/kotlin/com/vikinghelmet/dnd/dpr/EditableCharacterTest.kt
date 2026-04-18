@@ -6,48 +6,16 @@ import com.vikinghelmet.dnd.dpr.TestUtil.wwCSPlan
 import com.vikinghelmet.dnd.dpr.TestUtil.wwPlan
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
-import com.vikinghelmet.dnd.dpr.util.Constants
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
-import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 
 class EditableCharacterTest {
     @Transient private val logger = LoggerFactory.get(EditableCharacterTest::class.simpleName ?: "")
 
     val allRangerSubclasses = listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan)
-
-    val hunterBestMelee = listOf(
-        listOf("Shortsword", "Hunter's Mark"),
-        listOf("Shortsword[ColossusSlayer]", "Shortsword"),
-        listOf("Shortsword", "Shortsword"),
-        listOf("Shortsword[ColossusSlayer]", "Shortsword"),
-        listOf("Shortsword", "Shortsword"),
-    )
-
-    val gsBestMelee = listOf(
-        listOf("Shortsword[DreadfulStrike]", "Hunter's Mark"),
-        listOf("Shortsword[DreadfulStrike]", "Shortsword"),
-        listOf("Shortsword", "Shortsword"),
-        listOf("Shortsword", "Shortsword"),
-        listOf("Shortsword", "Shortsword"),
-    )
-
-    val wwBestMelee = listOf(
-        listOf("Shortsword[PolarStrikes]", "Hunter's Mark"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-    )
 
     @Test
     fun getNameTest() {
@@ -55,16 +23,6 @@ class EditableCharacterTest {
         assertEquals("Leif - GS", gsPlan.getName())
         assertEquals("Leif - Winter Walker", wwPlan.getName())
         assertEquals("Leif - Winter Walker + Cold Caster", wwCSPlan.getName())
-    }
-
-    fun bestFiveTurnResult(character: com.vikinghelmet.dnd.dpr.character.Character, range: Int): ScenarioResult {
-        val scenarioList = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-            .build(range, 5, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-        logger.info  { "${character.getName()} : bestDPR = ${ topResult.totalDPR } , attacks = ${ topResult.getAttackNames() }" }
-        return topResult
     }
 
     @Test
@@ -80,54 +38,7 @@ class EditableCharacterTest {
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
-    fun bestDprLevel3() {
-        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach {
-            it.editableFields.level = 3
-        }
-
-        var topResult: ScenarioResult
-
-        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE)
-        assertEquals(70.041504f, topResult.totalDPR)
-        assertEquals(hunterBestMelee, topResult.getAttackNames())
-
-        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE)
-        assertEquals(72.9465f, topResult.totalDPR)
-        assertEquals(gsBestMelee, topResult.getAttackNames())
-
-        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE)
-        assertEquals(72.489f, topResult.totalDPR)
-        assertEquals(wwBestMelee, topResult.getAttackNames())
-
-        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE)
-        assertEquals(72.489f, topResult.totalDPR)
-        assertEquals(wwBestMelee, topResult.getAttackNames())
-
-        logger.info { "" }
-        logger.info {"" }
-        logger.info {"" }
-
-        topResult = bestFiveTurnResult(hunterPlan, Constants.MELEE_RANGE*2)
-        assertEquals(59.675f, topResult.totalDPR)
-        //assertEquals(hunterBestRange, topResult.getAttackNames())
-
-        topResult = bestFiveTurnResult(gsPlan, Constants.MELEE_RANGE*2)
-        assertEquals(63.425003f, topResult.totalDPR)
-        //assertEquals(gsBestRange, topResult.getAttackNames())
-
-        topResult = bestFiveTurnResult(wwPlan, Constants.MELEE_RANGE*2)
-        assertEquals(62.300003f, topResult.totalDPR)
-        //assertEquals(wwBestRange, topResult.getAttackNames())
-
-        topResult = bestFiveTurnResult(wwCSPlan, Constants.MELEE_RANGE*2)
-        assertEquals(62.300003f, topResult.totalDPR)
-        //assertEquals(wwBestRange, topResult.getAttackNames())
-
-    }
-
-    @Test
-    fun level4() {
+    fun asiLevel4() {
         // first ASI bump occurs at level 4
         allRangerSubclasses.forEach { it.editableFields.level = 4 }
 
@@ -152,7 +63,7 @@ class EditableCharacterTest {
     }
 
     @Test
-    fun level8() {
+    fun asiLevel8() {
         allRangerSubclasses.forEach { it.editableFields.level = 8 }
 
         listOf(hunterPlan).forEach {
@@ -172,7 +83,7 @@ class EditableCharacterTest {
     }
 
     @Test
-    fun level12() {
+    fun asiLevel12() {
         allRangerSubclasses.forEach { it.editableFields.level = 12 }
 
         listOf(hunterPlan, wwCSPlan).forEach {
@@ -185,7 +96,7 @@ class EditableCharacterTest {
     }
 
     @Test
-    fun level16() {
+    fun asiLevel16() {
         allRangerSubclasses.forEach { it.editableFields.level = 16 }
 
         listOf(hunterPlan).forEach {

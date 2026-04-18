@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
+import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -46,6 +47,14 @@ class ScenarioBuilder(
         return scenarioList
     }
 
+    fun getAttacksForTurn(action: AttackAction): List<Attack> {
+        val result = mutableListOf<Attack>()
+        repeat(1+character.getExtraAttacks()) {
+            result.add(Attack(monster = monster, action = action),)
+        }
+        return result
+    }
+
     fun possibleTurns(actionsAvailable: ActionsAvailable, targetProximity: Int): List<Turn>
     {
         val actionList = actionsAvailable.getPrimaryAction(targetProximity)
@@ -76,9 +85,8 @@ class ScenarioBuilder(
 
                 for (w2 in lightWeapons) {
                     turn = Turn(
-                        attacks = listOf(
+                        attacks = getAttacksForTurn(action) + listOf(
                             // TODO: use weapon nicnkames ?
-                            Attack(monster = monster, action = action),
                             Attack(monster = monster, action = w2, isBonusAction = true),
                         )
                     )
@@ -88,7 +96,7 @@ class ScenarioBuilder(
 
             // if you didn't find a 2nd light weapon, just use the first weapon w/out a BA
             if (turn == null) {
-                turn = Turn(attacks = listOf(Attack(monster = monster, action = action)))
+                turn = Turn(attacks = getAttacksForTurn(action))
                 turnOptions.add(turn)
             }
 
@@ -98,9 +106,7 @@ class ScenarioBuilder(
                     val bonus = Globals.getSpell(bonusName, character.is2014())
                     turnOptions.add(
                         Turn(
-                            attacks = listOf(
-                                //Attack(monster = monster, attack = (w1.nickname ?: w1.name)),
-                                Attack(monster = monster, action = action),
+                            attacks = getAttacksForTurn(action) + listOf(
                                 Attack(monster = monster, action = bonus, isBonusAction = true),
                             )
                         )
@@ -206,7 +212,7 @@ class ScenarioBuilder(
             ActionModifier.DreadfulStrike -> {
                 // weapon attacks only
                 // at most once per turn
-                // limited use per day, similar to hunter's mark (tied to WIS bonus)
+                // limited use per day (tied to WIS bonus)
                 return countModifier(mod, scenario) < character.getSpellAbilityBonusWithoutPB()
             }
             ActionModifier.PolarStrikes   -> {
