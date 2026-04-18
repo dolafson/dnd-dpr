@@ -42,6 +42,14 @@ class DprTest {
         listOf("Shortsword", "Shortsword", "Shortsword"),
     )
 
+    val hunterBestMeleeL13 = listOf(
+        listOf("Shortsword", "Shortsword", "Shortsword"),
+        listOf("Shortsword[ColossusSlayer]", "Shortsword", "Shortsword"),
+        listOf("Shortsword", "Shortsword", "Shortsword"),
+        listOf("Shortsword[ColossusSlayer]", "Shortsword", "Shortsword"),
+        listOf("Conjure Woodland Beings"),
+    )
+
     // --------------------------------------------------------------------------
     // MELEE: GloomStalker
 
@@ -66,25 +74,17 @@ class DprTest {
     val gsBestMeleeL8  = gsBestMeleeL5.withIndex().map { (index, value) -> if (index != 3) value else gsBestMeleeL5[2] }
     val gsBestMeleeL12 = gsBestMeleeL8.withIndex().map { (index, value) -> if (index != 4) value else gsBestMeleeL8[2] }
 
+    val gsBestMeleeL13 = listOf(listOf("Conjure Woodland Beings")) + List(4) { listOf("Shortsword[DreadfulStrike]", "Shortsword", "Shortsword")}
+
     // --------------------------------------------------------------------------
     // MELEE: WinterWalker
 
-    val wwBestMelee = listOf(
-        listOf("Shortsword[PolarStrikes]", "Hunter's Mark"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword"),
-    )
+    val wwBestMelee = listOf(listOf("Shortsword[PolarStrikes]", "Hunter's Mark")) +
+                   List(4) { listOf("Shortsword[PolarStrikes]", "Shortsword",) }
 
-    val wwBestMeleeL5 = listOf(
-        listOf("Shortsword[PolarStrikes]", "Shortsword", "Hunter's Mark"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword"),
-        listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword"),
-    )
-
+    val wwBestMeleeL5 = listOf(listOf("Shortsword[PolarStrikes]", "Shortsword", "Hunter's Mark")) +
+                     List(4) { listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword",) }
+    val wwBestMeleeL13 = listOf(listOf("Conjure Woodland Beings")) + List(4) { listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword")}
 
     // --------------------------------------------------------------------------
     // RANGE: Hunter
@@ -113,12 +113,20 @@ class DprTest {
         listOf("Longbow", "Longbow", "Hail of Thorns"),
     )
 
+    val hunterBestRangeL13 = listOf(
+        listOf("Longbow", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[ColossusSlayer]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[ColossusSlayer]", "Longbow", "Hail of Thorns"),
+        listOf("Conjure Animals"),
+    )
+
     // --------------------------------------------------------------------------
     // RANGE: GloomStalker
 
     val gsBestRangeL3 = listOf(
         listOf("Longbow[DreadfulStrike]", "Hunter's Mark"),
-        listOf("Longbow[DreadfulStrike]"),      //        listOf("Longbow[DreadfulStrike]", "Hail of Thorns"),
+        listOf("Longbow[DreadfulStrike]"),
         listOf("Longbow", "Hail of Thorns"),
         listOf("Longbow", "Hail of Thorns"),
         listOf("Longbow", "Hail of Thorns"),
@@ -141,13 +149,7 @@ class DprTest {
     )
 
     val gsBestRangeL8 = gsBestRangeL5.withIndex().map { (index, value) -> if (index != 3) value else gsBestRangeL5[1] }
-    val gsBestRangeL9 = listOf(
-        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
-        listOf("Conjure Animals"),
-    )
+    val gsBestRangeL9 =  List(4) { listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns")} + listOf(listOf("Conjure Animals"))
 
     val gsBestRangeL12 = listOf(
         listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
@@ -156,6 +158,9 @@ class DprTest {
         listOf("Conjure Animals"),
         listOf("Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns"),
     )
+
+    val gsBestRangeL13 = gsBestRangeL9
+
     // --------------------------------------------------------------------------
     // RANGE: WinterWalker
 
@@ -180,22 +185,10 @@ class DprTest {
         if (index != 2) value
         else listOf("Longbow[PolarStrikes]","Hail of Thorns") }
 
-    val wwBestRangeL5 =listOf(
-        listOf("Hold Person"), // Ensnaring instead of HM ?  because of higher WIS ?
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-    )
-
-    val wwBestRangeL9 =listOf(
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
-        listOf("Conjure Animals"),
-    )
-
+    val wwBestRangeL5 = listOf(listOf("Hold Person")) +
+                        List(4) { listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns")}
+    val wwBestRangeL9 = List(4) { listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns")} +
+                        listOf(listOf("Conjure Animals"))
     val wwCsBestRangeL12 =listOf(
         listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
         listOf("Conjure Animals"),
@@ -281,7 +274,7 @@ class DprTest {
     // --------------------------------------------------------------------------
 
     @Test
-    //@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     fun bestMeleeDprLevel5() {
         // big jump in DPR vs Level 4, thanks to extra attack
         assertEquals (SimpleResult(134, hunterBestMeleeL5), bestDPR(5, hunterPlan, MELEE_RANGE), "hunter5")
@@ -359,5 +352,26 @@ class DprTest {
         assertEquals (SimpleResult(172, gsBestRangeL12),     bestDPR(12, gsPlan, MELEE_RANGE*2), "gs12")
         assertEquals (SimpleResult(157, wwBestRangeL9),      bestDPR(12, wwPlan, MELEE_RANGE*2), "ww12")
         assertEquals (SimpleResult(163, wwCsBestRangeL12),   bestDPR(12, wwCSPlan, MELEE_RANGE*2), "wwCS12")
+    }
+
+    // --------------------------------------------------------------------------
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestMeleeDprLevel13() {
+        // big jump thanks to Conjure Woodland Beings
+        assertEquals (SimpleResult(194, hunterBestMeleeL13), bestDPR(13, hunterPlan, MELEE_RANGE), "hunter13")
+        assertEquals (SimpleResult(206, gsBestMeleeL13),     bestDPR(13, gsPlan, MELEE_RANGE), "gs13")
+        assertEquals (SimpleResult(189, wwBestMeleeL13),     bestDPR(13, wwPlan, MELEE_RANGE), "ww13")
+        assertEquals (SimpleResult(194, wwBestMeleeL13),     bestDPR(13, wwCSPlan, MELEE_RANGE), "wwCS13")
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestRangeDprLevel13() {
+        assertEquals (SimpleResult(171, hunterBestRangeL13), bestDPR(13, hunterPlan, MELEE_RANGE*2), "hunter13")
+        assertEquals (SimpleResult(182, gsBestRangeL13),     bestDPR(13, gsPlan, MELEE_RANGE*2), "gs13")
+        assertEquals (SimpleResult(165, wwBestRangeL9),      bestDPR(13, wwPlan, MELEE_RANGE*2), "ww13")
+        assertEquals (SimpleResult(172, wwBestRangeL9),      bestDPR(13, wwCSPlan, MELEE_RANGE*2), "wwCS13")
     }
 }

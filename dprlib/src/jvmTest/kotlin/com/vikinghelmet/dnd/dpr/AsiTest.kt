@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class EditableCharacterTest {
-    @Transient private val logger = LoggerFactory.get(EditableCharacterTest::class.simpleName ?: "")
+class AsiTest {
+    @Transient private val logger = LoggerFactory.get(AsiTest::class.simpleName ?: "")
 
     val allRangerSubclasses = listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan)
 
@@ -57,8 +57,8 @@ class EditableCharacterTest {
 
         // WW CS = the CS feat confers some unique benefits, but only a single point bump in Wis
         listOf(wwCSPlan).forEach {
-            assertTrue(it.getFeatList().contains(Feat.ColdCaster))
             assertEquals(15, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +1
+            assertEquals(20, it.getModifiedAbilityScore(AbilityType.Dexterity))    // +1
         }
     }
 
@@ -77,8 +77,8 @@ class EditableCharacterTest {
 
         // For WW CS, since both Dex and Wis were odd numbers, add 1 to both (ability benefits come with even numbers)
         listOf(wwCSPlan).forEach {
+            assertTrue(it.getFeatList().contains(Feat.ColdCaster))
             assertEquals(16, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +1
-            assertEquals(20, it.getModifiedAbilityScore(AbilityType.Dexterity)) // +1
         }
     }
 
