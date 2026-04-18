@@ -106,11 +106,8 @@ open class Character(
         return Constants.levelToProficiencyMap[getLevel()] ?: 0
     }
 
-    fun isFeatEnabled(requested : String): Boolean {
-        for (feat in characterData.feats) {
-            if (feat.definition.name == requested) return true
-        }
-        return false
+    fun isFeatEnabled(requested : Feat): Boolean {
+        return getFeatList().any { it == requested }
     }
 
     fun addFeat(requested : Feat) {
@@ -139,11 +136,11 @@ open class Character(
      * slightly, particularly with multi-die spells.
      */
     fun isElementalAdept(): Boolean {
-        return isFeatEnabled(Feat.ElementalAdept.getNameWithWS())
+        return isFeatEnabled(Feat.ElementalAdept)
     }
 
     fun isGreatWeaponFighting(): Boolean {
-        return isFeatEnabled(Feat.GreatWeaponFighting.getNameWithWS())
+        return isFeatEnabled(Feat.GreatWeaponFighting)
     }
 
     fun getRacialTraitList() = characterData.race.racialTraits
@@ -210,7 +207,18 @@ open class Character(
     }
 
     fun getDamageBonus(w: Weapon, isBA: Boolean): Int {
-        return if (isBA) 0 else getAbilityWeaponBonus(w) // TODO: two-weapon fighting feat lets you add bonus damage even in BA
+        if (isBA && !isFeatEnabled(Feat.TwoWeaponFighting)) {
+            logger.debug { "isBA, and TWF is not enabled" }
+            return 0
+        }
+
+        var bonus = getAbilityWeaponBonus(w)
+
+        if (isFeatEnabled(Feat.GreatWeaponMaster) && w.hasWeaponProperty(WeaponProperty.Heavy)) {
+            bonus += getProficiencyBonus()
+            logger.debug { "GWM, adding PB, full damage bonus = $bonus" }
+        }
+        return bonus
     }
 
     // ----------------------------------------------------------------------------------------

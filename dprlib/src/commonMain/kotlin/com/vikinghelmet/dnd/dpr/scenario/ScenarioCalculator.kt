@@ -99,7 +99,7 @@ class ScenarioCalculator(
             effectManager.add(TargetEffect(turnId, MasteryProperty.Vex, resultList.first().chanceToHit.avg, attackerHasAdvantage = true))
         }
 
-        if (scenario.character.isFeatEnabled(Feat.ColdCaster.getNameWithWS())) {
+        if (scenario.character.isFeatEnabled(Feat.ColdCaster)) {
             // http://dnd2024.wikidot.com/feat:cold-caster ...
             // Frostbite. Once per turn when you hit a creature with an attack roll and deal Cold damage,
             // you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next

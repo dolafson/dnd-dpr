@@ -76,6 +76,8 @@ class DprTest {
 
     val gsBestMeleeL13 = listOf(listOf("Conjure Woodland Beings")) + List(4) { listOf("Shortsword[DreadfulStrike]", "Shortsword", "Shortsword")}
 
+    val gsBestMeleeL16 = List(4) { listOf("Shortsword[DreadfulStrike]", "Shortsword", "Shortsword")} + listOf(listOf("Conjure Woodland Beings"))
+
     // --------------------------------------------------------------------------
     // MELEE: WinterWalker
 
@@ -85,6 +87,10 @@ class DprTest {
     val wwBestMeleeL5 = listOf(listOf("Shortsword[PolarStrikes]", "Shortsword", "Hunter's Mark")) +
                      List(4) { listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword",) }
     val wwBestMeleeL13 = listOf(listOf("Conjure Woodland Beings")) + List(4) { listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword")}
+
+    val wwBestMeleeL16 = listOf(listOf("Cone of Cold")) +
+                    List(3) { listOf("Shortsword[PolarStrikes]", "Shortsword", "Shortsword")} +
+                        listOf(listOf("Conjure Woodland Beings"))
 
     // --------------------------------------------------------------------------
     // RANGE: Hunter
@@ -120,6 +126,8 @@ class DprTest {
         listOf("Longbow[ColossusSlayer]", "Longbow", "Hail of Thorns"),
         listOf("Conjure Animals"),
     )
+
+    val hunterBestRangeL17 = hunterBestRangeL13
 
     // --------------------------------------------------------------------------
     // RANGE: GloomStalker
@@ -160,6 +168,8 @@ class DprTest {
     )
 
     val gsBestRangeL13 = gsBestRangeL9
+    val gsBestRangeL16 = gsBestRangeL12
+    val gsBestRangeL17 = gsBestRangeL9
 
     // --------------------------------------------------------------------------
     // RANGE: WinterWalker
@@ -197,6 +207,24 @@ class DprTest {
         listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
     )
 
+    val wwBestRangeL16 = wwCsBestRangeL12
+    val wwBestRangeL17 = wwBestRangeL9
+
+    val wwCsBestRangeL16 =listOf(
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow"),  // TODO: why not include Hail of Thorns here ???
+        listOf("Conjure Animals"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+    )
+
+    val wwCsBestRangeL17 =listOf(
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+        listOf("Longbow[PolarStrikes]", "Longbow"),  // TODO: why not include Hail of Thorns here ???
+        listOf("Conjure Animals"),
+        listOf("Longbow[PolarStrikes]", "Longbow", "Hail of Thorns"),
+    )
     // --------------------------------------------------------------------------
 
     class SimpleResult(val totalDPR: Int, val attacks: List<List<String>>) {
@@ -348,7 +376,7 @@ class DprTest {
     @Test
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     fun bestRangeDprLevel12() {
-        assertEquals (SimpleResult(162, hunterBestRangeL9),  bestDPR(12, hunterPlan, MELEE_RANGE*2), "hunter12")
+        assertEquals (SimpleResult(157, hunterBestRangeL9),  bestDPR(12, hunterPlan, MELEE_RANGE*2), "hunter12")
         assertEquals (SimpleResult(172, gsBestRangeL12),     bestDPR(12, gsPlan, MELEE_RANGE*2), "gs12")
         assertEquals (SimpleResult(157, wwBestRangeL9),      bestDPR(12, wwPlan, MELEE_RANGE*2), "ww12")
         assertEquals (SimpleResult(163, wwCsBestRangeL12),   bestDPR(12, wwCSPlan, MELEE_RANGE*2), "wwCS12")
@@ -360,7 +388,7 @@ class DprTest {
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     fun bestMeleeDprLevel13() {
         // big jump thanks to Conjure Woodland Beings
-        assertEquals (SimpleResult(194, hunterBestMeleeL13), bestDPR(13, hunterPlan, MELEE_RANGE), "hunter13")
+        assertEquals (SimpleResult(188, hunterBestMeleeL13), bestDPR(13, hunterPlan, MELEE_RANGE), "hunter13")
         assertEquals (SimpleResult(206, gsBestMeleeL13),     bestDPR(13, gsPlan, MELEE_RANGE), "gs13")
         assertEquals (SimpleResult(189, wwBestMeleeL13),     bestDPR(13, wwPlan, MELEE_RANGE), "ww13")
         assertEquals (SimpleResult(194, wwBestMeleeL13),     bestDPR(13, wwCSPlan, MELEE_RANGE), "wwCS13")
@@ -369,9 +397,50 @@ class DprTest {
     @Test
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     fun bestRangeDprLevel13() {
-        assertEquals (SimpleResult(171, hunterBestRangeL13), bestDPR(13, hunterPlan, MELEE_RANGE*2), "hunter13")
+        assertEquals (SimpleResult(166, hunterBestRangeL13), bestDPR(13, hunterPlan, MELEE_RANGE*2), "hunter13")
         assertEquals (SimpleResult(182, gsBestRangeL13),     bestDPR(13, gsPlan, MELEE_RANGE*2), "gs13")
         assertEquals (SimpleResult(165, wwBestRangeL9),      bestDPR(13, wwPlan, MELEE_RANGE*2), "ww13")
         assertEquals (SimpleResult(172, wwBestRangeL9),      bestDPR(13, wwCSPlan, MELEE_RANGE*2), "wwCS13")
     }
+
+    // --------------------------------------------------------------------------
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestMeleeDprLevel16() {
+        assertEquals (SimpleResult(188, hunterBestMeleeL13), bestDPR(16, hunterPlan, MELEE_RANGE), "hunter16")
+        assertEquals (SimpleResult(218, gsBestMeleeL16),     bestDPR(16, gsPlan, MELEE_RANGE), "gs16")
+        assertEquals (SimpleResult(200, wwBestMeleeL13),     bestDPR(16, wwPlan, MELEE_RANGE), "ww16")
+        assertEquals (SimpleResult(200, wwBestMeleeL13),     bestDPR(16, wwCSPlan, MELEE_RANGE), "wwCS16") // exact match for WW
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestRangeDprLevel16() {
+        assertEquals (SimpleResult(202, hunterBestRangeL13), bestDPR(16, hunterPlan, MELEE_RANGE*2), "hunter16")
+        assertEquals (SimpleResult(194, gsBestRangeL16),     bestDPR(16, gsPlan, MELEE_RANGE*2), "gs16")
+        assertEquals (SimpleResult(177, wwBestRangeL16),     bestDPR(16, wwPlan, MELEE_RANGE*2), "ww16")
+        assertEquals (SimpleResult(182, wwCsBestRangeL16),   bestDPR(16, wwCSPlan, MELEE_RANGE*2), "wwCS16")
+    }
+
+    // --------------------------------------------------------------------------
+
+    @Test
+    //@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestMeleeDprLevel17() {
+        assertEquals (SimpleResult(197, hunterBestMeleeL13), bestDPR(17, hunterPlan, MELEE_RANGE), "hunter17")
+        assertEquals (SimpleResult(227, gsBestMeleeL16),     bestDPR(17, gsPlan, MELEE_RANGE), "gs17")
+        assertEquals (SimpleResult(220, wwBestMeleeL16),     bestDPR(17, wwPlan, MELEE_RANGE), "ww17")
+        assertEquals (SimpleResult(220, wwBestMeleeL16),     bestDPR(17, wwCSPlan, MELEE_RANGE), "wwCS17")
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+    fun bestRangeDprLevel17() {
+        assertEquals (SimpleResult(221, hunterBestRangeL17), bestDPR(17, hunterPlan, MELEE_RANGE*2), "hunter17")
+        assertEquals (SimpleResult(204, gsBestRangeL17),     bestDPR(17, gsPlan, MELEE_RANGE*2), "gs17")
+        assertEquals (SimpleResult(186, wwBestRangeL17),     bestDPR(17, wwPlan, MELEE_RANGE*2), "ww17")
+        assertEquals (SimpleResult(192, wwCsBestRangeL17),   bestDPR(17, wwCSPlan, MELEE_RANGE*2), "wwCS17")
+    }
+
 }

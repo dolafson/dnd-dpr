@@ -41,7 +41,7 @@ enum class Feat(
     ElementalAdept(true, emptyList(), spellCaster),
     FeyTouched (false, emptyList(), spellCaster),
     Grappler (false, strAndDex),
-    GreatWeaponMaster(false, str),
+    @SerialName("Great Weapon Master") GreatWeaponMaster(false, str),
     HeavilyArmored (false, emptyList(), str),
     HeavyArmorMaster (false, emptyList(), listOf(Strength,Constitution)),
     InspiringLeader (false, listOf(Wisdom,Charisma)),

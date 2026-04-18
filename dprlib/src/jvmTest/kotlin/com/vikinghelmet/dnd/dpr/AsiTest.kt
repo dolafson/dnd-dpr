@@ -86,7 +86,12 @@ class AsiTest {
     fun asiLevel12() {
         allRangerSubclasses.forEach { it.editableFields.level = 12 }
 
-        listOf(hunterPlan, wwCSPlan).forEach {
+        listOf(hunterPlan).forEach {
+            assertTrue(it.getFeatList().contains(Feat.Piercer))
+            assertEquals(13, it.getModifiedAbilityScore(AbilityType.Strength))    // +2
+        }
+
+        listOf(wwCSPlan).forEach {
             assertEquals(18, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
         }
 
@@ -100,8 +105,8 @@ class AsiTest {
         allRangerSubclasses.forEach { it.editableFields.level = 16 }
 
         listOf(hunterPlan).forEach {
-            assertTrue(it.getFeatList().contains(Feat.Piercer))
-            assertEquals(13, it.getModifiedAbilityScore(AbilityType.Strength))    // +1
+            assertTrue(it.getFeatList().contains(Feat.GreatWeaponMaster))
+            assertEquals(14, it.getModifiedAbilityScore(AbilityType.Strength))    // +1
         }
 
         listOf(gsPlan, wwPlan).forEach {
