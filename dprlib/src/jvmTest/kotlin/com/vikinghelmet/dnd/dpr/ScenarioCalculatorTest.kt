@@ -55,6 +55,24 @@ class ScenarioCalculatorTest {
     }
 
     @Test
+    fun maxDPRThreeTurnMelee() {
+        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
+            .build(Constants.MELEE_RANGE, 3, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+        /*
+                ScenarioResult.topResults(scenarioResultList, 5).forEach { r ->
+                    println("${ Globals.getPercent(r.totalDPR) } \t ${ r.scenario.getLabel() }")
+                    r.attackResults.forEach { println(it) }
+                }
+        */
+        assertEquals(listOf("Shortsword","Hunter's Mark"),  topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
+        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[2].attacks.map { it.getLabel() } )
+    }
+
+    @Test
     fun maxDPRTwoTurnRange() {
         val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
             .build(Constants.MELEE_RANGE*2, 2, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)

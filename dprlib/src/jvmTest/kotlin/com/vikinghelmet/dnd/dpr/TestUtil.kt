@@ -3,12 +3,32 @@ package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.character.Character
 import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LogLevel
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 
 object TestUtil {
+
+    init {
+        JulConfigurator()
+        Globals.initLogger(LogLevel.WARN) // DEBUG
+
+        for (filename in mutableListOf("spells.json","extra.spells.json")) {
+            Globals.addSpells(getResource(filename) ?: "[]")
+        }
+
+        Globals.addSubclassSpellsPrepared(getResource("subclass.spellprep.json") ?: "[]")
+
+        Globals.addMonsters(getResource("monsters.json") ?: "[]")
+    }
+
+    fun dependency() {}
 
     fun getResource(fileName: String): String? {
         val inputStream: InputStream = object {}.javaClass.getResourceAsStream("/$fileName") ?: return null
@@ -27,20 +47,15 @@ object TestUtil {
         return EditableCharacter(getCharacter(editableFields.remoteId), editableFields)
     }
 
-    init {
-        JulConfigurator()
-        Globals.initLogger(LogLevel.WARN) // DEBUG
+    fun bestDPR (level: Int, character: EditableCharacter, range: Int): SimpleResult {
+        character.editableFields.level = level
+        val scenarioList = ScenarioBuilder(character, Globals.getMonster("Goblin"))
+            .build(range, 5, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
 
-        for (filename in mutableListOf("spells.json","extra.spells.json")) {
-            Globals.addSpells(getResource(filename) ?: "[]")
-        }
-
-        Globals.addSubclassSpellsPrepared(getResource("subclass.spellprep.json") ?: "[]")
-
-        Globals.addMonsters(getResource("monsters.json") ?: "[]")
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+        return SimpleResult(topResult)
     }
-
-    fun dependency() {}
 
     val eldir = getCharacter("party/eldir.json")
     val kael =  getCharacter("party/kael.json")

@@ -14,8 +14,10 @@ import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
 data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
 {
-    constructor(other: EffectManager, allowFailure: Boolean):
-            this(runningEffectList = other.runningEffectList.filter { it.probability == 100f || allowFailure}.toMutableList())
+    constructor(other: EffectManager, allowConditions: Boolean):
+        this(runningEffectList = other.runningEffectList.filter {
+            it.probability == 100f || it.isEmptyExceptForAdvantage() || allowConditions
+        }.toMutableList())
 
     fun chanceOfSuccess(): Float {
         //return if (runningEffectList.isEmpty()) 100f else runningEffectList.minOf { it.probability }

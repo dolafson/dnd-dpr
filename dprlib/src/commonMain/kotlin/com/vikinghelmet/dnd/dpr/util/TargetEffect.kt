@@ -45,8 +45,8 @@ data class TargetEffect (
 
     fun hasSaveImpact() = savePenalty.isNotEmpty() || disadvantageOnSave.isNotEmpty() || autoFailSave.isNotEmpty()
 
-    fun isEmpty(): Boolean {
-        return !attackerHasAdvantage!! && !disadvantageOnAttacks!! && !noActionOrBA!! && !attackerAutoCrit!! &&
+    fun isEmptyExceptForAdvantage(): Boolean {
+        return !disadvantageOnAttacks!! && !noActionOrBA!! && !attackerAutoCrit!! &&
                 disadvantageOnAbilityChecks.isEmpty() &&
                 disadvantageOnSave.isEmpty() &&
                 autoFailSave.isEmpty() &&
@@ -56,6 +56,11 @@ data class TargetEffect (
                 damagePenalty.isEmpty() &&
                 attackerExtraDamageOnHit.isEmpty()
     }
+
+    fun isEmpty(): Boolean {
+        return !attackerHasAdvantage!! && isEmptyExceptForAdvantage()
+    }
+
     fun applyCondition(cond: Condition) {
         when (cond) {
             Condition.Blinded -> // Attack rolls against you have Advantage, and your attack rolls have Disadvantage.
