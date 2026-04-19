@@ -18,8 +18,9 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 
-//@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
 class DprTest {
     @Transient private val logger = LoggerFactory.get(DprTest::class.simpleName ?: "")
 
