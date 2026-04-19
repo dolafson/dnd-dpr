@@ -1,0 +1,53 @@
+[
+  { "level": 3, "totalDPR": 63, "attacks": [
+        [ "Longbow[DreadfulStrike]", "Hunter's Mark" ],
+        [ "Longbow[DreadfulStrike]" ],
+        [ "Longbow", "Hail of Thorns" ],
+        [ "Longbow", "Hail of Thorns" ],
+        [ "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 4, "totalDPR": 70, "attacks": [
+    [ "Longbow[DreadfulStrike]", "Ensnaring Strike" ],
+    [ "Longbow[DreadfulStrike]" ],
+    [ "Longbow[DreadfulStrike]" ],
+    [ "Longbow", "Hail of Thorns" ],
+    [ "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 5, "totalDPR": 121, "attacks": [
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hunter's Mark" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow", "Longbow", "Hail of Thorns" ],
+    [ "Longbow", "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 8, "totalDPR": 127, "attacks": [
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hunter's Mark" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow", "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 9, "totalDPR": 167, "attacks": [
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Conjure Animals" ]
+  ] },
+
+  { "level": 12, "totalDPR": 172, "attacks": [
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ],
+    [ "Conjure Animals" ],
+    [ "Longbow[DreadfulStrike]", "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 13, "totalDPR": 182, "clone": 9 },
+  { "level": 16, "totalDPR": 194, "clone": 12 },
+  { "level": 17, "totalDPR": 204, "clone": 9 }
+]

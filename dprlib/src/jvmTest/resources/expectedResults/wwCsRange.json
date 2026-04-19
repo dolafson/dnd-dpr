@@ -1,0 +1,55 @@
+[
+  { "level": 3, "totalDPR": 62, "attacks": [
+    [ "Longbow[PolarStrikes]", "Hunter's Mark" ],
+    [ "Longbow[PolarStrikes]" ],
+    [ "Longbow[PolarStrikes]", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Hail of Thorns" ]
+  ] },
+
+  { "level": 4, "totalDPR": 69, "clone": 3 },
+
+  { "level": 5, "totalDPR": 141, "attacks": [
+    [ "Hold Person" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 8, "totalDPR": 138, "clone": 5 },
+
+  { "level": 9, "totalDPR": 164, "attacks": [
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow" ],
+    [ "Conjure Animals" ]
+  ] },
+
+  { "level": 12, "totalDPR": 168, "attacks": [
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow" ],
+    [ "Conjure Animals" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 13, "totalDPR": 178, "attacks": [
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow" ],
+    [ "Conjure Animals" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 16, "totalDPR": 182, "attacks": [
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow" ],
+    [ "Conjure Animals" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
+    [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
+  ] },
+
+  { "level": 17, "totalDPR": 192, "clone": 13 }
+]

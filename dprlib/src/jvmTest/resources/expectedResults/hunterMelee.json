@@ -1,0 +1,36 @@
+[
+  { "level": 3, "totalDPR": 70, "attacks": [
+        [ "Shortsword", "Hunter's Mark" ],
+        [ "Shortsword[ColossusSlayer]", "Shortsword" ],
+        [ "Shortsword", "Shortsword" ],
+        [ "Shortsword[ColossusSlayer]", "Shortsword" ],
+        [ "Shortsword", "Shortsword" ]
+  ] },
+
+  { "level": 4, "totalDPR": 78, "clone": 3 },
+
+  { "level": 5, "totalDPR": 134, "attacks": [
+    [ "Shortsword", "Shortsword", "Hunter's Mark" ],
+    [ "Shortsword[ColossusSlayer]", "Shortsword", "Shortsword" ],
+    [ "Shortsword", "Shortsword", "Shortsword" ],
+    [ "Shortsword[ColossusSlayer]", "Shortsword", "Shortsword" ],
+    [ "Shortsword", "Shortsword", "Shortsword" ]
+  ] },
+
+  { "level": 8, "totalDPR": 134, "clone": 5 },
+
+  { "level": 9, "totalDPR": 140, "clone": 5 },
+
+  { "level": 12, "totalDPR": 140, "clone": 5 },
+
+  { "level": 13, "totalDPR": 188, "attacks": [
+    [ "Shortsword", "Shortsword", "Shortsword" ],
+    [ "Shortsword[ColossusSlayer]", "Shortsword", "Shortsword" ],
+    [ "Shortsword", "Shortsword", "Shortsword" ],
+    [ "Shortsword[ColossusSlayer]", "Shortsword", "Shortsword" ],
+    [ "Conjure Woodland Beings" ]
+  ] },
+
+  { "level": 16, "totalDPR": 188, "clone": 13 },
+  { "level": 17, "totalDPR": 197, "clone": 13 }
+]
