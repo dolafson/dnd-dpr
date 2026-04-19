@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.TestUtil.bestDPR
+import com.vikinghelmet.dnd.dpr.TestUtil.getExpectedResults
 import com.vikinghelmet.dnd.dpr.TestUtil.gsPlan
 import com.vikinghelmet.dnd.dpr.TestUtil.hunterPlan
 import com.vikinghelmet.dnd.dpr.TestUtil.wwCSPlan
@@ -8,7 +9,6 @@ import com.vikinghelmet.dnd.dpr.TestUtil.wwPlan
 import com.vikinghelmet.dnd.dpr.util.Constants.MELEE_RANGE
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -16,17 +16,6 @@ import org.junit.jupiter.api.Test
 class DprTest {
     @Transient private val logger = LoggerFactory.get(DprTest::class.simpleName ?: "")
 
-    fun getExpectedResults(name: String): List<SimpleResult> {
-        val json = TestUtil.getResource("expectedResults/$name.json")
-        val expected: List<SimpleResult> = Json.Default.decodeFromString(json!!)
-
-        expected.forEach { it ->
-            if (it.clone != null) it.attacks = expected.first { it2 -> it2.level == it.clone }.attacks
-        }
-        return expected
-    }
-
-    // --------------------------------------------------------------------------
 
     @Test
     fun hunterMelee() {

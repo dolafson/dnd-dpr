@@ -17,8 +17,8 @@
     [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 8, "totalDPR": 128, "clone": 5 },
-  { "level": 9, "totalDPR": 136, "clone": 5 },
+  { "level": 8, "totalDPR": 136, "clone": 5 },
+  { "level": 9, "totalDPR": 138, "clone": 5 },
   { "level": 12, "totalDPR": 136, "clone": 5 },
 
   { "level": 13, "totalDPR": 202, "attacks": [

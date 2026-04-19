@@ -57,6 +57,16 @@ object TestUtil {
         return SimpleResult(topResult)
     }
 
+    fun getExpectedResults(name: String): List<SimpleResult> {
+        val json = TestUtil.getResource("expectedResults/$name.json")
+        val expected: List<SimpleResult> = Json.Default.decodeFromString(json!!)
+
+        expected.forEach { it ->
+            if (it.clone != null) it.attacks = expected.first { it2 -> it2.level == it.clone }.attacks
+        }
+        return expected
+    }
+
     val eldir = getCharacter("party/eldir.json")
     val kael =  getCharacter("party/kael.json")
     val lars =  getCharacter("party/lars.json")

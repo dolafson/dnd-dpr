@@ -25,9 +25,11 @@ object Globals {
         val feats: List<String>,
     )
 
+    fun round2(float: Float): Float {
+        return round(float * 100) / 100
+    }
     fun getPercent(float: Float): String {
-        val rounded = round(float * 100) / 100
-        return "${rounded}"
+        return "${round2(float)}"
     }
 
     fun closeEnough(f1: Float, f2: Float): Boolean {

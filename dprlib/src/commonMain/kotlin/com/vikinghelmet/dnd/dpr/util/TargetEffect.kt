@@ -9,7 +9,7 @@ interface TargetEffectCause {}
 data class TargetEffect (
     val startTurn: Int,
     var cause: TargetEffectCause? = null,
-    val probability: Float = 100f,
+    val probability: Float = 1f,
 
     var attackerHasAdvantage: Boolean? = false,
     var attackerAutoCrit: Boolean? = false, // when target is hit, does attack automatically crit (double damage) ? // TODO ...

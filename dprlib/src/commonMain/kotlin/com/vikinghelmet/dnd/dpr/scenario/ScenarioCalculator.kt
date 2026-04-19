@@ -41,7 +41,7 @@ class ScenarioCalculator(
             }
 
             // if priorEffects are conditional, apply probability
-            if (chanceOfSuccess != 100f) {
+            if (chanceOfSuccess != 1f) {
                 val secondary = ArrayList<AttackResult>()
                 actionCount = 1
                 for (attack in turn.attacks) {

@@ -16,18 +16,16 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
 {
     constructor(other: EffectManager, allowConditions: Boolean):
         this(runningEffectList = other.runningEffectList.filter {
-            it.probability == 100f || it.isEmptyExceptForAdvantage() || allowConditions
+            it.probability == 1f || it.isEmptyExceptForAdvantage() || allowConditions
         }.toMutableList())
 
     fun chanceOfSuccess(): Float {
-        //return if (runningEffectList.isEmpty()) 100f else runningEffectList.minOf { it.probability }
-
         // prune advantage/disadvantage, as they get consumed by ActionCalculator (end of action),
         // while this function is consumed by ScenarioCalculator (end of turn)
         val filtered = runningEffectList.filter {
             it.attackerHasAdvantage != true && it.disadvantageOnSave.isEmpty()
         }
-        return if (filtered.isEmpty()) 100f else filtered.minOf { it.probability }
+        return if (filtered.isEmpty()) 1f else filtered.minOf { it.probability }
     }
 
     // TODO: support multiple forms of advantage on a single turn?
