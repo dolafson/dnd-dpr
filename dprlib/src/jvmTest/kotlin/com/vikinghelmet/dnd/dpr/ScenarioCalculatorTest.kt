@@ -6,95 +6,53 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.MELEE_RANGE
 import com.vikinghelmet.dnd.dpr.util.Globals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class ScenarioCalculatorTest {
 
+    fun bestDPR(numTurns: Int, range: Int): SimpleResult {
+        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
+            .build(range, numTurns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        return SimpleResult (ScenarioResult.topResults(scenarioResultList, 1)[0])
+    }
+
     @Test
     fun maxDPROneTurnMelee() {
-        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
-            .build(Constants.MELEE_RANGE, 1, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-
-        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+        assertEquals (SimpleResult(7, listOf(listOf("Shortsword","Shortsword"))), bestDPR(1, MELEE_RANGE))
     }
 
     @Test
     fun maxDPROneTurnRange() {
-        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
-            .build(Constants.MELEE_RANGE*2, 1, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-
-        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
+        assertEquals (SimpleResult(10, listOf(listOf("Longbow","Hail of Thorns"))), bestDPR(1, MELEE_RANGE*2))
     }
     
     @Test
     fun maxDPRTwoTurnMelee() {
-        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
-            .build(Constants.MELEE_RANGE, 2, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-/*
-        ScenarioResult.topResults(scenarioResultList, 5).forEach { r ->
-            println("${ Globals.getPercent(r.totalDPR) } \t ${ r.scenario.getLabel() }")
-            r.attackResults.forEach { println(it) }
-        }
-*/
-        assertEquals(listOf("Shortsword","Hunter's Mark"),  topResult.scenario.turns[0].attacks.map { it.getLabel() } )
-        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
-    }
-
-    @Test
-    fun maxDPRThreeTurnMelee() {
-        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
-            .build(Constants.MELEE_RANGE, 3, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-        /*
-                ScenarioResult.topResults(scenarioResultList, 5).forEach { r ->
-                    println("${ Globals.getPercent(r.totalDPR) } \t ${ r.scenario.getLabel() }")
-                    r.attackResults.forEach { println(it) }
-                }
-        */
-        assertEquals(listOf("Shortsword","Hunter's Mark"),  topResult.scenario.turns[0].attacks.map { it.getLabel() } )
-        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
-        assertEquals(listOf("Shortsword","Shortsword"), topResult.scenario.turns[2].attacks.map { it.getLabel() } )
+        assertEquals (SimpleResult(19, listOf(listOf("Shortsword","Hunter's Mark"), listOf("Shortsword","Shortsword"))),
+            bestDPR(2, MELEE_RANGE))
     }
 
     @Test
     fun maxDPRTwoTurnRange() {
-        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
-            .build(Constants.MELEE_RANGE*2, 2, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        assertEquals (SimpleResult(20, List(2) { listOf("Longbow","Hail of Thorns") }), bestDPR(2, MELEE_RANGE*2))
+    }
 
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-
-        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
-        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
+    @Test
+    fun maxDPRThreeTurnMelee() {
+        assertEquals (SimpleResult(33, listOf(listOf("Shortsword","Hunter's Mark")) + List(2) { listOf("Shortsword","Shortsword") }),
+            bestDPR(3, MELEE_RANGE))
     }
 
     @Test
     fun maxDPRThreeTurnRange() {
-        val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
-            .build(Constants.MELEE_RANGE*2, 3, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-
-        assertEquals(listOf("Longbow","Hunter's Mark"), topResult.scenario.turns[0].attacks.map { it.getLabel() } )
-        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[1].attacks.map { it.getLabel() } )
-        assertEquals(listOf("Longbow","Hail of Thorns"), topResult.scenario.turns[2].attacks.map { it.getLabel() } )
+        assertEquals (SimpleResult(31, listOf(listOf("Longbow","Hunter's Mark")) + List(2) { listOf("Longbow","Hail of Thorns") }),
+            bestDPR(3, MELEE_RANGE*2))
     }
 
     @Test
