@@ -87,7 +87,7 @@ class DprTest {
     fun wwCsMelee() {
         val expectedList = getExpectedResults("wwCsMelee")
 
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
+        for (level in listOf(3,4,5, 8,9,12, 13, 16,17)) {
             val expected = expectedList.find { it.level == level }
             assertEquals (expected, bestDPR(level, wwCSPlan, MELEE_RANGE), "wwCs"+level)
         }

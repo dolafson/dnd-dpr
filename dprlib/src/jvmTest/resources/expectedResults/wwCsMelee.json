@@ -18,25 +18,25 @@
   ] },
 
   { "level": 8, "totalDPR": 136, "clone": 5 },
-  { "level": 9, "totalDPR": 138, "clone": 5 },
-  { "level": 12, "totalDPR": 136, "clone": 5 },
+  { "level": 9, "totalDPR": 143, "clone": 5 },
+  { "level": 12, "totalDPR": 143, "clone": 5 },
 
-  { "level": 13, "totalDPR": 202, "attacks": [
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
+  { "level": 13, "totalDPR": 203, "attacks": [
     [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
     [ "Conjure Woodland Beings" ],
+    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
+    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
     [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ]
   ] },
 
   { "level": 16, "totalDPR": 206, "clone": 13 },
 
-  { "level": 17, "totalDPR": 224, "attacks": [
+  { "level": 17, "totalDPR": 225, "attacks": [
+    [ "Cone of Cold" ],
     [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
     [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
     [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Conjure Woodland Beings" ],
-    [ "Cone of Cold" ]
+    [ "Conjure Woodland Beings" ]
   ] }
 
 ]
