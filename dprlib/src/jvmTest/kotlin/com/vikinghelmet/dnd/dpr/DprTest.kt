@@ -9,97 +9,71 @@ import com.vikinghelmet.dnd.dpr.TestUtil.wwPlan
 import com.vikinghelmet.dnd.dpr.util.Constants.MELEE_RANGE
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
-//@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
 class DprTest {
     @Transient private val logger = LoggerFactory.get(DprTest::class.simpleName ?: "")
 
-
-    @Test
-    fun hunterMelee() {
-        val expectedList = getExpectedResults("hunterMelee")
+    fun dprTestInner(targetType: String, rangeType: String, subclass: String, runAssert: Boolean) {
+        val scenarioName = "$targetType/$rangeType/$subclass.json"
+        val range        = if (rangeType == "melee") MELEE_RANGE else MELEE_RANGE*2
+        val numTargets   = if (targetType == "single") 1 else 4
+        val expectedList = getExpectedResults(scenarioName)
+        val character    = when (subclass) {
+            "hunter" -> hunterPlan
+            "gs"    -> gsPlan
+            "ww"    -> wwPlan
+            "wwCs"  -> wwCSPlan
+            else -> throw IllegalArgumentException("Unsupported subclass: $subclass")
+        }
+        logger.info { "Testing $scenarioName" }
 
         for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, hunterPlan, MELEE_RANGE), "hunter"+level)
+            val bestResult = bestDPR(level, character, numTargets, range)
+            if (!runAssert) {
+                bestResult.level = level
+                //println(Json { prettyPrint = true }.encodeToString(bestResult))
+                println(Json.encodeToString(bestResult))
+            } else {
+                logger.info { "${rangeType}:${subclass}:${level}" }
+                assertEquals (expectedList.find { it.level == level }, bestResult, "${rangeType}:${subclass}:${level}")
+            }
         }
     }
 
-    @Test
-    fun hunterRange() {
-        val expectedList = getExpectedResults("hunterRange")
+    // REMINDER: if running these manually in intellij, remember to comment out EnabledIfSystemProperty above
 
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, hunterPlan, MELEE_RANGE*2), "hunter"+level)
-        }
-    }
+    // @Test fun oneOff() { dprTestInner("multipleTarget", "range", "wwCs", true)  }
 
-    // --------------------------------------------------------------------------
+    @ParameterizedTest
+    @ValueSource(strings = [
+        "multipleTarget/melee/hunter.json",
+        "multipleTarget/melee/wwCs.json",
+        "multipleTarget/melee/ww.json",
+        "multipleTarget/melee/gs.json",
 
-    @Test
-    fun gsMelee() {
-        val expectedList = getExpectedResults("gsMelee")
+        "multipleTarget/range/hunter.json",
+        "multipleTarget/range/wwCs.json",
+        "multipleTarget/range/ww.json",
+        "multipleTarget/range/gs.json",
 
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, gsPlan, MELEE_RANGE), "gs"+level)
-        }
-    }
+        "singleTarget/melee/hunter.json",
+        "singleTarget/melee/wwCs.json",
+        "singleTarget/melee/ww.json",
+        "singleTarget/melee/gs.json",
 
-    @Test
-    fun gsRange() {
-        val expectedList = getExpectedResults("gsRange")
-
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, gsPlan, MELEE_RANGE*2), "gs"+level)
-        }
-    }
-
-    // --------------------------------------------------------------------------
-
-    @Test
-    fun wwMelee() {
-        val expectedList = getExpectedResults("wwMelee")
-
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, wwPlan, MELEE_RANGE), "ww"+level)
-        }
-    }
-
-    @Test
-    fun wwRange() {
-        val expectedList = getExpectedResults("wwRange")
-
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, wwPlan, MELEE_RANGE*2), "ww"+level)
-        }
-    }
-
-    // --------------------------------------------------------------------------
-
-    @Test
-    fun wwCsMelee() {
-        val expectedList = getExpectedResults("wwCsMelee")
-
-        for (level in listOf(3,4,5, 8,9,12, 13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, wwCSPlan, MELEE_RANGE), "wwCs"+level)
-        }
-    }
-
-    @Test
-    fun wwCsRange() {
-        val expectedList = getExpectedResults("wwCsRange")
-
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
-            val expected = expectedList.find { it.level == level }
-            assertEquals (expected, bestDPR(level, wwCSPlan, MELEE_RANGE*2), "wwCs"+level)
-        }
+        "singleTarget/range/hunter.json",
+        "singleTarget/range/wwCs.json",
+        "singleTarget/range/ww.json",
+        "singleTarget/range/gs.json"
+    ])
+    fun testParam(path: String) {
+        val arr = path.split("/")
+        dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), true)
     }
 }

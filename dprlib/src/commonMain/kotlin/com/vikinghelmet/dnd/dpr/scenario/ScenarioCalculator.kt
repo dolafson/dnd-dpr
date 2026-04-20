@@ -6,7 +6,6 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
@@ -47,7 +46,7 @@ class ScenarioCalculator(
                 for (attack in turn.attacks) {
                     secondary.addAll (calculateDPR(turnId, actionCount++, attack, ActionCalculator(scenario, effectsAtTurnStart)))
                 }
-                for (i in 0 until turnResult.size) {
+                for (i in turnResult.indices) {
                     turnResult[i] = turnResult[i].merge (secondary[i], chanceOfSuccess)
                 }
             }
@@ -123,6 +122,8 @@ class ScenarioCalculator(
         for (spellAttack in spell.getSpellAttacks()) {
             logger.debug { "spell = ${spell.name}, spellAttack = $spellAttack" }
 
+            resultList.add (actionCalculator.getSpellDPR(spellAttack, spell, attack, turnId, actionId, effectCount++))
+/*
             // if there is nothing special going on, simply process the spell and collect its results
             if (effectManager.runningEffectList.isEmpty() || spellAttack.getNumTargetsAffected(scenario) <= 1) {
                 resultList.add (actionCalculator.getSpellDPR(spellAttack, spell, attack, turnId, actionId, effectCount++))
@@ -135,6 +136,7 @@ class ScenarioCalculator(
             val copyMinusOne = SpellAttack(spellAttack, scenario)
             resultList.add (actionCalculator.getSpellDPR(spellAttack, spell, attack, turnId, actionId, effectCount++))
             resultList.add (actionCalculator.getSpellDPR(copyMinusOne, spell, attack, turnId, actionId, effectCount++))
+ */
         }
 
         effectManager.add(TargetEffect(turnId, spell, resultList.first().chanceToHit.avg))

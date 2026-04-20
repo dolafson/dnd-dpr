@@ -5,13 +5,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class SimpleResult(
+    var level: Int? = null,
     val totalDPR: Int,
     var attacks: List<List<String>>? = emptyList(),
     val clone: Int? = null,
-    val level: Int? = null,
 )
 {
-    constructor(sr: ScenarioResult) : this(sr.totalDPR.toInt(), sr.getAttackNames())
+    constructor(totalDPR: Int, attacks: List<List<String>>) : this(null, totalDPR, attacks)
+
+    constructor(sr: ScenarioResult) : this(null, sr.totalDPR.toInt(), sr.getAttackNames())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

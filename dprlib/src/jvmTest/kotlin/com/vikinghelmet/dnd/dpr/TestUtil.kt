@@ -6,7 +6,6 @@ import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LogLevel
@@ -47,10 +46,10 @@ object TestUtil {
         return EditableCharacter(getCharacter(editableFields.remoteId), editableFields)
     }
 
-    fun bestDPR (level: Int, character: EditableCharacter, range: Int): SimpleResult {
+    fun bestDPR (level: Int, character: EditableCharacter, numTargets: Int, range: Int): SimpleResult {
         character.editableFields.level = level
         val scenarioList = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-            .build(range, 5, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+            .build(range, 5, numTargets, DEFAULT_TARGET_RADIUS)
 
         val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
         val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
@@ -58,7 +57,7 @@ object TestUtil {
     }
 
     fun getExpectedResults(name: String): List<SimpleResult> {
-        val json = TestUtil.getResource("expectedResults/$name.json")
+        val json = TestUtil.getResource("expectedResults/$name")
         val expected: List<SimpleResult> = Json.Default.decodeFromString(json!!)
 
         expected.forEach { it ->

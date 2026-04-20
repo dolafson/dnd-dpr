@@ -316,7 +316,7 @@ class CharacterTest {
         listOf(TestUtil.lars, TestUtil.oleg, TestUtil.rhogar).forEach { assertEquals(0, it.getSpellsForClass().size)}
 
         assertEquals(47, TestUtil.leif.getSpellsForClass().size)
-        assertEquals(108, TestUtil.kael.getSpellsForClass().size)
+        assertEquals(109, TestUtil.kael.getSpellsForClass().size)
         assertEquals(216, TestUtil.eldir.getSpellsForClass().size)
     }
 }

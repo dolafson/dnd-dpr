@@ -408,6 +408,90 @@
       },
       "publisher": "Wizards of the Coast",
       "book": "Hand Entered, Free Basic Rules (2024)"
+    },
+    {
+      "name": "Blade Ward",
+      "description": "THIS IS A PLACEHOLDER. TODO: REPLACE CONTENT WITH ACTUAL SPELL INFO.  You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 hit points as a result of taking damage , the target instead drops to 1 hit point, and the spell ends. If the spell is still in effect when the target is subjected to an effect that would kill it instantaneously without dealing damage, that effect is instead negated against the target, and the spells ends.",
+      "properties": {
+        "Category": "Spells",
+        "Name": "Blade Ward",
+        "Level": 4,
+        "Range": "Touch",
+        "School": "Abjuration",
+        "Target": "A creature",
+        "Classes": "Cleric, Paladin",
+        "Duration": "8 hours",
+        "data-List": "false",
+        "Components": "V S",
+        "Casting Time": "1 action",
+        "data-CastNum": 2,
+        "data-RangeNum": -7,
+        "data-DurationNum": 12,
+        "data-description": "You touch a creature and grant it a measure of protection from death.<br />The first time the target would drop to 0 hit points as a result of taking damage, the target instead drops to 1 hit point, and the spell ends.<br />If the spell is still in effect when the target is subjected to an effect that would kill it instantaneously without dealing damage, that effect is instead negated against the target, and the spell ends.",
+        "data-RangeAoe": "Touch"
+      },
+      "publisher": "Wizards of the Coast",
+      "book": "Free Basic Rules (2014)"
+    },
+    {
+      "name": "Blade Ward",
+      "description": "THIS IS A PLACEHOLDER. TODO: REPLACE CONTENT WITH ACTUAL SPELL INFO.  You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 hit points as a result of taking damage , the target instead drops to 1 hit point, and the spell ends. If the spell is still in effect when the target is subjected to an effect that would kill it instantaneously without dealing damage, that effect is instead negated against the target, and the spells ends.",
+      "properties": {
+        "Category": "Spells",
+        "School": "Abjuration",
+        "Classes": "Cleric, Paladin",
+        "Expansion": 33335,
+        "data-List": "false",
+        "filter-Tags": "Buff",
+        "Spell Attack": "None",
+        "filter-Level": 4,
+        "filter-Range": "Touch",
+        "filter-Ritual": "No",
+        "filter-Upcast": "No",
+        "filter-Duration": "8 hours",
+        "data-datarecords": [
+          {
+            "name": "Blade Ward",
+            "level": "4",
+            "payload": {
+              "type": "Spell",
+              "name": "Blade Ward",
+              "description": "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops to 1 Hit Point, and the spell ends.\nIf the spell is still in effect when the target is subjected to an effect that would kill it instantly without dealing damage, that effect is negated against the target, and the spell ends.",
+              "level": 4,
+              "school": "Abjuration",
+              "castingTime": "Action",
+              "range": "Touch",
+              "duration": "8 hours",
+              "components": {
+                "verbal": true,
+                "somatic": true
+              }
+            }
+          },
+          {
+            "name": "Blade Ward Condition",
+            "parent": "Blade Ward",
+            "payload": {
+              "type": "Condition",
+              "name": "Blade Ward",
+              "description": "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops to 1 Hit Point, and the spell ends.\n\nIf the spell is still in effect when the target is subjected to an effect that would kill it instantly without dealing damage, that effect is negated against the target, and the spell ends.\n"
+            }
+          }
+        ],
+        "filter-Components": "Verbal, Somatic",
+        "filter-Casting Time": "Action",
+        "filter-Concentration": "No",
+        "Name": "Blade Ward",
+        "data-description": "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops to 1 Hit Point, and the spell ends.\nIf the spell is still in effect when the target is subjected to an effect that would kill it instantly without dealing damage, that effect is negated against the target, and the spell ends.",
+        "Level": 4,
+        "Casting Time": "Action",
+        "Duration": "8 hours",
+        "Range": "Touch",
+        "Components": "V S",
+        "data-CastNum": 2,
+        "data-DurationNum": 12
+      },
+      "publisher": "Wizards of the Coast",
+      "book": "Free Basic Rules (2024)"
     }
-
 ]
