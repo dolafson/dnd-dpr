@@ -22,7 +22,7 @@ class DprTest {
     fun dprTestInner(targetType: String, rangeType: String, subclass: String, runAssert: Boolean) {
         val scenarioName = "$targetType/$rangeType/$subclass.json"
         val range        = if (rangeType == "melee") MELEE_RANGE else MELEE_RANGE*2
-        val numTargets   = if (targetType == "single") 1 else 4
+        val numTargets   = if (targetType == "singleTarget") 1 else 4
         val expectedList = getExpectedResults(scenarioName)
         val character    = when (subclass) {
             "hunter" -> hunterPlan
@@ -48,7 +48,8 @@ class DprTest {
 
     // REMINDER: if running these manually in intellij, remember to comment out EnabledIfSystemProperty above
 
-    // @Test fun oneOff() { dprTestInner("multipleTarget", "range", "wwCs", true)  }
+ //   @Test
+ //   fun oneOff() { dprTestInner("singleTarget", "melee", "wwCs", true)  }
 
     @ParameterizedTest
     @ValueSource(strings = [
