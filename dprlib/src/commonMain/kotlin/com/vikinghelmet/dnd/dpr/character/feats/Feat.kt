@@ -83,7 +83,7 @@ enum class Feat(
     Interception(false, isFightingStyle = true),
     Protection(false, isFightingStyle = true),
     ThrownWeaponFighting(false, isFightingStyle = true),
-    TwoWeaponFighting(false, isFightingStyle = true),
+    @SerialName("Two-Weapon Fighting") TwoWeaponFighting(false, isFightingStyle = true),
     UnarmedFighting(false, isFightingStyle = true),
     ;
 

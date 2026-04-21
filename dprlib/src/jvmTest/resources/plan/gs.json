@@ -1,0 +1,27 @@
+{
+  "remoteId": "ranger.subclass/gs.json",
+  "level": 4,
+  "name": "Leif - GS",
+  "plan": {
+    "1": { "spells": [ "Cure Wounds", "Entangle" ] },
+    "2": { "feat": "Archery", "spells": [ "Hail of Thorns" ] },
+    "3": { "subclass": "Gloomstalker", "spells": [ "Ensnaring Strike" ] },
+    "4": { "feat": "AbilityScoreIncrease", "asi1": "Wisdom", "asi2": "Wisdom", "spells": [ "Fog Cloud" ] },
+    "5": { "spells": [ "Spike Growth", "Locate Object" ] },
+    "6": {},
+    "7": { "spells": [ "Pass without Trace" ] },
+    "8": { "feat": "AbilityScoreIncrease", "asi1": "Wisdom", "asi2": "Wisdom" },
+    "9": { "spells": [ "Conjure Animals", "Protection from Energy" ] },
+    "10": {},
+    "11": { "spells": [ "Revivify" ] },
+    "12": { "feat": "AbilityScoreIncrease", "asi1": "Wisdom", "asi2": "Wisdom" },
+    "13": { "spells": [ "Conjure Woodland Beings" ] },
+    "14": {},
+    "15": { "spells": [ "Stoneskin" ] },
+    "16": { "feat": "Piercer", "asi1": "Dexterity" },
+    "17": { "spells": [ "Dominate Beast", "Greater Restoration" ] },
+    "18": {},
+    "19": { "spells": [ "Tree Stride" ] },
+    "20": {}
+  }
+}

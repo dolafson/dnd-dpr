@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.TestUtil.gsPlan
 import com.vikinghelmet.dnd.dpr.TestUtil.hunterPlan
-import com.vikinghelmet.dnd.dpr.TestUtil.wwCSPlan
+import com.vikinghelmet.dnd.dpr.TestUtil.wwCCPlan
 import com.vikinghelmet.dnd.dpr.TestUtil.wwPlan
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -15,20 +15,20 @@ import org.junit.jupiter.api.Test
 class AsiTest {
     @Transient private val logger = LoggerFactory.get(AsiTest::class.simpleName ?: "")
 
-    val allRangerSubclasses = listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan)
+    val allRangerSubclasses = listOf(hunterPlan, gsPlan, wwPlan, wwCCPlan)
 
     @Test
     fun getNameTest() {
         assertEquals("Leif - Hunter", hunterPlan.getName())
         assertEquals("Leif - GS", gsPlan.getName())
         assertEquals("Leif - Winter Walker", wwPlan.getName())
-        assertEquals("Leif - Winter Walker + Cold Caster", wwCSPlan.getName())
+        assertEquals("Leif - Winter Walker + Cold Caster", wwCCPlan.getName())
     }
 
     @Test
     fun asiLevel3() {
         // baseline: all stats the same at level 3
-        listOf(hunterPlan, gsPlan, wwPlan, wwCSPlan).forEach {
+        listOf(hunterPlan, gsPlan, wwPlan, wwCCPlan).forEach {
             it.editableFields.level = 3
             assertEquals(19, it.getModifiedAbilityScore(AbilityType.Dexterity))
             assertEquals(14, it.getModifiedAbilityScore(AbilityType.Wisdom))
@@ -56,7 +56,7 @@ class AsiTest {
         }
 
         // WW CS = the CS feat confers some unique benefits, but only a single point bump in Wis
-        listOf(wwCSPlan).forEach {
+        listOf(wwCCPlan).forEach {
             assertEquals(15, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +1
             assertEquals(20, it.getModifiedAbilityScore(AbilityType.Dexterity))    // +1
         }
@@ -76,7 +76,7 @@ class AsiTest {
         }
 
         // For WW CS, since both Dex and Wis were odd numbers, add 1 to both (ability benefits come with even numbers)
-        listOf(wwCSPlan).forEach {
+        listOf(wwCCPlan).forEach {
             assertTrue(it.getFeatList().contains(Feat.ColdCaster))
             assertEquals(16, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +1
         }
@@ -91,7 +91,7 @@ class AsiTest {
             assertEquals(13, it.getModifiedAbilityScore(AbilityType.Strength))    // +2
         }
 
-        listOf(wwCSPlan).forEach {
+        listOf(wwCCPlan).forEach {
             assertEquals(18, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
         }
 
@@ -114,7 +114,7 @@ class AsiTest {
             assertEquals(20, it.getModifiedAbilityScore(AbilityType.Dexterity))   // +1
         }
 
-        listOf(wwCSPlan).forEach {
+        listOf(wwCCPlan).forEach {
             assertEquals(20, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
         }
     }

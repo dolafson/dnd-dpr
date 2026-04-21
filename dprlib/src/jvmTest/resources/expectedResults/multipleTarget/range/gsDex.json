@@ -1,0 +1,53 @@
+[
+  {"level":3,"totalDPR":98,"attacks":[
+    ["Longbow[DreadfulStrike]","Hunter's Mark"],
+    ["Longbow[DreadfulStrike]","Hail of Thorns"],
+    ["Longbow"],
+    ["Longbow","Hail of Thorns"],
+    ["Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":4,"totalDPR":105,"attacks":[
+    ["Longbow[DreadfulStrike]","Hunter's Mark"],
+    ["Longbow[DreadfulStrike]"],
+    ["Longbow","Hail of Thorns"],
+    ["Longbow","Hail of Thorns"],
+    ["Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":5,"totalDPR":177,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hunter's Mark"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":8,"totalDPR":186,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hunter's Mark"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":9,"totalDPR":220,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Conjure Animals"]
+  ]},
+
+  {"level":12,"totalDPR":232,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Animals"]
+  ]},
+
+  {"level":13,"totalDPR":244,"clone": 12},
+  {"level":16,"totalDPR":251,"clone": 12},
+  {"level":17,"totalDPR":262,"clone": 12}
+]

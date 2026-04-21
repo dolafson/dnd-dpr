@@ -1,0 +1,60 @@
+[
+  {"level":3,"totalDPR":63,"attacks":[
+    ["Longbow[DreadfulStrike]","Hunter's Mark"],
+    ["Longbow[DreadfulStrike]"],
+    ["Longbow","Hail of Thorns"],
+    ["Longbow","Hail of Thorns"],
+    ["Longbow","Hail of Thorns"]
+  ]},
+  {"level":4,"totalDPR":70,"clone": 3},
+
+  {"level":5,"totalDPR":129,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hunter's Mark"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":8,"totalDPR":136,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hunter's Mark"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":9,"totalDPR":168,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow","Longbow","Hail of Thorns"],
+    ["Conjure Animals"]
+  ]},
+
+  {"level":12,"totalDPR":179,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Animals"]
+  ]},
+
+  {"level":13,"totalDPR":189,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Animals"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":16,"totalDPR":194,"attacks":[
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Animals"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"]
+  ]},
+
+  {"level":17,"totalDPR":204,"clone": 12}
+]

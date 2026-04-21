@@ -74,13 +74,14 @@ object TestUtil {
     val rhogar = getCharacter("party/rhogar.json")
     val party = listOf(eldir, kael, lars, leif, oleg, rhogar)
 
-    val ww = getCharacter("ranger.subclass/leif.ww.json")
-    val gs = getCharacter("ranger.subclass/leif.gs.json")
-    val hunter = getCharacter("ranger.subclass/leif.hunter.json")
+    val ww = getCharacter("ranger.subclass/ww.json")
+    val gs = getCharacter("ranger.subclass/gs.json")
+    val hunter = getCharacter("ranger.subclass/hunter.json")
 
     val leifPlan = getEditableCharacter("plan/leif.json")
-    val wwPlan = getEditableCharacter("plan/leif.ww.json")
-    val wwCSPlan = getEditableCharacter("plan/leif.ww.cs.json")
-    val gsPlan = getEditableCharacter("plan/leif.gs.json")
-    val hunterPlan = getEditableCharacter("plan/leif.hunter.json")
+    val wwPlan = getEditableCharacter("plan/ww.json")
+    val wwCCPlan = getEditableCharacter("plan/wwCC.json")
+    val gsPlan = getEditableCharacter("plan/gs.json")
+    val gsDexPlan = getEditableCharacter("plan/gsDex.json")
+    val hunterPlan = getEditableCharacter("plan/hunter.json")
 }

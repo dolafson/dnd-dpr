@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.TestUtil.wwCSPlan
+import com.vikinghelmet.dnd.dpr.TestUtil.wwCCPlan
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
@@ -23,7 +23,7 @@ class SavePenaltyTest {
 
     @Test
     fun savePenaltyNoImpactOnWeaponAttackViaScenarioCalculator() {
-        val character = wwCSPlan
+        val character = wwCCPlan
         val monster = Globals.getMonster("Goblin")
         val weapon = character.getWeapon("Shortsword")
 
@@ -59,7 +59,7 @@ class SavePenaltyTest {
 
     @Test
     fun savePenaltyNoImpactOnWeaponAttackViaActionCalculator() {
-        val character = wwCSPlan
+        val character = wwCCPlan
         character.editableFields.level = 7
 
         val weapon  = character.getWeapon("Shortsword")
