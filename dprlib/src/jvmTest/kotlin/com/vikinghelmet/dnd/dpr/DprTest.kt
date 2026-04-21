@@ -13,11 +13,10 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
+//@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
 class DprTest {
     @Transient private val logger = LoggerFactory.get(DprTest::class.simpleName ?: "")
 
@@ -59,7 +58,7 @@ class DprTest {
     // REMINDER: if running these manually in intellij, remember to comment out EnabledIfSystemProperty above
 
     @Test
-    fun oneOff() { dprTestInner("multipleTarget", "range", "gsDex", true)  }
+    fun oneOff() { dprTestInner("singleTarget", "melee", "gsDex", true)  }
 
     @ParameterizedTest
     @ValueSource(strings = [
@@ -67,21 +66,25 @@ class DprTest {
         "multipleTarget/melee/wwCC.json",
         "multipleTarget/melee/ww.json",
         "multipleTarget/melee/gs.json",
+        "multipleTarget/melee/gsDex.json",
 
         "multipleTarget/range/hunter.json",
         "multipleTarget/range/wwCC.json",
         "multipleTarget/range/ww.json",
         "multipleTarget/range/gs.json",
+        "multipleTarget/range/gsDex.json",
 
         "singleTarget/melee/hunter.json",
         "singleTarget/melee/wwCC.json",
         "singleTarget/melee/ww.json",
         "singleTarget/melee/gs.json",
+        "singleTarget/melee/gsDex.json",
 
         "singleTarget/range/hunter.json",
         "singleTarget/range/wwCC.json",
         "singleTarget/range/ww.json",
-        "singleTarget/range/gs.json"
+        "singleTarget/range/gs.json",
+        "singleTarget/range/gsDex.json"
     ])
     fun testParam(path: String) {
         val arr = path.split("/")

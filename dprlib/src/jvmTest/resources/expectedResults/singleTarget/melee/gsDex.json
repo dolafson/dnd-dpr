@@ -7,9 +7,9 @@
     ["Shortsword","Shortsword"]
   ]},
 
-  {"level":4,"totalDPR":97,"clone":3},
+  {"level":4,"totalDPR":81,"clone":3},
 
-  {"level":5,"totalDPR":154,"attacks":[
+  {"level":5,"totalDPR":137,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword","Shortsword","Shortsword"],
@@ -17,16 +17,16 @@
     ["Shortsword","Shortsword","Shortsword"]
   ]},
 
-  {"level":8,"totalDPR":160,"attacks":[
+  {"level":8,"totalDPR":143,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword","Shortsword","Shortsword"],
     ["Shortsword","Shortsword","Shortsword"]
   ]},
-  {"level":9,"totalDPR":169,"clone":8},
+  {"level":9,"totalDPR":151,"clone":8},
 
-  {"level":12,"totalDPR":175,"attacks":[
+  {"level":12,"totalDPR":158,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
@@ -34,7 +34,7 @@
     ["Shortsword","Shortsword","Shortsword"]
   ]},
 
-  {"level":13,"totalDPR":231,"attacks":[
+  {"level":13,"totalDPR":212,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
@@ -42,13 +42,6 @@
     ["Conjure Woodland Beings"]
   ]},
 
-  {"level":16,"totalDPR":236,"clone":13},
-
-  {"level":17,"totalDPR":246,"attacks":[
-    ["Conjure Woodland Beings"],
-    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
-    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
-    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
-    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"]
-  ]}
+  {"level":16,"totalDPR":218,"clone":13},
+  {"level":17,"totalDPR":227,"clone":13}
 ]
