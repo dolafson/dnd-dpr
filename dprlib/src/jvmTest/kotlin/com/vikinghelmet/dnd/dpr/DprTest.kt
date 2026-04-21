@@ -13,10 +13,10 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-//@EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
 class DprTest {
     @Transient private val logger = LoggerFactory.get(DprTest::class.simpleName ?: "")
 
@@ -27,7 +27,7 @@ class DprTest {
         }
     }
 
-    fun dprTestInner(targetType: String, rangeType: String, subclass: String, runAssert: Boolean) {
+    fun dprTestInner(targetType: String, rangeType: String, subclass: String, levels: List<Int>, runAssert: Boolean) {
         val scenarioName = "$targetType/$rangeType/$subclass.json"
         val range        = if (rangeType == "melee") MELEE_RANGE else MELEE_RANGE*2
         val numTargets   = if (targetType == "singleTarget") 1 else 4
@@ -42,7 +42,7 @@ class DprTest {
         }
         logger.info { "Testing $scenarioName" }
 
-        for (level in listOf(3,4,5, 8,9,12,13, 16,17)) {
+        for (level in levels) {
             val bestResult = bestDPR(level, character, numTargets, range)
             if (!runAssert) {
                 bestResult.level = level
@@ -55,11 +55,13 @@ class DprTest {
         }
     }
 
-    // REMINDER: if running these manually in intellij, remember to comment out EnabledIfSystemProperty above
-
     @Test
-    fun oneOff() { dprTestInner("singleTarget", "melee", "gsDex", true)  }
+    fun oneOff() {
+        //dprTestInner("singleTarget", "melee", "gsDex", listOf(3,4,5, 8,9,12,13, 16,17), true)
+        dprTestInner("singleTarget", "melee", "gsDex", listOf(3), true)
+    }
 
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     @ParameterizedTest
     @ValueSource(strings = [
         "multipleTarget/melee/hunter.json",
@@ -88,6 +90,6 @@ class DprTest {
     ])
     fun testParam(path: String) {
         val arr = path.split("/")
-        dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), true)
+        dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3,4,5, 8,9,12,13, 16,17), true)
     }
 }
