@@ -1,5 +1,5 @@
 [
-  {"level":3,"totalDPR":96,"attacks":[
+  {"level":3,"totalDamage":96,"attacks":[
     ["Longbow[PolarStrikes]","Hunter's Mark"],
     ["Longbow[PolarStrikes]","Hail of Thorns"],
     ["Longbow[PolarStrikes]"],
@@ -7,7 +7,7 @@
     ["Longbow[PolarStrikes]","Hail of Thorns"]
   ]},
 
-  {"level":4,"totalDPR":104,"attacks":[
+  {"level":4,"totalDamage":104,"attacks":[
     ["Longbow[PolarStrikes]","Hunter's Mark"],
     ["Longbow[PolarStrikes]","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Hail of Thorns"],
@@ -15,7 +15,7 @@
     ["Longbow[PolarStrikes]"]
   ]},
 
-  {"level":5,"totalDPR":207,"attacks":[
+  {"level":5,"totalDamage":207,"attacks":[
     ["Hold Person"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
@@ -23,9 +23,9 @@
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":8,"totalDPR":192,"clone": 5},
+  {"level":8,"totalDamage":192,"clone": 5},
 
-  {"level":9,"totalDPR":216,"attacks":[
+  {"level":9,"totalDamage":216,"attacks":[
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
@@ -33,10 +33,10 @@
     ["Conjure Animals"]
   ]},
 
-  {"level":12,"totalDPR":222,"clone": 9},
-  {"level":13,"totalDPR":233,"clone": 9},
+  {"level":12,"totalDamage":222,"clone": 9},
+  {"level":13,"totalDamage":233,"clone": 9},
 
-  {"level":16,"totalDPR":240,"attacks":[
+  {"level":16,"totalDamage":240,"attacks":[
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Conjure Animals"],
@@ -44,7 +44,7 @@
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":17,"totalDPR":250,"attacks":[
+  {"level":17,"totalDamage":250,"attacks":[
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],

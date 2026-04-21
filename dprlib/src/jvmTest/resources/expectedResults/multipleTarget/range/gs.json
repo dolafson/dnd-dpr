@@ -1,5 +1,5 @@
 [
-  {"level":3,"totalDPR":98,"attacks":[
+  {"level":3,"totalDamage":98,"attacks":[
     ["Longbow[DreadfulStrike]","Hunter's Mark"],
     ["Longbow[DreadfulStrike]","Hail of Thorns"],
     ["Longbow"],
@@ -7,7 +7,7 @@
     ["Longbow","Hail of Thorns"]
   ]},
 
-  {"level":4,"totalDPR":105,"attacks":[
+  {"level":4,"totalDamage":105,"attacks":[
     ["Longbow[DreadfulStrike]","Hunter's Mark"],
     ["Longbow[DreadfulStrike]"],
     ["Longbow[DreadfulStrike]","Hail of Thorns"],
@@ -15,7 +15,7 @@
     ["Longbow","Hail of Thorns"]
   ]},
 
-  {"level":5,"totalDPR":171,"attacks":[
+  {"level":5,"totalDamage":171,"attacks":[
     ["Longbow[DreadfulStrike]","Longbow","Hunter's Mark"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
@@ -23,7 +23,7 @@
     ["Longbow","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":8,"totalDPR":179,"attacks":[
+  {"level":8,"totalDamage":179,"attacks":[
     ["Longbow[DreadfulStrike]","Longbow","Hunter's Mark"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
@@ -31,7 +31,7 @@
     ["Longbow","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":9,"totalDPR":221,"attacks":[
+  {"level":9,"totalDamage":221,"attacks":[
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
     ["Conjure Animals"],
@@ -39,7 +39,7 @@
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":12,"totalDPR":227,"attacks":[
+  {"level":12,"totalDamage":227,"attacks":[
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
@@ -47,8 +47,8 @@
     ["Conjure Animals"]
   ]},
 
-  {"level":13,"totalDPR":239,"clone":12},
-  {"level":16,"totalDPR":251,"clone":12},
-  {"level":17,"totalDPR":262,"clone":12}
+  {"level":13,"totalDamage":239,"clone":12},
+  {"level":16,"totalDamage":251,"clone":12},
+  {"level":17,"totalDamage":262,"clone":12}
 
 ]

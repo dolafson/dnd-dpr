@@ -95,7 +95,7 @@ fun showResults(resultList: List<ScenarioResult>) {
     val buf = StringBuilder()
     sortedResults.forEach {
         buf.append("# ")
-            .append(Globals.getPercent(it.totalDPR))
+            .append(Globals.getPercent(it.totalDamage))
             .append(" \t")
             .append(it.scenario.getLabel())
             .append("\n")

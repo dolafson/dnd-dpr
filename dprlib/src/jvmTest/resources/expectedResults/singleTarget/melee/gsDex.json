@@ -1,5 +1,5 @@
 [
-  {"level":3,"totalDPR":72,"attacks":[
+  {"level":3,"totalDamage":72,"attacks":[
     ["Shortsword[DreadfulStrike]","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword"],
     ["Shortsword","Shortsword"],
@@ -7,9 +7,9 @@
     ["Shortsword","Shortsword"]
   ]},
 
-  {"level":4,"totalDPR":81,"clone":3},
+  {"level":4,"totalDamage":81,"clone":3},
 
-  {"level":5,"totalDPR":137,"attacks":[
+  {"level":5,"totalDamage":137,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword","Shortsword","Shortsword"],
@@ -17,16 +17,16 @@
     ["Shortsword","Shortsword","Shortsword"]
   ]},
 
-  {"level":8,"totalDPR":143,"attacks":[
+  {"level":8,"totalDamage":143,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword","Shortsword","Shortsword"],
     ["Shortsword","Shortsword","Shortsword"]
   ]},
-  {"level":9,"totalDPR":151,"clone":8},
+  {"level":9,"totalDamage":151,"clone":8},
 
-  {"level":12,"totalDPR":158,"attacks":[
+  {"level":12,"totalDamage":158,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
@@ -34,7 +34,7 @@
     ["Shortsword","Shortsword","Shortsword"]
   ]},
 
-  {"level":13,"totalDPR":212,"attacks":[
+  {"level":13,"totalDamage":212,"attacks":[
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
@@ -42,6 +42,6 @@
     ["Conjure Woodland Beings"]
   ]},
 
-  {"level":16,"totalDPR":218,"clone":13},
-  {"level":17,"totalDPR":227,"clone":13}
+  {"level":16,"totalDamage":218,"clone":13},
+  {"level":17,"totalDamage":227,"clone":13}
 ]

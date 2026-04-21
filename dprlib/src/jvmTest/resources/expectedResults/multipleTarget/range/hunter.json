@@ -1,5 +1,5 @@
 [
-  { "level": 3, "totalDPR": 94, "attacks": [
+  { "level": 3, "totalDamage": 94, "attacks": [
     [ "Longbow", "Hunter's Mark" ],
     [ "Longbow[ColossusSlayer]", "Hail of Thorns" ],
     [ "Longbow" ],
@@ -7,7 +7,7 @@
     [ "Longbow", "Hail of Thorns" ]
   ] },
 
-  { "level": 4, "totalDPR": 101, "attacks": [
+  { "level": 4, "totalDamage": 101, "attacks": [
     [ "Longbow", "Hunter's Mark" ],
     [ "Longbow[ColossusSlayer]" ],
     [ "Longbow", "Hail of Thorns" ],
@@ -15,7 +15,7 @@
     [ "Longbow", "Hail of Thorns" ]
   ] },
 
-  {"level": 5, "totalDPR":173,"attacks":[
+  {"level": 5, "totalDamage":173,"attacks":[
     ["Longbow","Longbow","Hunter's Mark"],
     ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
     ["Longbow","Longbow","Hail of Thorns"],
@@ -23,9 +23,9 @@
     ["Longbow","Longbow","Hail of Thorns"]
   ]},
 
-  {"level": 8, "totalDPR":176,"clone": 5 },
+  {"level": 8, "totalDamage":176,"clone": 5 },
 
-  {"level": 9, "totalDPR":209,"attacks":[
+  {"level": 9, "totalDamage":209,"attacks":[
     ["Longbow","Longbow","Hail of Thorns"],
     ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
     ["Longbow","Longbow","Hail of Thorns"],
@@ -33,9 +33,9 @@
     ["Conjure Animals"]
   ]},
 
-  {"level": 12, "totalDPR":209,"clone": 9},
+  {"level": 12, "totalDamage":209,"clone": 9},
 
-  {"level": 13, "totalDPR":220,"attacks":[
+  {"level": 13, "totalDamage":220,"attacks":[
     ["Longbow","Longbow","Hail of Thorns"],
     ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
     ["Conjure Animals"],
@@ -43,8 +43,8 @@
     ["Longbow","Longbow","Hail of Thorns"]
   ]},
 
-  {"level": 16, "totalDPR":256,"clone": 9},
+  {"level": 16, "totalDamage":256,"clone": 9},
 
-  {"level": 17, "totalDPR":276,"clone": 9}
+  {"level": 17, "totalDamage":276,"clone": 9}
 
 ]

@@ -1,5 +1,5 @@
 [
-  {"level":3,"totalDPR":96,"attacks":[
+  {"level":3,"totalDamage":96,"attacks":[
     ["Longbow[PolarStrikes]","Hunter's Mark"],
     ["Longbow[PolarStrikes]","Hail of Thorns"],
     ["Longbow[PolarStrikes]"],
@@ -7,7 +7,7 @@
     ["Longbow[PolarStrikes]","Hail of Thorns"]
   ]},
 
-  {"level":4,"totalDPR":98,"attacks":[
+  {"level":4,"totalDamage":98,"attacks":[
     ["Longbow[PolarStrikes]","Hunter's Mark"],
     ["Longbow[PolarStrikes]"],
     ["Longbow[PolarStrikes]","Hail of Thorns"],
@@ -15,7 +15,7 @@
     ["Longbow[PolarStrikes]","Hail of Thorns"]
   ]},
 
-  {"level":5,"totalDPR":197,"attacks":[
+  {"level":5,"totalDamage":197,"attacks":[
     ["Hold Person"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
@@ -23,9 +23,9 @@
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":8,"totalDPR":198,"clone":5},
+  {"level":8,"totalDamage":198,"clone":5},
 
-  {"level":9,"totalDPR":206,"attacks":[
+  {"level":9,"totalDamage":206,"attacks":[
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
@@ -33,9 +33,9 @@
     ["Conjure Animals"]
   ]},
 
-  {"level":12,"totalDPR":212,"clone":9},
+  {"level":12,"totalDamage":212,"clone":9},
 
-  {"level":13,"totalDPR":225,"attacks":[
+  {"level":13,"totalDamage":225,"attacks":[
     ["Ice Storm"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
@@ -43,7 +43,7 @@
     ["Conjure Animals"]
   ]},
 
-  {"level":16,"totalDPR":234,"attacks":[
+  {"level":16,"totalDamage":234,"attacks":[
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Conjure Animals"],
@@ -51,7 +51,7 @@
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":17,"totalDPR":244,"attacks":[
+  {"level":17,"totalDamage":244,"attacks":[
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],

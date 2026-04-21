@@ -1,5 +1,5 @@
 [
-  { "level": 3, "totalDPR": 62, "attacks": [
+  { "level": 3, "totalDamage": 62, "attacks": [
     [ "Longbow[PolarStrikes]", "Hunter's Mark" ],
     [ "Longbow[PolarStrikes]" ],
     [ "Longbow[PolarStrikes]", "Hail of Thorns" ],
@@ -7,7 +7,7 @@
     [ "Longbow[PolarStrikes]", "Hail of Thorns" ]
   ] },
 
-  { "level": 4, "totalDPR": 62, "attacks": [
+  { "level": 4, "totalDamage": 62, "attacks": [
     [ "Longbow[PolarStrikes]", "Ensnaring Strike" ],
     [ "Longbow[PolarStrikes]" ],
     [ "Longbow[PolarStrikes]" ],
@@ -15,7 +15,7 @@
     [ "Longbow[PolarStrikes]", "Hail of Thorns" ]
   ] },
 
-  { "level": 5, "totalDPR": 131, "attacks": [
+  { "level": 5, "totalDamage": 131, "attacks": [
     [ "Hold Person" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
@@ -23,9 +23,9 @@
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
   ] },
 
-  { "level": 8, "totalDPR": 132, "clone": 5 },
+  { "level": 8, "totalDamage": 132, "clone": 5 },
 
-  { "level": 9, "totalDPR": 152, "attacks": [
+  { "level": 9, "totalDamage": 152, "attacks": [
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
@@ -33,10 +33,10 @@
     [ "Conjure Animals" ]
   ] },
 
-  { "level": 12, "totalDPR": 157, "clone": 9 },
-  { "level": 13, "totalDPR": 165, "clone": 9 },
+  { "level": 12, "totalDamage": 157, "clone": 9 },
+  { "level": 13, "totalDamage": 165, "clone": 9 },
 
-  { "level": 16, "totalDPR": 177, "attacks": [
+  { "level": 16, "totalDamage": 177, "attacks": [
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
     [ "Conjure Animals" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
@@ -44,5 +44,5 @@
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
   ] },
 
-  { "level": 17, "totalDPR": 186, "clone": 9 }
+  { "level": 17, "totalDamage": 186, "clone": 9 }
 ]

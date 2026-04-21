@@ -199,7 +199,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                                     val topResult = topResultList[0]
 
                                     val buf = StringBuilder("Highest Avg Damage = ")
-                                        .append(Globals.getPercent(topResult.totalDPR)).append("\n").append("\n")
+                                        .append(Globals.getPercent(topResult.totalDamage)).append("\n").append("\n")
 
                                     for (turn in topResult.scenario.turns) {
                                         buf.append(turn.attacks.map { it.getLabel() }).append("\n")

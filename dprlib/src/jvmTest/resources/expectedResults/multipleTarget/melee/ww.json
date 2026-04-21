@@ -1,6 +1,6 @@
 [
 
-  {"level":3,"totalDPR":72,"attacks":[
+  {"level":3,"totalDamage":72,"attacks":[
     ["Shortsword[PolarStrikes]","Hunter's Mark"],
     ["Shortsword[PolarStrikes]","Shortsword"],
     ["Shortsword[PolarStrikes]","Shortsword"],
@@ -8,9 +8,9 @@
     ["Shortsword[PolarStrikes]","Shortsword"]
   ]},
 
-  {"level":4,"totalDPR":72,"clone": 3},
+  {"level":4,"totalDamage":72,"clone": 3},
 
-  {"level":5,"totalDPR":121,"attacks":[
+  {"level":5,"totalDamage":121,"attacks":[
     ["Shortsword[PolarStrikes]","Shortsword","Hunter's Mark"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
@@ -18,11 +18,11 @@
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"]
   ]},
 
-  {"level":8,"totalDPR":121,"clone": 5},
-  {"level":9,"totalDPR":128,"clone": 5},
-  {"level":12,"totalDPR":128,"clone": 5},
+  {"level":8,"totalDamage":121,"clone": 5},
+  {"level":9,"totalDamage":128,"clone": 5},
+  {"level":12,"totalDamage":128,"clone": 5},
 
-  {"level":13,"totalDPR":189,"attacks":[
+  {"level":13,"totalDamage":189,"attacks":[
     ["Conjure Woodland Beings"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
@@ -30,9 +30,9 @@
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"]
   ]},
 
-  {"level":16,"totalDPR":200,"clone": 13},
+  {"level":16,"totalDamage":200,"clone": 13},
 
-  {"level":17,"totalDPR":322,"attacks":[
+  {"level":17,"totalDamage":322,"attacks":[
     ["Cone of Cold"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],

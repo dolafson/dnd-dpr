@@ -88,15 +88,15 @@ class ScenarioCalculatorTest {
         assertEquals("", noSleepResults.attackResults[1].startCondition)
         assertEquals("70.0% = attackerHasAdvantage;attackerAutoCrit;autoFailSave=[Strength, Dexterity];disadvantageOnAttacks;noActionOrBA;", withSleepResults.attackResults[1].startEffects)
 
-        println("noSleepResults.totalDPR   = ${ noSleepResults.totalDPR }")
-        println("withSleepResults.totalDPR = ${ withSleepResults.totalDPR }")
+        println("noSleepResults.totalDamage   = ${ noSleepResults.totalDamage }")
+        println("withSleepResults.totalDamage = ${ withSleepResults.totalDamage }")
 
         assertEquals(3.575f, noSleepResults.attackResults[1].damagePerRound.final)
         assertEquals(8.448001f, withSleepResults.attackResults[1].damagePerRound.final)
 
         // 5 firebolts with no sleep is roughly 1/2 the damage of 4 firebolts with sleep
-        assertEquals(17.875f, noSleepResults.totalDPR)
-        assertEquals(33.792004f, withSleepResults.totalDPR)
+        assertEquals(17.875f, noSleepResults.totalDamage)
+        assertEquals(33.792004f, withSleepResults.totalDamage)
     }
 
 }

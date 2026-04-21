@@ -1,5 +1,5 @@
 [
-  { "level": 3, "totalDPR": 72, "attacks": [
+  { "level": 3, "totalDamage": 72, "attacks": [
         [ "Shortsword[DreadfulStrike]", "Hunter's Mark" ],
         [ "Shortsword[DreadfulStrike]", "Shortsword" ],
         [ "Shortsword", "Shortsword" ],
@@ -7,7 +7,7 @@
         [ "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 4, "totalDPR": 78, "attacks": [
+  { "level": 4, "totalDamage": 78, "attacks": [
     [ "Shortsword[DreadfulStrike]", "Hunter's Mark" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword" ],
@@ -15,7 +15,7 @@
     [ "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 5, "totalDPR": 127, "attacks": [
+  { "level": 5, "totalDamage": 127, "attacks": [
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Hunter's Mark" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
@@ -23,7 +23,7 @@
     [ "Shortsword", "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 8, "totalDPR": 134, "attacks": [
+  { "level": 8, "totalDamage": 134, "attacks": [
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Hunter's Mark" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
@@ -31,9 +31,9 @@
     [ "Shortsword", "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 9, "totalDPR": 142, "clone": 8 },
+  { "level": 9, "totalDamage": 142, "clone": 8 },
 
-  { "level": 12, "totalDPR": 148, "attacks": [
+  { "level": 12, "totalDamage": 148, "attacks": [
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Hunter's Mark" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
@@ -41,7 +41,7 @@
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 13, "totalDPR": 206, "attacks": [
+  { "level": 13, "totalDamage": 206, "attacks": [
     [ "Conjure Woodland Beings" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
@@ -49,7 +49,7 @@
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 16, "totalDPR": 218, "attacks": [
+  { "level": 16, "totalDamage": 218, "attacks": [
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
     [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
@@ -57,5 +57,5 @@
     [ "Conjure Woodland Beings" ]
   ] },
 
-  { "level": 17, "totalDPR": 227, "clone": 16 }
+  { "level": 17, "totalDamage": 227, "clone": 16 }
 ]

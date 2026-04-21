@@ -9,14 +9,14 @@ import kotlinx.serialization.Transient
 data class ScenarioResult(
     val scenario: Scenario,
     val attackResults: List<AttackResult>,
-    val totalDPR: Float = 0f,
+    val totalDamage: Float = 0f,
 ) {
     @Transient private val logger = LoggerFactory.get(Character::class.simpleName ?: "")
 
     override fun equals(other: Any?): Boolean {
         if (other == null || other !is ScenarioResult) return false
-        //return (scenario == other.scenario && totalDPR == other.totalDPR)
-        return (totalDPR == other.totalDPR)
+        //return (scenario == other.scenario && totalDamage == other.totalDamage)
+        return (totalDamage == other.totalDamage)
     }
 
     fun dprAtRound(round: Int):Float {
@@ -54,24 +54,24 @@ data class ScenarioResult(
             buf.append(AttackResultFormatter.footer(turnId, "TURN TOTAL", turnDPR)).append("\n")
         }
 
-        buf.append(AttackResultFormatter.footer("", "SCENARIO TOTAL", totalDPR)).append("\n")
+        buf.append(AttackResultFormatter.footer("", "SCENARIO TOTAL", totalDamage)).append("\n")
         return buf.toString()
     }
 
     companion object {
         fun topResults(resultList: List<ScenarioResult>, max: Int): List<ScenarioResult> {
-            // first prioritize totalDPR, and if multiple scenarios have the same total, sort them by highest first round damage
+            // first prioritize totalDamage, and if multiple scenarios have the same total, sort them by highest first round damage
             if (resultList.size == 0) return resultList
 
             // NOTE: THERE IS NO ROUND ZERO; START AT ONE
             return resultList.sortedWith(
-                compareByDescending<ScenarioResult> { it.totalDPR } .thenByDescending { it.dprAtRound(1) }
+                compareByDescending<ScenarioResult> { it.totalDamage } .thenByDescending { it.dprAtRound(1) }
             ).distinct().take(kotlin.math.min(max,resultList.size))
         }
     }
 
     override fun hashCode(): Int {
-        var result = totalDPR.hashCode()
+        var result = totalDamage.hashCode()
 //        result = 31 * result + scenario.hashCode()
 //        result = 31 * result + attackResults.hashCode()
         return result

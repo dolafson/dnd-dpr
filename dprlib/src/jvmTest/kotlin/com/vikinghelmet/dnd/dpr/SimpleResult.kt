@@ -6,29 +6,29 @@ import kotlinx.serialization.Serializable
 @Serializable
 class SimpleResult(
     var level: Int? = null,
-    val totalDPR: Int,
+    val totalDamage: Int,
     var attacks: List<List<String>>? = emptyList(),
     val clone: Int? = null,
 )
 {
-    constructor(totalDPR: Int, attacks: List<List<String>>) : this(null, totalDPR, attacks)
+    constructor(totalDamage: Int, attacks: List<List<String>>) : this(null, totalDamage, attacks)
 
-    constructor(sr: ScenarioResult) : this(null, sr.totalDPR.toInt(), sr.getAttackNames())
+    constructor(sr: ScenarioResult) : this(null, sr.totalDamage.toInt(), sr.getAttackNames())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
         other as SimpleResult
-        return totalDPR == other.totalDPR && attacks == other.attacks
+        return totalDamage == other.totalDamage && attacks == other.attacks
     }
 
     override fun hashCode(): Int {
-        var result = totalDPR
+        var result = totalDamage
         result = 31 * result + attacks.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "(totalDPR=$totalDPR, attacks=$attacks)"
+        return "(totalDamage=$totalDamage, attacks=$attacks)"
     }
 }
