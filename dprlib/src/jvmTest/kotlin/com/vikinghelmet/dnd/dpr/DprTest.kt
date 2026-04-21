@@ -58,7 +58,7 @@ class DprTest {
     @Test
     fun oneOff() {
         //dprTestInner("singleTarget", "melee", "gsDex", listOf(3,4,5, 8,9,12,13, 16,17), true)
-        dprTestInner("singleTarget", "melee", "gsDex", listOf(3), true)
+        dprTestInner("singleTarget", "melee", "wwCC", listOf(3), true)
     }
 
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
