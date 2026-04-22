@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
@@ -53,6 +54,30 @@ class ScenarioCalculatorTest {
     fun maxDPRThreeTurnRange() {
         assertEquals (SimpleResult(31, listOf(listOf("Longbow","Hunter's Mark")) + List(2) { listOf("Longbow","Hail of Thorns") }),
             bestDPR(3, MELEE_RANGE*2))
+    }
+
+    @Test
+    fun foo() {
+        val character = TestUtil.wwCCPlan
+        character.editableFields.level = 5
+        val huntersMark = Globals.getSpell("Hunter's Mark", character.is2014())
+        val hailOfThorns = Globals.getSpell("Hail of Thorns", character.is2014())
+        val holdPerson   = Globals.getSpell("Hold Person", character.is2014())
+        val weapon = character.getWeapon("Longbow")
+        val monster = Globals.getMonster("Goblin")
+
+        val polarAttack = Attack (monster, weapon, actionModifiers = mutableListOf(ActionModifier.PolarStrikes))
+        val fourTurns = List(4) { Turn(listOf(polarAttack, Attack (monster, weapon), Attack(monster, hailOfThorns))) }
+
+        val hmTurn   = listOf(Turn(listOf(polarAttack, Attack (monster, weapon), Attack(monster, huntersMark))))
+        var scenario = Scenario(character, hmTurn + fourTurns, 4, DEFAULT_TARGET_RADIUS)
+        var result   = ScenarioCalculator(scenario).calculateDPRForAllTurns()
+        assertEquals(176, result.totalDamage.toInt())
+
+        val spellTurn = listOf(Turn(listOf(Attack(monster, holdPerson))))
+        var scenario2 = Scenario(character, spellTurn + fourTurns, 4, DEFAULT_TARGET_RADIUS)
+        var result2   = ScenarioCalculator(scenario2).calculateDPRForAllTurns()
+        assertEquals(207, result2.totalDamage.toInt())
     }
 
     @Test
