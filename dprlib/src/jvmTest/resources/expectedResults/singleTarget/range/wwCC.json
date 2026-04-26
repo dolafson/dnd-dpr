@@ -9,15 +9,15 @@
 
   { "level": 4, "totalDamage": 69, "clone": 3 },
 
-  { "level": 5, "totalDamage": 141, "attacks": [
-    [ "Hold Person" ],
+  { "level": 5, "totalDamage": 128, "attacks": [
+    [ "Longbow[PolarStrikes]", "Longbow", "Hunter's Mark" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
   ] },
 
-  { "level": 8, "totalDamage": 138, "clone": 5 },
+  { "level": 8, "totalDamage": 130, "clone": 5 },
 
   { "level": 9, "totalDamage": 164, "attacks": [
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ],

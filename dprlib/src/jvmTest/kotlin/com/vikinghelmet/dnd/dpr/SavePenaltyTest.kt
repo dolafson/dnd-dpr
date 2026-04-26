@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.TestUtil.wwCCPlan
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
@@ -15,6 +16,7 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -88,4 +90,89 @@ class SavePenaltyTest {
 
         println("effectManager = $effectManager")
     }
+
+    @Test
+    fun savePenaltyImpactOnSpellAttackViaActionCalculator() {
+        val character = wwCCPlan
+        character.editableFields.level = 7
+
+        val spell   = Globals.getSpell("Hail of Thorns", character.is2014())
+        val monster = Globals.getMonster("Goblin")
+
+        val attack   = Attack (monster, spell)
+        val scenario = Scenario(character, listOf(Turn(listOf(attack))), 4, DEFAULT_TARGET_RADIUS)
+
+        // first, calculate results with no savePenalty
+        var noPenaltyResult = ActionCalculator(scenario, EffectManager(ArrayList()))
+            .getSavingThrowSpellDPR(spell.getSpellAttacks()[0], spell, attack)
+
+        assertEquals (AvgMinMax(0.5f,  0.25f, 0.75f, 0.5f),  noPenaltyResult.chanceToHit, "noPenalty %hit")
+        assertEquals (AvgMinMax(16.0f, 13.0f, 19.0f, 16.0f), noPenaltyResult.damagePerRound, "noPenalty dpr")
+
+        // second, results for same scenario WITH savePenalty
+        val effectManager = EffectManager(mutableListOf(
+            TargetEffect(startTurn = 0, probability = 0.7f, savePenalty = mutableListOf("1d4"))))
+
+        var withPenaltyResult = ActionCalculator(scenario, effectManager)
+            .getSavingThrowSpellDPR(spell.getSpellAttacks()[0], spell, attack)
+
+        assertEquals (AvgMinMax(0.62f,  0.39f, 0.86f, 0.62f),  withPenaltyResult.chanceToHit, "withPenaltyResult %hit")
+        assertEquals (AvgMinMax(17.5f, 14.72f, 20.28f, 17.5f), withPenaltyResult.damagePerRound, "withPenaltyResult dpr")
+
+        assertTrue(withPenaltyResult.damagePerRound.final > noPenaltyResult.damagePerRound.final)
+    }
+
+    @Test
+    fun savePenaltyImpactOnSpellAttackViaScenarioCalculator() {
+        val character = wwCCPlan
+        val monster = Globals.getMonster("Goblin")
+        val weapon = character.getWeapon("Longbow")
+
+        val holdAttack  = Attack (monster, Globals.getSpell("Hold Person", character.is2014()))
+        val polarAttack  = Attack (monster, weapon, actionModifiers = mutableListOf(ActionModifier.PolarStrikes))
+        val weaponAttack = Attack (monster, weapon)
+        val bonusAttack  = Attack (monster, Globals.getSpell("Hail of Thorns", character.is2014()), isBonusAction = true)
+        val turnList     = listOf(Turn(listOf(holdAttack))) +
+                List(4) { Turn(listOf(polarAttack, weaponAttack, bonusAttack)) }
+
+        val scenario = Scenario(character, turnList, 4, DEFAULT_TARGET_RADIUS)
+
+        character.editableFields.level = 8
+
+        println("before, plan8 = ${ wwCCPlan.editableFields.plan["8"] }")
+        var feat = Feat.Actor
+        wwCCPlan.editableFields.plan["8"]!!.feat = feat
+        var result1 = ScenarioCalculator(scenario).calculateDPRForAllTurns()
+
+        // %hit
+        assertEquals(0.7f,  Globals.round2(result1.attackResults[0].chanceToHit.final), "t=1, a=1, feat=$feat, %hit")
+        assertEquals(0.86f, Globals.round2(result1.attackResults[3].chanceToHit.final), "t=2, a=3, feat=$feat, %hit")
+
+        // damage
+        assertEquals(0f,    Globals.round2(result1.attackResults[0].damagePerRound.final), "t=1, a=1, feat=$feat, dph")
+        assertEquals(20.38f,Globals.round2(result1.attackResults[3].damagePerRound.final), "t=2, a=3, feat=$feat, dph")
+
+
+        feat = Feat.ColdCaster
+        wwCCPlan.editableFields.plan["8"]!!.feat = feat
+        var result2 = ScenarioCalculator(scenario).calculateDPRForAllTurns()
+
+        // technically, %hit and DPH should be slightly higher for CC versus noCC ...
+        // that will likely require branching calculations on a PER TARGET EFFECT basis;
+        // --> more complex code, and more cpu per scenario
+
+ //       assertNotEquals(result2.attackResults[3].chanceToHit.final, result1.attackResults[3].chanceToHit.final, "t=2, a=3, %hit notEqual with CC")
+ //       assertNotEquals(result2.attackResults[3].damagePerRound.final, result1.attackResults[3].damagePerRound.final, "t=2, a=3, dph notEqual with CC")
+        assertTrue(result2.attackResults[3].chanceToHit.final >= result1.attackResults[3].chanceToHit.final, "t=2, a=3, %hit GTE with CC")
+        assertTrue(result2.attackResults[3].damagePerRound.final >= result1.attackResults[3].damagePerRound.final, "t=2, a=3, dph GTE with CC")
+
+        // %hit
+        assertEquals(0.7f,  Globals.round2(result2.attackResults[0].chanceToHit.final), "t=1, a=1, feat=$feat, %hit")
+        assertEquals(0.86f, Globals.round2(result2.attackResults[3].chanceToHit.final), "t=2, a=3, feat=$feat, %hit")
+
+        // damage
+        assertEquals(0f,    Globals.round2(result2.attackResults[0].damagePerRound.final), "t=1, a=1, feat=$feat, dph")
+        assertEquals(20.38f,Globals.round2(result2.attackResults[3].damagePerRound.final), "t=2, a=3, feat=$feat, dph")
+    }
+
 }

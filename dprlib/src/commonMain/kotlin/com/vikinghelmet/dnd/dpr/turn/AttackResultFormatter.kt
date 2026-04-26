@@ -9,7 +9,8 @@ object AttackResultFormatter {
     var scenarioName = ""
 
     fun format(field: AttackResultField, attackResult: AttackResult): String {
-        return format(field.name, if (field == scenario) scenarioName else attackResult.getValue(field))
+        //return format(field.name, if (field == scenario) scenarioName else attackResult.getValue(field))
+        return format(field.name, attackResult.getValue(field))
     }
     
     fun format(fieldName: String, value: Any): String {
@@ -26,7 +27,7 @@ object AttackResultFormatter {
         val buf = StringBuilder()
         AttackResultField.entries.forEach {
             val value = when (it) {
-                scenario -> scenarioName
+                //scenario -> scenarioName
                 turn -> currentTurnId
                 action -> actionLabel
                 fullEffectDamage -> Globals.getPercent(totalDamage)

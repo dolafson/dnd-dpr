@@ -5,7 +5,7 @@ enum class AttackResultField(val constantAcrossTurns: Boolean = false)
 {
     characterName(true),level(true),
 
-    turn,action,effect,attack,fullEffectDamage,scenario,
+    turn,action,effect,attack,fullEffectDamage,//scenario,
 
     monsterName(true),monsterAC(true),
     damageDice,damageBonus,attackBonus,

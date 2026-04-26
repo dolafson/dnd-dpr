@@ -57,7 +57,7 @@ class ScenarioCalculatorTest {
     }
 
     @Test
-    fun foo() {
+    fun huntersMarkVersusHoldPerson() {
         val character = TestUtil.wwCCPlan
         character.editableFields.level = 5
         val huntersMark = Globals.getSpell("Hunter's Mark", character.is2014())
@@ -77,7 +77,7 @@ class ScenarioCalculatorTest {
         val spellTurn = listOf(Turn(listOf(Attack(monster, holdPerson))))
         var scenario2 = Scenario(character, spellTurn + fourTurns, 4, DEFAULT_TARGET_RADIUS)
         var result2   = ScenarioCalculator(scenario2).calculateDPRForAllTurns()
-        assertEquals(207, result2.totalDamage.toInt())
+        assertEquals(182, result2.totalDamage.toInt())
     }
 
     @Test
@@ -117,11 +117,11 @@ class ScenarioCalculatorTest {
         println("withSleepResults.totalDamage = ${ withSleepResults.totalDamage }")
 
         assertEquals(3.575f, noSleepResults.attackResults[1].damagePerRound.final)
-        assertEquals(8.448001f, withSleepResults.attackResults[1].damagePerRound.final)
+        assertEquals(6.9861007f, withSleepResults.attackResults[1].damagePerRound.final)
 
-        // 5 firebolts with no sleep is roughly 1/2 the damage of 4 firebolts with sleep
+        // 4 firebolts with sleep is nearly twice the damage of 5 firebolts without sleep
         assertEquals(17.875f, noSleepResults.totalDamage)
-        assertEquals(33.792004f, withSleepResults.totalDamage)
+        assertEquals(27.944403f, withSleepResults.totalDamage)
     }
 
 }

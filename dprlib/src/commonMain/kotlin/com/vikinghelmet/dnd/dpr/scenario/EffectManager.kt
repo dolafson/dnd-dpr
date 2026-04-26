@@ -23,7 +23,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
         // prune advantage/disadvantage, as they get consumed by ActionCalculator (end of action),
         // while this function is consumed by ScenarioCalculator (end of turn)
         val filtered = runningEffectList.filter {
-            it.attackerHasAdvantage != true && it.disadvantageOnSave.isEmpty()
+            !it.isEmptyExceptForAdvantage()
         }
         return if (filtered.isEmpty()) 1f else filtered.minOf { it.probability }
     }
@@ -137,7 +137,10 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
             if (currentSpell != null) {
                 // translate spell save effects to Preconditions
                 val saveAbility = currentSpell.getSpellSaveAbility()
-                precondition.autoFailSave = priorEffect.autoFailSave.any { it.match(saveAbility) }
+
+                if (priorEffect.autoFailSave.any { it.match(saveAbility) }) {
+                    precondition.autoFailSave = true // note, we can hit this point for multiple priorEffects
+                }
 
                 for (penalty in priorEffect.savePenalty)
                 {

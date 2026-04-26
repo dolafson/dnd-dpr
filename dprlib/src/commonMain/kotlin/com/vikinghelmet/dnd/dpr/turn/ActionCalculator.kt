@@ -482,11 +482,17 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit)
         logger.debug{"Half Damage (First Hit): "+halfDamageFirstHit}
 
-        val chanceofAtLeastOneHit = AvgMinMax(
+        var chanceofAtLeastOneHit = AvgMinMax(
             1 - (1 - chanceToHit.avg).pow(numberOfTargets),
             1 - (1 - chanceToHit.min).pow(numberOfTargets),
             1 - (1 - chanceToHit.max).pow(numberOfTargets),
         )
+
+        if (preconditions.autoFailSave == true) {
+            debug("autoFailSave is enabled, forcing chanceofAtLeastOneHit to 100")
+            chanceofAtLeastOneHit = AvgMinMax(1f, 1f, 1f)
+        }
+
         logger.debug{"Chance of at least one hit: "+chanceofAtLeastOneHit }
         debug()
 
