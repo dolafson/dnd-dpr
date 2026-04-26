@@ -57,7 +57,7 @@ class DprTest {
 
     @Test
     fun oneOff() {
-        //dprTestInner("singleTarget", "melee", "gsDex", listOf(3,4,5, 8,9,12,13, 16,17), true)
+        //dprTestInner("singleTarget", "range", "gs", listOf(3,4,5, 8,9,12,13, 16,17), true)
         dprTestInner("multipleTarget", "range", "wwCC", listOf(5), true)
     }
 

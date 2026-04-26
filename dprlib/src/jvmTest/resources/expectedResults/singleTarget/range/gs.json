@@ -1,16 +1,16 @@
 [
   { "level": 3, "totalDamage": 63, "attacks": [
-        [ "Longbow[DreadfulStrike]", "Hunter's Mark" ],
-        [ "Longbow[DreadfulStrike]" ],
-        [ "Longbow", "Hail of Thorns" ],
-        [ "Longbow", "Hail of Thorns" ],
-        [ "Longbow", "Hail of Thorns" ]
+      [ "Longbow[DreadfulStrike]", "Hunter's Mark" ],
+      [ "Longbow[DreadfulStrike]" ],
+      [ "Longbow", "Hail of Thorns" ],
+      [ "Longbow", "Hail of Thorns" ],
+      [ "Longbow", "Hail of Thorns" ]
   ] },
 
-  { "level": 4, "totalDamage": 70, "attacks": [
-    [ "Longbow[DreadfulStrike]", "Ensnaring Strike" ],
+  { "level": 4, "totalDamage": 69, "attacks": [
+    [ "Longbow[DreadfulStrike]", "Hunter's Mark" ],
     [ "Longbow[DreadfulStrike]" ],
-    [ "Longbow[DreadfulStrike]" ],
+    [ "Longbow[DreadfulStrike]", "Hail of Thorns" ],
     [ "Longbow", "Hail of Thorns" ],
     [ "Longbow", "Hail of Thorns" ]
   ] },

@@ -7,13 +7,7 @@
     [ "Longbow[PolarStrikes]", "Hail of Thorns" ]
   ] },
 
-  { "level": 4, "totalDamage": 62, "attacks": [
-    [ "Longbow[PolarStrikes]", "Ensnaring Strike" ],
-    [ "Longbow[PolarStrikes]" ],
-    [ "Longbow[PolarStrikes]" ],
-    [ "Longbow[PolarStrikes]", "Hail of Thorns" ],
-    [ "Longbow[PolarStrikes]", "Hail of Thorns" ]
-  ] },
+  { "level": 4, "totalDamage": 62, "clone": 3 },
 
   { "level": 5, "totalDamage": 115, "attacks": [
     [ "Hold Person" ],
