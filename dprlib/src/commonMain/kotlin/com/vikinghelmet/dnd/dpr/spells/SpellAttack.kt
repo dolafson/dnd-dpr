@@ -23,6 +23,28 @@ data class SpellAttack(
         other.numTargetsOverride = 1
     }
 
+    fun getAoeSize(): Int {
+        if (attackPayload.aoe == null) return 0
+        /* aoe.size values, by frequency
+    87  = "X"
+    66  = "X foot"
+    50  = "X foot radius"
+    10  = "X foot radius, X foot high"
+    10  = "X feet long, X feet high*"
+    4  = "X-foot"
+    4  = "X foot long"
+    2  = "X foot tall, X foot radius"
+    2  = "X feet wide, X feet long"
+    1  = "X-foot-radius"
+    1  = "X-foot-radius, X-foot-tall"
+    1  = "X ft"
+    1  = "X ft radius"
+    1  = "X foot radius, X foot tall*"
+    1  = "Ten X foot"
+*/
+        return attackPayload.aoe.size.replace("Ten","10").replace("[ -].*".toRegex(), "").toInt()
+    }
+
     fun getNumTargetsAffected(scenario: Scenario): Int
     {
         if (numTargetsOverride != null) {
@@ -33,27 +55,7 @@ data class SpellAttack(
             return 1
         }
 
-        /* aoe.size values, by frequency
-            87  = "X"
-            66  = "X foot"
-            50  = "X foot radius"
-            10  = "X foot radius, X foot high"
-            10  = "X feet long, X feet high*"
-            4  = "X-foot"
-            4  = "X foot long"
-            2  = "X foot tall, X foot radius"
-            2  = "X feet wide, X feet long"
-            1  = "X-foot-radius"
-            1  = "X-foot-radius, X-foot-tall"
-            1  = "X ft"
-            1  = "X ft radius"
-            1  = "X foot radius, X foot tall*"
-            1  = "Ten X foot"
-        */
-
-        val aoe  = attackPayload.aoe
-        val size = aoe.size.replace("Ten","10").replace("[ -].*".toRegex(), "").toInt()
-
+        val size = getAoeSize()
         // for now, assume aoe is a square centered around a primary target
         // later we can try using aoe.shape
 

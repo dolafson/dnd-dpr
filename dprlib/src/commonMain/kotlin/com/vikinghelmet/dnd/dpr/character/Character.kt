@@ -408,11 +408,24 @@ open class Character(
         for (spell in getPreparedAttackSpells()) {
             logger.debug { "getActionsAvailable, spell = $spell" }
 
-            actionsAvailable.add(spell.getRange(), spell)
-
-            // BreathWeapon should appear in both melee and range selection
-            if (spell.name.startsWith(ActionModifier.BreathWeapon.getNameWithWS())) {
+            if (spell.isRangedSpellAttack()) {
+                actionsAvailable.add(spell.getRange(), spell)
+            }
+            else {
+                // all spells - except for "ranged spell attack" - can be used in melee
                 actionsAvailable.add(Constants.MELEE_RANGE, spell)
+
+                if (spell.getRange() > Constants.MELEE_RANGE) {
+                    actionsAvailable.add(spell.getRange(), spell)
+                }
+                else {
+                    // "range = self, but aoe is 60 ft cone ..."
+                    // this may be inaccurate for some AOE shapes, but close enough for now
+                    val aoeSize = spell.getSpellAttacks().first().getAoeSize()
+                    if (aoeSize > 0) {
+                        actionsAvailable.add(aoeSize, spell)
+                    }
+                }
             }
         }
         return actionsAvailable

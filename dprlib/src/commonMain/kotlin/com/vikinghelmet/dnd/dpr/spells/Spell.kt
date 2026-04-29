@@ -38,6 +38,8 @@ open class Spell(
     fun isMeleeWeaponBonusAction()  = takeImmediatelyAfterHitting() && (dd().contains("Melee weapon") || dd().contains("with a weapon"))
     fun isRangedWeaponBonusAction() = takeImmediatelyAfterHitting() && (dd().contains("Ranged weapon") || dd().contains("with a weapon"))
 
+    // ranged spell attacks get disadvantage when cast during melee; only 9 of these in 2014, 12 in 2024
+    fun isRangedSpellAttack() = (properties.SpellAttack != null && properties.SpellAttack == "Ranged")
 
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage

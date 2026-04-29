@@ -27,17 +27,17 @@ class ActionCalculatorTest {
         val character = TestUtil.leif
 
         assertEquals(mapOf(
-            5 to listOf("Dagger", "Quarterstaff", "Shortsword", "Shortsword"),
+            5 to listOf("Dagger", "Quarterstaff", "Shortsword", "Shortsword", "Entangle", "Mind Sliver"),
             20 to listOf("Dagger"),
             60 to listOf("Mind Sliver"),
             90 to listOf("Entangle"),
             150 to listOf("Longbow"),
         ),
-            character.getActionsAvailable().mapOfLists.mapValues { it.value.map { it2 -> it2.getActionName() } }
+            character.getActionsAvailable().mapOfLists.mapValues { it.value.map { it2 -> it2.getActionName() } }.toSortedMap()
         )
 
         // melee actions
-        assertEquals(listOf("Dagger", "Quarterstaff", "Shortsword"),
+        assertEquals(listOf("Dagger", "Quarterstaff", "Shortsword", "Entangle", "Mind Sliver"),
             character.getActionsAvailable().getPrimaryAction(Constants.MELEE_RANGE).map { it.getActionName()})
 
         // melee bonus actions
@@ -52,13 +52,42 @@ class ActionCalculatorTest {
     }
 
     @Test
+    fun turnOptionsRhogar() {   // verify support for Breath Weapon
+        val character = TestUtil.rhogar
+        val meleeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
+        val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        assertEquals(listOf(
+            listOf("Longsword"),
+            listOf("Battleaxe"),
+            listOf("Breath Weapon (Fire)"),
+        ),  meleeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
+
+        // ---------------------------------------------------------------------------
+        // mid range = 30
+        val midRangeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
+        val midRangeScenarios = midRangeBuilder.build(30, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        assertEquals(listOf(listOf("Longbow"),listOf("Breath Weapon (Fire)")),
+            midRangeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
+
+        // ---------------------------------------------------------------------------
+        // long range = 150
+        val longRangeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
+        val longRangeScenarios = longRangeBuilder.build(150, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+
+        assertEquals(listOf(listOf("Longbow")),
+            longRangeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
+    }
+
+    @Test
     fun turnOptions() {
         val character = TestUtil.leif
         val meleeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
         val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
 
-        assertEquals(7, meleeBuilder.turnOptions.size)
-        assertEquals(4864, meleeScenarios.size)
+        assertEquals(9, meleeBuilder.turnOptions.size)
+        assertEquals(15625, meleeScenarios.size)
 
         assertEquals(listOf(
                 listOf("Dagger","Shortsword"),
@@ -68,6 +97,8 @@ class ActionCalculatorTest {
                 listOf("Shortsword","Dagger"),
                 listOf("Shortsword","Shortsword"),
                 listOf("Shortsword","Hunter's Mark"),
+                listOf("Entangle"),
+                listOf("Mind Sliver"),
             ),  meleeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
 
 

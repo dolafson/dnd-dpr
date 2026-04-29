@@ -58,7 +58,15 @@ class DprTest {
     @Test
     fun oneOff() {
         //dprTestInner("singleTarget", "range", "gs", listOf(3,4,5, 8,9,12,13, 16,17), true)
-        dprTestInner("multipleTarget", "range", "wwCC", listOf(5), true)
+        dprTestInner("singleTarget", "range", "wwCC", listOf(9), true)
+
+        listOf("hunter","wwCC","ww","gs","gsDex").forEach { player ->
+            //dprTestInner("multipleTarget", "melee", player, listOf(9), true)
+            //dprTestInner("multipleTarget", "range", player, listOf(9), true)
+            //dprTestInner("singleTarget", "melee", player, listOf(9), true)
+            //dprTestInner("singleTarget", "range", player, listOf(9), true)
+        }
+
     }
 
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")

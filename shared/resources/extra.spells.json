@@ -213,7 +213,7 @@
         "Level": 1,
         "Category": "Spells",
         "School": "Conjuration",
-        "Classes": "Wizard",
+        "Classes": "Wizard, Ranger",
         "filter-Tags": "Inflict Damage, Dexterity Save, Cold Damage, Utility",
         "data-datarecords": [
           {
@@ -493,5 +493,281 @@
       },
       "publisher": "Wizards of the Coast",
       "book": "Free Basic Rules (2024)"
-    }
+    },
+
+{
+  "name": "Lightning Arrow",
+  "description": "Level 3 Transmutation (Ranger) Casting Time: Bonus Action Range: Self Components: V, S As your attack hits or misses the target, the weapon or ammunition you’re using transforms into a lightning bolt. Instead of taking any damage or other effects from the attack, the target takes 4d8 Lightning damage on a hit or half as much damage on a miss. Each creature within 10 feet of the target then makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much damage on a successful one.  The weapon or ammunition then returns to its normal form. Using a Higher-Level Spell Slot. The damage for both effects of the spell increases by 1d8 for each spell slot level above 3.",
+  "properties": {
+    "Level": 3,
+    "Category": "Spells",
+    "School": "Transmutation",
+    "Classes": "Ranger",
+    "filter-Tags": "Inflict Damage, Dexterity Save, Lightning Damage, Utility",
+    "data-datarecords": [
+      {
+        "name": "Lightning Arrow",
+        "level": "3",
+        "payload": {
+          "type": "Spell",
+          "name": "Lightning Arrow",
+          "description": "Level 3 Transmutation (Ranger) Casting Time: Bonus Action Range: Self Components: V, S As your attack hits or misses the target, the weapon or ammunition you’re using transforms into a lightning bolt. Instead of taking any damage or other effects from the attack, the target takes 4d8 Lightning damage on a hit or half as much damage on a miss. Each creature within 10 feet of the target then makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much damage on a successful one.  The weapon or ammunition then returns to its normal form. Using a Higher-Level Spell Slot. The damage for both effects of the spell increases by 1d8 for each spell slot level above 3.",
+          "upcastText": "Using a Higher-Level Spell Slot. The damage for both effects of the spell increases by 1d8 for each spell slot level above 3.",
+          "level": 3,
+          "school": "Transmutation",
+          "castingTime": "Bonus Action",
+          "range": "Self",
+          "duration": "Instantaneous",
+          "concentration": false,
+          "components": {
+            "verbal": false,
+            "somatic": true,
+            "material": true,
+            "materialDescription": ""
+          }
+        }
+      },
+      {
+        "name": "Lightning Arrow Initial Attack",
+        "parent": "Lightning Arrow",
+        "payload": {
+          "type": "Attack",
+          "name": "Lightning Arrow - Initial Attack",
+          "description": "Instead of taking any damage or other effects from the attack, the target takes 4d8 Lightning damage on a hit or half as much damage on a miss.",
+          "attack": {
+            "type": "Spell Attack"
+          }
+        }
+      },
+      {
+        "name": "Lightning Arrow Initial Attack Damage",
+        "parent": "Lightning Arrow Initial Attack",
+        "payload": {
+          "type": "Damage",
+          "ability": "none",
+          "damageType": "Lightning",
+          "diceCount": 4,
+          "diceSize": "d8"
+        }
+      },
+      {
+        "name": "Lightning Arrow Secondary Attack",
+        "parent": "Lightning Arrow",
+        "payload": {
+          "type": "Attack",
+          "name": "Lightning Arrow - Secondary Attack",
+          "description": "Each creature within 10 feet of the target then makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much damage on a successful one",
+          "save": {
+            "saveAbility": "Dexterity",
+            "onFail": "Takes 2d8 Cold damage.",
+            "onSucceed": "Half damage."
+          },
+          "aoe": {
+            "shape": "Emanation",
+            "size": "10 foot"
+          }
+        }
+      },
+      {
+        "name": "Lightning Arrow Secondary Attack Damage",
+        "parent": "Lightning Arrow Secondary Attack",
+        "payload": {
+          "type": "Damage",
+          "ability": "none",
+          "damageType": "Lightning",
+          "diceCount": 2,
+          "diceSize": "d8"
+        }
+      },
+      {
+        "name": "Lightning Arrow Damage Upcast",
+        "parent": "Lightning Arrow Damage",
+        "payload": {
+          "type": "Upcasting",
+          "mode": "Per X Spell Level",
+          "startingLevel": 3,
+          "level": "1",
+          "target": "$.diceCount",
+          "value": "1",
+          "changeMode": "Add"
+        }
+      }
+    ],
+    "Name": "Lightning Arrow",
+    "data-description": "As your attack hits or misses the target, the weapon or ammunition you’re using transforms into a lightning bolt. Instead of taking any damage or other effects from the attack, the target takes 4d8 Lightning damage on a hit or half as much damage on a miss. Each creature within 10 feet of the target then makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much damage on a successful one.  The weapon or ammunition then returns to its normal form. ",
+    "Casting Time": "Action",
+    "Concentration": "No",
+    "Duration": "Instantaneous",
+    "Range": "Self",
+    "Components": "S M",
+    "Material": "",
+    "Higher Spell Slot Desc": "Using a Higher-Level Spell Slot. The damage for both effects of the spell increases by 1d8 for each spell slot level above 3.",
+    "data-CastNum": 2,
+    "data-RangeNum": 0,
+    "Save": "Dexterity",
+    "Damage": "4d8",
+    "Damage Type": "Lightning"
+  },
+  "publisher": "Wizards of the Coast",
+  "book": "Free Basic Rules (2024)"
+},
+
+  {
+    "name": "Conjure Barrage",
+    "description": "Level 3 Conjuration (Ranger) Casting Time: 1 Action Range: Self Components: V, S, M Duration: Instantaneous You brandish the weapon used to cast the spell and conjure similar spectral weapons (or ammunition appropriate to the weapon) that launch forward and then disappear. Each creature of your choice that you can see in a 60-foot Cone makes a Dexterity saving throw, taking 5d8 Force damage on a failed save or half as much damage on a successful one.",
+    "properties": {
+      "Category": "Spells",
+      "School": "Conjuration",
+      "Classes": "Ranger",
+      "Expansion": 0,
+      "data-List": "false",
+      "filter-Tags": "Dexterity Save, Force Damage",
+      "Spell Attack": "None",
+      "filter-Level": 3,
+      "filter-Range": "Self",
+      "filter-Ritual": "No",
+      "filter-Upcast": "Yes",
+      "filter-Duration": "Instantaneous",
+      "data-datarecords": [
+        {
+          "name": "Conjure Barrage Attack",
+          "payload": {
+            "type": "Attack",
+            "name": "Conjure Barrage",
+            "description": "You can force that creature to make a Dexterity saving throw.",
+            "save": {
+              "saveAbility": "Dexterity",
+              "onFail": "Take 5d8 Force damage.",
+              "onSucceed": "Half as much damage."
+            },
+            "actionType": "Action",
+            "aoe": {
+              "shape": "Cone",
+              "size": "60 foot"
+            }
+          }
+        },
+        {
+          "name": "Conjure Barrage Damage",
+          "parent": "Conjure Barrage Attack",
+          "payload": {
+            "type": "Damage",
+            "ability": "none",
+            "damageType": "Force",
+            "diceCount": 5,
+            "diceSize": "d8"
+          }
+        },
+        {
+          "name": "Conjure Barrage Damage Upcast",
+          "parent": "Conjure Barrage Damage",
+          "payload": {
+            "type": "Upcasting",
+            "mode": "Per X Spell Level",
+            "startingLevel": 1,
+            "target": "$.diceCount",
+            "level": "1",
+            "value": "1",
+            "changeMode": "Add"
+          }
+        }
+      ],
+      "filter-Components": "Verbal, Somatic, Material",
+      "filter-Casting Time": "1 Action",
+      "filter-Concentration": "No",
+      "Name": "Conjure Barrage",
+      "data-description": "You brandish the weapon used to cast the spell and conjure similar spectral weapons (or ammunition appropriate to the weapon) that launch forward and then disappear. Each creature of your choice that you can see in a 60-foot Cone makes a Dexterity saving throw, taking 5d8 Force damage on a failed save or half as much damage on a successful one.",
+      "Level": 3,
+      "Casting Time": "1 Action",
+      "Concentration": "No",
+      "Duration": "Instaneous",
+      "Range": "Self",
+      "Components": "V",
+      "Higher Spell Slot Desc": "Using a Higher-Level Spell Slot. The damage increases by 5d8 for each spell slot level above 1.",
+      "Save": "Dexterity",
+      "Damage": "5d8",
+      "Damage Type": "Force"
+    },
+    "publisher": "Wizards of the Coast",
+    "book": "Hand Entered, Free Basic Rules (2014)"
+  },
+  {
+    "name": "Conjure Barrage",
+    "description": "Level 3 Conjuration (Ranger) Casting Time: 1 Action Range: Self Components: V, S, M Duration: Intantaneous You brandish the weapon used to cast the spell and conjure similar spectral weapons (or ammunition appropriate to the weapon) that launch forward and then disappear. Each creature of your choice that you can see in a 60-foot Cone makes a Dexterity saving throw, taking 5d8 Force damage on a failed save or half as much damage on a successful one.",
+    "properties": {
+      "Category": "Spells",
+      "School": "Conjuration",
+      "Classes": "Ranger",
+      "Expansion": 0,
+      "data-List": "false",
+      "filter-Tags": "Dexterity Save, Force Damage",
+      "Spell Attack": "None",
+      "filter-Level": 3,
+      "filter-Range": "Self",
+      "filter-Ritual": "No",
+      "filter-Upcast": "Yes",
+      "filter-Duration": "Instantaneous",
+      "data-datarecords": [
+        {
+          "name": "Conjure Barrage Attack",
+          "payload": {
+            "type": "Attack",
+            "name": "Conjure Barrage",
+            "description": "You can force that creature to make a Dexterity saving throw.",
+            "save": {
+              "saveAbility": "Dexterity",
+              "onFail": "Take 5d8 Force damage.",
+              "onSucceed": "Half as much damage."
+            },
+            "actionType": "Action",
+            "aoe": {
+              "shape": "Cone",
+              "size": "60 foot"
+            }
+          }
+        },
+        {
+          "name": "Conjure Barrage Damage",
+          "parent": "Conjure Barrage Attack",
+          "payload": {
+            "type": "Damage",
+            "ability": "none",
+            "damageType": "Force",
+            "diceCount": 5,
+            "diceSize": "d8"
+          }
+        },
+        {
+          "name": "Conjure Barrage Damage Upcast",
+          "parent": "Conjure Barrage Damage",
+          "payload": {
+            "type": "Upcasting",
+            "mode": "Per X Spell Level",
+            "startingLevel": 1,
+            "target": "$.diceCount",
+            "level": "1",
+            "value": "1",
+            "changeMode": "Add"
+          }
+        }
+      ],
+      "filter-Components": "Verbal, Somatic, Material",
+      "filter-Casting Time": "1 Action",
+      "filter-Concentration": "No",
+      "Name": "Conjure Barrage",
+      "data-description": "You brandish the weapon used to cast the spell and conjure similar spectral weapons (or ammunition appropriate to the weapon) that launch forward and then disappear. Each creature of your choice that you can see in a 60-foot Cone makes a Dexterity saving throw, taking 5d8 Force damage on a failed save or half as much damage on a successful one.",
+      "Level": 3,
+      "Casting Time": "1 Action",
+      "Concentration": "No",
+      "Duration": "Instaneous",
+      "Range": "Self",
+      "Components": "V",
+      "Higher Spell Slot Desc": "Using a Higher-Level Spell Slot. The damage increases by 5d8 for each spell slot level above 1.",
+      "Save": "Dexterity",
+      "Damage": "5d8",
+      "Damage Type": "Force"
+    },
+    "publisher": "Wizards of the Coast",
+    "book": "Hand Entered, Free Basic Rules (2024)"
+  }
 ]
