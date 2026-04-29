@@ -19,9 +19,15 @@
 
   { "level": 8, "totalDamage": 134, "clone": 5 },
 
-  { "level": 9, "totalDamage": 140, "clone": 5 },
+  { "level": 9, "totalDamage": 150, "attacks": [
+    ["Shortsword","Shortsword","Shortsword"],
+    ["Shortsword[ColossusSlayer]","Shortsword","Shortsword"],
+    ["Shortsword","Shortsword","Shortsword"],
+    ["Shortsword[ColossusSlayer]","Shortsword","Shortsword"],
+    ["Conjure Animals"]
+  ]},
 
-  { "level": 12, "totalDamage": 140, "clone": 5 },
+  { "level": 12, "totalDamage": 150, "clone": 9 },
 
   { "level": 13, "totalDamage": 188, "attacks": [
     [ "Shortsword", "Shortsword", "Shortsword" ],

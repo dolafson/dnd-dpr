@@ -214,6 +214,7 @@
         "Category": "Spells",
         "School": "Conjuration",
         "Classes": "Wizard, Ranger",
+        "Spell Attack": "Ranged",
         "filter-Tags": "Inflict Damage, Dexterity Save, Cold Damage, Utility",
         "data-datarecords": [
           {
@@ -333,6 +334,7 @@
         "Name": "Spellfire Flare",
         "Level": 1,
         "Casting Time": "Action",
+        "Spell Attack": "Ranged",
         "filter-Duration": "0 None",
         "data-RangeNum": 60,
         "data-datarecords": [

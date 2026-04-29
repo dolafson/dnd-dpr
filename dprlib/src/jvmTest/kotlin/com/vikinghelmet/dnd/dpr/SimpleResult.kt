@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 @Serializable
 class SimpleResult(
@@ -28,7 +29,14 @@ class SimpleResult(
         return result
     }
 
+    fun toJsonPretty(): String {
+        val buf = StringBuilder().append("  { \"level\": $level, \"totalDamage\": $totalDamage, \"attacks\": [\n")
+        attacks?.forEach { buf.append("    ${ Json.encodeToString(it) }, \n") }
+        return buf.append("  ]}").toString()
+    }
+
     override fun toString(): String {
         return "(totalDamage=$totalDamage, attacks=$attacks)"
     }
+
 }

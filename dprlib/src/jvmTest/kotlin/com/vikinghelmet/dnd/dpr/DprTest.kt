@@ -10,7 +10,6 @@ import com.vikinghelmet.dnd.dpr.TestUtil.wwPlan
 import com.vikinghelmet.dnd.dpr.util.Constants.MELEE_RANGE
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
@@ -47,7 +46,8 @@ class DprTest {
             if (!runAssert) {
                 bestResult.level = level
                 //println(Json { prettyPrint = true }.encodeToString(bestResult))
-                println(Json.encodeToString(bestResult)+",")
+                //println(Json.encodeToString(bestResult)+",")
+                println(bestResult.toJsonPretty()+", \n")
             } else {
                 logger.info { "${rangeType}:${subclass}:${level}" }
                 assertEquals (expectedList.find { it.level == level }, bestResult, "${rangeType}:${subclass}:${level}")
@@ -58,7 +58,8 @@ class DprTest {
     @Test
     fun oneOff() {
         //dprTestInner("singleTarget", "range", "gs", listOf(3,4,5, 8,9,12,13, 16,17), true)
-        dprTestInner("singleTarget", "range", "wwCC", listOf(9), true)
+        //dprTestInner("singleTarget", "range", "wwCC", listOf(9), true)
+        dprTestInner("singleTarget", "melee", "hunter", listOf(3,4,5, 8,9,12,13, 16,17), true)
 
         listOf("hunter","wwCC","ww","gs","gsDex").forEach { player ->
             //dprTestInner("multipleTarget", "melee", player, listOf(9), true)
