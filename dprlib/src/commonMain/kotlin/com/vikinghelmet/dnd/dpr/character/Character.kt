@@ -421,9 +421,11 @@ open class Character(
                 else {
                     // "range = self, but aoe is 60 ft cone ..."
                     // this may be inaccurate for some AOE shapes, but close enough for now
-                    val aoeSize = spell.getSpellAttacks().first().getAoeSize()
-                    if (aoeSize > 0) {
-                        actionsAvailable.add(aoeSize, spell)
+                    if (spell.getSpellAttacks().isNotEmpty()) {
+                        val aoeSize = spell.getSpellAttacks().first().getAoeSize()
+                        if (aoeSize > 0) {
+                            actionsAvailable.add(aoeSize, spell)
+                        }
                     }
                 }
             }

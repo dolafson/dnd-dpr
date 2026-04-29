@@ -139,7 +139,12 @@ class ScenarioCalculator(
  */
         }
 
-        effectManager.add(TargetEffect(turnId, spell, resultList.first().chanceToHit.avg))
+        if (resultList.isEmpty()) {
+            logger.warn { "spell dpr, result list is empty, spell = $spell" }
+        }
+        else {
+            effectManager.add(TargetEffect(turnId, spell, resultList.first().chanceToHit.avg))
+        }
         return resultList
     }
 }
