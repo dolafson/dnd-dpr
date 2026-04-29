@@ -30,9 +30,12 @@ class SimpleResult(
     }
 
     fun toJsonPretty(): String {
-        val buf = StringBuilder().append("  { \"level\": $level, \"totalDamage\": $totalDamage, \"attacks\": [\n")
-        attacks?.forEach { buf.append("    ${ Json.encodeToString(it) }, \n") }
-        return buf.append("  ]}").toString()
+        val buf = StringBuilder()
+        attacks?.forEach {
+            if (buf.isNotEmpty()) { buf.append(",\n")}
+            buf.append("    ${ Json.encodeToString(it) }")
+        }
+        return "  { \"level\": $level, \"totalDamage\": $totalDamage, \"attacks\": [\n${buf}\n ]}"
     }
 
     override fun toString(): String {

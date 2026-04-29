@@ -19,18 +19,24 @@
 
   { "level": 8, "totalDamage": 134, "clone": 5 },
 
-  { "level": 9, "totalDamage": 140, "clone": 5 },
+  { "level": 9, "totalDamage": 224, "attacks": [
+    ["Conjure Barrage"],
+    ["Shortsword[ColossusSlayer]","Shortsword","Hunter's Mark"],
+    ["Shortsword","Shortsword","Shortsword"],
+    ["Shortsword[ColossusSlayer]","Shortsword","Shortsword"],
+    ["Conjure Barrage"]
+  ]},
 
-  { "level": 12, "totalDamage": 140, "clone": 5 },
+  { "level": 12, "totalDamage": 266, "clone": 9 },
 
-  { "level": 13, "totalDamage": 188, "attacks": [
-    [ "Shortsword", "Shortsword", "Shortsword" ],
-    [ "Shortsword[ColossusSlayer]", "Shortsword", "Shortsword" ],
-    [ "Shortsword", "Shortsword", "Shortsword" ],
-    [ "Shortsword[ColossusSlayer]", "Shortsword", "Shortsword" ],
-    [ "Conjure Woodland Beings" ]
-  ] },
+  { "level": 13, "totalDamage": 345, "attacks": [
+    ["Conjure Barrage"],
+    ["Shortsword[ColossusSlayer]","Shortsword","Shortsword"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Woodland Beings"]
+  ]},
 
-  { "level": 16, "totalDamage": 188, "clone": 13 },
-  { "level": 17, "totalDamage": 197, "clone": 13 }
+  { "level": 16, "totalDamage": 345, "clone": 13 },
+  { "level": 17, "totalDamage": 358, "clone": 13 }
 ]

@@ -18,24 +18,44 @@
   ]},
 
   {"level":8,"totalDamage":136,"clone": 5 },
-  {"level":9,"totalDamage":143,"clone": 5 },
-  {"level":12,"totalDamage":143,"clone": 5 },
 
-  {"level":13,"totalDamage":203,"attacks":[
+  { "level": 9, "totalDamage": 228, "attacks": [
+    ["Hold Person"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
-    ["Conjure Woodland Beings"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
-    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"]
+  ]},
+
+  { "level": 12, "totalDamage": 289, "attacks": [
+    ["Hold Person"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"]
   ]},
 
-  {"level":16,"totalDamage":206,"clone": 13 },
-
-  {"level":17,"totalDamage":330,"attacks":[
+  { "level": 13, "totalDamage": 366, "attacks": [
+    ["Conjure Barrage"],
     ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
     ["Conjure Woodland Beings"],
-    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"]
+  ]},
+
+  { "level": 16, "totalDamage": 386, "attacks": [
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Woodland Beings"],
+    ["Ice Storm"]
+  ]},
+
+  { "level": 17, "totalDamage": 422, "attacks": [
     ["Cone of Cold"],
-    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"]
+    ["Conjure Animals"],
+    ["Conjure Barrage"],
+    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
+    ["Conjure Barrage"]
   ]}
 ]
