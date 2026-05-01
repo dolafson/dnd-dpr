@@ -58,45 +58,59 @@ class DprTest {
     @Test
     fun oneOff() {
         //dprTestInner("singleTarget", "range", "gs", listOf(3,4,5, 8,9,12,13, 16,17), true)
-        dprTestInner("multipleTarget", "range", "wwCC", listOf(3), false)
+        //dprTestInner("multipleTarget", "range", "wwCC", listOf(3), false)
         //dprTestInner("multipleTarget", "range", "wwCC", listOf(17), false)
         //dprTestInner("singleTarget", "melee", "hunter", listOf(3,4,5, 8,9,12,13, 16,17), true)
 
-        listOf("hunter","wwCC","ww","gs","gsDex").forEach { player ->
+        //listOf("hunter","wwCC","ww","gs","gsDex").forEach { player ->
             //dprTestInner("multipleTarget", "melee", player, listOf(9), true)
-            //dprTestInner("multipleTarget", "range", player, listOf(9), true)
-            //dprTestInner("singleTarget", "melee", player, listOf(9), true)
-            //dprTestInner("singleTarget", "range", player, listOf(9), true)
-        }
 
+        val path = "multipleTarget/melee/ww.json"
+        val arr = path.split("/")
+        //dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3,4,5, 8,9,12,13, 16,17), false)
+
+        //Globals.initLogger(LogLevel.DEBUG)
+
+        dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3), false)
+    }
+
+    @EnabledIfSystemProperty(named = "RunSlowTests", matches = "group")
+    @Test
+    fun slowGroup() {
+        // Globals.initLogger(LogLevel.INFO)
+        val path =
+            "singleTarget/melee/ww.json"
+        val arr = path.split("/")
+        dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3,4,5, 8,9,12,13, 16,17), false)
+        //dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(17), false)
     }
 
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
     @ParameterizedTest
     @ValueSource(strings = [
-        "multipleTarget/melee/hunter.json",
-        "multipleTarget/melee/wwCC.json",
-        "multipleTarget/melee/ww.json",
         "multipleTarget/melee/gs.json",
         "multipleTarget/melee/gsDex.json",
+        "multipleTarget/melee/hunter.json",
+        "multipleTarget/melee/ww.json",
+        "multipleTarget/melee/wwCC.json",
 
-        "multipleTarget/range/hunter.json",
-        "multipleTarget/range/wwCC.json",
-        "multipleTarget/range/ww.json",
         "multipleTarget/range/gs.json",
         "multipleTarget/range/gsDex.json",
+        "multipleTarget/range/hunter.json",
+        "multipleTarget/range/ww.json",
+        "multipleTarget/range/wwCC.json",
 
-        "singleTarget/melee/hunter.json",
-        "singleTarget/melee/wwCC.json",
-        "singleTarget/melee/ww.json",
         "singleTarget/melee/gs.json",
         "singleTarget/melee/gsDex.json",
+        "singleTarget/melee/hunter.json",
+        "singleTarget/melee/ww.json",
+        "singleTarget/melee/wwCC.json",
 
-        "singleTarget/range/hunter.json",
-        "singleTarget/range/wwCC.json",
-        "singleTarget/range/ww.json",
         "singleTarget/range/gs.json",
-        "singleTarget/range/gsDex.json"
+        "singleTarget/range/gsDex.json",
+        "singleTarget/range/hunter.json",
+        "singleTarget/range/ww.json",
+        "singleTarget/range/wwCC.json",
     ])
     fun testParam(path: String) {
         val arr = path.split("/")

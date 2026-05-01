@@ -31,24 +31,37 @@
     ["Longbow","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":9,"totalDamage":221,"attacks":[
+  { "level": 9, "totalDamage": 261, "attacks": [
+    ["Conjure Barrage"],
+    ["Longbow[DreadfulStrike]","Longbow","Ensnaring Strike"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
-    ["Conjure Animals"],
+    ["Conjure Barrage"]
+  ]},
+
+  { "level": 12, "totalDamage": 305, "attacks": [
+    ["Conjure Barrage"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"]
+  ]},
+
+  { "level": 13, "totalDamage": 315, "attacks": [
+    ["Conjure Barrage"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":12,"totalDamage":227,"attacks":[
-    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
-    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
-    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
-    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
-    ["Conjure Animals"]
-  ]},
+  { "level": 16, "totalDamage": 321, "clone": 13 },
 
-  {"level":13,"totalDamage":239,"clone":12},
-  {"level":16,"totalDamage":251,"clone":12},
-  {"level":17,"totalDamage":262,"clone":12}
-
+  { "level": 17, "totalDamage": 334, "attacks": [
+    ["Conjure Barrage"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Animals"],
+    ["Conjure Barrage"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"]
+  ]}
 ]

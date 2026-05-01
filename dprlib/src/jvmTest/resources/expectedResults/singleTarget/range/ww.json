@@ -38,5 +38,11 @@
     [ "Longbow[PolarStrikes]", "Longbow", "Hail of Thorns" ]
   ] },
 
-  { "level": 17, "totalDamage": 186, "clone": 9 }
+  { "level": 17, "totalDamage": 194, "attacks": [
+    ["Cone of Cold"],
+    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
+    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
+    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
+    ["Conjure Animals"]
+  ]}
 ]

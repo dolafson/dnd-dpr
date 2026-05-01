@@ -25,26 +25,23 @@
 
   {"level": 8, "totalDamage":176,"clone": 5 },
 
-  {"level": 9, "totalDamage":209,"attacks":[
-    ["Longbow","Longbow","Hail of Thorns"],
+  { "level": 9, "totalDamage": 252, "attacks": [
+    ["Conjure Barrage"],
     ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
-    ["Longbow","Longbow","Hail of Thorns"],
-    ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
-    ["Conjure Animals"]
-  ]},
-
-  {"level": 12, "totalDamage":209,"clone": 9},
-
-  {"level": 13, "totalDamage":220,"attacks":[
-    ["Longbow","Longbow","Hail of Thorns"],
-    ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
-    ["Conjure Animals"],
+    ["Conjure Barrage"],
     ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
     ["Longbow","Longbow","Hail of Thorns"]
   ]},
 
-  {"level": 16, "totalDamage":256,"clone": 9},
+  { "level": 12, "totalDamage": 290, "attacks": [
+    ["Conjure Barrage"],
+    ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
+    ["Conjure Barrage"],
+    ["Longbow[ColossusSlayer]","Longbow","Hail of Thorns"],
+    ["Conjure Barrage"]
+  ]},
 
-  {"level": 17, "totalDamage":276,"clone": 9}
-
+  { "level": 13, "totalDamage": 300, "clone": 12 },
+  { "level": 16, "totalDamage": 318, "clone": 12 },
+  { "level": 17, "totalDamage": 334, "clone": 12 }
 ]

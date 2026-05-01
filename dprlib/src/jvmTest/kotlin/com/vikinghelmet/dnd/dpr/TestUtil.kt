@@ -9,10 +9,13 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LogLevel
+import dev.shivathapaa.logger.api.LoggerFactory
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 
 object TestUtil {
+    @Transient private val logger = LoggerFactory.get(TestUtil::class.simpleName ?: "")
 
     init {
         JulConfigurator()
@@ -51,7 +54,14 @@ object TestUtil {
         val scenarioList = ScenarioBuilder(character, Globals.getMonster("Goblin"))
             .build(range, 5, numTargets, DEFAULT_TARGET_RADIUS)
 
+        //println("ScenarioList size: ${scenarioList.size}")
+        logger.debug { "ScenarioList size: ${scenarioList.size}" }
+
         val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+
+        //println("scenarioResultList size: ${scenarioResultList.size}")
+        logger.debug { "scenarioResultList: size = ${ scenarioResultList.size }" }
+
         val topResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
         return SimpleResult(topResult)
     }

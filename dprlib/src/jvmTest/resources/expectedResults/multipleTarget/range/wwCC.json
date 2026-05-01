@@ -25,30 +25,37 @@
 
   {"level":8,"totalDamage":187,"clone": 5},
 
-  {"level":9,"totalDamage":216,"attacks":[
+  { "level": 9, "totalDamage": 268, "attacks": [
+    ["Hold Person"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Conjure Animals"]
+    ["Conjure Barrage"],
+    ["Conjure Barrage"]
   ]},
 
-  {"level":12,"totalDamage":222,"clone": 9},
-  {"level":13,"totalDamage":233,"clone": 9},
+  { "level": 12, "totalDamage": 310, "attacks": [
+    ["Hold Person"],
+    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"]
+  ]},
 
-  {"level":16,"totalDamage":240,"attacks":[
+  { "level": 13, "totalDamage": 315, "clone": 12 },
+
+  { "level": 16, "totalDamage": 323, "attacks": [
+    ["Conjure Barrage"],
+    ["Longbow[PolarStrikes]","Longbow","Ensnaring Strike"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"]
+  ]},
+
+  { "level": 17, "totalDamage": 422, "attacks": [
+    ["Cone of Cold"],
     ["Conjure Animals"],
+    ["Conjure Barrage"],
     ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"]
-  ]},
-
-  {"level":17,"totalDamage":250,"attacks":[
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Conjure Animals"]
+    ["Conjure Barrage"]
   ]}
 ]

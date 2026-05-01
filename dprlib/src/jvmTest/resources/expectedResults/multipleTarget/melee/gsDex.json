@@ -25,24 +25,30 @@
     ["Shortsword","Shortsword","Shortsword"]
   ]},
 
-  {"level":9,"totalDamage":151,"clone":8},
-
-  {"level":12,"totalDamage":158,"attacks":[
+  { "level": 9, "totalDamage": 235, "attacks": [
+    ["Conjure Barrage"],
     ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
-    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
-    ["Shortsword","Shortsword","Shortsword"]
+    ["Conjure Barrage"]
   ]},
 
-  {"level":13,"totalDamage":212,"attacks":[
+  { "level": 12, "totalDamage": 280, "attacks": [
+    ["Conjure Barrage"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Ensnaring Strike"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"]
+  ]},
+
+  { "level": 13, "totalDamage": 359, "attacks": [
+    ["Conjure Barrage"],
     ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
-    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
-    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
     ["Conjure Woodland Beings"]
   ]},
 
-  {"level":16,"totalDamage":218,"clone":13},
-  {"level":17,"totalDamage":227,"clone":13}
+  { "level": 16, "totalDamage": 372, "clone":13 },
+  { "level": 17, "totalDamage": 386, "clone":13 }
 ]

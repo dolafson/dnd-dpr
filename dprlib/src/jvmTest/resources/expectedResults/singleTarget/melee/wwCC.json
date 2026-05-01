@@ -18,16 +18,24 @@
   ] },
 
   { "level": 8, "totalDamage": 136, "clone": 5 },
-  { "level": 9, "totalDamage": 143, "clone": 5 },
-  { "level": 12, "totalDamage": 143, "clone": 5 },
+
+  { "level": 9, "totalDamage": 156, "attacks": [
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Conjure Animals"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"]
+  ]},
+
+  { "level": 12, "totalDamage": 160, "clone":  9 },
 
   { "level": 13, "totalDamage": 203, "attacks": [
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Conjure Woodland Beings" ],
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ]
-  ] },
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Conjure Woodland Beings"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"]
+  ]},
 
   { "level": 16, "totalDamage": 206, "clone": 13 },
 

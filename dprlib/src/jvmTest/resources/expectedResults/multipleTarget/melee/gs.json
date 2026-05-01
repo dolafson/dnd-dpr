@@ -31,31 +31,30 @@
     [ "Shortsword", "Shortsword", "Shortsword" ]
   ] },
 
-  { "level": 9, "totalDamage": 142, "clone": 8 },
+  { "level": 9, "totalDamage": 230, "attacks": [
+    ["Conjure Barrage"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Hunter's Mark"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Conjure Barrage"]
+  ]},
 
-  { "level": 12, "totalDamage": 148, "attacks": [
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Hunter's Mark" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ]
-  ] },
+  { "level": 12, "totalDamage": 283, "attacks": [
+    ["Conjure Barrage"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Ensnaring Strike"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"]
+  ]},
 
-  { "level": 13, "totalDamage": 206, "attacks": [
-    [ "Conjure Woodland Beings" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ]
-  ] },
+  { "level": 13, "totalDamage": 369, "attacks": [
+    ["Conjure Barrage"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Woodland Beings"]
+  ]},
 
-  { "level": 16, "totalDamage": 218, "attacks": [
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[DreadfulStrike]", "Shortsword", "Shortsword" ],
-    [ "Conjure Woodland Beings" ]
-  ] },
-
-  { "level": 17, "totalDamage": 227, "clone": 16 }
+  { "level": 16, "totalDamage": 372, "clone":13 },
+  { "level": 17, "totalDamage": 386, "clone":13 }
 ]
