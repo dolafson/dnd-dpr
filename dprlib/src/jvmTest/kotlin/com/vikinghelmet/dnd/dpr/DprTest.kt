@@ -79,10 +79,10 @@ class DprTest {
     fun slowGroup() {
         // Globals.initLogger(LogLevel.INFO)
         val path =
-            "singleTarget/melee/ww.json"
+            "multipleTarget/melee/gsDex.json"
         val arr = path.split("/")
-        dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3,4,5, 8,9,12,13, 16,17), false)
-        //dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(17), false)
+        //dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3,4,5, 8,9,12,13, 16,17), false)
+        dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(17), false)
     }
 
     @EnabledIfSystemProperty(named = "RunSlowTests", matches = "true")
