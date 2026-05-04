@@ -944,7 +944,7 @@
     "data-List": "false",
     "filter-Tags": "Attack vs AC, Force Damage",
     "Spell Attack": "Melee",
-    "filter-Level": 0,
+    "filter-Level": 5,
     "filter-Range": "30 ft",
     "filter-Ritual": "No",
     "filter-Upcast": "No",
@@ -952,13 +952,13 @@
     "data-datarecords": [
       {
         "name": "Steel Wind Strike",
-        "level": "0",
+        "level": "5",
         "payload": {
           "type": "Spell",
           "name": "Steel Wind Strike",
           "description": "You flourish the weapon used in the casting and then vanish to strike like the wind. Choose up to five creatures you can see within range. Make a melee spell attack against each target. On a hit, a target takes 6d10 Force damage.  You then teleport to an unoccupied space you can see within 5 feet of one of the targets.",
           "upcastText": "",
-          "level": 0,
+          "level": 5,
           "school": "Conjuration",
           "castingTime": "Action",
           "range": "30 ft",
@@ -1003,7 +1003,7 @@
     "filter-Concentration": "No",
     "Name": "Steel Wind Strike",
     "data-description": "You flourish the weapon used in the casting and then vanish to strike like the wind. Choose up to five creatures you can see within range. Make a melee spell attack against each target. On a hit, a target takes 6d10 Force damage.  You then teleport to an unoccupied space you can see within 5 feet of one of the targets.",
-    "Level": 0,
+    "Level": 5,
     "Casting Time": "Action",
     "Duration": "Instantaneous",
     "Range": "30 ft",
