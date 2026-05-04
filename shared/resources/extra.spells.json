@@ -979,6 +979,10 @@
           "description": "Make a melee spell attack against the target. On a hit, the target takes 6d10 Force damage",
           "attack": {
             "type": "Spell Attack"
+          },
+          "aoe":{
+            "shape":"Emanation",
+            "size":"30 foot"
           }
         }
       },

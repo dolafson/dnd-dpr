@@ -662,10 +662,8 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         // Normal Attack DPR (does not include bonus attack):          (B202, F202, J202)
 
-        // Melee or Range attack: 1 target per attack
-        // (ignore 'numTargets' in user input, that only applies to spells with AOE impact)
+        val numTargets = meleeOrRangeAttack.getNumTargetsAffected(scenario)
 
-        val numTargets = 1
         // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
         // we want Advantage last, so it lands in the "max" value
         val attackDPR = AvgMinMax(

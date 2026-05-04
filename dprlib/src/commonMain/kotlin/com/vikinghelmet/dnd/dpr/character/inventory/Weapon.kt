@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.character.inventory
 
 import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.turn.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
@@ -33,6 +34,8 @@ open class Weapon (
     override fun getDamageDice(): DiceBlock {
         return DiceBlockHelper.get(damage)
     }
+
+    override fun getNumTargetsAffected(scenario: Scenario) = 1
 
     fun getPropertyNames() = item.definition.properties?.map {it.name}
 

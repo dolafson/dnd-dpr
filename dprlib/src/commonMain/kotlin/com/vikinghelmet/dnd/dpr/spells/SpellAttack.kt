@@ -45,7 +45,7 @@ data class SpellAttack(
         return attackPayload.aoe.size.replace("Ten","10").replace("[ -].*".toRegex(), "").toInt()
     }
 
-    fun getNumTargetsAffected(scenario: Scenario): Int
+    override fun getNumTargetsAffected(scenario: Scenario): Int
     {
         if (numTargetsOverride != null) {
             return numTargetsOverride!!
