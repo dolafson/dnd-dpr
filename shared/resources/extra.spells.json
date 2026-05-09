@@ -1017,5 +1017,184 @@
   },
   "publisher": "Wizards of the Coast",
   "book": "Free Basic Rules (2024)"
+},
+
+{
+  "name": "Enhance Ability",
+  "description": "2nd level Transmutation Casting Time: 1 action Range: Touch Components: V S M (fur or a feather)) Duration: Concentration, up to 1 hour Classes: Cleric , Ranger, Wizard, Paladin You touch a creature and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability. At Higher Levels: you can target one additional creature for each spell slot level above 2. You can choose a different ability for each target.",
+  "properties": {
+    "Category": "Spells",
+    "Name": "Enhance Ability",
+    "Level": 1,
+    "Range": "Touch",
+    "School": "Transmutation",
+    "Target": "Up to three creatures of your choice within range",
+    "Classes": "Cleric, Ranger, Wizard, Paladin",
+    "Duration": "Up to 1 hour",
+    "Material": "fur or a feather",
+    "data-List": "false",
+    "Components": "V S M",
+    "Casting Time": "1 action",
+    "data-CastNum": 2,
+    "Concentration": "Yes",
+    "data-RangeNum": 0,
+    "data-DurationNum": 3,
+    "data-description": "You touch a creature and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability.",
+    "Higher Spell Slot Desc": "you can target one additional creature for each spell slot level above 2. You can choose a different ability for each target.",
+    "data-RangeAoe": "Touch"
+  },
+  "publisher": "Wizards of the Coast",
+  "book": "Free Basic Rules (2014)"
+},
+
+{
+  "name": "Enhance Ability",
+  "description": "Level 2 Transmutation (Cleric, Ranger, Wizard, Paladin) Casting Time: Action Range: Touch Components: V, S, M (fur or a feather) Duration: Concentration, up to 1 hour You touch a creature and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability before the spell ends. Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2. You can choose a different ability for each target.",
+  "properties": {
+    "Category": "Spells",
+    "School": "Transmutation",
+    "Classes": "Cleric, Ranger, Wizard, Paladin",
+    "Expansion": 33335,
+    "data-List": "false",
+    "filter-Tags": "Buff",
+    "Spell Attack": "None",
+    "filter-Level": 1,
+    "filter-Range": "Touch",
+    "filter-Ritual": "No",
+    "filter-Upcast": "Yes",
+    "filter-Duration": "1 min",
+    "data-datarecords": [
+      {
+        "name": "Enhance Ability",
+        "level": "1",
+        "payload": {
+          "type": "Spell",
+          "name": "Enhance Ability",
+          "description": "You touch a creature and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability.",
+          "upcastText": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2. You can choose a different ability for each target.",
+          "level": 1,
+          "school": "Transmutation",
+          "castingTime": "Action",
+          "range": "Touch",
+          "duration": "Concentration, up to 1 hour",
+          "concentration": true,
+          "components": {
+            "verbal": true,
+            "somatic": true,
+            "material": true,
+            "materialDescription": "fur or a feather"
+          }
+        }
+      },
+      {
+        "name": "Enhance Ability Effect",
+        "parent": "Enhance Ability",
+        "payload": {
+          "type": "Effect",
+          "name": "Enhance Ability",
+          "description": "For the duration, the target has Advantage on ability checks using the chosen ability",
+          "category": [
+            "Ability Checks"
+          ],
+          "diceValue": "1d4"
+        }
+      }
+    ],
+    "filter-Components": "Verbal, Somatic, Material (Cost)",
+    "filter-Casting Time": "Action",
+    "filter-Concentration": "Yes",
+    "Name": "Enhance Ability",
+    "data-description": "You touch a creature and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability before the spell ends",
+    "Level": 1,
+    "Casting Time": "Action",
+    "Concentration": "Yes",
+    "Duration": "up to 1 hour",
+    "Range": "Touch",
+    "Components": "V S M",
+    "Material": "fur or a feather",
+    "Higher Spell Slot Desc": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2. You can choose a different ability for each target.",
+    "data-CastNum": 2,
+    "data-RangeNum": 0
+  },
+  "publisher": "Wizards of the Coast",
+  "book": "Free Basic Rules (2024)"
+},
+
+{
+  "name": "Grasping Vine",
+  "description": "Level 4 Conjuration (Druid, Ranger) Casting Time: Action Range: 60 feet Components: V, S, M (an eggshell and a glove) Duration: Concentration, up to 1 minute You conjure a vine that sprouts from a surface in an unoccupied space that you can see within range. The vine lasts for the duration.  Make a melee spell attack against a creature within 30 feet of the vine. On a hit, the target takes 4d8 Bludgeoning damage and is pulled up to 30 feet toward the vine; if the target is Huge or smaller, it has the Grappled condition (escape DC equal to your spell save DC). The vine can grapple only one creature at a time, and you can cause the vine to release a Grappled creature (no action required).  As a Bonus Action on your later turns, you can repeat the attack against a creature within 30 feet of the vine.  Using a Higher-Level Spell Slot. The number of creatures the vine can grapple increases by one for each spell slot level above 4.",
+  "properties": {
+    "Category": "Spells",
+    "Level": 4,
+    "Range": "60 feet",
+    "School": "Conjuration",
+    "Target": "An target that you can see within range",
+    "Classes": "Druid, Ranger",
+    "Duration": "up to 1 minute",
+    "Material": "none",
+    "Expansion": 33335,
+    "data-List": "false",
+    "Components": "V S",
+    "filter-Tags": "Utility, Dexterity Save, Buff",
+    "Casting Time": "Action",
+    "Spell Attack": "Melee",
+    "filter-Level": 4,
+    "filter-Range": "Far (more than 60 feet)",
+    "Concentration": "Yes",
+    "filter-Ritual": "No",
+    "filter-Upcast": "Yes",
+    "filter-Duration": "1 min",
+    "data-datarecords": [
+      {
+        "name": "Grasping Vine",
+        "level": "4",
+        "payload": {
+          "type": "Spell",
+          "name": "Grasping Vine",
+          "description": "",
+          "upcastText": "Using a Higher-Level Spell Slot. The number of creatures the vine can grapple increases by one for each spell slot level above 4.",
+          "level": 4,
+          "school": "Conjuration",
+          "castingTime": "Action",
+          "range": "60 feet",
+          "duration": "Concentration, up to 1 minute",
+          "concentration": true,
+          "components": {
+            "verbal": true,
+            "somatic": true,
+            "material": false,
+            "materialDescription": "none"
+          }
+        }
+      },
+      {
+        "name": "Grasping Vine Attack",
+        "parent": "Grasping Vine",
+        "payload": {
+          "type": "Attack",
+          "name": "Grasping Vine Attack",
+          "description": "On a hit, the target takes 4d8 Bludgeoning damage and is pulled up to 30 feet toward the vine; if the target is Huge or smaller, it has the Grappled condition (escape DC equal to your spell save DC). The vine can grapple only one creature at a time, and you can cause the vine to release a Grappled creature (no action required).",
+          "save": {
+            "saveAbility": "Dexterity",
+            "onFail": "Target has the Grappled condition, with an escape DC equal to your spell save DC."
+          }
+        }
+      }
+    ],
+    "filter-Components": "Verbal, Somatic",
+    "filter-Casting Time": "Action",
+    "filter-Concentration": "Yes",
+    "Higher Spell Slot Desc": "Using a Higher-Level Spell Slot. The number of creatures the vine can grapple increases by one for each spell slot level above 4.",
+    "Name": "Grasping Vine",
+    "data-description": "",
+    "data-CastNum": 2,
+    "data-RangeNum": 60,
+    "data-AttackType": "Spell Attack",
+    "Damage": "4d8",
+    "Damage Type": "Bludgeoning",
+    "data-RangeAoe": "60 feet"
+  },
+  "publisher": "Wizards of the Coast",
+  "book": "Free Basic Rules (2024)"
 }
 ]
