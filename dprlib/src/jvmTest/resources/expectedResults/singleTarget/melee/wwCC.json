@@ -39,12 +39,11 @@
 
   { "level": 16, "totalDamage": 206, "clone": 13 },
 
-  { "level": 17, "totalDamage": 225, "attacks": [
-    [ "Cone of Cold" ],
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Shortsword[PolarStrikes]", "Shortsword", "Shortsword" ],
-    [ "Conjure Woodland Beings" ]
-  ] }
-
+  { "level": 17, "totalDamage": 220, "attacks": [
+    ["Conjure Woodland Beings"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Shortsword[PolarStrikes]","Shortsword","Shortsword"],
+    ["Steel Wind Strike"]
+  ]}
 ]

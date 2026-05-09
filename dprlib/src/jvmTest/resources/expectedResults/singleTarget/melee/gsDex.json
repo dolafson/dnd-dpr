@@ -43,5 +43,11 @@
   ]},
 
   {"level":16,"totalDamage":218,"clone":13},
-  {"level":17,"totalDamage":227,"clone":13}
+  { "level": 17, "totalDamage": 234, "attacks": [
+    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Shortsword[DreadfulStrike]","Shortsword","Shortsword"],
+    ["Steel Wind Strike"],
+    ["Conjure Woodland Beings"]
+  ]}
 ]

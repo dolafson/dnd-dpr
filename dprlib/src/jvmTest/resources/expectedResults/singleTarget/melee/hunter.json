@@ -38,5 +38,12 @@
   ] },
 
   { "level": 16, "totalDamage": 188, "clone": 13 },
-  { "level": 17, "totalDamage": 197, "clone": 13 }
+
+  { "level": 17, "totalDamage": 209, "attacks": [
+    ["Conjure Woodland Beings"],
+    ["Shortsword[ColossusSlayer]","Shortsword","Shortsword"],
+    ["Shortsword","Shortsword","Shortsword"],
+    ["Shortsword[ColossusSlayer]","Shortsword","Shortsword"],
+    ["Steel Wind Strike"]
+  ]}
 ]

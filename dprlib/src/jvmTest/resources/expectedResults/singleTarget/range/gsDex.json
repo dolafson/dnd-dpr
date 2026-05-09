@@ -56,5 +56,11 @@
     ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"]
   ]},
 
-  {"level":17,"totalDamage":204,"clone": 12}
+  { "level": 17, "totalDamage": 206, "attacks": [
+    ["Conjure Volley"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
+    ["Conjure Animals"]
+  ]}
 ]

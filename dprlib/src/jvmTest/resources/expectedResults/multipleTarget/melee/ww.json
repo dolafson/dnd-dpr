@@ -52,11 +52,11 @@
     ["Ice Storm"]
   ]},
 
-  { "level": 17, "totalDamage": 496, "attacks": [
+  { "level": 17, "totalDamage": 518, "attacks": [
+    ["Hold Person"],
     ["Conjure Barrage"],
     ["Conjure Barrage"],
     ["Conjure Barrage"],
-    ["Conjure Woodland Beings"],
-    ["Cone of Cold"]
+    ["Steel Wind Strike"]
   ]}
 ]

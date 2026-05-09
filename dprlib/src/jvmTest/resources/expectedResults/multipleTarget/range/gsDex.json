@@ -57,11 +57,11 @@
 
   { "level": 16, "totalDamage": 321, "clone": 13 },
 
-  { "level": 17, "totalDamage": 334, "attacks": [
+  { "level": 17, "totalDamage": 425, "attacks": [
     ["Conjure Barrage"],
-    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"],
-    ["Conjure Animals"],
+    ["Longbow[DreadfulStrike]","Longbow","Ensnaring Strike"],
     ["Conjure Barrage"],
-    ["Longbow[DreadfulStrike]","Longbow","Hail of Thorns"]
+    ["Conjure Barrage"],
+    ["Steel Wind Strike"]
   ]}
 ]

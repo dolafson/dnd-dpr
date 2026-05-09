@@ -38,5 +38,12 @@
   ]},
 
   { "level": 16, "totalDamage": 345, "clone": 13 },
-  { "level": 17, "totalDamage": 358, "clone": 13 }
+
+  { "level": 17, "totalDamage": 457, "attacks": [
+    ["Conjure Volley"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Conjure Woodland Beings"]
+  ]}
 ]

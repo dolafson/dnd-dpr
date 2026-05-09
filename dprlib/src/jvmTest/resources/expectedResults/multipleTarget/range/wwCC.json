@@ -51,11 +51,11 @@
     ["Conjure Barrage"]
   ]},
 
-  { "level": 17, "totalDamage": 422, "attacks": [
-    ["Cone of Cold"],
-    ["Conjure Animals"],
+  { "level": 17, "totalDamage": 518, "attacks": [
+    ["Hold Person"],
     ["Conjure Barrage"],
-    ["Longbow[PolarStrikes]","Longbow","Hail of Thorns"],
-    ["Conjure Barrage"]
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Steel Wind Strike"]
   ]}
 ]

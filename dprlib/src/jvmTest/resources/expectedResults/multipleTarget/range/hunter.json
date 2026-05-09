@@ -43,5 +43,12 @@
 
   { "level": 13, "totalDamage": 300, "clone": 12 },
   { "level": 16, "totalDamage": 318, "clone": 12 },
-  { "level": 17, "totalDamage": 334, "clone": 12 }
+
+  { "level": 17, "totalDamage": 404, "attacks": [
+    ["Conjure Barrage"],
+    ["Longbow[ColossusSlayer]","Longbow","Ensnaring Strike"],
+    ["Conjure Barrage"],
+    ["Conjure Barrage"],
+    ["Steel Wind Strike"]
+  ]}
 ]
