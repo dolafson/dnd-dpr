@@ -10,12 +10,14 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @Serializable
 data class Definition(
     val name: String,
+    val type: String? = null,
     val filterType: String,
     val magic: Boolean,
 
     // val type: String,
 
     val armorClass: Int? = null,
+    val armorTypeId: Int? = null,
     val attackType: Int? = null,
 
     val damage: com.vikinghelmet.dnd.dpr.character.inventory.Damage? = null,

@@ -34,6 +34,16 @@ class PlayerCharacterTest {
     }
 
     @Test
+    fun getACTest() {
+        assertEquals(12, TestUtil.eldir.getAC())
+        assertEquals(18, TestUtil.kael.getAC())
+        assertEquals(16, TestUtil.leif.getAC())
+        assertEquals(14, TestUtil.oleg.getAC())
+        assertEquals(14, TestUtil.rhogar.getAC())
+        assertEquals(15, TestUtil.lars.getAC())
+    }
+
+    @Test
     fun getRawAbilityScoreMapTest() {
         assertEquals(abilityMap(listOf(12, 15, 15, 17, 12, 12)), TestUtil.eldir.getRawAbilityScoreMap())
         assertEquals(abilityMap(listOf(10, 14, 10, 17, 16, 12)), TestUtil.kael.getRawAbilityScoreMap())

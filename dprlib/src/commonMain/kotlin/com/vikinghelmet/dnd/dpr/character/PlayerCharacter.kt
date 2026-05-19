@@ -9,6 +9,7 @@ import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
+import com.vikinghelmet.dnd.dpr.character.inventory.ArmorType
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
@@ -158,7 +159,39 @@ open class PlayerCharacter(
     // ----------------------------------------------------------------------------------------
     // COMBAT MODIFIERS
 
-    override fun getAC(): Int = 0 // TODO
+    override fun getAC(): Int { // TODO: support for magic items that improve AC ?
+        var armorClassSum = 0
+        var armorType = ArmorType.Unarmored
+
+        characterData.inventory?.filter { it.equipped == true }?.forEach { item ->
+            val def = item.definition
+            if (def.filterType == "Armor") {
+                armorClassSum += (def.armorClass ?: 0)
+                if (def.armorTypeId != null) {
+                    val thisArmorType = ArmorType.entries[def.armorTypeId]
+                    if (thisArmorType != ArmorType.Shield) {
+                        armorType = thisArmorType
+                    }
+                }
+            }
+        }
+
+        val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
+        val conBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Constitution)] ?: 0
+
+        when (armorType) {
+            ArmorType.Unarmored -> {
+                armorClassSum = 10 + dexBonus
+                if (hasUnarmoredDefense()) armorClassSum += conBonus
+            }
+            ArmorType.LightArmor -> armorClassSum += dexBonus
+            ArmorType.MediumArmor -> armorClassSum += kotlin.math.max(dexBonus, 2)
+            ArmorType.HeavyArmor -> {} // no dex bonus
+            else -> {}
+        }
+        return armorClassSum
+    }
+
     fun getSpellAbilityType(): AbilityType? {
         val abilityId: Int = characterData.classes.first().definition.spellCastingAbilityId ?: return null
         return AbilityType.entries[abilityId]
@@ -531,6 +564,10 @@ open class PlayerCharacter(
         // most martial classes get one extra at level 5, and thats it
         // fighters get an extra at L5, another at L11, and a third at L20
         return getClassFeaturesByLevel().filter { it.key.contains("Extra Attack") && it.value <= getLevel() }.count()
+    }
+
+    fun hasUnarmoredDefense(): Boolean {
+        return getClassFeaturesByLevel().any { it.key.contains("Unarmored Defense") }
     }
 
     fun getLevelsForFightingStyle(): List<Int> {
