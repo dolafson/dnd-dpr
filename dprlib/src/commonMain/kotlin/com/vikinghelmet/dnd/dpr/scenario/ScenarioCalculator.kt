@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.character.Combatant
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
@@ -86,7 +86,7 @@ class ScenarioCalculator(
 */
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
             val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.nickname, weapon.item) {
-                override fun getBonusDamage(playerCharacter: PlayerCharacter, isBonusAction: Boolean) = 0
+                override fun getBonusDamage(combatant: Combatant, isBonusAction: Boolean) = 0
             }
 
             val secondAttack = Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))

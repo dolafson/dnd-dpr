@@ -74,15 +74,15 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 {
     val logger = LoggerFactory.get(ActionCalculator::class.simpleName ?: "no simpleName")
 
-    val character = scenario.playerCharacter
-    val effectSaveDC = character.getSpellSaveDC()
-    val isLucky = character.isLucky()
+    val combatant = scenario.playerCharacter
+    val effectSaveDC = combatant.getSpellSaveDC()
+    val isLucky = combatant.isLucky()
 
     fun debug() { logger.debug { "" } }
     fun debug(str:String) { logger.debug { str } }
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
-        val avg = averageDamage(diceBlock, bonusDamage, character.isGreatWeaponFighting(), character.isElementalAdept())
+        val avg = averageDamage(diceBlock, bonusDamage, combatant.isGreatWeaponFighting(), combatant.isElementalAdept())
         val min = diceBlock.min()+bonusDamage.toFloat()
         val max = diceBlock.max()+bonusDamage.toFloat()
         return AvgMinMax(avg, min, max)
@@ -390,7 +390,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             AvgMinMax(0f,0f,0f,0f),
             AvgMinMax(duration, duration, duration,duration),
             AvgMinMax(0f,0f,0f,0f),
-            playerCharacter = character, attack = attack,
+            combatant = combatant, attack = attack,
             startEffects = effectManager.toString(),
             startCondition = effectManager.toStringConditions()
         )
@@ -429,7 +429,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             debug("spell save ability      = $ability")
             targetSaveBonus = attack.monster.getAbilityModifier(ability)
             debug("target save proficiency = $targetSaveBonus")
-            debug("spell caster save DC    = "+character.getSpellSaveDC())
+            debug("spell caster save DC    = "+combatant.getSpellSaveDC())
             debug("spell save result:      = $saveResult")
             debug()
         }
@@ -461,7 +461,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             val result = AttackResult(
                 numberOfTargets, chanceToHit, AvgMinMax(0f,0f,0f),
                 AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f),
-                playerCharacter = character, attack = attack,
+                combatant = combatant, attack = attack,
                 startEffects = effectManager.toString(),
                 startCondition = effectManager.toStringConditions()
             )
@@ -579,7 +579,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             averageDPR,
             averageDuration,
             averageTotalDamageOverTime,
-            playerCharacter = character,
+            combatant = combatant,
             attack = attack,
             startEffects = effectManager.toString(),
             startCondition = effectManager.toStringConditions()
@@ -602,10 +602,10 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
         val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
         val isBonusAction = attack.isBonusAction ?: false
-        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(character, isBonusAction)
+        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(combatant, isBonusAction)
         debug()
 
-        val attackBonus = meleeOrRangeAttack.getBonusToHit(character, isBonusAction)
+        val attackBonus = meleeOrRangeAttack.getBonusToHit(combatant, isBonusAction)
 
         debug("target AC:     "+attack.monster.getAC())
         debug("attack Bonus:  "+attackBonus)
@@ -622,7 +622,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val AC = attack.monster.getAC()
 
         val autoHit = 20 // for a champion, this could be 19 or 18      // E13
-        val isElemental = character.isElementalAdept()
+        val isElemental = combatant.isElementalAdept()
 
         // # Hit%:     (Y6, AC6, AG6) -> (B199, F199, J199)
         // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
@@ -654,9 +654,9 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
         // we want Advantage last, so it lands in the "max" value
         val critChance = if (effectManager.isAutoCrit()) chanceToHit.copy() else AvgMinMax(
-            critChance(autoHit, "No Advantage", character.isElementalAdept(), isLucky),
-            critChance(autoHit, "Disadvantage", character.isElementalAdept(), isLucky),
-            critChance(autoHit, "Advantage", character.isElementalAdept(), isLucky),
+            critChance(autoHit, "No Advantage", combatant.isElementalAdept(), isLucky),
+            critChance(autoHit, "Disadvantage", combatant.isElementalAdept(), isLucky),
+            critChance(autoHit, "Advantage", combatant.isElementalAdept(), isLucky),
         )
         logger.debug{"Crit %Hit: "+critChance}
 
@@ -684,7 +684,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         */
 
         var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR,
-            playerCharacter = character, attack = attack, startEffects = effectManager.toString(), startCondition = effectManager.toStringConditions())
+            combatant = combatant, attack = attack, startEffects = effectManager.toString(), startCondition = effectManager.toStringConditions())
 
         result.select (effectManager.attackerHasAdvantage()?.probability ?: 0f)
         result.update(turnId, actionId, effect)

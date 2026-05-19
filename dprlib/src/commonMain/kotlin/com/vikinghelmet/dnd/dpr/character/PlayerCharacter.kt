@@ -38,26 +38,23 @@ open class PlayerCharacter(
     val id: Int? = null,
     val message: String? = null,
     val success: Boolean? = null
-) {
+) : Combatant {
     @Transient private val logger = LoggerFactory.get(PlayerCharacter::class.simpleName ?: "")
 
     var alwaysPrepared: List<PreparedSpellRemote> = mutableListOf()
 
     open fun getAlwaysPreparedSpells(): List<PreparedSpellRemote> = alwaysPrepared
 
-    open fun getName(): String {
+    override fun getName(): String {
         return characterData.name
     }
 
-    open fun getLevel(): Int {
+    override fun getLevel(): Int {
         return characterData.classes.first().level
     }
 
     fun getJson(): String {
         return Json.encodeToString(this)
-    }
-    fun dump() {
-        println(getJson())
     }
 
     // ----------------------------------------------------------------------------------------
@@ -121,11 +118,11 @@ open class PlayerCharacter(
         return false
     }
 
-    fun isLucky(): Boolean {
+    override fun isLucky(): Boolean {
         return isRacialTraitEnabled (RacialTrait.Luck)
     }
 
-    fun isElvenAccuracy(): Boolean {
+    override fun isElvenAccuracy(): Boolean {
         return isRacialTraitEnabled (RacialTrait.ElvenAccuracy)
     }
 
@@ -135,11 +132,11 @@ open class PlayerCharacter(
      * damage type, effectively doubling damage against resistant targets. This feat increases average damage
      * slightly, particularly with multi-die spells.
      */
-    fun isElementalAdept(): Boolean {
+    override fun isElementalAdept(): Boolean {
         return isFeatEnabled(Feat.ElementalAdept)
     }
 
-    fun isGreatWeaponFighting(): Boolean {
+    override fun isGreatWeaponFighting(): Boolean {
         return isFeatEnabled(Feat.GreatWeaponFighting)
     }
 
@@ -161,6 +158,7 @@ open class PlayerCharacter(
     // ----------------------------------------------------------------------------------------
     // COMBAT MODIFIERS
 
+    override fun getAC(): Int = 0 // TODO
     fun getSpellAbilityType(): AbilityType? {
         val abilityId: Int = characterData.classes.first().definition.spellCastingAbilityId ?: return null
         return AbilityType.entries[abilityId]
@@ -172,10 +170,10 @@ open class PlayerCharacter(
             Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
         }
     }
-    fun getSpellBonusToHit(): Int {
+    override fun getSpellBonusToHit(): Int {
         return getSpellAbilityBonusWithoutPB() + getProficiencyBonus()
     }
-    fun getSpellSaveDC(): Int {
+    override fun getSpellSaveDC(): Int {
         return 8 + getSpellBonusToHit()
     }
 
@@ -200,13 +198,13 @@ open class PlayerCharacter(
         else dexBonus
     }
 
-    fun getAttackBonus(w: Weapon): Int {
+    override fun getAttackBonus(w: Weapon): Int {
         val statBonus = getAbilityWeaponBonus(w)
         val weaponTypeBonus = if (w.attackType == 2) getRangeAttackModifiers() else 0  // TODO: melee attack bonuses ?
         return statBonus + getProficiencyBonus() + weaponTypeBonus // for now assume proficiency in all weapons
     }
 
-    fun getDamageBonus(w: Weapon, isBA: Boolean): Int {
+    override fun getDamageBonus(w: Weapon, isBA: Boolean): Int {
         if (isBA && !isFeatEnabled(Feat.TwoWeaponFighting)) {
             logger.debug { "isBA, and TWF is not enabled" }
             return 0
@@ -233,7 +231,7 @@ open class PlayerCharacter(
         return result
     }
 
-    fun getWeaponList(): List<Weapon> {
+    override fun getWeaponList(): List<Weapon> {
         val list = mutableListOf<Weapon>()
 
         if (characterData.inventory == null) return list
@@ -392,7 +390,7 @@ open class PlayerCharacter(
     // ----------------------------------------------------------------------------------------
     // ACTIONS (spells or weapons)
 
-    fun getActionsAvailable(): ActionsAvailable {
+    override fun getActionsAvailable(): ActionsAvailable {
         val actionsAvailable = ActionsAvailable()
         val weaponListNames = mutableListOf<String>()
 
@@ -433,7 +431,7 @@ open class PlayerCharacter(
         return actionsAvailable
     }
 
-    fun getActionModifiersAvailable(): List<ActionModifier> {
+    override fun getActionModifiersAvailable(): List<ActionModifier> {
         val result = mutableListOf<ActionModifier>()
         val nameList = (
             characterData.actions.race.map { it.name } +
@@ -453,7 +451,7 @@ open class PlayerCharacter(
         return result
     }
 
-    fun getActionList(): List<ActionAdded> {
+    override fun getActionList(): List<ActionAdded> {
         return (characterData.actions.race +
                 characterData.actions.feat +
                 characterData.actions.classActions
@@ -529,7 +527,7 @@ open class PlayerCharacter(
         return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
     }
 
-    fun getExtraAttacks(): Int {
+    override fun getExtraAttacks(): Int {
         // most martial classes get one extra at level 5, and thats it
         // fighters get an extra at L5, another at L11, and a third at L20
         return getClassFeaturesByLevel().filter { it.key.contains("Extra Attack") && it.value <= getLevel() }.count()
