@@ -3,7 +3,7 @@ package com.vikinghelmet.dnd.dprapp.data
 import androidx.compose.ui.graphics.Color
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.PlanLevel
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -32,7 +32,7 @@ class PlanViewLevel(
     var asi1: AbilityType? = planLevel.asi1
     var asi2: AbilityType? = planLevel.asi2
 
-    constructor(level: Int, c: EditableCharacter) : this(
+    constructor(level: Int, c: EditablePlayerCharacter) : this(
         level,
         c.editableFields.plan["$level"]!!,
         c.getLevelsForAbilityIncrease().contains(level),
@@ -96,7 +96,7 @@ class PlanViewLevel(
 
 data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
 {
-    var character: EditableCharacter? = null // save for later use
+    var character: EditablePlayerCharacter? = null // save for later use
 
     override fun toString(): String {
         val buf = StringBuilder()
@@ -104,7 +104,7 @@ data class PlanViewModel(var plan: MutableList<PlanViewLevel> = mutableListOf())
         return "[$buf]"
     }
 
-    constructor(character: EditableCharacter) : this() {
+    constructor(character: EditablePlayerCharacter) : this() {
         this.character = character
         for (tmpLevel in Constants.CHARACTER_LEVELS) {
             // println("planViewConstructor, adding level = $tmpLevel")

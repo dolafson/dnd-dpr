@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatEligibility
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -19,7 +19,7 @@ import com.vikinghelmet.dnd.dprapp.data.PlanViewLevel
 @Composable
 fun FeatMenu(
     preselectedValues: PlanViewLevel,
-    character: Character,
+    playerCharacter: PlayerCharacter,
     fightingStyleOnly: Boolean = false,
     onValueChanged: (Feat, AbilityType?, AbilityType?) -> Unit
 )
@@ -28,7 +28,7 @@ fun FeatMenu(
     var asi1 = remember { mutableStateOf<AbilityType?>(preselectedValues.asi1) }
     var asi2 = remember { mutableStateOf<AbilityType?>(preselectedValues.asi2) }
 
-    val featNamesWithColor = FeatEligibility.getListByCharacter(character).filter {
+    val featNamesWithColor = FeatEligibility.getListByCharacter(playerCharacter).filter {
         !fightingStyleOnly || it.isFightingStyle
     }.map {
         Pair(it.getNameWithWS(), if (it.fullSupport) Color.Blue else Color.LightGray)

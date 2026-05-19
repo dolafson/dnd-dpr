@@ -16,7 +16,7 @@
 package com.vikinghelmet.dnd.dprapp
 
 import androidx.lifecycle.ViewModel
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.NumericRange
@@ -32,9 +32,9 @@ class DprViewModel : ViewModel() {
 
     fun getProximity(): Int = _uiState.value.proximity
     fun getNumberOfTurns(): NumericRange = _uiState.value.numberOfTurns
-    fun getMainCharacter(): EditableCharacter? = _uiState.value.mainCharacter
+    fun getMainCharacter(): EditablePlayerCharacter? = _uiState.value.mainCharacter
     fun getMainMonster(): Monster? = _uiState.value.mainMonster
-    fun getCurrentCharacter(): EditableCharacter? = _uiState.value.currentCharacter
+    fun getCurrentCharacter(): EditablePlayerCharacter? = _uiState.value.currentCharacter
     fun getCurrentMonster(): Monster? = _uiState.value.currentMonster
     fun getCharacterLevel(): NumericRange = _uiState.value.characterLevel
     fun getScenarioResultList(): List<ScenarioResult>? = _uiState.value.scenarioResultList
@@ -50,7 +50,7 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setMainCharacter(mainCharacter: EditableCharacter?) {
+    fun setMainCharacter(mainCharacter: EditablePlayerCharacter?) {
         _uiState.update { currentState ->
             currentState.copy(mainCharacter = mainCharacter)
         }
@@ -62,7 +62,7 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setCurrentCharacter(currentCharacter: EditableCharacter?) {
+    fun setCurrentCharacter(currentCharacter: EditablePlayerCharacter?) {
         _uiState.update { currentState ->
             currentState.copy(currentCharacter = currentCharacter)
         }

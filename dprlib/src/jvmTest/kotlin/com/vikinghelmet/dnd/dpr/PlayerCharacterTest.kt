@@ -1,13 +1,13 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-class CharacterTest {
+class PlayerCharacterTest {
     @Test
     fun getNameTest() {
         assertEquals("Eldir Ashenfell", TestUtil.eldir.getName())
@@ -194,7 +194,7 @@ class CharacterTest {
         assertTrue (TestUtil.rhogar.getRacialTraitNameList().containsAll(listOf("Draconic Ancestry", "Breath Weapon", "Damage Resistance", "Draconic Flight")))
     }
 
-    fun getClassFeaturesExceptFirstLevelAndASI(c: Character) =
+    fun getClassFeaturesExceptFirstLevelAndASI(c: PlayerCharacter) =
         c.getClassFeaturesByLevel().filter { it.value > 1 && !it.key.contains("Ability Score")}
 
     @Test

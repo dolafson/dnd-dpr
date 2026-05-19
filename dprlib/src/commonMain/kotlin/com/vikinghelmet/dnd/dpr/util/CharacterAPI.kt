@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.util
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -69,24 +69,24 @@ object CharacterAPI {
         else null
     }
 
-    suspend fun getRemoteCharacterByUrl(url: String): Pair<String, Character> {
+    suspend fun getRemoteCharacterByUrl(url: String): Pair<String, PlayerCharacter> {
         val json = getRequest(url)
         return Pair(json, getRemoteCharacterFromJson(json))
     }
 
-    suspend fun getRemoteCharacterFromJson(json: String): Character {
-        val character: Character = Json.Default.decodeFromString(json)
-        character.alwaysPrepared = getAlwaysPreparedSpellList(character)
-        return character
+    suspend fun getRemoteCharacterFromJson(json: String): PlayerCharacter {
+        val playerCharacter: PlayerCharacter = Json.Default.decodeFromString(json)
+        playerCharacter.alwaysPrepared = getAlwaysPreparedSpellList(playerCharacter)
+        return playerCharacter
     }
 
-    suspend fun updateAlwaysPrepared(character: Character) {
-        character.alwaysPrepared = getAlwaysPreparedSpellList(character)
+    suspend fun updateAlwaysPrepared(playerCharacter: PlayerCharacter) {
+        playerCharacter.alwaysPrepared = getAlwaysPreparedSpellList(playerCharacter)
     }
 
     // this method is needed to support a 2014 Cleric; not clear yet if it has wider utility
-    suspend fun getAlwaysPreparedSpellList(character: Character): List<PreparedSpellRemote> {
-        val params = character.getApiRequestParameters()
+    suspend fun getAlwaysPreparedSpellList(playerCharacter: PlayerCharacter): List<PreparedSpellRemote> {
+        val params = playerCharacter.getApiRequestParameters()
 
         if (params.isIncomplete()) return mutableListOf()
 

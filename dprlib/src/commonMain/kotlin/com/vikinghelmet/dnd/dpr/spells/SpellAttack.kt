@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.spells
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
@@ -66,12 +66,12 @@ data class SpellAttack(
         return kotlin.math.min (scenario.numTargets, numTargetsInArea)
     }
 
-    override fun getBonusDamage(character: Character, isBonusAction: Boolean): Int {
+    override fun getBonusDamage(playerCharacter: PlayerCharacter, isBonusAction: Boolean): Int {
         return 0
     }
 
-    override fun getBonusToHit(character: Character, isBonusAction: Boolean): Int {
-        return character.getSpellBonusToHit()
+    override fun getBonusToHit(playerCharacter: PlayerCharacter, isBonusAction: Boolean): Int {
+        return playerCharacter.getSpellBonusToHit()
     }
 
     override fun getDamageDice(): DiceBlock {

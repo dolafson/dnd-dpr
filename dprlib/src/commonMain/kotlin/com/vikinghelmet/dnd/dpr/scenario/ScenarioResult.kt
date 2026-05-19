@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -11,7 +11,7 @@ data class ScenarioResult(
     val attackResults: List<AttackResult>,
     val totalDamage: Float = 0f,
 ) {
-    @Transient private val logger = LoggerFactory.get(Character::class.simpleName ?: "")
+    @Transient private val logger = LoggerFactory.get(PlayerCharacter::class.simpleName ?: "")
 
     override fun equals(other: Any?): Boolean {
         if (other == null || other !is ScenarioResult) return false

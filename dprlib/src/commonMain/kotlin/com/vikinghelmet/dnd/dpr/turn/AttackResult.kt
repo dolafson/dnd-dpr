@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.turn
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultField.*
@@ -17,7 +17,7 @@ data class AttackResult(
     val duration: AvgMinMax,
     val damageFullEffect: AvgMinMax, // for entire duration of spell, and/or sum across multiple targets
 
-    var character: Character,
+    var playerCharacter: PlayerCharacter,
     var attack: Attack,
     var startEffects: String,
     var startCondition: String,
@@ -58,7 +58,7 @@ data class AttackResult(
           AvgMinMax (0f,0f,0f,probableResult (damagePerRound.final, secondary.damagePerRound.final, chanceOfSuccess)),
           AvgMinMax (0f,0f,0f,probableResult (duration.final,         secondary.duration.final, chanceOfSuccess)),
           AvgMinMax (0f,0f,0f,probableResult (damageFullEffect.final, secondary.damageFullEffect.final, chanceOfSuccess)),
-          character, attack, startEffects, startCondition, turnId, actionId, effectId, spellAttack)
+          playerCharacter, attack, startEffects, startCondition, turnId, actionId, effectId, spellAttack)
     }
 
     fun dpr(): Float {
@@ -79,16 +79,16 @@ data class AttackResult(
         val saveAbility = spellAttack?.getSaveAbility()
 
         return when (field) {
-            level           -> character.getLevel()
-            characterName   -> character.getName()
-            spellSaveDC     -> character.getSpellSaveDC()
+            level           -> playerCharacter.getLevel()
+            characterName   -> playerCharacter.getName()
+            spellSaveDC     -> playerCharacter.getSpellSaveDC()
 
             monsterName -> this.attack.monster.name
             monsterAC   -> this.attack.monster.getAC()
 
             damageDice  -> meleeOrRangeAction.getDamageDice()
-            damageBonus -> meleeOrRangeAction.getBonusDamage(character, this.attack.isBonusAction ?: false)
-            attackBonus -> meleeOrRangeAction.getBonusToHit(character, this.attack.isBonusAction ?: false)
+            damageBonus -> meleeOrRangeAction.getBonusDamage(playerCharacter, this.attack.isBonusAction ?: false)
+            attackBonus -> meleeOrRangeAction.getBonusToHit(playerCharacter, this.attack.isBonusAction ?: false)
 
             spellSaveAbility -> saveAbility ?: ""
             targetSaveBonus  -> if (saveAbility == null) "" else this.attack.monster.getAbilityModifier(saveAbility)

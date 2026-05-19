@@ -2,7 +2,7 @@
 
 package com.vikinghelmet.dnd.dpr.editable
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -21,7 +21,7 @@ data class EditableFields (
     var plan: MutableMap<String,PlanLevel> = mutableMapOf(),
     var alwaysPreparedSpells: List<PreparedSpellRemote> = mutableListOf()
 ){
-    constructor(name: String, character: EditableCharacter, characterLevel: NumericRange): this(character)
+    constructor(name: String, character: EditablePlayerCharacter, characterLevel: NumericRange): this(character)
     {
         this.level = characterLevel.current
         this.name = name
@@ -29,20 +29,20 @@ data class EditableFields (
         this.plan = Json.decodeFromString (Json.encodeToString (character.editableFields.plan))
     }
 
-    constructor(character: Character): this(
-        character.characterData.id!!.toString(),
-        character.getLevel(),
-        character.getName(),
+    constructor(playerCharacter: PlayerCharacter): this(
+        playerCharacter.characterData.id!!.toString(),
+        playerCharacter.getLevel(),
+        playerCharacter.getName(),
         mutableMapOf(),
-        character.getAlwaysPreparedSpells())
+        playerCharacter.getAlwaysPreparedSpells())
     {
         // set up iterators to populate plan with pre-selected values
-        val asiFeatIterator = character.getFeatAddedList().filter { it.isASI() }.mapNotNull { it.getFeat() }.iterator()
+        val asiFeatIterator = playerCharacter.getFeatAddedList().filter { it.isASI() }.mapNotNull { it.getFeat() }.iterator()
 
         val spellLevelMap = mutableMapOf<Int,Iterator<Spell>>()
         for (spellLevel in Constants.SPELL_LEVELS) {
             // we want to populate the plan with spells, but not the always prepared ones
-            spellLevelMap[spellLevel] = character.getPreparedSpells().filter {
+            spellLevelMap[spellLevel] = playerCharacter.getPreparedSpells().filter {
                 !it.alwaysPrepared && !it.isRitual() && it.properties.Level == spellLevel
             }.iterator()
         }
@@ -51,22 +51,22 @@ data class EditableFields (
             val planLevel = PlanLevel()
             plan.put("$tmpLevel", planLevel)
 
-            if (character.getLevelsForFightingStyle().contains(tmpLevel)) {
+            if (playerCharacter.getLevelsForFightingStyle().contains(tmpLevel)) {
                 // addFS
-                planLevel.feat = character.getFeatAddedList()
+                planLevel.feat = playerCharacter.getFeatAddedList()
                     .filter { it.isFightingStyle() }
                     .mapNotNull { it.getFeat() }
                     .firstOrNull()
             }
-            else if (character.getLevelsForAbilityIncrease().contains(tmpLevel)) {
+            else if (playerCharacter.getLevelsForAbilityIncrease().contains(tmpLevel)) {
                 planLevel.feat = if (asiFeatIterator.hasNext()) asiFeatIterator.next() else null
             }
 
-            if (character.getSubclassLevel() == tmpLevel) {
-                planLevel.subclass = character.getSubclassName()
+            if (playerCharacter.getSubclassLevel() == tmpLevel) {
+                planLevel.subclass = playerCharacter.getSubclassName()
             }
 
-            val newSlots = character.getSpellSlotsGainedAtCharacterLevel(tmpLevel)
+            val newSlots = playerCharacter.getSpellSlotsGainedAtCharacterLevel(tmpLevel)
             val spells = mutableListOf<String>()
 
             for (id in newSlots.indices) repeat (newSlots[id]) {
@@ -75,7 +75,7 @@ data class EditableFields (
                 spells.add (if (iter != null && iter.hasNext()) iter.next().name else "")
             }
 
-            if (tmpLevel == character.getLevel()) {
+            if (tmpLevel == playerCharacter.getLevel()) {
                 // check for any spells from dndbeyond character not assigned to a slot ...
                 // ( this happens with Kael at char level 2, they have 1 extra 1st level spell i can't account for )
                 // remainder should be assigned to characters current level (not a future level!)
@@ -85,7 +85,7 @@ data class EditableFields (
                     if (iterator.hasNext()) {
                         val remainder = mutableListOf<String>()
                         while (iterator.hasNext()) remainder.add(iterator.next().name)
-                        println ("editableFields: assigning 'remainder' spell to level=${ character.getLevel() }, remainder=$remainder")
+                        println ("editableFields: assigning 'remainder' spell to level=${ playerCharacter.getLevel() }, remainder=$remainder")
                         println("before rmdr, spells = ${ spells }")
                         spells += remainder
                         println("after rmdr, spells = ${ spells }")

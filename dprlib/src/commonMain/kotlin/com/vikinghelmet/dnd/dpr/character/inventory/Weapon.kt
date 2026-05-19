@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.character.inventory
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.turn.MeleeOrRangeAction
@@ -23,12 +23,12 @@ open class Weapon (
 
     override fun getActionName(): String { return name }
 
-    override fun getBonusDamage(character: Character, isBonusAction: Boolean): Int {
-        return getMagicBonus() + character.getDamageBonus(this, isBonusAction)
+    override fun getBonusDamage(playerCharacter: PlayerCharacter, isBonusAction: Boolean): Int {
+        return getMagicBonus() + playerCharacter.getDamageBonus(this, isBonusAction)
     }
 
-    override fun getBonusToHit(character: Character, isBonusAction: Boolean): Int {
-        return getMagicBonus() + character.getAttackBonus(this)
+    override fun getBonusToHit(playerCharacter: PlayerCharacter, isBonusAction: Boolean): Int {
+        return getMagicBonus() + playerCharacter.getAttackBonus(this)
     }
 
     override fun getDamageDice(): DiceBlock {

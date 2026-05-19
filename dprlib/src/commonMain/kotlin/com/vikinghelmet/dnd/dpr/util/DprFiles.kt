@@ -1,7 +1,7 @@
 package com.vikinghelmet.dnd.dpr.util
 
-import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import kotlinx.io.*
 import kotlinx.io.files.Path
@@ -69,7 +69,7 @@ class DprFiles(val appDataDir: String)
         return Json.Default.decodeFromString(json)
     }
 
-    fun getEditableCharacter(name: String): EditableCharacter? {
+    fun getEditableCharacter(name: String): EditablePlayerCharacter? {
         //println("getEditableCharacter, settings name = $name")
         val editableFields = getEditableFields(name) ?: return null
         //println("getEditableCharacter, editableFields = $editableFields")
@@ -80,7 +80,7 @@ class DprFiles(val appDataDir: String)
         val baseline = getCharacter(editableFields.remoteId) ?: return null
         //println("getEditableCharacter, baseline = $baseline")
 
-        val result = EditableCharacter(baseline, editableFields)
+        val result = EditablePlayerCharacter(baseline, editableFields)
         if (baseline.getAlwaysPreparedSpells().isEmpty() && result.getAlwaysPreparedSpells().isNotEmpty()) {
             baseline.alwaysPrepared = result.getAlwaysPreparedSpells()
         }
@@ -89,7 +89,7 @@ class DprFiles(val appDataDir: String)
         return result
     }
 
-    fun getCharacter(characterId: String): Character? {
+    fun getCharacter(characterId: String): PlayerCharacter? {
         val json = read(characterBaselineDir +"/" + characterId)
         return if (json !=null) Json.Default.decodeFromString(json) else null
     }

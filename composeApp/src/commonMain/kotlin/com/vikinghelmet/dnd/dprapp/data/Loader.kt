@@ -1,7 +1,7 @@
 package com.vikinghelmet.dnd.dprapp.data
 
-import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.logger
@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
 
 object Loader {
 
-    fun getEditableCharacter(name: String): EditableCharacter? {
+    fun getEditableCharacter(name: String): EditablePlayerCharacter? {
         return dprFiles.getEditableCharacter(name)
     }
 
@@ -29,10 +29,10 @@ object Loader {
         return json
     }
 
-    fun addEditableCharacter(json: String): EditableCharacter?
+    fun addEditableCharacter(json: String): EditablePlayerCharacter?
     {
-        val baseline: Character = Json.Default.decodeFromString(json) ?: return null
-        val result = EditableCharacter(baseline, EditableFields(baseline))
+        val baseline: PlayerCharacter = Json.Default.decodeFromString(json) ?: return null
+        val result = EditablePlayerCharacter(baseline, EditableFields(baseline))
 
         // save raw json (large), so we have local access to ALL remote data, even if we don't know what to do with it yet
         dprFiles.saveCharacter(json, baseline.characterData.id.toString())

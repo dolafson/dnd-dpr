@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
@@ -86,7 +86,7 @@ class ScenarioCalculator(
 */
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
             val weaponWithNoBonusDamage = object : Weapon(weapon.name, weapon.nickname, weapon.item) {
-                override fun getBonusDamage(character: Character, isBonusAction: Boolean) = 0
+                override fun getBonusDamage(playerCharacter: PlayerCharacter, isBonusAction: Boolean) = 0
             }
 
             val secondAttack = Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
@@ -98,7 +98,7 @@ class ScenarioCalculator(
             effectManager.add(TargetEffect(turnId, MasteryProperty.Vex, resultList.first().chanceToHit.avg, attackerHasAdvantage = true))
         }
 
-        if (scenario.character.isFeatEnabled(Feat.ColdCaster)) {
+        if (scenario.playerCharacter.isFeatEnabled(Feat.ColdCaster)) {
             // http://dnd2024.wikidot.com/feat:cold-caster ...
             // Frostbite. Once per turn when you hit a creature with an attack roll and deal Cold damage,
             // you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next

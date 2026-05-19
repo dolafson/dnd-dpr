@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Party
@@ -41,7 +41,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
 {
     val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.screens.CharacterScreen")
 
-    var viewCharacter: EditableCharacter? = viewModel.getCurrentCharacter()
+    var viewCharacter: EditablePlayerCharacter? = viewModel.getCurrentCharacter()
     // val focusManager = LocalFocusManager.current
 
     var currentProgress by remember { mutableFloatStateOf(5f) }
@@ -115,7 +115,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
         }
         else {
             val oldCharacter = viewCharacter
-            var newCharacter: EditableCharacter? = viewCharacter // default: old -> new
+            var newCharacter: EditablePlayerCharacter? = viewCharacter // default: old -> new
             val currentText = textFieldState.text.toString()
 
             if (options.isNotEmpty() && !isUrlOrID(currentText) && !currentText.contains("/")) {
@@ -123,7 +123,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                 val editableFields = EditableFields(currentText, oldCharacter!!, viewModel.getCharacterLevel())
 
                 dprFiles.saveEditableCharacter(editableFields)
-                newCharacter = EditableCharacter(oldCharacter!!, editableFields)
+                newCharacter = EditablePlayerCharacter(oldCharacter!!, editableFields)
                 viewModel.setMainCharacter(oldCharacter)
 
                 if (!options.contains(currentText)) {
@@ -219,7 +219,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
         }
 
         if (viewCharacter != null) {
-            val character: EditableCharacter = viewCharacter!!
+            val character: EditablePlayerCharacter = viewCharacter!!
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
                 Column {
@@ -239,7 +239,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
         // everything below here - except for Dismiss button - requires a valid character ... AND is read-only
 
         if (viewCharacter != null) {
-            val character: EditableCharacter = viewCharacter!!
+            val character: EditablePlayerCharacter = viewCharacter!!
             val subclass = character.getSubclassName()
 
             Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {

@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.editable
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
@@ -16,12 +16,12 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class EditableCharacter (
-    val from: Character,
+data class EditablePlayerCharacter (
+    val from: PlayerCharacter,
     val editableFields: EditableFields
-) : Character(from.characterData, from.id, from.message, from.success)
+) : PlayerCharacter(from.characterData, from.id, from.message, from.success)
 {
-    @Transient private val logger = LoggerFactory.get(EditableCharacter::class.simpleName ?: "")
+    @Transient private val logger = LoggerFactory.get(EditablePlayerCharacter::class.simpleName ?: "")
 
     override fun getAlwaysPreparedSpells(): List<PreparedSpellRemote> = editableFields.alwaysPreparedSpells
 

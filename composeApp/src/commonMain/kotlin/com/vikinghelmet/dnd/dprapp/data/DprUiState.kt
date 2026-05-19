@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dprapp.data
 
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.DprSettings
@@ -10,11 +10,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DprUiState(
     // current character/monster: whatever is currently displayed on that screen
-    var currentCharacter: EditableCharacter? = null,
+    var currentCharacter: EditablePlayerCharacter? = null,
     var currentMonster: Monster? = null,
 
     // main character/monster: assigned from current after OK press; used in attack calculation
-    var mainCharacter: EditableCharacter? = null,
+    var mainCharacter: EditablePlayerCharacter? = null,
     var mainMonster: Monster? = null,
 
     // editable field on main screen

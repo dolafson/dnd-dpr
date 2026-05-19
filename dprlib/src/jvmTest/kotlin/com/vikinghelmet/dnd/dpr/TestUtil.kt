@@ -1,7 +1,7 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.character.Character
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
@@ -42,14 +42,14 @@ object TestUtil {
         }
     }
 
-    fun getCharacter(filename: String): Character = Json.Default.decodeFromString(getResource(filename)!!)
+    fun getCharacter(filename: String): PlayerCharacter = Json.Default.decodeFromString(getResource(filename)!!)
 
-    fun getEditableCharacter(filename: String): EditableCharacter {
+    fun getEditableCharacter(filename: String): EditablePlayerCharacter {
         val editableFields: EditableFields = Json.Default.decodeFromString(getResource(filename)!!)
-        return EditableCharacter(getCharacter(editableFields.remoteId), editableFields)
+        return EditablePlayerCharacter(getCharacter(editableFields.remoteId), editableFields)
     }
 
-    fun bestDPR (level: Int, character: EditableCharacter, numTargets: Int, range: Int): SimpleResult {
+    fun bestDPR (level: Int, character: EditablePlayerCharacter, numTargets: Int, range: Int): SimpleResult {
         character.editableFields.level = level
         val scenarioList = ScenarioBuilder(character, Globals.getMonster("Goblin"))
             .build(range, 5, numTargets, DEFAULT_TARGET_RADIUS)

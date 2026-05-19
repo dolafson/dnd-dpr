@@ -32,14 +32,14 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-open class Character(
+open class PlayerCharacter(
     @SerialName("data")
     val characterData: CharacterData,
     val id: Int? = null,
     val message: String? = null,
     val success: Boolean? = null
 ) {
-    @Transient private val logger = LoggerFactory.get(Character::class.simpleName ?: "")
+    @Transient private val logger = LoggerFactory.get(PlayerCharacter::class.simpleName ?: "")
 
     var alwaysPrepared: List<PreparedSpellRemote> = mutableListOf()
 

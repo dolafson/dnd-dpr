@@ -3,10 +3,10 @@
  */
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.scenario.*
 import com.vikinghelmet.dnd.dpr.turn.Attack
@@ -53,21 +53,21 @@ fun getFileOrURL(fileOrUrl: String): String? {
     }
 }
 
-fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.Character? {
-    var character: com.vikinghelmet.dnd.dpr.character.Character? = null
+fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.PlayerCharacter? {
+    var playerCharacter: com.vikinghelmet.dnd.dpr.character.PlayerCharacter? = null
     runBlocking {
-        character = CharacterAPI.getRemoteCharacterByUrl (getCharacterApiURL (arg)!!).second
+        playerCharacter = CharacterAPI.getRemoteCharacterByUrl (getCharacterApiURL (arg)!!).second
     }
-    return character
+    return playerCharacter
 }
 
 
-fun getEditableCharacter(json: String): EditableCharacter? {
+fun getEditableCharacter(json: String): EditablePlayerCharacter? {
     if (json.isEmpty()) return null
     val editableFields: EditableFields = Json.Default.decodeFromString(json)
 
     val baseline = getCharacter(editableFields.remoteId) ?: return null
-    return EditableCharacter(baseline, editableFields)
+    return EditablePlayerCharacter(baseline, editableFields)
 }
 
 fun getResource(fileName: String): String? {
@@ -108,9 +108,9 @@ fun showResults(resultList: List<ScenarioResult>) {
     }
 }
 
-fun runScenarios(character: Character, args : Array<String>, i: Int): List<ScenarioResult> {
+fun runScenarios(playerCharacter: PlayerCharacter, args : Array<String>, i: Int): List<ScenarioResult> {
     val monster = Globals.getMonster(args[i+1])
-    val builder = ScenarioBuilder(character,monster)
+    val builder = ScenarioBuilder(playerCharacter,monster)
 
     fun optionalArg(index: Int, default: Int) = if (index < args.size) args[index].toInt() else default
 
@@ -165,7 +165,7 @@ fun main(args : Array<String>) {
     JulConfigurator()
 
     var exitEarly = false
-    var character: com.vikinghelmet.dnd.dpr.character.Character? = null
+    var playerCharacter: com.vikinghelmet.dnd.dpr.character.PlayerCharacter? = null
     val turns = ArrayList<Turn>()
 
     if (args.isEmpty()) {
@@ -205,12 +205,12 @@ OFF	6	Disables all logging
         val arg = args[i]
         if (arg.startsWith("+feat")) {
             val split = arg.split("=")
-            character!!.addFeat(com.vikinghelmet.dnd.dpr.character.feats.Feat.valueOf(split[1]))
+            playerCharacter!!.addFeat(com.vikinghelmet.dnd.dpr.character.feats.Feat.valueOf(split[1]))
         }
         else if (arg.startsWith("+")) {
             val split = arg.substringAfter("+").split("=")
             val ability = com.vikinghelmet.dnd.dpr.character.stats.AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
-            character!!.updateAbilityScore(ability, split[1].toInt())
+            playerCharacter!!.updateAbilityScore(ability, split[1].toInt())
         }
         else if (arg.startsWith("--maxResults")) {
             Constants.SCENARIO_OUTPUT_MAX = arg.split("=")[1].toInt()
@@ -228,12 +228,12 @@ OFF	6	Disables all logging
                         val attackList = mutableListOf<Attack>()
                         for (attackName in turn.split(",")) {
                             try {
-                                attackList.add (Attack (monster, character!!.getWeapon(attackName)))
+                                attackList.add (Attack (monster, playerCharacter!!.getWeapon(attackName)))
                             }
                             catch (e: Exception) {
-                                val spell = Globals.getSpell(attackName, character!!.is2014())
+                                val spell = Globals.getSpell(attackName, playerCharacter!!.is2014())
                                 logger.verbose { "spell = ${spell.fullString()}" }
-                                attackList.add (Attack (monster, Globals.getSpell(attackName, character!!.is2014())))
+                                attackList.add (Attack (monster, Globals.getSpell(attackName, playerCharacter!!.is2014())))
                             }
                         }
                         turns.add(Turn(attackList))
@@ -243,7 +243,7 @@ OFF	6	Disables all logging
                 }
                 "-z" -> {
                     exitEarly = true
-                    showResults(runScenarios(character!!, args, i))
+                    showResults(runScenarios(playerCharacter!!, args, i))
                 }
                 "-p" -> {
                     exitEarly = true
@@ -273,11 +273,11 @@ OFF	6	Disables all logging
                 monsters.addAll(Json.decodeFromString(jsonString))
             }
             else if (jsonString.contains("\"remoteId\"")) {
-                character = getEditableCharacter(jsonString)
-                logger.debug { "# loaded editable character: $character" }
+                playerCharacter = getEditableCharacter(jsonString)
+                logger.debug { "# loaded editable character: $playerCharacter" }
             }
             else if (jsonString.contains("\"username\"")) {
-                character = Json.decodeFromString(jsonString)
+                playerCharacter = Json.decodeFromString(jsonString)
             }
             else if (jsonString.contains("\"Always prepared spells successfully received.\"")) {
                 val alwaysPrepared: AlwaysPreparedSpells = Json.decodeFromString(jsonString)
@@ -295,7 +295,7 @@ OFF	6	Disables all logging
         else if (arg.startsWith("character") || arg.startsWith("https://www.dndbeyond.com/characters")) {
             var remoteId: String? = CharacterAPI.getCharacterId(arg)
             if (remoteId != null) {
-                character = getCharacter(remoteId)
+                playerCharacter = getCharacter(remoteId)
             }
         }
         else if (arg.startsWith("test:plan")) {
@@ -316,14 +316,14 @@ OFF	6	Disables all logging
 
     if (exitEarly) {
     }
-    else if (character == null) {
+    else if (playerCharacter == null) {
         println("no character data")
     }
     else if (turns.isNotEmpty()) {
         val attackNames = turns.map { it.attacks.map { it.action.toString() }}
         logger.debug { "attackNames = $attackNames" }
 
-        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(playerCharacter, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
         val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
 
         scenarioResult.attackResults.forEach {

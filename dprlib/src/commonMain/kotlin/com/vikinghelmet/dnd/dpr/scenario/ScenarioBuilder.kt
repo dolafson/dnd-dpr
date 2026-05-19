@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.character.Character
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
@@ -14,7 +14,7 @@ import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.time.measureTime
 
 class ScenarioBuilder(
-    val character: Character,
+    val playerCharacter: PlayerCharacter,
     val monster: Monster,
     val actionsAvailable: ActionsAvailable
 ) {
@@ -22,7 +22,7 @@ class ScenarioBuilder(
 
     var turnOptions: MutableList<Turn> = mutableListOf() // these intermediate results may be displayed to user
 
-    constructor(character: Character, monster: Monster) : this(character,monster,character.getActionsAvailable()) {
+    constructor(playerCharacter: PlayerCharacter, monster: Monster) : this(playerCharacter,monster,playerCharacter.getActionsAvailable()) {
 
     }
     fun build(targetProximity: Int, numberOfTurns: Int, numTargets: Int, targetSpacing: Int): List<Scenario>
@@ -36,7 +36,7 @@ class ScenarioBuilder(
             buildScenarios(
                 numberOfTurns,
                 turnOptions,
-                Scenario(character, emptyList(), numTargets, targetSpacing),
+                Scenario(playerCharacter, emptyList(), numTargets, targetSpacing),
                 scenarioList
             )
         })
@@ -49,7 +49,7 @@ class ScenarioBuilder(
 
     fun getAttacksForTurn(action: AttackAction): List<Attack> {
         val result = mutableListOf<Attack>()
-        repeat(1+character.getExtraAttacks()) {
+        repeat(1+playerCharacter.getExtraAttacks()) {
             result.add(Attack(monster = monster, action = action),)
         }
         return result
@@ -61,7 +61,7 @@ class ScenarioBuilder(
         logger.debug {"# possibleTurns, actionsAvailable = $actionsAvailable" }
         logger.debug {"# possibleTurns, actionList(prox) = $actionList" }
 
-        val bonusActionNames = character.getPreparedBonusActionSpells(targetProximity).map { it.name }
+        val bonusActionNames = playerCharacter.getPreparedBonusActionSpells(targetProximity).map { it.name }
         val turnOptions = ArrayList<Turn>()
 
         for (action in actionList) {
@@ -103,7 +103,7 @@ class ScenarioBuilder(
             // bonus action spells: mostly for ranger and paladin
             for (bonusName in bonusActionNames) {
                 try {
-                    val bonus = Globals.getSpell(bonusName, character.is2014())
+                    val bonus = Globals.getSpell(bonusName, playerCharacter.is2014())
                     turnOptions.add(
                         Turn(
                             attacks = getAttacksForTurn(action) + listOf(
@@ -165,7 +165,7 @@ class ScenarioBuilder(
             a -> Attack(a.monster, a.action, ArrayList(), a.isBonusAction)
         }.toMutableList())
 
-        return Scenario (character, currentScenario.turns.map { it.copy() } + copy, currentScenario.numTargets, currentScenario.targetSpacing)
+        return Scenario (playerCharacter, currentScenario.turns.map { it.copy() } + copy, currentScenario.numTargets, currentScenario.targetSpacing)
     }
 
     fun buildScenarios(rounds: Int, turnOptions: List<Turn>, currentScenario: Scenario, scenarioList: ArrayList<Scenario>) {
@@ -213,7 +213,7 @@ class ScenarioBuilder(
                 // weapon attacks only
                 // at most once per turn
                 // limited use per day (tied to WIS bonus)
-                return countModifier(mod, scenario) < character.getSpellAbilityBonusWithoutPB()
+                return countModifier(mod, scenario) < playerCharacter.getSpellAbilityBonusWithoutPB()
             }
             ActionModifier.PolarStrikes   -> {
                 // weapon attacks only
@@ -226,7 +226,7 @@ class ScenarioBuilder(
     }
 
     fun addActionModifiers(scenarioList: List<Scenario>) {
-        val actionModifiersAvailable = character.getActionModifiersAvailable()
+        val actionModifiersAvailable = playerCharacter.getActionModifiersAvailable()
         //Globals.debug("modifiers available=$actionModifiersAvailable")
 
         for (scenario in scenarioList) {

@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.vikinghelmet.dnd.dpr.editable.EditableCharacter
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.data.PlanViewModel
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
@@ -22,7 +22,7 @@ import kotlin.uuid.ExperimentalUuidApi
 fun PlanningScreen(viewModel: DprViewModel,
                    navHostController: NavHostController)
 {
-    var character: EditableCharacter = viewModel.getCurrentCharacter()!!
+    var character: EditablePlayerCharacter = viewModel.getCurrentCharacter()!!
     var planViewModel = remember { PlanViewModel(character) }
 
     Column(
