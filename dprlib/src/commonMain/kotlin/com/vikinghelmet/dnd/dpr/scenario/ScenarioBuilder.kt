@@ -1,10 +1,9 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.character.Combatant
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
-import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackAction
@@ -14,15 +13,15 @@ import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.time.measureTime
 
 class ScenarioBuilder(
-    val playerCharacter: PlayerCharacter,
-    val monster: Monster,
+    val attacker: Combatant, //PlayerCharacter,
+    val target: Combatant,
     val actionsAvailable: ActionsAvailable
 ) {
     val logger = LoggerFactory.get(ScenarioBuilder::class.simpleName ?: "no simpleName")
 
     var turnOptions: MutableList<Turn> = mutableListOf() // these intermediate results may be displayed to user
 
-    constructor(playerCharacter: PlayerCharacter, monster: Monster) : this(playerCharacter,monster,playerCharacter.getActionsAvailable()) {
+    constructor(attacker: Combatant, target: Combatant) : this(attacker, target, attacker.getActionsAvailable()) {
 
     }
     fun build(targetProximity: Int, numberOfTurns: Int, numTargets: Int, targetSpacing: Int): List<Scenario>
@@ -36,7 +35,7 @@ class ScenarioBuilder(
             buildScenarios(
                 numberOfTurns,
                 turnOptions,
-                Scenario(playerCharacter, emptyList(), numTargets, targetSpacing),
+                Scenario(attacker, emptyList(), numTargets, targetSpacing),
                 scenarioList
             )
         })
@@ -49,8 +48,8 @@ class ScenarioBuilder(
 
     fun getAttacksForTurn(action: AttackAction): List<Attack> {
         val result = mutableListOf<Attack>()
-        repeat(1+playerCharacter.getExtraAttacks()) {
-            result.add(Attack(monster = monster, action = action),)
+        repeat(1+attacker.getExtraAttacks()) {
+            result.add(Attack(target = target, action = action),)
         }
         return result
     }
@@ -61,12 +60,12 @@ class ScenarioBuilder(
         logger.debug {"# possibleTurns, actionsAvailable = $actionsAvailable" }
         logger.debug {"# possibleTurns, actionList(prox) = $actionList" }
 
-        val bonusActionNames = playerCharacter.getPreparedBonusActionSpells(targetProximity).map { it.name }
+        val bonusActionNames = attacker.getPreparedBonusActionSpells(targetProximity).map { it.name }
         val turnOptions = ArrayList<Turn>()
 
         for (action in actionList) {
             if (action is Spell) { // generally spell attacks do not get bonus actions
-                turnOptions.add(Turn(attacks = listOf(Attack(monster = monster, action = action))))
+                turnOptions.add(Turn(attacks = listOf(Attack(target = target, action = action))))
                 continue
             }
             if (action !is Weapon) {
@@ -87,7 +86,7 @@ class ScenarioBuilder(
                     turn = Turn(
                         attacks = getAttacksForTurn(action) + listOf(
                             // TODO: use weapon nicnkames ?
-                            Attack(monster = monster, action = w2, isBonusAction = true),
+                            Attack(target = target, action = w2, isBonusAction = true),
                         )
                     )
                     turnOptions.add(turn)
@@ -103,11 +102,11 @@ class ScenarioBuilder(
             // bonus action spells: mostly for ranger and paladin
             for (bonusName in bonusActionNames) {
                 try {
-                    val bonus = Globals.getSpell(bonusName, playerCharacter.is2014())
+                    val bonus = Globals.getSpell(bonusName, attacker.is2014())
                     turnOptions.add(
                         Turn(
                             attacks = getAttacksForTurn(action) + listOf(
-                                Attack(monster = monster, action = bonus, isBonusAction = true),
+                                Attack(target = target, action = bonus, isBonusAction = true),
                             )
                         )
                     )
@@ -162,10 +161,10 @@ class ScenarioBuilder(
 
         // make a deep copy of proposed turn, as turn can be modified later (when we add action mods)
         val copy = Turn (proposedTurn.attacks.map {
-            a -> Attack(a.monster, a.action, ArrayList(), a.isBonusAction)
+            a -> Attack(a.target, a.action, ArrayList(), a.isBonusAction)
         }.toMutableList())
 
-        return Scenario (playerCharacter, currentScenario.turns.map { it.copy() } + copy, currentScenario.numTargets, currentScenario.targetSpacing)
+        return Scenario (attacker, currentScenario.turns.map { it.copy() } + copy, currentScenario.numTargets, currentScenario.targetSpacing)
     }
 
     fun buildScenarios(rounds: Int, turnOptions: List<Turn>, currentScenario: Scenario, scenarioList: ArrayList<Scenario>) {
@@ -213,7 +212,7 @@ class ScenarioBuilder(
                 // weapon attacks only
                 // at most once per turn
                 // limited use per day (tied to WIS bonus)
-                return countModifier(mod, scenario) < playerCharacter.getSpellAbilityBonusWithoutPB()
+                return countModifier(mod, scenario) < attacker.getSpellAbilityBonusWithoutPB()
             }
             ActionModifier.PolarStrikes   -> {
                 // weapon attacks only
@@ -226,7 +225,7 @@ class ScenarioBuilder(
     }
 
     fun addActionModifiers(scenarioList: List<Scenario>) {
-        val actionModifiersAvailable = playerCharacter.getActionModifiersAvailable()
+        val actionModifiersAvailable = attacker.getActionModifiersAvailable()
         //Globals.debug("modifiers available=$actionModifiersAvailable")
 
         for (scenario in scenarioList) {

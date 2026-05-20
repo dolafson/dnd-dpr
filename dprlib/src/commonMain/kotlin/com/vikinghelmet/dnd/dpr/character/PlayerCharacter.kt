@@ -5,6 +5,7 @@ package com.vikinghelmet.dnd.dpr.character
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.api.ApiRequestParameters
+import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
@@ -61,7 +62,7 @@ open class PlayerCharacter(
     // ----------------------------------------------------------------------------------------
     // TRAITS, ABILITIES, and FEATS
 
-    fun is2014(): Boolean {
+    override fun is2014(): Boolean {
         if (characterData.characterValues == null) return false // default to 2024 rules
         for (value in characterData.characterValues) {
             if (value.notes?.endsWith(" 2014") == true) return true
@@ -74,6 +75,10 @@ open class PlayerCharacter(
             if (stat.id == a.ordinal) return stat.value
         }
         return 0 // should not get here
+    }
+
+    override fun getAbilityModifier(abilityType: AbilityType): Int {
+        return Constants.statToBonusMap[getModifiedAbilityScore(abilityType)] ?: 0
     }
 
     fun updateAbilityScore(a: AbilityType, increment: Int) {
@@ -119,6 +124,10 @@ open class PlayerCharacter(
         return false
     }
 
+    override fun isEvasive(): Boolean {
+        return isClassFeatureEnabled(ClassFeature.Evasive)
+    }
+
     fun getRacialTraitList() = characterData.race.racialTraits
     fun getRacialTraitNameList() = characterData.race.racialTraits.map { it.definition.name }
 
@@ -160,7 +169,7 @@ open class PlayerCharacter(
         when (armorType) {
             ArmorType.Unarmored -> {
                 armorClassSum = 10 + dexBonus
-                if (hasUnarmoredDefense()) armorClassSum += conBonus
+                if (isClassFeatureEnabled(ClassFeature.UnarmoredDefense)) armorClassSum += conBonus
             }
             ArmorType.LightArmor -> armorClassSum += dexBonus
             ArmorType.MediumArmor -> armorClassSum += kotlin.math.max(dexBonus, 2)
@@ -175,7 +184,7 @@ open class PlayerCharacter(
         return AbilityType.entries[abilityId]
     }
 
-    fun getSpellAbilityBonusWithoutPB(): Int {
+    override fun getSpellAbilityBonusWithoutPB(): Int {
         val abilityId = characterData.classes.first().definition.spellCastingAbilityId
         return if (abilityId == null) 0 else {
             Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
@@ -317,7 +326,7 @@ open class PlayerCharacter(
         return result
     }
 
-    fun getPreparedBonusActionSpells(targetProximity: Int): List<PreparedSpell> {
+    override fun getPreparedBonusActionSpells(targetProximity: Int): List<PreparedSpell> {
         val result = mutableListOf<PreparedSpell>()
         for (spell in getPreparedSpells()) {
             if (!spell.isBonusAction()) continue
@@ -340,7 +349,7 @@ open class PlayerCharacter(
     // ----------------------------------------------------------------------------------------
     // SPELL SLOTS
 
-    fun getSpellSlots(): List<Int> {
+    override fun getSpellSlots(): List<Int> {
         // TODO: support multi-class spell casters
         return characterData.classes.first().definition.spellRules?.levelSpellSlots?.get(getLevel()) ?: MutableList(20) { 0 }
     }
@@ -544,8 +553,8 @@ open class PlayerCharacter(
         return getClassFeaturesByLevel().filter { it.key.contains("Extra Attack") && it.value <= getLevel() }.count()
     }
 
-    fun hasUnarmoredDefense(): Boolean {
-        return getClassFeaturesByLevel().any { it.key.contains("Unarmored Defense") }
+    fun isClassFeatureEnabled(feature: ClassFeature): Boolean {
+        return getClassFeaturesByLevel().any { it.key == feature.name }
     }
 
     fun getLevelsForFightingStyle(): List<Int> {

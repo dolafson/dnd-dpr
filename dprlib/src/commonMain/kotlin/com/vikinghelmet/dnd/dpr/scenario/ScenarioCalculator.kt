@@ -85,7 +85,7 @@ class ScenarioCalculator(
 */
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
             val weaponWithNoBonusDamage = Weapon(weapon, 0)
-            val secondAttack = Attack(attack.monster, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
+            val secondAttack = Attack(attack.target, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
             resultList.add(actionCalculator.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack, turnId, actionId, effect++))
         }
 

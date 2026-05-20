@@ -83,15 +83,15 @@ data class AttackResult(
             characterName   -> combatant.getName()
             spellSaveDC     -> combatant.getSpellSaveDC()
 
-            monsterName -> this.attack.monster.monsterName
-            monsterAC   -> this.attack.monster.getAC()
+            monsterName -> this.attack.target.getName()
+            monsterAC   -> this.attack.target.getAC()
 
             damageDice  -> meleeOrRangeAction.getDamageDice()
             damageBonus -> meleeOrRangeAction.getBonusDamage(combatant, this.attack.isBonusAction ?: false)
             attackBonus -> meleeOrRangeAction.getBonusToHit(combatant, this.attack.isBonusAction ?: false)
 
             spellSaveAbility -> saveAbility ?: ""
-            targetSaveBonus  -> if (saveAbility == null) "" else this.attack.monster.getAbilityModifier(saveAbility)
+            targetSaveBonus  -> if (saveAbility == null) "" else this.attack.target.getAbilityModifier(saveAbility)
 
             turn        -> this.turnId
             action      -> if (this.attack.isBonusAction == true) "BA" else ""+this.actionId
