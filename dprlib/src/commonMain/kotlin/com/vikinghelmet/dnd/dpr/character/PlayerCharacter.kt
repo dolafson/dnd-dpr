@@ -104,7 +104,7 @@ open class PlayerCharacter(
         return Constants.levelToProficiencyMap[getLevel()] ?: 0
     }
 
-    fun isFeatEnabled(requested : Feat): Boolean {
+    override fun isFeatEnabled(requested : Feat): Boolean {
         return getFeatList().any { it == requested }
     }
 
@@ -112,33 +112,11 @@ open class PlayerCharacter(
         characterData.feats.add(FeatAdded(definition = Definition(name = requested.getNameWithWS())))
     }
 
-    fun isRacialTraitEnabled(requested : RacialTrait): Boolean {
+    override fun isRacialTraitEnabled(requested : RacialTrait): Boolean {
         for (trait in getRacialTraitList()) {
             if (trait.definition.name == requested.getNameWithWS()) return true
         }
         return false
-    }
-
-    override fun isLucky(): Boolean {
-        return isRacialTraitEnabled (RacialTrait.Luck)
-    }
-
-    override fun isElvenAccuracy(): Boolean {
-        return isRacialTraitEnabled (RacialTrait.ElvenAccuracy)
-    }
-
-    /**
-     * Elemental Adept in D&D 5e enhances damage by treating any 1 rolled on damage dice for a chosen element
-     * (acid, cold, fire, lightning, or thunder) as a 2. It also allows spells to ignore resistance to that
-     * damage type, effectively doubling damage against resistant targets. This feat increases average damage
-     * slightly, particularly with multi-die spells.
-     */
-    override fun isElementalAdept(): Boolean {
-        return isFeatEnabled(Feat.ElementalAdept)
-    }
-
-    override fun isGreatWeaponFighting(): Boolean {
-        return isFeatEnabled(Feat.GreatWeaponFighting)
     }
 
     fun getRacialTraitList() = characterData.race.racialTraits

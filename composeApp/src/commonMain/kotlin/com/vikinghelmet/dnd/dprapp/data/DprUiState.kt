@@ -29,7 +29,7 @@ data class DprUiState(
     fun getSettings(): DprSettings {
         return DprSettings(
             if (mainCharacter == null) "" else mainCharacter!!.getName(),
-            if (mainMonster == null) "" else mainMonster!!.name,
+            if (mainMonster == null) "" else mainMonster!!.monsterName,
             proximity
         )
     }

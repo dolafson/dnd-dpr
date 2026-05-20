@@ -59,7 +59,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         }
 
         if (viewModel.getMainMonster() != null) {
-            monsterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getMainMonster()!!.name)
+            monsterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getMainMonster()!!.monsterName)
         }
     }
 
@@ -87,7 +87,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 
                 MonsterMenu(monsterTextFieldState, false) { selectedMonster ->
                     viewModel.setMainMonster(selectedMonster)
-                    monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.name ?: "")
+                    monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.monsterName ?: "")
                 }
 
                 Row(modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)) {

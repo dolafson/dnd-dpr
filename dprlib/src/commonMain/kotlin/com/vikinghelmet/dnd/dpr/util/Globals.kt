@@ -106,7 +106,7 @@ object Globals {
 
     fun getMonster(name: String): Monster {
         for (monster in monsters) {
-            if (monster.name == name) {
+            if (monster.monsterName == name) {
                 return monster
             }
         }

@@ -1,7 +1,14 @@
 package com.vikinghelmet.dnd.dpr.monsters
 
+import com.vikinghelmet.dnd.dpr.character.Combatant
+import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
+import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
+import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,13 +18,31 @@ import kotlinx.serialization.Serializable
 data class Monster(
     val book: String,
     val description: String,
-    val name: String,
+    @SerialName("name") val monsterName: String,
     val properties: MonsterProperties,
     val publisher: String
-) {
-    fun getAC() = properties.dataAcNum
+) : Combatant {
     fun getAbilityModifier(abilityType: AbilityType) = properties.getAbilityModifier(abilityType)
     fun isEvasive() = properties.isEvasive()
+
+    override fun getAC() = properties.dataAcNum
+    override fun getName() = monsterName
+    override fun getLevel() = 0
+
+    override fun isFeatEnabled(requested : Feat) = false
+    override fun isRacialTraitEnabled(requested : RacialTrait)= false
+
+    override fun getAttackBonus(w: Weapon) = 0 // TODO
+    override fun getDamageBonus(w: Weapon, isBA: Boolean)= 0 // TODO
+    override fun getWeaponList(): List<Weapon> = emptyList() // TODO
+
+    override fun getSpellBonusToHit(): Int = 0     // TODO: how many monsters cast spells ?
+    override fun getSpellSaveDC(): Int = 0
+
+    override fun getActionsAvailable() = ActionsAvailable() // TODO
+    override fun getActionModifiersAvailable(): List<ActionModifier> = emptyList()
+    override fun getActionList(): List<ActionAdded> = emptyList()
+    override fun getExtraAttacks() = 0
 
 }
 

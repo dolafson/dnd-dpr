@@ -23,7 +23,7 @@ import dev.shivathapaa.logger.api.LoggerFactory
 fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuItemSelected: (Monster?) -> Unit) {
     val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu")
 
-    val options = Globals.monsters.map { it.name }
+    val options = Globals.monsters.map { it.monsterName }
 
     var expanded by remember { mutableStateOf(false) }
     //val textFieldState = rememberTextFieldState()

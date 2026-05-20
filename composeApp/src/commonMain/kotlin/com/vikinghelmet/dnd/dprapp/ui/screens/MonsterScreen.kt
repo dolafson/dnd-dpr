@@ -30,7 +30,7 @@ fun MonsterScreen(viewModel: DprViewModel, navHostController: NavHostController)
         viewModel.setCurrentMonster(viewModel.getMainMonster())
         println("current monster: "+viewModel.getCurrentMonster())
 
-        monsterName = viewModel.getCurrentMonster()?.name ?: ""
+        monsterName = viewModel.getCurrentMonster()?.monsterName ?: ""
         println("monsterName: $monsterName")
 
         monster = Globals.getMonsterOrNull(monsterName)
@@ -50,7 +50,7 @@ fun MonsterScreen(viewModel: DprViewModel, navHostController: NavHostController)
         MonsterMenu(textFieldState, true) { selectedMonster ->
             monster = selectedMonster
             viewModel.setCurrentMonster(selectedMonster)
-            textFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.name ?: "")
+            textFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.monsterName ?: "")
         }
 
         HorizontalDivider(modifier = Modifier.padding(top = 20.dp), thickness = 2.dp)//, color = Color.Blue)
@@ -64,7 +64,7 @@ fun MonsterScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 Text("Size")
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                Text(if (monster == null) "?" else monster!!.name)
+                Text(if (monster == null) "?" else monster!!.monsterName)
 
                 if (viewModel.getCurrentMonster() == null) {
                     Text("?")

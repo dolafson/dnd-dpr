@@ -83,7 +83,7 @@ data class AttackResult(
             characterName   -> combatant.getName()
             spellSaveDC     -> combatant.getSpellSaveDC()
 
-            monsterName -> this.attack.monster.name
+            monsterName -> this.attack.monster.monsterName
             monsterAC   -> this.attack.monster.getAC()
 
             damageDice  -> meleeOrRangeAction.getDamageDice()
