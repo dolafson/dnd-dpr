@@ -34,7 +34,11 @@ data class Monster(
 
     override fun getAttackBonus(w: Weapon) = 0 // TODO
     override fun getDamageBonus(w: Weapon, isBA: Boolean)= 0 // TODO
-    override fun getWeaponList(): List<Weapon> = emptyList() // TODO
+
+    override fun getWeaponList(): List<Weapon> {
+        if (properties.dataActions == null) return emptyList()
+        return properties.dataActions.map { Weapon(it) }.toList()
+    }
 
     override fun getSpellBonusToHit(): Int = 0     // TODO: how many monsters cast spells ?
     override fun getSpellSaveDC(): Int = 0

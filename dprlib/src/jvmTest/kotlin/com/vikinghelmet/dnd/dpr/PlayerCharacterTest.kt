@@ -106,7 +106,7 @@ class PlayerCharacterTest {
         assertEquals(1, TestUtil.party.flatMap { it.getWeaponList() }.count { it2 -> it2.magic })
 
         // the magic weapon gets +1 for attack and damage
-        assertEquals(1, TestUtil.party.flatMap { it.getWeaponList() }.first { it2 -> it2.magic }.getMagicBonus())
+        assertEquals(1, TestUtil.party.flatMap { it.getWeaponList() }.first { it2 -> it2.magic }.magicBonus)
 
         // total number of weapons
         assertEquals(23, TestUtil.party.flatMap { it.getWeaponList() }.count())
@@ -136,7 +136,7 @@ class PlayerCharacterTest {
             "Two-Handed" to 5, "Slow" to 3, "Vex" to 8, "Heavy" to 3, "Cleave" to 1
         ),
             TestUtil.party.map { it.getWeaponList() }
-                .flatMap { s1 -> s1.map { it.getPropertyNames() } }
+                .flatMap { s1 -> s1.map { it.propertyNames } }
                 .flatMap { s2 -> s2!!.toList() }
                 .groupingBy { it }.eachCount()
         )

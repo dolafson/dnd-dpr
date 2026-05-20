@@ -15,6 +15,15 @@ class MonsterTest {
         assertEquals (15, goblin.getAC())
         assertFalse (goblin.isEvasive())
 
+        val weaponList = goblin.getWeaponList()
+        assertEquals(weaponList.size, 2)
+
+        val scimitar = weaponList.firstOrNull { it.name == "Scimitar" }
+        assertNotNull (scimitar)
+        assertEquals("1d6", scimitar!!.damage)
+        assertEquals(2, scimitar.flatBonusDamage)
+        assertEquals(1, scimitar.attackType)
+
         // verify goblin ability mods; their best ability is Dex
         assertEquals (listOf(-1, 2, 0, 0, -1, -1), AbilityType.getAllNotALL().map { goblin.getAbilityModifier(it) }.toList())
 
