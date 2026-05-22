@@ -11,7 +11,7 @@ import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -36,7 +36,7 @@ class SavePenaltyTest {
         val turnList     = listOf(Turn(listOf(polarAttack, weaponAttack, huntersMark))) +
                             List(3) { Turn(listOf(polarAttack, weaponAttack, bonusAttack)) }
 
-        val scenario = Scenario(character, turnList, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turnList, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         //Globals.initLogger(LogLevel.DEBUG)
         for(level in listOf(5, 8)) {
@@ -69,7 +69,7 @@ class SavePenaltyTest {
 
         val weaponAttack = Attack (monster, weapon)
         val singleTurn   = listOf(Turn(listOf(weaponAttack)))
-        val scenario     = Scenario(character, singleTurn, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario     = Scenario(character, singleTurn, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         // first, calculate results with no savePenalty
         var noPenaltyResult = ActionCalculator(scenario, EffectManager(ArrayList()))
@@ -100,7 +100,7 @@ class SavePenaltyTest {
         val monster = Globals.getMonster("Goblin")
 
         val attack   = Attack (monster, spell)
-        val scenario = Scenario(character, listOf(Turn(listOf(attack))), 4, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, listOf(Turn(listOf(attack))), 4, DEFAULT_TARGET_SPACING)
 
         // first, calculate results with no savePenalty
         var noPenaltyResult = ActionCalculator(scenario, EffectManager(ArrayList()))
@@ -135,7 +135,7 @@ class SavePenaltyTest {
         val turnList     = listOf(Turn(listOf(holdAttack))) +
                 List(4) { Turn(listOf(polarAttack, weaponAttack, bonusAttack)) }
 
-        val scenario = Scenario(character, turnList, 4, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turnList, 4, DEFAULT_TARGET_SPACING)
 
         character.editableFields.level = 8
 

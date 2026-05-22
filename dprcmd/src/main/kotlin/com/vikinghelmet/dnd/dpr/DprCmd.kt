@@ -3,11 +3,10 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.character.Combatant
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
-import com.vikinghelmet.dnd.dpr.character.spells.AlwaysPreparedSpells
-import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.*
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.AttackResultFormatter
@@ -16,12 +15,10 @@ import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Constants.NUM_TURNS_PER_SCENARIO
 import com.vikinghelmet.dnd.dpr.util.DprFiles
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.Globals.monsters
-import com.vikinghelmet.dnd.dpr.util.Globals.spells
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.coroutines.runBlocking
@@ -36,7 +33,13 @@ class DprCmd {
         get() {
             return "Hello World!"
         }
+
+    init {
+        Globals.initLogger(LogLevel.WARN)
+    }
 }
+
+val logger = LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName")   // DprCmd
 
 val dprFiles = DprFiles(System.getProperty("user.home"))
 
@@ -51,6 +54,59 @@ fun getFileOrURL(fileOrUrl: String): String? {
     else {
         File(fileOrUrl).readText()
     }
+}
+
+fun getCombatantGroup(combatantName: String): List<Combatant> {
+    val result: MutableList<Combatant> = mutableListOf()
+
+    if (combatantName.startsWith("party:")) {
+        val level = combatantName.split(":".toRegex())[1].toInt()
+
+        dprFiles.getEditableCharacterList().forEach { name ->
+            val c = dprFiles.getEditableCharacter(name)
+            c!!.editableFields.level = level
+            result.add(c)
+        }
+        return result
+    }
+
+    try {
+        val monster = Globals.getMonster(combatantName)
+        result.add(monster)
+        return result
+    }
+    catch (e: Exception) {
+        // if not a monster, combatant must be a player character
+    }
+
+    var playerCharacter: PlayerCharacter? = null
+    if (combatantName.endsWith(".json") || combatantName.contains("/")) {
+        val jsonString = getFileOrURL(combatantName)
+        if (jsonString == null) {
+            println("unable to read input: $combatantName")
+        }
+        else if (jsonString.contains("\"remoteId\"")) {
+            playerCharacter = getEditableCharacter(jsonString)
+            logger.debug { "# loaded editable character: $playerCharacter" }
+        }
+        else if (jsonString.contains("\"username\"")) {
+            playerCharacter = Json.decodeFromString(jsonString)
+        }
+        else {
+            logger.error { "unsupported json file: $combatantName" }
+        }
+    }
+    else if (combatantName.startsWith("character")) {
+        var remoteId: String? = CharacterAPI.getCharacterId(combatantName)
+        if (remoteId != null) {
+            playerCharacter = getCharacter(remoteId)
+        }
+    }
+
+    if (playerCharacter != null) {
+        result.add(playerCharacter)
+    }
+    return result
 }
 
 fun getCharacter(arg: String): com.vikinghelmet.dnd.dpr.character.PlayerCharacter? {
@@ -100,7 +156,7 @@ fun showResults(resultList: List<ScenarioResult>) {
             .append(it.scenario.getLabel())
             .append("\n")
     }
-    println(buf.toString())
+    logger.warn { buf.toString() }
 
     // full results
     sortedResults.forEach {
@@ -108,55 +164,84 @@ fun showResults(resultList: List<ScenarioResult>) {
     }
 }
 
-fun runScenarios(playerCharacter: PlayerCharacter, args : Array<String>, i: Int): List<ScenarioResult> {
-    val monster = Globals.getMonster(args[i+1])
-    val builder = ScenarioBuilder(playerCharacter,monster)
+fun runScenarios(attacker: Combatant, target: Combatant, args : Array<String>, i: Int): List<ScenarioResult>
+{
+    val builder = ScenarioBuilder(attacker, target)
+    val proximity = args[i].toInt() // required arg
 
     fun optionalArg(index: Int, default: Int) = if (index < args.size) args[index].toInt() else default
 
-    val iterator = ScenarioIterator (builder.build (args[i+2].toInt(),
-        optionalArg (i+3, NUM_TURNS_PER_SCENARIO),
-        optionalArg (i+4, DEFAULT_NUM_TARGETS),
-        optionalArg (i+5, DEFAULT_TARGET_RADIUS)))
+    val iterator = ScenarioIterator (builder.build (proximity,
+        optionalArg (i+1, NUM_TURNS_PER_SCENARIO),
+        optionalArg (i+2, DEFAULT_NUM_TARGETS),
+        optionalArg (i+3, DEFAULT_TARGET_SPACING)))
 
     val resultList: MutableList<ScenarioResult> = mutableListOf()
     iterator.forEach { resultList.add(ScenarioCalculator(it).calculateDPRForAllTurns()) }
     return resultList
 }
 
+fun runCustomAttack(attacker: Combatant, target: Combatant, turnString: String) {
+    val turns = ArrayList<Turn>()
+
+    for (turn in turnString.split(";")) {
+        val attackList = mutableListOf<Attack>()
+        for (attackName in turn.split(",")) {
+            try {
+                val weapon = attacker.getWeaponList().firstOrNull { it.name == attackName }
+                attackList.add(Attack(target, weapon!!))
+            } catch (e: Exception) {
+                val spell = Globals.getSpell(attackName, attacker.is2014())
+                logger.verbose { "spell = ${spell.fullString()}" }
+                attackList.add(Attack(target, Globals.getSpell(attackName, attacker.is2014())))
+            }
+        }
+        turns.add(Turn(attackList))
+    }
+
+    if (turns.isEmpty()) {
+        return
+    }
+
+    val attackNames = turns.map { it.attacks.map { it.action.toString() } }
+    logger.debug { "attackNames = $attackNames" }
+
+    val scenario = Scenario(attacker, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
+    val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
+
+    scenarioResult.attackResults.forEach {
+        logger.debug { "scenario result = ${it}" }
+    }
+
+    println(scenarioResult.output())
+}
+
 fun showUsage() {
     println("""
-Usage:  [-d] [--csv] [+feat=name] [+aaa=N]  [file.json ...]  [character]  <attacks> 
+Usage:  [-d] [--csv]  <attacker>  <target>  <attacks> 
 
 Options:
 
-    -d              debug logging
+    -i, -d          info/debug logging (default = warn)
     --csv           CSV output
-    
-    --maxResults=N  number of results in final output (default = 30), sorted by totalDamage (see -z below)
-    
-    +feat=name      add feat
-    +aaa=N          increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
 
-File:
+Attacker/Target - any of the following:
 
-     file.json   load spell or monster data; this is optional: program contains most 2014 and 2024 data
-
-Character:
-
-     NumericID   read character from DND Beyond API (character must have public visibility)
-     file.json   read character from a local file
+     monsterName    read monster from application resources
+     NumericID      read character from DND Beyond API (character must have public visibility)
+     file.json      read character from a local file
+     "party:N"      read all characters stored in application data directory, and set each character level to N
 
 Attacks:
 
-     -a  <monster> <turn[;turn...] >   one/more turns (separated by semi-colon), each turn is a comma-separated list of spell or weapon name
-     
-     -z  <monster> <proximityInFeet>  [numTurns (${NUM_TURNS_PER_SCENARIO})]  [numTargets (${DEFAULT_NUM_TARGETS})]  [targetRadius (${DEFAULT_TARGET_RADIUS})]
+     <turn[;turn...] >   
 
-     -p  <level>  <monster> <proximityInFeet>  [numTurns (${NUM_TURNS_PER_SCENARIO})]  [numTargets (${DEFAULT_NUM_TARGETS})]  [targetRadius (${DEFAULT_TARGET_RADIUS})]
-  
-  
-Note: '-a' and '-z' operate on a single character.  The '-p' option iterates over an entire party, from ~/.dpr/character/editable, and calculates results at the specified character level 
+       - one/more turns (separated by semi-colon); each turn is a comma-separated list of spell or weapon name
+       
+OR
+     <proximityInFeet>  [numTurns (${NUM_TURNS_PER_SCENARIO})]  [numTargets (${DEFAULT_NUM_TARGETS})]  [targetSpacing (${DEFAULT_TARGET_SPACING})]   
+
+       - identify all possible attack scenarios for given conditions, compute DPR, and present the top 30 results
 
 """)
 }
@@ -164,32 +249,15 @@ Note: '-a' and '-z' operate on a single character.  The '-p' option iterates ove
 fun main(args : Array<String>) {
     JulConfigurator()
 
-    var exitEarly = false
-    var playerCharacter: com.vikinghelmet.dnd.dpr.character.PlayerCharacter? = null
-    val turns = ArrayList<Turn>()
-
     if (args.isEmpty()) {
         showUsage()
         System.exit(0)
     }
 
-    /*
-Level	Priority	Usage
-VERBOSE	0	Most detailed
-DEBUG	1	Debugging information
-INFO	2	General informational messages
-WARN	3	Warning messages for potential issues
-ERROR	4	Error messages for failures
-FATAL	5	Critical errors (flushes sinks and crashes)
-OFF	6	Disables all logging
-     */
     Globals.initLogger(if (args.contains("-v")) LogLevel.VERBOSE
                 else if (args.contains("-d")) LogLevel.DEBUG
                 else if (args.contains("-i")) LogLevel.INFO
                 else LogLevel.WARN)
-
-    val logger = LoggerFactory.get(DprCmd::class.simpleName ?: "no simpleName")   // DprCmd
-    //val logger = LoggerFactory.get(DprCmd::class.qualifiedName ?: "no qualifiedName") // com.vikinghelmet.dnd.dpr.DprCmd
 
     for (filename in mutableListOf("spells.json","extra.spells.json")) {
         Globals.addSpells(getResource(filename) ?: "[]")
@@ -198,140 +266,41 @@ OFF	6	Disables all logging
     Globals.addSubclassSpellsPrepared(getResource("subclass.spellprep.json") ?: "[]")
 
     Globals.addMonsters(getResource("monsters.json") ?: "[]")
-    logger.debug { "monsters loaded from resource = ${monsters.size}" }
 
-    // each arg should be a json file (spells, monsters, character, or attacks) or a debug cmd (dump, search, test)
-    for (i in args.indices) {
-        val arg = args[i]
-        if (arg.startsWith("+feat")) {
-            val split = arg.split("=")
-            playerCharacter!!.addFeat(com.vikinghelmet.dnd.dpr.character.feats.Feat.valueOf(split[1]))
-        }
-        else if (arg.startsWith("+")) {
-            val split = arg.substringAfter("+").split("=")
-            val ability = com.vikinghelmet.dnd.dpr.character.stats.AbilityType.fromShortName(split[0]) ?: throw IllegalArgumentException("unknown ability: "+split[0])
-            playerCharacter!!.updateAbilityScore(ability, split[1].toInt())
-        }
-        else if (arg.startsWith("--maxResults")) {
-            Constants.SCENARIO_OUTPUT_MAX = arg.split("=")[1].toInt()
-        }
-        else if (arg.startsWith("-")) {
-            when (arg) {
-                "-i" -> { Globals.initLogger(LogLevel.INFO) }
-                "-d" -> { Globals.initLogger(LogLevel.DEBUG) }
+    logger.debug { "All spell and monster resources loaded from" }
 
-                "--csv" -> AttackResultFormatter.isCSV = true;
-                "-a" -> {
-                    val monster = Globals.getMonster(args[i+1])
-
-                    for (turn in args[i+2].split(";")) {
-                        val attackList = mutableListOf<Attack>()
-                        for (attackName in turn.split(",")) {
-                            try {
-                                attackList.add (Attack (monster, playerCharacter!!.getWeapon(attackName)))
-                            }
-                            catch (e: Exception) {
-                                val spell = Globals.getSpell(attackName, playerCharacter!!.is2014())
-                                logger.verbose { "spell = ${spell.fullString()}" }
-                                attackList.add (Attack (monster, Globals.getSpell(attackName, playerCharacter!!.is2014())))
-                            }
-                        }
-                        turns.add(Turn(attackList))
-                    }
-
-                    break
-                }
-                "-z" -> {
-                    exitEarly = true
-                    showResults(runScenarios(playerCharacter!!, args, i))
-                }
-                "-p" -> {
-                    exitEarly = true
-                    val level = args[i+1].toInt()
-                    val resultList: MutableList<ScenarioResult> = mutableListOf()
-
-                    dprFiles.getEditableCharacterList().forEach { name ->
-                        val c = dprFiles.getEditableCharacter(name)
-                        c!!.editableFields.level = level
-                        resultList.addAll(runScenarios(c!!, args, i+1))
-                    }
-
-                    showResults(resultList)
-                }
-                else -> println("invalid argument: $arg")
-            }
-        }
-        else if (arg.endsWith(".json") || arg.contains("/")) {
-            val jsonString = getFileOrURL(arg)
-            if (jsonString == null) {
-                println("unable to read input: $arg")
-            }
-            else if (jsonString.contains("School")) {
-                spells.addAll(Json.decodeFromString(jsonString))
-            }
-            else if (jsonString.contains("\"Monsters\"")){
-                monsters.addAll(Json.decodeFromString(jsonString))
-            }
-            else if (jsonString.contains("\"remoteId\"")) {
-                playerCharacter = getEditableCharacter(jsonString)
-                logger.debug { "# loaded editable character: $playerCharacter" }
-            }
-            else if (jsonString.contains("\"username\"")) {
-                playerCharacter = Json.decodeFromString(jsonString)
-            }
-            else if (jsonString.contains("\"Always prepared spells successfully received.\"")) {
-                val alwaysPrepared: AlwaysPreparedSpells = Json.decodeFromString(jsonString)
-                val names = alwaysPrepared.data.map { it.definition.name }
-                logger.info { "# alwaysPrepared: ${ names }" }
-            }
-            else {
-                logger.error { "unsupported json file: $arg" }
-                exitEarly = true
-            }
-        }
-        else if (arg.endsWith(".json")){
-            println("unknown file type: $arg")
-        }
-        else if (arg.startsWith("character") || arg.startsWith("https://www.dndbeyond.com/characters")) {
-            var remoteId: String? = CharacterAPI.getCharacterId(arg)
-            if (remoteId != null) {
-                playerCharacter = getCharacter(remoteId)
-            }
-        }
-        else if (arg.startsWith("test:plan")) {
-            val editableCharacter = dprFiles.getEditableCharacter(args[i+1])
-            println("plan = ${editableCharacter!!.editableFields.toPrettyPlan() }")
-            AbilityType.entries.forEach {
-                println("ability = $it, score = ${editableCharacter.getModifiedAbilityScore(it)}")
-            }
-            exitEarly = true
-        }
-        else if (arg.startsWith("test:spells")) {
-            // spells with more than one failed-save condition
-            spells.filter {  it.getSpellFailConditions().size > 1 }.forEach { spell ->
-                println("name = ${spell.name}, conditions = ${spell.getSpellFailConditions()}")
-            }
+    var i=0
+    args.forEach { arg ->
+        when (arg) {
+            "--csv" -> { AttackResultFormatter.isCSV = true; i++}
+            "-i"    -> { Globals.initLogger(LogLevel.INFO); i++ }
+            "-d"    -> { Globals.initLogger(LogLevel.DEBUG); i++ }
         }
     }
 
-    if (exitEarly) {
+    if (args.size < i+3) {
+        showUsage()
+        System.exit(0)
     }
-    else if (playerCharacter == null) {
-        println("no character data")
+
+    val attackers = getCombatantGroup(args[i++])
+    val targets   = getCombatantGroup(args[i++])
+
+    if (args[i].toIntOrNull() == null) {
+        runCustomAttack (attackers[0], targets[0], args[i]) // proximity not specified: custom turns, single combat
     }
-    else if (turns.isNotEmpty()) {
-        val attackNames = turns.map { it.attacks.map { it.action.toString() }}
-        logger.debug { "attackNames = $attackNames" }
-
-        val scenario = Scenario(playerCharacter, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
-        val scenarioResult = ScenarioCalculator(scenario).calculateDPRForAllTurns()
-
-        scenarioResult.attackResults.forEach {
-            logger.debug { "scenario result = ${ it }" }
+    else {
+        logger.warn { "attackers = ${attackers.size}" }
+        logger.warn { "targets   = ${targets.size}" }
+        val resultList: MutableList<ScenarioResult> = mutableListOf()
+        for (attacker in attackers) {
+            for (target in targets) {
+                resultList.addAll(runScenarios(attacker, target, args, i))
+            }
         }
-
-        println (scenarioResult.output())
+        showResults(resultList)
     }
 
     CharacterAPI.closeHttpClient() // don't forget to do this, otherwise the program may run forever
 }
+

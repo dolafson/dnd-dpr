@@ -6,7 +6,7 @@ import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -52,7 +52,7 @@ object TestUtil {
     fun bestDPR (level: Int, character: EditablePlayerCharacter, numTargets: Int, range: Int): SimpleResult {
         character.editableFields.level = level
         val scenarioList = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-            .build(range, 5, numTargets, DEFAULT_TARGET_RADIUS)
+            .build(range, 5, numTargets, DEFAULT_TARGET_SPACING)
 
         //println("ScenarioList size: ${scenarioList.size}")
         logger.debug { "ScenarioList size: ${scenarioList.size}" }

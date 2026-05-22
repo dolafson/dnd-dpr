@@ -7,7 +7,7 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LogLevel
 import org.junit.jupiter.api.Test
@@ -37,7 +37,7 @@ class RangerSpellTest {
                 List(2) { conjureBarrageTurn } +
                 listOf(Turn(listOf(Attack(monster, conjureWoodlandBeings))))
 
-        var scenario = Scenario(character, fiveTurns, 4, DEFAULT_TARGET_RADIUS)
+        var scenario = Scenario(character, fiveTurns, 4, DEFAULT_TARGET_SPACING)
         var result   = SimpleResult(ScenarioCalculator(scenario).calculateDPRForAllTurns())
 
 //        println("result = ${SimpleResult(result)}")
@@ -55,7 +55,7 @@ class RangerSpellTest {
         val spell    = Globals.getSpell("Steel Wind Strike", character.is2014())
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), spell))))
 
-        val scenario = Scenario(character, turns, 4, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turns, 4, DEFAULT_TARGET_SPACING)
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
 
         val result = actionCalculator.getMeleeOrRangeDPR(spell.getSpellAttacks()[0], turns[0].attacks[0], 1, 1, 1)
@@ -89,7 +89,7 @@ class RangerSpellTest {
             //listOf(Turn(listOf(Attack(monster, iceStorm))))
             listOf(Turn(listOf(Attack(monster, coneOfCold))))
 
-        var scenario = Scenario(character, fiveTurns, 4, DEFAULT_TARGET_RADIUS)
+        var scenario = Scenario(character, fiveTurns, 4, DEFAULT_TARGET_SPACING)
         var result   = ScenarioCalculator(scenario).calculateDPRForAllTurns()
 
         println("result = ${SimpleResult(result)}")

@@ -21,6 +21,7 @@ open class Weapon () : MeleeOrRangeAction, AttackAction
     var damage = "0d4"
     var magicBonus: Int = 0    // for now, just handle magic weapons that get the same bonus to attack and damage
     var flatBonusDamage: Int? = null
+    var flatBonusToHit: Int? = null
     var propertyNames: List<String> = emptyList()
 
     constructor(other: Weapon, flatBonusDamage: Int) : this() {
@@ -77,6 +78,10 @@ open class Weapon () : MeleeOrRangeAction, AttackAction
                 flatBonusDamage = damageSplit[1].trim().toInt()
             }
         }
+        
+        if (item.HitBonus != null) {
+            flatBonusToHit = item.HitBonus.toInt()
+        }
     }
 
     override fun getActionName(): String { return name }
@@ -87,6 +92,7 @@ open class Weapon () : MeleeOrRangeAction, AttackAction
     }
 
     override fun getBonusToHit(combatant: Combatant, isBonusAction: Boolean): Int {
+        if (flatBonusToHit != null) return flatBonusToHit!!
         return magicBonus + combatant.getAttackBonus(this)
     }
 

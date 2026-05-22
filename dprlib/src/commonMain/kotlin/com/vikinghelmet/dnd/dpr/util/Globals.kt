@@ -134,6 +134,16 @@ object Globals {
         LoggerFactory.get(Globals::class.simpleName ?: "no simpleName").debug{str}
     }
 
+    /*
+Level	Priority	Usage
+VERBOSE	0	Most detailed
+DEBUG	1	Debugging information
+INFO	2	General informational messages
+WARN	3	Warning messages for potential issues
+ERROR	4	Error messages for failures
+FATAL	5	Critical errors (flushes sinks and crashes)
+OFF	6	Disables all logging
+     */
     fun initLogger(level: LogLevel) {
         // notes:
         //      ConsoleSink writes to /dev/stdout

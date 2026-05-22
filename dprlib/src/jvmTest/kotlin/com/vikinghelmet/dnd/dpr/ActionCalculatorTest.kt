@@ -10,7 +10,7 @@ import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -55,7 +55,7 @@ class ActionCalculatorTest {
     fun turnOptionsRhogar() {   // verify support for Breath Weapon
         val character = TestUtil.rhogar
         val meleeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-        val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         assertEquals(listOf(
             listOf("Longsword"),
@@ -66,7 +66,7 @@ class ActionCalculatorTest {
         // ---------------------------------------------------------------------------
         // mid range = 30
         val midRangeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-        val midRangeScenarios = midRangeBuilder.build(30, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val midRangeScenarios = midRangeBuilder.build(30, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         assertEquals(listOf(listOf("Longbow"),listOf("Breath Weapon (Fire)")),
             midRangeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
@@ -74,7 +74,7 @@ class ActionCalculatorTest {
         // ---------------------------------------------------------------------------
         // long range = 150
         val longRangeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-        val longRangeScenarios = longRangeBuilder.build(150, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val longRangeScenarios = longRangeBuilder.build(150, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         assertEquals(listOf(listOf("Longbow")),
             longRangeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
@@ -84,7 +84,7 @@ class ActionCalculatorTest {
     fun turnOptions() {
         val character = TestUtil.leif
         val meleeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-        val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         assertEquals(9, meleeBuilder.turnOptions.size)
         assertEquals(15625, meleeScenarios.size)
@@ -103,7 +103,7 @@ class ActionCalculatorTest {
 
 
         val rangeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
-        val rangeScenarios = rangeBuilder.build(60, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val rangeScenarios = rangeBuilder.build(60, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         rangeBuilder.turnOptions.forEach {
             val buf = StringBuilder()
@@ -129,7 +129,7 @@ class ActionCalculatorTest {
         val character = TestUtil.leif
         val weapon   = character.getWeapon("Shortsword")
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), weapon))))
-        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         // calculate single action via action calculator
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
@@ -158,7 +158,7 @@ class ActionCalculatorTest {
         val character = TestUtil.leif
         val weapon = character.getWeapon("Longbow")
         val turns = listOf(Turn(listOf(Attack(Globals.getMonster("Goblin"), weapon))))
-        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         // calculate single action via action calculator
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
@@ -181,7 +181,7 @@ class ActionCalculatorTest {
         val character = TestUtil.leif
         val weapon   = character.getWeapon("Shortsword")
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), weapon, isBonusAction = true))))
-        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         // calculate single action via action calculator
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
@@ -197,7 +197,7 @@ class ActionCalculatorTest {
         val character = TestUtil.leif
         val spell    = Globals.getSpell("Hail of Thorns", character.is2014())
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), spell, isBonusAction = true))))
-        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
         var attackResult = actionCalculator.getSavingThrowSpellDPR (spell.getSpellAttacks()[0], spell, turns[0].attacks[0])
@@ -211,7 +211,7 @@ class ActionCalculatorTest {
         val character = TestUtil.eldir
         val spell    = Globals.getSpell("Fire Bolt", character.is2014())
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), spell, isBonusAction = true))))
-        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+        val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
         var attackResult = actionCalculator.getMeleeOrRangeDPR(spell.getSpellAttacks()[0], turns[0].attacks[0], 1, 1, 1)
@@ -231,7 +231,7 @@ class ActionCalculatorTest {
         val fireBoltTurn = listOf(Turn(listOf(fireBoltAttack)))
 
         // first, calculate results without sleep
-        val noSleepScenario = Scenario(character, fireBoltTurn, 10, DEFAULT_TARGET_RADIUS)
+        val noSleepScenario = Scenario(character, fireBoltTurn, 10, DEFAULT_TARGET_SPACING)
         val noSleepCalculator = ActionCalculator(noSleepScenario, EffectManager(ArrayList()))
         var noSleepFBResult = noSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks()[0], fireBoltAttack, 1, 1, 1)
 
@@ -242,7 +242,7 @@ class ActionCalculatorTest {
         val sleepEffectManager = EffectManager(ArrayList())
         val sleepAttack = Attack (monster, sleep)
         val sleepTurn = listOf(Turn(listOf(sleepAttack)))
-        val withSleepScenario = Scenario(character, sleepTurn + fireBoltTurn, 10, DEFAULT_TARGET_RADIUS)
+        val withSleepScenario = Scenario(character, sleepTurn + fireBoltTurn, 10, DEFAULT_TARGET_SPACING)
         val withSleepCalculator = ActionCalculator(withSleepScenario, sleepEffectManager)
 
         var sleepResult = withSleepCalculator.getSavingThrowSpellDPR (sleep.getSpellAttacks()[0], sleep, sleepAttack)

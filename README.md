@@ -49,46 +49,30 @@ java -jar ./dprcmd/build/libs/dprcmd-standalone.jar
 
 ## Usage
 ```
-Usage:  [-d] [--csv] [+aaa=N]  [file.json ...]  [character]  < dump[:opt] | search<opt> | <attacks> >
+Usage:  [-d] [--csv]  <attacker>  <target>  <attacks> 
 
 Options:
 
-    -d              debug logging
+    -i, -d          info/debug logging (default = warn)
     --csv           CSV output
-    
-    --maxTurns=N    number of turns per scenario (default = 5)
-    --maxResults=N  number of results in final output (default = 30), sorted by totalDamage (descending)
-    
-    +feat=name      add feat
-    +aaa=N          increase ability (3-letter shorthand = str, dex, ...) by N = [1-9]
 
-File:
+Attacker/Target - any of the following:
 
-     file.json   load spell or monster data; this is optional: program contains most 2014 and 2024 data
-
-Character:
-
-     NumericID   read character from DND Beyond API (character must have public visibility)
-     file.json   read character from a local file
-
-Dump:
-
-     dump:spells     export all known spells
-     dump:monsters   export all known monsters
-     dump:attacks    export attacks from user input
-     dump:character  export (minimal) character data from DND Beyond
-     dump:features   export supported features: racialTraits, actionModifiers, feats
-     dump            export all of the above
-
-Search:
-
-     search:NAME     search for NAME in list of spells/monsters, and display details if found
+     monsterName    read monster from application resources
+     NumericID      read character from DND Beyond API (character must have public visibility)
+     file.json      read character from a local file
+     "party:N"      read all characters stored in application data directory, and set each character level to N
 
 Attacks:
 
-     -a  <monster turn[;turn...] >     one/more turns, each a comma-separated list of spell or weapon name
-     -z  <monster proximityInFeet>     run all possible 5-turn scenarios, then sort by total damage
+     <turn[;turn...] >   
 
+       - one/more turns (separated by semi-colon); each turn is a comma-separated list of spell or weapon name
+       
+OR
+     <proximityInFeet>  [numTurns (5)]  [numTargets (1)]  [targetSpacing (5)]   
+
+       - identify all possible attack scenarios for given conditions, compute DPR, and present the top 30 results
 ```
 
 <br>
@@ -99,7 +83,7 @@ While performing the Attack DPR calculation, several stats are calculated and di
 
 To demonstrate, run the following command
 
-`java -jar ./dprcmd/build/libs/dprcmd-standalone.jar ./example/character.json  -a Goblin "Mind Sliver;Longbow,Hail of Thorns"
+`java -jar ./dprcmd/build/libs/dprcmd-standalone.jar ./example/character.json Goblin "Mind Sliver;Longbow,Hail of Thorns"
 `
 
 Output for this scenario can be found here in [TXT](example/attackResult/MindSliver.then.HailOfThorns.txt) and [CSV](example/attackResult/MindSliver.then.HailOfThorns.csv).  Key things to note in the output are:
@@ -148,8 +132,8 @@ In no particular order ...
 - add support for more class features / feats
 - add support for spell damage upcasting (by character level, or spell level) 
 - add simulated battles
-  - give the monster(s) a chance to fight back
-  - calculate probability of character death
+  - track HP across turns
+  - calculate probability of death (per turn) for all combatants
 
 ## Known Issues
 

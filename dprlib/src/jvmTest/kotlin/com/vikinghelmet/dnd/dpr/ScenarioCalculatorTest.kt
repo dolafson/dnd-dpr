@@ -8,7 +8,7 @@ import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
 import com.vikinghelmet.dnd.dpr.turn.Attack
 import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_RADIUS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Constants.MELEE_RANGE
 import com.vikinghelmet.dnd.dpr.util.Globals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,7 +18,7 @@ class ScenarioCalculatorTest {
 
     fun bestDPR(numTurns: Int, range: Int): SimpleResult {
         val scenarioList = ScenarioBuilder(TestUtil.leif, Globals.getMonster("Goblin"))
-            .build(range, numTurns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_RADIUS)
+            .build(range, numTurns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
         val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
         return SimpleResult (ScenarioResult.topResults(scenarioResultList, 1)[0])
     }
@@ -70,12 +70,12 @@ class ScenarioCalculatorTest {
         val fourTurns = List(4) { Turn(listOf(polarAttack, Attack (monster, weapon), Attack(monster, hailOfThorns))) }
 
         val hmTurn   = listOf(Turn(listOf(polarAttack, Attack (monster, weapon), Attack(monster, huntersMark))))
-        var scenario = Scenario(character, hmTurn + fourTurns, 4, DEFAULT_TARGET_RADIUS)
+        var scenario = Scenario(character, hmTurn + fourTurns, 4, DEFAULT_TARGET_SPACING)
         var result   = ScenarioCalculator(scenario).calculateDPRForAllTurns()
         assertEquals(176, result.totalDamage.toInt())
 
         val spellTurn = listOf(Turn(listOf(Attack(monster, holdPerson))))
-        var scenario2 = Scenario(character, spellTurn + fourTurns, 4, DEFAULT_TARGET_RADIUS)
+        var scenario2 = Scenario(character, spellTurn + fourTurns, 4, DEFAULT_TARGET_SPACING)
         var result2   = ScenarioCalculator(scenario2).calculateDPRForAllTurns()
         assertEquals(182, result2.totalDamage.toInt())
     }
@@ -97,11 +97,11 @@ class ScenarioCalculatorTest {
 
         // compare two 5-turn scenarios:  5 firebolts -VS- 1 sleep + 4 firebolts
 
-        val noSleepScenario = Scenario(character, fiveFirebolts, 10, DEFAULT_TARGET_RADIUS)
+        val noSleepScenario = Scenario(character, fiveFirebolts, 10, DEFAULT_TARGET_SPACING)
         val noSleepResults  = ScenarioCalculator(noSleepScenario).calculateDPRForAllTurns()
 
         val sleepTurn = listOf(Turn(listOf(Attack (monster, sleep))))
-        val withSleepScenario = Scenario(character, sleepTurn + fourFirebolts, 10, DEFAULT_TARGET_RADIUS)
+        val withSleepScenario = Scenario(character, sleepTurn + fourFirebolts, 10, DEFAULT_TARGET_SPACING)
         val withSleepResults  = ScenarioCalculator(withSleepScenario).calculateDPRForAllTurns()
 
         println("noSleepResults[1] = ${ noSleepResults.attackResults[1] }")

@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -38,7 +39,10 @@ class PlayerCharacterTest {
         assertEquals(12, TestUtil.eldir.getAC())
         assertEquals(18, TestUtil.kael.getAC())
         assertEquals(16, TestUtil.leif.getAC())
+
+        assert(TestUtil.oleg.isClassFeatureEnabled(ClassFeature.UnarmoredDefense))
         assertEquals(14, TestUtil.oleg.getAC())
+
         assertEquals(14, TestUtil.rhogar.getAC())
         assertEquals(15, TestUtil.lars.getAC())
     }

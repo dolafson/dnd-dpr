@@ -5,7 +5,7 @@ object Constants {
     var SCENARIO_OUTPUT_MAX = 30
 
     var DEFAULT_NUM_TARGETS = 1
-    var DEFAULT_TARGET_RADIUS = 5
+    var DEFAULT_TARGET_SPACING = 5
 
     val SPELL_LEVELS = 1..9
     val CHARACTER_LEVELS = 1..20

@@ -554,7 +554,7 @@ open class PlayerCharacter(
     }
 
     fun isClassFeatureEnabled(feature: ClassFeature): Boolean {
-        return getClassFeaturesByLevel().any { it.key == feature.name }
+        return getClassFeaturesByLevel().any { it.key == feature.getSerialName() }
     }
 
     fun getLevelsForFightingStyle(): List<Int> {
