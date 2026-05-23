@@ -13,8 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Party
 import com.vikinghelmet.dnd.dprapp.DprViewModel
@@ -355,14 +355,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                     Column(modifier = Modifier.padding(start = 20.dp)) {
                         Text("Damage", fontWeight = FontWeight.Bold)
                         character.getWeaponList().distinct().forEach { weapon ->
-                            Text(
-                                if (character.getDamageBonus(weapon, false) == 0) {
-                                    weapon.damage!!
-                                } else {
-                                    // TODO: BA
-                                    weapon.damage!! + " + " + character.getDamageBonus(weapon, false).toString()
-                                }
-                            )
+                            Text(weapon.getDamageList().toString())
                         }
                     }
                 }

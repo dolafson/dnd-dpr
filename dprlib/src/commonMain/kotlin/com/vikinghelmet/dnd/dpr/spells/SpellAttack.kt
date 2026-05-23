@@ -1,19 +1,22 @@
 package com.vikinghelmet.dnd.dpr.spells
 
-import com.vikinghelmet.dnd.dpr.character.Combatant
+import com.vikinghelmet.dnd.dpr.action.DamageType
+import com.vikinghelmet.dnd.dpr.action.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
-import com.vikinghelmet.dnd.dpr.turn.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlin.math.pow
+
+val logger = LoggerFactory.get(SpellAttack::class.simpleName ?: "")
 
 @Serializable
 data class SpellAttack(
     val attackPayload: Attack,
     val damagePayload: Damage? = null,
+    val attackBonus: Int ?= 0
 ) : MeleeOrRangeAction {
     private var numTargetsOverride: Int? = null
 
@@ -66,16 +69,18 @@ data class SpellAttack(
         return kotlin.math.min (scenario.numTargets, numTargetsInArea)
     }
 
-    override fun getBonusDamage(combatant: Combatant, isBonusAction: Boolean): Int {
-        return 0
+    override fun getDamageList(): List<com.vikinghelmet.dnd.dpr.action.Damage>
+    {
+        val damageType = damagePayload?.damageType ?: "undefined"
+
+        return listOf(com.vikinghelmet.dnd.dpr.action.Damage(
+            damagePayload?.getDamageDice() ?: DiceBlock(),
+            0, 0,
+            DamageType.valueOf(damageType.lowercase())))
     }
 
-    override fun getBonusToHit(combatant: Combatant, isBonusAction: Boolean): Int {
-        return combatant.getSpellBonusToHit()
-    }
-
-    override fun getDamageDice(): DiceBlock {
-        return damagePayload?.getDamageDice() ?: DiceBlockHelper.emptyBlock()
+    override fun getAttackBonus(): Int {
+        return attackBonus ?: 0
     }
 
     // non-interface methods

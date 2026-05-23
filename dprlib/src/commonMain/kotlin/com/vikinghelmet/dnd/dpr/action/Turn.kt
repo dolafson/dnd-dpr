@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.action
 
 import kotlinx.serialization.Serializable
 

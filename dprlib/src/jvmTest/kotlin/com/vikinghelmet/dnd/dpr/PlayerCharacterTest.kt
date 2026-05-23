@@ -107,10 +107,10 @@ class PlayerCharacterTest {
             TestUtil.oleg.getWeaponList().map { it.name })
 
         // entire party has a single magic weapon
-        assertEquals(1, TestUtil.party.flatMap { it.getWeaponList() }.count { it2 -> it2.magic })
+        assertEquals(1, TestUtil.party.flatMap { it.getWeaponList() }.flatMap { it.getDamageList() }.count { it2 -> it2.bonus > 0 })
 
         // the magic weapon gets +1 for attack and damage
-        assertEquals(1, TestUtil.party.flatMap { it.getWeaponList() }.first { it2 -> it2.magic }.magicBonus)
+        assertEquals(1, TestUtil.party.flatMap { it.getWeaponList() }.flatMap { it.getDamageList() }.first { it2 -> it2.bonus > 0 }.bonus)
 
         // total number of weapons
         assertEquals(23, TestUtil.party.flatMap { it.getWeaponList() }.count())
@@ -121,8 +121,8 @@ class PlayerCharacterTest {
         // count by damage type
         assertEquals(
             mapOf("1d4" to 5, "1d6" to 11, "1d8" to 6, "1d12" to 1),
-            TestUtil.party.flatMap { it.getWeaponList() }
-                .groupingBy { it2 -> it2.damage }.eachCount()
+            TestUtil.party.flatMap { it.getWeaponList() }.flatMap { it.getDamageList() }
+                .groupingBy { it2 -> it2.dice.toString() }.eachCount()
         )
 
         // count by range

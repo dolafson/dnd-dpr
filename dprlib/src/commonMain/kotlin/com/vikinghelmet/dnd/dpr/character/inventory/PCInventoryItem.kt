@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class InventoryItem(
+data class PCInventoryItem(
     val definition: com.vikinghelmet.dnd.dpr.character.inventory.Definition,
     val equipped: Boolean? = false,
     val id: Int,

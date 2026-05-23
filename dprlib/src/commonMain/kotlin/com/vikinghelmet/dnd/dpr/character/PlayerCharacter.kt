@@ -2,6 +2,7 @@
 
 package com.vikinghelmet.dnd.dpr.character
 
+import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.api.ApiRequestParameters
@@ -218,13 +219,13 @@ open class PlayerCharacter(
         else dexBonus
     }
 
-    override fun getAttackBonus(w: Weapon): Int {
+    fun getAttackBonus(w: Weapon): Int {
         val statBonus = getAbilityWeaponBonus(w)
         val weaponTypeBonus = if (w.attackType == 2) getRangeAttackModifiers() else 0  // TODO: melee attack bonuses ?
         return statBonus + getProficiencyBonus() + weaponTypeBonus // for now assume proficiency in all weapons
     }
 
-    override fun getDamageBonus(w: Weapon, isBA: Boolean): Int {
+    fun getDamageBonus(w: Weapon, isBA: Boolean): Int {
         if (isBA && !isFeatEnabled(Feat.TwoWeaponFighting)) {
             logger.debug { "isBA, and TWF is not enabled" }
             return 0
@@ -262,7 +263,7 @@ open class PlayerCharacter(
             if (def.filterType == "Weapon") {
                 val name     = def.name.replace(",.*".toRegex(),"")
                 val nickname = getWeaponNicknameMap().get(""+item.id)
-                list.add(Weapon (name, nickname, item))
+                list.add(Weapon (name, nickname, item, this))
             }
         }
         return list
@@ -439,8 +440,8 @@ open class PlayerCharacter(
                 else {
                     // "range = self, but aoe is 60 ft cone ..."
                     // this may be inaccurate for some AOE shapes, but close enough for now
-                    if (spell.getSpellAttacks().isNotEmpty()) {
-                        val aoeSize = spell.getSpellAttacks().first().getAoeSize()
+                    if (spell.getSpellAttacks(0).isNotEmpty()) {
+                        val aoeSize = spell.getSpellAttacks(0).first().getAoeSize()
                         if (aoeSize > 0) {
                             actionsAvailable.add(aoeSize, spell)
                         }

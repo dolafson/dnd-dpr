@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.action
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
@@ -7,7 +7,6 @@ import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.math.max
@@ -33,8 +32,19 @@ data class AvgMinMax(var avg: Float, var min: Float, var max: Float, var final: 
         return final
     }
 
-    fun half(diceBlock: DiceBlock): AvgMinMax {
-        val halfAvg = if (diceBlock.isEmpty()) avg / 2 else avg / 2 - 0.25f
+    fun half(noDice: Boolean): AvgMinMax {
+    /* from Ludic:
+        Many save effects have the target still take half damage on a successful save.
+        We have to be a little bit careful in computing half damage, because D&D always
+        rounds the results of division down, and so the half-average of DPH will be
+        slightly less than DPH/2. The difference, in fact, is at most 0.5, and its
+        exact value is determined by the ratio of odd damage results to even results.
+
+        In most cases, the value DPH/2 - 0.25 is the exact correct value. This is because
+        the probability of an even damage result is equal to that of an odd damage result -
+        so we round down by 0.5 exactly half the time, for an adjustment of -0.25.
+     */
+        val halfAvg = if (noDice) kotlin.math.floor(avg / 2) else avg / 2 - 0.25f
         return AvgMinMax(halfAvg, (min.toInt() / 2).toFloat(), (max.toInt() / 2).toFloat())
     }
 
@@ -92,6 +102,20 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
     fun debug() { logger.debug { "" } }
     fun debug(str:String) { logger.debug { str } }
+
+    fun getAvgMinMax(damageList: List<Damage>, isBonusAction: Boolean, isCrit: Boolean): AvgMinMax {
+        // TODO: apply target damage resistance / immunity here?
+
+        val combinedDamage = Damage(DiceBlock(), 0, 0, DamageType.undefined)
+        damageList.forEach { it ->
+            combinedDamage.dice += (if (isCrit) it.dice.double() else it.dice)
+            combinedDamage.bonus += it.bonus
+            if (!isBonusAction) {
+                combinedDamage.bonus += it.abilityBonus
+            }
+        }
+        return getAvgMinMax(combinedDamage.dice, combinedDamage.bonus)
+    }
 
     fun getAvgMinMax(diceBlock: DiceBlock, bonusDamage: Int): AvgMinMax {
         val avg = averageDamage(diceBlock, bonusDamage, isGreatWeaponFighting, isElementalAdept)
@@ -428,7 +452,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val saveResult = spellAttack.getSaveResult()
         debug()
         debug("spell duration (max): " + spell.getDuration())
-        debug("spell damage:         " + spellAttack.getDamageDice())
+        debug("spell damage:         " + spellAttack.getDamageList())
         debug("num effects/targets:  $numberOfTargets")
         debug("spell penalty dice:   $penaltyDiceToSave")
         debug()
@@ -468,7 +492,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         logger.debug { "Chance to Hit, "+chanceToHit }
 
-        if (spellAttack.getDamageDice().isEmpty()) {
+        if (spellAttack.isNoDamageAttack()) {
             debug ("This spell never directly creates damage")
             val result = AttackResult(
                 numberOfTargets, chanceToHit, AvgMinMax(0f,0f,0f),
@@ -481,17 +505,21 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
             return result
         }
 
-        val fullDamage: AvgMinMax = getAvgMinMax(spellAttack.getDamageDice(), 0)
+        val fullDamage: AvgMinMax = getAvgMinMax(spellAttack.getDamageList(), false, false)
         logger.debug{"Full Damage: "+fullDamage}
 
-        val halfDamage = fullDamage.half(spellAttack.getDamageDice())
+        //                                           *** Q11 = flat bonus (eg: Nd1) ... I24 = isElemAdept
+        // D225 = =averageDamage(B11,E11,H11,K11,N11,Q11,FALSE,I24)
+        // D228 = IF(B11+E11+H11+K11+N11=0,FLOOR(D225/2),D225/2 - 0.25)
+        val noDice = spellAttack.getDamageList().all { it.dice.isEmpty() }
+        val halfDamage = fullDamage.half(noDice)
         logger.debug{"Half Damage: "+halfDamage}
         debug()
 
         val fullDamageFirstHit: AvgMinMax = getAvgMinMax(bonusDamageOnFirstHit, 0)
         logger.debug{"Full Damage (First Hit): "+fullDamageFirstHit}
 
-        val halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit)
+        val halfDamageFirstHit = fullDamageFirstHit.half(bonusDamageOnFirstHit.isEmpty())
         logger.debug{"Half Damage (First Hit): "+halfDamageFirstHit}
 
         var chanceofAtLeastOneHit = AvgMinMax(
@@ -517,17 +545,17 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         // 12. Damage per Failed Save       =IF(G15="Evasion",D228,D225)
         val damagePerFailedSave = AvgMinMax(
-            if (isTargetEvasive) halfDamage.avg else fullDamage.avg,
-            if (isTargetEvasive) halfDamage.min else fullDamage.min,
-            if (isTargetEvasive) halfDamage.max else fullDamage.max
+            if (saveForHalf && isTargetEvasive) halfDamage.avg else fullDamage.avg,
+            if (saveForHalf && isTargetEvasive) halfDamage.min else fullDamage.min,
+            if (saveForHalf && isTargetEvasive) halfDamage.max else fullDamage.max
         )
         logger.debug{"Damage Per Failed Save: "+damagePerFailedSave}
 
         // 15. Damage per Successful Save   =IF(G15="No Save",D225,IF(G15="Save for Half",D228,0))
         val damagePerSuccessfulSave = AvgMinMax(
-            if (noSave) fullDamage.avg else if (saveForHalf) halfDamage.avg else 0f,
-            if (noSave) fullDamage.min else if (saveForHalf) halfDamage.min else 0f,
-            if (noSave) fullDamage.max else if (saveForHalf) halfDamage.max else 0f,
+            if (noSave) fullDamage.avg else if (saveForHalf && !isTargetEvasive) halfDamage.avg else 0f,
+            if (noSave) fullDamage.min else if (saveForHalf && !isTargetEvasive) halfDamage.min else 0f,
+            if (noSave) fullDamage.max else if (saveForHalf && !isTargetEvasive) halfDamage.max else 0f,
         )
         logger.debug{"Damage Per Successful Save: "+damagePerSuccessfulSave}
 
@@ -611,24 +639,24 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // val preconditions = attack.preconditions ?: Preconditions()
         val preconditions = effectManager.getPreconditions(attack, if (attack.action is Spell) attack.action else null)
 
-        val bonusDiceToHit = preconditions.bonusDiceToHit ?: DiceBlockHelper.emptyBlock()
-        val penaltyDiceToHit = preconditions.penaltyDiceToHit ?: DiceBlockHelper.emptyBlock()
+        val bonusDiceToHit = preconditions.bonusDiceToHit
+        val penaltyDiceToHit = preconditions.penaltyDiceToHit
         val isBonusAction = attack.isBonusAction ?: false
-        val bonusDamage   = meleeOrRangeAttack.getBonusDamage(attacker, isBonusAction)
-        debug()
-
-        val attackBonus = meleeOrRangeAttack.getBonusToHit(attacker, isBonusAction)
+        val attackBonus = meleeOrRangeAttack.getAttackBonus()
 
         debug("target AC:     "+attack.target.getAC())
         debug("attack Bonus:  "+attackBonus)
         debug()
 
-        // bonus DD is how we cover effects like Hunters Mark
-        val bonusDamageDice = preconditions.bonusDamageDice ?: DiceBlock(0, 0, 0, 0, 0)
-        val damageDice = meleeOrRangeAttack.getDamageDice().add(bonusDamageDice)
+        val damageList = meleeOrRangeAttack.getDamageList().toMutableList()
+        if (! preconditions.bonusDamageDice.isEmpty()) {
+            damageList.add(
+                Damage(preconditions.bonusDamageDice.copy(), 0, 0, DamageType.undefined)
+            )
+        }
 
         debug("bonus damageDice: " + (preconditions.bonusDamageDice))
-        debug("meleeOrRange damage: " + damageDice)
+        debug("meleeOrRange damage: " + damageList)
         debug()
 
         val AC = attack.target.getAC()
@@ -650,11 +678,11 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         debug("avg %hit ($mainOrBonus):   " + Globals.getPercent(chanceToHit.avg))
 
         // DPH:                             (B205, F205, J205)
-        val damagePerHit = getAvgMinMax(damageDice, bonusDamage)
+        val damagePerHit = getAvgMinMax(damageList, isBonusAction, false)
         logger.debug{"Full Damage: "+damagePerHit}
 
         // DPC (damage per crit)          (B208, F208, J208)
-        val critDamage = getAvgMinMax(damageDice.double(), bonusDamage)
+        val critDamage = getAvgMinMax(damageList, isBonusAction, true)
         logger.debug{"Crit Damage: "+critDamage}
 
         debug()

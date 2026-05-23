@@ -1,6 +1,5 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.action
 
-import com.vikinghelmet.dnd.dpr.character.Combatant
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import kotlinx.serialization.Serializable
 

@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.action
 
 // TODO: abilities: Str, Dex, ... ?
 enum class AttackResultField(val constantAcrossTurns: Boolean = false)
@@ -8,7 +8,7 @@ enum class AttackResultField(val constantAcrossTurns: Boolean = false)
     turn,action,effect,attack,fullEffectDamage,//scenario,
 
     monsterName(true),monsterAC(true),
-    damageDice,damageBonus,attackBonus,
+    damageList, attackBonus,
     spellSaveDC(true),spellSaveAbility,targetSaveBonus,startCondition,startEffects,
     numTargets,chanceToHit,damagePerHit,duration,
     ;

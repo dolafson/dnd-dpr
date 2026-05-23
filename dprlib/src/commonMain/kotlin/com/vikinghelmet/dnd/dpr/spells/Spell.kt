@@ -1,11 +1,11 @@
 package com.vikinghelmet.dnd.dpr.spells
 
+import com.vikinghelmet.dnd.dpr.action.AttackAction
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
-import com.vikinghelmet.dnd.dpr.turn.AttackAction
 import com.vikinghelmet.dnd.dpr.util.Condition
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.TargetEffectCause
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
@@ -69,7 +69,7 @@ open class Spell(
         }
     }
 
-    fun getSpellAttacks(): List<SpellAttack> {
+    fun getSpellAttacks(attackBonus: Int): List<SpellAttack> {
         val attackList = mutableListOf<SpellAttack>()
         val data = properties.dataDatarecords ?: return attackList
         for (d in data) {
@@ -86,15 +86,15 @@ open class Spell(
                 // 2014 spells: damage is stored differently
                 if (damagePayload == null) {
                     logger.debug { "spell name=$name properties.Damage = ${properties.Damage}" }
-                    damagePayload = Damage(DiceBlockHelper.get(properties.Damage))
+                    damagePayload = Damage(DiceBlock(properties.Damage ?: "0d4"))
                 }
 
-                attackList.add(SpellAttack(d.payload, damagePayload))
+                attackList.add(SpellAttack(d.payload, damagePayload, attackBonus))
             }
         }
 
         if (attackList.isEmpty()) {
-            attackList.add(SpellAttack(Attack(name = this.name), null))
+            attackList.add(SpellAttack(Attack(name = this.name), null, attackBonus))
         }
 
         // println("attackList = $attackList")
@@ -103,7 +103,7 @@ open class Spell(
 
     fun getSpellFailConditions(): List<Condition> {
         val result = mutableListOf<Condition>()
-        for (a in getSpellAttacks()) {
+        for (a in getSpellAttacks(0)) {
             if (a.isSavingThrowAttack() && a.attackPayload.save?.onFail != null) {
                 val onFail = a.attackPayload.save.onFail
                 for (cond in Condition.entries) {
@@ -121,7 +121,7 @@ open class Spell(
     }
 
     fun getSpellSaveAbility(): AbilityType? {
-        return getSpellAttacks().firstNotNullOfOrNull { it.getSaveAbility() }
+        return getSpellAttacks(0).firstNotNullOfOrNull { it.getSaveAbility() }
     }
 
 }

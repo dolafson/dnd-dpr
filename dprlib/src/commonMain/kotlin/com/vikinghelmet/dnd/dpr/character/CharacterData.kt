@@ -7,7 +7,7 @@ import com.vikinghelmet.dnd.dpr.character.background.Background
 import com.vikinghelmet.dnd.dpr.character.campaign.Campaign
 import com.vikinghelmet.dnd.dpr.character.classes.CharacterClass
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
-import com.vikinghelmet.dnd.dpr.character.inventory.InventoryItem
+import com.vikinghelmet.dnd.dpr.character.inventory.PCInventoryItem
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifiers
 import com.vikinghelmet.dnd.dpr.character.race.Race
 import com.vikinghelmet.dnd.dpr.character.spells.ClassSpell
@@ -27,7 +27,7 @@ data class CharacterData(
     val campaign: Campaign? = null,
     val characterValues: List<CharacterValues>? = null,
     val classes: List<CharacterClass>,
-    val inventory: ArrayList<InventoryItem>? = null,
+    val inventory: ArrayList<PCInventoryItem>? = null,
     val modifiers: Modifiers,
     val actions: Actions,
     val stats: List<Stat>,

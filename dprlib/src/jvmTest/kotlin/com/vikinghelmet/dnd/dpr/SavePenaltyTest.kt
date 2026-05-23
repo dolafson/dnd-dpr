@@ -1,15 +1,15 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.TestUtil.wwCCPlan
+import com.vikinghelmet.dnd.dpr.action.ActionCalculator
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.AvgMinMax
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
-import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -96,6 +96,7 @@ class SavePenaltyTest {
         val character = wwCCPlan
         character.editableFields.level = 7
 
+        val attackBonus = character.getSpellBonusToHit()
         val spell   = Globals.getSpell("Hail of Thorns", character.is2014())
         val monster = Globals.getMonster("Goblin")
 
@@ -104,7 +105,7 @@ class SavePenaltyTest {
 
         // first, calculate results with no savePenalty
         var noPenaltyResult = ActionCalculator(scenario, EffectManager(ArrayList()))
-            .getSavingThrowSpellDPR(spell.getSpellAttacks()[0], spell, attack)
+            .getSavingThrowSpellDPR(spell.getSpellAttacks(attackBonus)[0], spell, attack)
 
         assertEquals (AvgMinMax(0.5f,  0.25f, 0.75f, 0.5f),  noPenaltyResult.chanceToHit, "noPenalty %hit")
         assertEquals (AvgMinMax(16.0f, 13.0f, 19.0f, 16.0f), noPenaltyResult.damagePerRound, "noPenalty dpr")
@@ -114,7 +115,7 @@ class SavePenaltyTest {
             TargetEffect(startTurn = 0, probability = 0.7f, savePenalty = mutableListOf("1d4"))))
 
         var withPenaltyResult = ActionCalculator(scenario, effectManager)
-            .getSavingThrowSpellDPR(spell.getSpellAttacks()[0], spell, attack)
+            .getSavingThrowSpellDPR(spell.getSpellAttacks(attackBonus)[0], spell, attack)
 
         assertEquals (AvgMinMax(0.62f,  0.39f, 0.86f, 0.62f),  withPenaltyResult.chanceToHit, "withPenaltyResult %hit")
         assertEquals (AvgMinMax(17.5f, 14.72f, 20.28f, 17.5f), withPenaltyResult.damagePerRound, "withPenaltyResult dpr")

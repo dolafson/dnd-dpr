@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class Damage(
+data class PCInventoryItemDamage(
     //val diceCount: Int,
     val diceString: String,
     //val diceValue: Int,

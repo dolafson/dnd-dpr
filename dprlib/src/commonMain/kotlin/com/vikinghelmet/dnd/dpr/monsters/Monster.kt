@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.monsters
 
-import com.vikinghelmet.dnd.dpr.character.Combatant
+import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
@@ -34,10 +34,7 @@ data class Monster(
 
     override fun isFeatEnabled(requested: Feat) = false
     override fun isRacialTraitEnabled(requested: RacialTrait) = false
-
     override fun getAbilityModifier(abilityType: AbilityType) = properties.getAbilityModifier(abilityType)
-    override fun getAttackBonus(w: Weapon) = 0 // TODO
-    override fun getDamageBonus(w: Weapon, isBA: Boolean) = 0 // TODO
 
     override fun getWeaponList(): List<Weapon> {
         if (properties.dataActions == null) return emptyList()
@@ -138,7 +135,7 @@ data class MonsterProperties(
     val dataAcNum: Int,
     @SerialName("data-Actions")
     //val dataActions: String? = null,
-    val dataActions: List<Action>? = null,
+    val dataActions: List<MonsterAction>? = null,
     @SerialName("data-Bonus Actions")
     val dataBonusActions: String? = null,
     @SerialName("data-CrNum")

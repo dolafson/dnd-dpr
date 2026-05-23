@@ -1,13 +1,13 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.action.ActionCalculator
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.AttackResult
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.AttackResult
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -84,7 +84,7 @@ class ScenarioCalculator(
         }
 */
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
-            val weaponWithNoBonusDamage = Weapon(weapon, 0)
+            val weaponWithNoBonusDamage = Weapon(weapon)
             val secondAttack = Attack(attack.target, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
             resultList.add(actionCalculator.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack, turnId, actionId, effect++))
         }
@@ -110,12 +110,13 @@ class ScenarioCalculator(
 
     private fun getSpellDPR(turnId: Int, actionId: Int, attack: Attack, actionCalculator: ActionCalculator): MutableList<AttackResult>
     {
+        val attackBonus = scenario.playerCharacter.getSpellBonusToHit()
         val spell = attack.action as Spell
         val resultList = mutableListOf<AttackResult>()
         var effectCount = 1
-        logger.verbose { "spell = ${spell.fullString()}" }
+        logger.debug { "spell = ${spell.fullString()}" }
 
-        for (spellAttack in spell.getSpellAttacks()) {
+        for (spellAttack in spell.getSpellAttacks(attackBonus)) {
             logger.debug { "spell = ${spell.name}, spellAttack = $spellAttack" }
 
             resultList.add (actionCalculator.getSpellDPR(spellAttack, spell, attack, turnId, actionId, effectCount++))

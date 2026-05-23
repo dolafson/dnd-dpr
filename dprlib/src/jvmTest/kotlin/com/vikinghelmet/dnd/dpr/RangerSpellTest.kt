@@ -1,19 +1,29 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.action.ActionCalculator
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.Turn
+import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
-import dev.shivathapaa.logger.api.LogLevel
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class RangerSpellTest {
+
+    @Test
+    fun ensnaringStrike() {
+        val character = TestUtil.gsDexPlan
+        character.editableFields.level = 17
+        val ensnaringStrike  = Globals.getSpell("Ensnaring Strike", character.is2014())
+
+        assertEquals(Damage(null,null,null,null,null), ensnaringStrike.getSpellAttacks(0)[0].damagePayload)
+        assertEquals(Damage("none","Piercing",null,1,"d6"), ensnaringStrike.getSpellAttacks(0)[1].damagePayload)
+    }
 
     @Test
     fun steelWindScenario() {
@@ -50,15 +60,14 @@ class RangerSpellTest {
         val character = TestUtil.gsDexPlan
         character.editableFields.level = 17
 
-        Globals.initLogger(LogLevel.DEBUG)
-
         val spell    = Globals.getSpell("Steel Wind Strike", character.is2014())
         val turns    = listOf(Turn(listOf(Attack (Globals.getMonster("Goblin"), spell))))
 
         val scenario = Scenario(character, turns, 4, DEFAULT_TARGET_SPACING)
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
 
-        val result = actionCalculator.getMeleeOrRangeDPR(spell.getSpellAttacks()[0], turns[0].attacks[0], 1, 1, 1)
+        val attackBonus = character.getSpellBonusToHit()
+        val result = actionCalculator.getMeleeOrRangeDPR(spell.getSpellAttacks(attackBonus)[0], turns[0].attacks[0], 1, 1, 1)
         println(result)
 
         assertEquals(0.85f,  Globals.round2(result.chanceToHit.final))

@@ -1,13 +1,13 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.action.ActionCalculator
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.AvgMinMax
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.turn.ActionCalculator
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.AvgMinMax
-import com.vikinghelmet.dnd.dpr.turn.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
@@ -200,7 +200,8 @@ class ActionCalculatorTest {
         val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
-        var attackResult = actionCalculator.getSavingThrowSpellDPR (spell.getSpellAttacks()[0], spell, turns[0].attacks[0])
+        val attackBonus = character.getSpellBonusToHit()
+        var attackResult = actionCalculator.getSavingThrowSpellDPR (spell.getSpellAttacks(attackBonus)[0], spell, turns[0].attacks[0])
 
         assertEquals (AvgMinMax(0.45f, 0.2f, 0.7f, 0.45f), attackResult.chanceToHit)
         assertEquals (AvgMinMax(3.85f, 3.11f, 4.59f, 3.85f), attackResult.damagePerRound)
@@ -214,7 +215,8 @@ class ActionCalculatorTest {
         val scenario = Scenario(character, turns, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
         val actionCalculator = ActionCalculator(scenario, EffectManager(ArrayList()))
-        var attackResult = actionCalculator.getMeleeOrRangeDPR(spell.getSpellAttacks()[0], turns[0].attacks[0], 1, 1, 1)
+        val attackBonus = character.getSpellBonusToHit()
+        var attackResult = actionCalculator.getMeleeOrRangeDPR(spell.getSpellAttacks(attackBonus)[0], turns[0].attacks[0], 1, 1, 1)
 
         assertEquals (AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f), attackResult.chanceToHit)
         assertEquals (AvgMinMax(3.58f, 1.99f, 5.16f, 3.58f), attackResult.damagePerRound)
@@ -226,6 +228,7 @@ class ActionCalculatorTest {
         val sleep    = Globals.getSpell("Sleep", character.is2014())
         val fireBolt = Globals.getSpell("Fire Bolt", character.is2014())
         val monster  = Globals.getMonster("Goblin")
+        val attackBonus = character.getSpellBonusToHit()
 
         val fireBoltAttack = Attack (monster, fireBolt)
         val fireBoltTurn = listOf(Turn(listOf(fireBoltAttack)))
@@ -233,7 +236,7 @@ class ActionCalculatorTest {
         // first, calculate results without sleep
         val noSleepScenario = Scenario(character, fireBoltTurn, 10, DEFAULT_TARGET_SPACING)
         val noSleepCalculator = ActionCalculator(noSleepScenario, EffectManager(ArrayList()))
-        var noSleepFBResult = noSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks()[0], fireBoltAttack, 1, 1, 1)
+        var noSleepFBResult = noSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks(attackBonus)[0], fireBoltAttack, 1, 1, 1)
 
         assertEquals(AvgMinMax(0.6f, 0.36f, 0.84f, 0.6f),   noSleepFBResult.chanceToHit)
         assertEquals(AvgMinMax(3.58f, 1.99f, 5.16f, 3.58f), noSleepFBResult.damagePerRound)
@@ -245,7 +248,7 @@ class ActionCalculatorTest {
         val withSleepScenario = Scenario(character, sleepTurn + fireBoltTurn, 10, DEFAULT_TARGET_SPACING)
         val withSleepCalculator = ActionCalculator(withSleepScenario, sleepEffectManager)
 
-        var sleepResult = withSleepCalculator.getSavingThrowSpellDPR (sleep.getSpellAttacks()[0], sleep, sleepAttack)
+        var sleepResult = withSleepCalculator.getSavingThrowSpellDPR (sleep.getSpellAttacks(attackBonus)[0], sleep, sleepAttack)
         assertEquals(AvgMinMax(0.7f, 0.49f, 0.91f, 0.7f), sleepResult.chanceToHit)
         assertEquals(AvgMinMax(0f, 0f, 0f, 0f), sleepResult.damagePerRound)
 
@@ -260,7 +263,7 @@ class ActionCalculatorTest {
         assertEquals(expectedAdvantageProbability, sleepEffectManager.attackerHasAdvantage()?.probability)
 
         // third: in the sleep scenario, cast firebolt
-        var withSleepFBResult = withSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks()[0], fireBoltAttack, 1, 1, 1)
+        var withSleepFBResult = withSleepCalculator.getMeleeOrRangeDPR(fireBolt.getSpellAttacks(attackBonus)[0], fireBoltAttack, 1, 1, 1)
         assertEquals(AvgMinMax(0.6f, 0.36f, 0.84f, 0.77f), withSleepFBResult.chanceToHit)
         assertEquals(AvgMinMax(6.6f, 3.96f, 9.24f, 8.45f), withSleepFBResult.damagePerRound)
 

@@ -20,7 +20,7 @@ data class Definition(
     val armorTypeId: Int? = null,
     val attackType: Int? = null,
 
-    val damage: com.vikinghelmet.dnd.dpr.character.inventory.Damage? = null,
+    val damage: com.vikinghelmet.dnd.dpr.character.inventory.PCInventoryItemDamage? = null,
     val damageType: String? = null,
     val properties: List<com.vikinghelmet.dnd.dpr.character.inventory.Property>? = null,
 

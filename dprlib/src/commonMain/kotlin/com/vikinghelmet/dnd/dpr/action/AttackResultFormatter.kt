@@ -1,6 +1,6 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.action
 
-import com.vikinghelmet.dnd.dpr.turn.AttackResultField.*
+import com.vikinghelmet.dnd.dpr.action.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 object AttackResultFormatter {

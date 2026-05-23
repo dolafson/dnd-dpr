@@ -1,32 +1,26 @@
 package com.vikinghelmet.dnd.dpr.util
 import kotlinx.serialization.Serializable
 
-object DiceBlockHelper {
-    fun get(diceString: String?): DiceBlock {
-        val dice = DiceBlock(0, 0, 0, 0, 0)
-
-        //  "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
-        val damage = diceString ?: return dice
-        val damageList = damage.split("d")
-        val diceCount = damageList[0].toInt()
-
-        when (damageList[1]) {
-            "4" -> dice.d4 = diceCount
-            "6" -> dice.d6 = diceCount
-            "8" -> dice.d8 = diceCount
-            "10" -> dice.d10 = diceCount
-            "12" -> dice.d12 = diceCount
-        }
-        return dice
-    }
-    fun emptyBlock(): DiceBlock {
-        return DiceBlock(0, 0, 0, 0, 0)
-    }
-}
 
 @Serializable
 data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d12: Int)
 {
+    constructor(): this(0,0,0,0,0)
+
+    constructor(diceString: String): this(0,0,0,0,0) {
+        //  "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
+        val damage = diceString
+        val damageList = damage.split("d")
+        val diceCount = damageList[0].toInt()
+        when (damageList[1]) {
+            "4" -> d4 = diceCount
+            "6" -> d6 = diceCount
+            "8" -> d8 = diceCount
+            "10" -> d10 = diceCount
+            "12" -> d12 = diceCount
+        }
+    }
+
     override fun toString(): String {
         val buf = StringBuilder()
         if (d4 != 0) buf.append("${d4}d4")
@@ -62,9 +56,6 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
 
     fun double(): DiceBlock {
         return DiceBlock(d4*2, d6*2, d8*2, d10*2, d12*2)
-    }
-    fun add(other: DiceBlock): DiceBlock {
-        return DiceBlock(d4 + other.d4, d6 + other.d6, d8 + other.d8, d10 + other.d10, d12 + other.d12)
     }
 
     operator fun plusAssign(other: DiceBlock) {

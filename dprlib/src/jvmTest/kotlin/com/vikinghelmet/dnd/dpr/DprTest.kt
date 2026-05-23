@@ -69,8 +69,6 @@ class DprTest {
         val arr = path.split("/")
         //dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3,4,5, 8,9,12,13, 16,17), false)
 
-        //Globals.initLogger(LogLevel.DEBUG)
-
         dprTestInner(arr[0], arr[1], arr[2].replace(".json",""), listOf(3), false)
     }
 

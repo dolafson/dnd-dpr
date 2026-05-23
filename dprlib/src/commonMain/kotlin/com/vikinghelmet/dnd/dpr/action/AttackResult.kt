@@ -1,9 +1,8 @@
-package com.vikinghelmet.dnd.dpr.turn
+package com.vikinghelmet.dnd.dpr.action
 
-import com.vikinghelmet.dnd.dpr.character.Combatant
+import com.vikinghelmet.dnd.dpr.action.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.turn.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.probableResult
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -86,9 +85,8 @@ data class AttackResult(
             monsterName -> this.attack.target.getName()
             monsterAC   -> this.attack.target.getAC()
 
-            damageDice  -> meleeOrRangeAction.getDamageDice()
-            damageBonus -> meleeOrRangeAction.getBonusDamage(combatant, this.attack.isBonusAction ?: false)
-            attackBonus -> meleeOrRangeAction.getBonusToHit(combatant, this.attack.isBonusAction ?: false)
+            damageList  -> meleeOrRangeAction.getDamageList()
+            attackBonus -> meleeOrRangeAction.getAttackBonus()
 
             spellSaveAbility -> saveAbility ?: ""
             targetSaveBonus  -> if (saveAbility == null) "" else this.attack.target.getAbilityModifier(saveAbility)

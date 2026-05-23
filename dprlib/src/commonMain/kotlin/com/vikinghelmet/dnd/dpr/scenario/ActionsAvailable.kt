@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
-import com.vikinghelmet.dnd.dpr.turn.AttackAction
+import com.vikinghelmet.dnd.dpr.action.AttackAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 
 class ActionsAvailable {

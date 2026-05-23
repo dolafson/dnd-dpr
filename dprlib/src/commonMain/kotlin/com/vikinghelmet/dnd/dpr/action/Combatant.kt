@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.character
+package com.vikinghelmet.dnd.dpr.action
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
@@ -19,8 +19,6 @@ interface Combatant {
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean
     fun isEvasive(): Boolean
 
-    fun getAttackBonus(w: Weapon): Int
-    fun getDamageBonus(w: Weapon, isBA: Boolean): Int
     fun getAbilityModifier(abilityType: AbilityType): Int
 
     fun getWeaponList(): List<Weapon>

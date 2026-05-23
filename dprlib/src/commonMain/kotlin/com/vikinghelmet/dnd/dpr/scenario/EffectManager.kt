@@ -1,13 +1,13 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.Preconditions
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.turn.Attack
-import com.vikinghelmet.dnd.dpr.turn.Preconditions
-import com.vikinghelmet.dnd.dpr.util.DiceBlockHelper
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
@@ -117,9 +117,9 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
 
         for (action in attack.actionModifiers) {
             when (action) {
-                ActionModifier.ColossusSlayer -> precondition.bonusDamageDice += DiceBlockHelper.get("1d8")
-                ActionModifier.DreadfulStrike -> precondition.bonusDamageDice += DiceBlockHelper.get("2d6")
-                ActionModifier.PolarStrikes   -> precondition.bonusDamageDice += DiceBlockHelper.get("1d4")
+                ActionModifier.ColossusSlayer -> precondition.bonusDamageDice += DiceBlock("1d8")
+                ActionModifier.DreadfulStrike -> precondition.bonusDamageDice += DiceBlock("2d6")
+                ActionModifier.PolarStrikes   -> precondition.bonusDamageDice += DiceBlock("1d4")
                 else -> Globals.debug("action does not modify attack preconditions: $action")
             }
         }
@@ -127,11 +127,11 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
         for (priorEffect in runningEffectList)
         {
             for (penalty in priorEffect.savePenalty) {
-                precondition.penaltyDiceToSave += DiceBlockHelper.get(penalty)
+                precondition.penaltyDiceToSave += DiceBlock(penalty)
             }
 
             for (damage in priorEffect.attackerExtraDamageOnHit) {
-                precondition.bonusDamageDice += DiceBlockHelper.get (damage)
+                precondition.bonusDamageDice += DiceBlock (damage)
             }
 
             if (currentSpell != null) {
@@ -146,7 +146,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
                 {
                     val filterMatch = priorEffect.savePenaltyFilter.any { it.match(saveAbility) }
                     if (filterMatch) {
-                        precondition.penaltyDiceToSave += DiceBlockHelper.get(penalty)
+                        precondition.penaltyDiceToSave += DiceBlock(penalty)
                     }
                 }
             }
