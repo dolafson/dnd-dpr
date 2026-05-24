@@ -3,11 +3,11 @@ package com.vikinghelmet.dnd.dpr.action
 // TODO: abilities: Str, Dex, ... ?
 enum class AttackResultField(val constantAcrossTurns: Boolean = false)
 {
-    characterName(true),level(true),
+    attackerName(true),level(true),
 
     turn,action,effect,attack,fullEffectDamage,//scenario,
 
-    monsterName(true),monsterAC(true),
+    targetName(true),targetAC(true),
     damageList, attackBonus,
     spellSaveDC(true),spellSaveAbility,targetSaveBonus,startCondition,startEffects,
     numTargets,chanceToHit,damagePerHit,duration,

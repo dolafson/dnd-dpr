@@ -86,7 +86,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 {
     val logger = LoggerFactory.get(ActionCalculator::class.simpleName ?: "no simpleName")
 
-    val attacker = scenario.playerCharacter
+    val attacker = scenario.attacker
     val effectSaveDC = attacker.getSpellSaveDC()
     val isLucky = attacker.isRacialTraitEnabled(RacialTrait.Luck)
     val isElvenAccuracy = attacker.isRacialTraitEnabled(RacialTrait.ElvenAccuracy)

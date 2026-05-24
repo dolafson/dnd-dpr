@@ -79,11 +79,11 @@ data class AttackResult(
 
         return when (field) {
             level           -> combatant.getLevel()
-            characterName   -> combatant.getName()
+            attackerName    -> combatant.getName()
             spellSaveDC     -> combatant.getSpellSaveDC()
 
-            monsterName -> this.attack.target.getName()
-            monsterAC   -> this.attack.target.getAC()
+            targetName -> this.attack.target.getName()
+            targetAC   -> this.attack.target.getAC()
 
             damageList  -> meleeOrRangeAction.getDamageList()
             attackBonus -> meleeOrRangeAction.getAttackBonus()

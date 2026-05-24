@@ -14,7 +14,7 @@ import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.time.measureTime
 
 class ScenarioBuilder(
-    val attacker: Combatant, //PlayerCharacter,
+    val attacker: Combatant,
     val target: Combatant,
     val actionsAvailable: ActionsAvailable
 ) {

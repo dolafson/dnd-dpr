@@ -1,14 +1,14 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
-import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 data class Scenario(
-    val playerCharacter: Combatant, // PlayerCharacter,
+    val attacker: Combatant,
     val turns: List<Turn>,
     val numTargets: Int,
     val targetSpacing: Int,
@@ -16,7 +16,7 @@ data class Scenario(
 {
     override fun equals(other: Any?): Boolean {
         if (other == null || other !is Scenario) return false
-        if (this.playerCharacter != other.playerCharacter) return false
+        if (this.attacker != other.attacker) return false
         if (this.numTargets != other.numTargets) return false
         if (this.targetSpacing != other.targetSpacing) return false
         return turns.size == other.turns.size && turns.containsAll(other.turns) && other.turns.containsAll(turns)
@@ -35,12 +35,12 @@ data class Scenario(
         if (level == 0) return true // cantrip
 
         if (spell.name == HuntersMark.getNameWithWS()) {
-            val maxSlots = levelToFavoredEnemyMap[playerCharacter.getLevel()] ?: return false
+            val maxSlots = levelToFavoredEnemyMap[attacker.getLevel()] ?: return false
             val slotsUsed = getSpellsAcrossTurns().count { it.name == spell.name }
             return (slotsUsed < maxSlots)
         }
 
-        val maxSlots = playerCharacter.getSpellSlots()[level - 1]
+        val maxSlots = attacker.getSpellSlots()[level - 1]
         val slotsUsed = getSpellsAcrossTurns().count { it.properties.Level == spell.properties.Level && it.name != HuntersMark.getNameWithWS() }
         if (slotsUsed >= maxSlots) Globals.  debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = "+getSpellsAcrossTurns())
         return (slotsUsed < maxSlots)
