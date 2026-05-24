@@ -37,6 +37,8 @@ class MonsterTest {
 
     @Test
     fun globalTest() {
+        TestUtil.dependency()
+
         // verify only one monster is "evasive" (hint: it's a player character subclass)
         assertEquals (1, Globals.monsters.count { it.isEvasive() })
 
@@ -83,6 +85,7 @@ class MonsterTest {
         ),  rangeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )
     }
 
+
     @Test
     fun dragonDamage() {
         TestUtil.dependency()
@@ -111,26 +114,25 @@ class MonsterTest {
         assertEquals(7, claw.getAttackBonus())
         assertEquals(1, claw.attackType)
 
-        // println(weaponList)
+        val multiAttackWeapon = weaponList.firstOrNull { it.name == "Multiattack" } // TODO: 2 claws ...
+        assertNotNull(multiAttackWeapon)
+        assert(multiAttackWeapon!!.getDamageList().isEmpty())
 
+        val multiAttackAction = dragon.actions!!.firstOrNull { it.name == "Multiattack" }
+
+        println("multiattack type: ${ multiAttackAction!!.multiattack_type }")
+        println("multiattack desc: ${ multiAttackAction.desc }")
+        multiAttackAction.actions!!.forEach { println("multiattack action: $it") }
         /*
-            {
-              "Name": "Multiattack",
-              "Desc": "The dragon makes three attacks: one with its bite and two with its claws."
-            },
-
-            {
-              "Name": "Poison Breath (Recharge 5-6)",
-              "Desc": "The dragon exhales poisonous gas in a 30-foot cone. Each creature in that area must make a DC 14 Constitution saving throw, taking 42 (12d6) poison damage on a failed save, or half as much damage on a successful one."
-            }
-        */
-        val multiAttack = weaponList.firstOrNull { it.name == "Multiattack" } // TODO: 2 claws ...
-        assertNotNull(multiAttack)
-        assert(multiAttack!!.getDamageList().isEmpty())
+            multiattack type: actions
+            multiattack desc: The dragon makes three attacks: one with its bite and two with its claws.
+            multiattack action: ActionX(action_name=Bite, count=1, type=melee)
+            multiattack action: ActionX(action_name=Claw, count=2, type=melee)
+         */
 
         val breath = weaponList.firstOrNull { it.name.startsWith("Poison Breath") } // TODO
         assertNotNull(breath)
-        assert(breath!!.getDamageList().isEmpty())
+        assertEquals("[12d6 poison]", breath!!.getDamageList().toString())
     }
 
 }

@@ -1,8 +1,8 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
-import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
@@ -27,7 +27,8 @@ object TestUtil {
 
         Globals.addSubclassSpellsPrepared(getResource("subclass.spellprep.json") ?: "[]")
 
-        Globals.addMonsters(getResource("monsters.json") ?: "[]")
+        //Globals.addMonsters(getResource("monsters.json") ?: "[]")
+        Globals.addMonsters(getResource("monsters.srd.json") ?: "[]")
     }
 
     fun dependency() {}

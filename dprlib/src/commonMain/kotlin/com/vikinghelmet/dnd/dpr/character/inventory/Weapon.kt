@@ -5,7 +5,7 @@ import com.vikinghelmet.dnd.dpr.action.Damage
 import com.vikinghelmet.dnd.dpr.action.DamageType
 import com.vikinghelmet.dnd.dpr.action.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
-import com.vikinghelmet.dnd.dpr.monsters.MonsterAction
+import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterSRDAction
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import kotlinx.serialization.Serializable
@@ -61,33 +61,31 @@ open class Weapon (val name: String) : MeleeOrRangeAction, AttackAction
             DamageType.valueOf(item.definition.damageType!!.lowercase())))
     }
 
-    constructor(action: MonsterAction) : this(action.Name)
+    constructor(action: MonsterSRDAction) : this(action.name)
     {
-        if (action.Type == "Melee") {
+        if (action.desc.isEmpty() || !action.desc.contains("range")) {
             attackType = 1
             range = 5
             longRange = null
         }
         else { // Ranged
             attackType = 2
-            val reach      = action.Reach?.replace(" .*".toRegex(), "") ?: "0/0"  //  "30/120 ft.",
+            val reach      = action.desc.replace(".* range ".toRegex(), "").replace(" .*".toRegex(),"")   //  "... 30/120 ft., ...",
             val reachSplit = reach.split("/")
             range     = reachSplit[0].toInt()
             longRange = reachSplit[1].toInt()
         }
 
-        if (action.HitBonus != null) {
-            bonusToHit = action.HitBonus.toInt()
+        if (action.attack_bonus != null) {
+            bonusToHit = action.attack_bonus
         }
 
-        // 2014 monster data has some ill-defined attacks, such as dragon's "Multiattack" and Breath weapon (damage currently null)
-        if (action.Damage != null) {
-            _damageList.add(getDamage(action.Damage, action.DamageType!!))
+        if (action.damage.isNullOrEmpty()) {
+            return
         }
 
-        // monster attacks sometimes do two types of damage (eg. piercing & poison), but never 3
-        if (action.Damage2 != null) {
-            _damageList.add(getDamage(action.Damage2, action.Damage2Type!!))
+        action.damage.forEach { d ->
+            _damageList.add(getDamage(d.damage_dice!!, d.damage_type!!.name)) // TODO: values are sometimes null?
         }
     }
 

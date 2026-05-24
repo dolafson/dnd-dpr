@@ -14,7 +14,9 @@ user-friendly web interface, consider using [DPR Calc](https://dprcalc.com/), wh
 provides great support for single turn Weapon DPR.  It does not yet 
 support spells or multi-turn scenarios
 
-This tool reads spell and monster data originally from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  
+This tool reads data from multiple sources.  The monster data comes from [5e-bits](https://github.com/5e-bits/5e-database/blob/main/src/2014/en/5e-SRD-Monsters.json)
+
+Spell data comes from [Nick Aschenbach](https://github.com/nick-aschenbach/dnd-data/tree/main/data).  
 ```
 Spells:
  319 "Free Basic Rules (2014)"

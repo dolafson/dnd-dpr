@@ -74,11 +74,10 @@ fun MonsterScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 }
                 else {
                     val m = viewModel.getCurrentMonster()!!
-                    //Text((monster?.properties?.dataAcNum ?: "?").toString())
-                    Text((m.properties.dataAcNum).toString())
-                    Text((m.properties.HP))
-                    Text((m.properties.Speed))
-                    Text((m.properties.Size))
+                    Text(m.getAC().toString())
+                    Text(m.hit_points.toString())
+                    Text(m.speed.toString())
+                    Text(m.size)
                 }
             }
         }
@@ -95,9 +94,9 @@ fun MonsterScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 Text("CON")
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                Text(text = (monster?.properties?.STR ?: "?").toString())
-                Text(text = (monster?.properties?.DEX ?: "?").toString())
-                Text(text = (monster?.properties?.CON ?: "?").toString())
+                Text(text = (monster?.strength).toString())
+                Text(text = (monster?.dexterity).toString())
+                Text(text = (monster?.constitution).toString())
             }
             Column(modifier = Modifier.padding(start = 60.dp)) {
                 Text("INT")
@@ -105,9 +104,9 @@ fun MonsterScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 Text("CHA")
             }
             Column(modifier = Modifier.padding(start = 20.dp)) {
-                Text(text = (monster?.properties?.INT ?: "?").toString())
-                Text(text = (monster?.properties?.WIS ?: "?").toString())
-                Text(text = (monster?.properties?.CHA ?: "?").toString())
+                Text(text = (monster?.intelligence ?: "?").toString())
+                Text(text = (monster?.wisdom ?: "?").toString())
+                Text(text = (monster?.charisma ?: "?").toString())
             }
         }
 
