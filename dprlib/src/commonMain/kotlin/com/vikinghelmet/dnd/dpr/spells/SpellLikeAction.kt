@@ -4,73 +4,75 @@ import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 
 class SpellLikeAction(
-    actionModifier: ActionModifier,
-    actionAdded: ActionAdded,
-    props: Properties
-) : PreparedSpell (true, Spell("Fake Book 2014", actionAdded.description ?: "", actionAdded.name, props, ""))
+    name: String,
+    description: String,
+) : PreparedSpell (true, Spell("Fake Book 2014", description, name, makeProps(), ""))
 {
-    init {
-        props.Damage = actionAdded.dice?.diceString // may not get used, but might as well
-
-        val dataRecords: MutableList<DataDatarecord> = mutableListOf()
-        var save: Attack.Save? = null
-        var aoe: AreaOfEffect? = null
-        var damageType: String? = null
-        var range: String? = null
-
-        if (actionAdded.saveStatId != null) {
-            val abilityType = AbilityType.entries[actionAdded.saveStatId]
-            save = Attack.Save(abilityType, actionAdded.saveFailDescription, actionAdded.saveSuccessDescription)
+    constructor(actionModifier: ActionModifier, actionAdded: ActionAdded) : this(actionAdded.name, actionAdded.description ?: "")
+    {
+        if (actionAdded.saveStatId == null || actionModifier != ActionModifier.BreathWeapon) {
+            throw IllegalArgumentException("currently only BreathWeapon is supported for SpellLikeAction")
         }
 
-        if (actionModifier == ActionModifier.BreathWeapon) {
-            // in this case, AOE is too difficult to extract from character data ...
-            // and we aren't really using AOE shape yet ...
-            aoe = AreaOfEffect(AreaOfEffectShape.Cone, "15")
-            damageType = actionAdded.name.substringAfterLast('(').substringBeforeLast(')')
-            range = "30"
-            props.dataRangeNum = 30
+        properties.Damage = actionAdded.dice?.diceString // may not get used, but might as well
+
+        val abilityType = AbilityType.entries[actionAdded.saveStatId]
+        val damageType  = actionAdded.name.substringAfterLast('(').substringBeforeLast(')')
+
+        properties.dataDatarecords = listOf(
+            getBreathWeaponAttack (abilityType, actionAdded.saveFailDescription!!, actionAdded.saveSuccessDescription!!),
+            getBreathWeaponDamage (damageType,  actionAdded.dice?.diceCount ?: 1,  actionAdded.dice?.diceValue.toString())
+        )
+    }
+
+    constructor(monsterAction: MonsterAction) : this(monsterAction.name, monsterAction.desc)
+    {
+        val dc = monsterAction.dc
+        if (dc == null || ! name.contains("Breath")) { // hack for dragon breath weapon
+            throw IllegalArgumentException("currently only BreathWeapon is supported for SpellLikeAction")
         }
 
-        dataRecords.add(DataDatarecord("$name Attack", payload = Attack(
-            name = actionAdded.name,
-            description = actionAdded.description,
-            save = save,
-            aoe = aoe,
-            range = range
-        )))
+        val abilityType = AbilityType.fromShortName(dc.dc_type.name)!!
+        val damageType  = monsterAction.damage?.get(0)?.damage_type?.name ?: "unknown"
+        val diceSplit   = monsterAction.damage?.get(0)?.damage_dice!!.split("d")
 
-        dataRecords.add(DataDatarecord("$name Damage", parent = "$name Attack", payload = Damage(
+        properties.dataDatarecords = listOf(
+            getBreathWeaponAttack (abilityType, monsterAction.desc, dc.success_type),
+            getBreathWeaponDamage (damageType, diceSplit[0].toInt(), diceSplit[1])
+        )
+    }
+
+    private fun getBreathWeaponAttack(abilityType: AbilityType, onFail: String, onSucceed: String): DataDatarecord {
+        // in this case, AOE is too difficult to extract from character data ...
+        // and we aren't really using AOE shape yet anyway ...
+        properties.dataRangeNum = 30
+        return DataDatarecord("$name Attack", payload = Attack(
+            name = name,
+            description = description,
+            save = Attack.Save(abilityType, onFail, onSucceed),
+            aoe = AreaOfEffect(AreaOfEffectShape.Cone, "15"),
+            range = properties.toString()
+        ))
+    }
+
+    private fun getBreathWeaponDamage(damageType: String, diceCount: Int, diceSize: String): DataDatarecord {
+        return DataDatarecord("$name Damage", parent = "$name Attack", payload = Damage(
             ability = "none",
             damageType = damageType,
-            diceCount = actionAdded.dice?.diceCount ?: 1,
-            diceSize = "d${actionAdded.dice?.diceValue}"
-        )))
+            diceCount = diceCount,
+            diceSize = "d$diceSize"
+        ))
+    }
 
-        props.dataDatarecords = dataRecords
+    companion object {
+        fun makeProps() = Properties("Instantaneous", "Spells", 0, "")
     }
 }
 
-/*
-data.actions.race.0.limitedUse.useProficiencyBonus = true
-data.actions.race.0.limitedUse.proficiencyBonusOperator = 1
-data.actions.race.0.name = "Breath Weapon (Fire)"
-
-data.actions.race.0.abilityModifierStatId = 3
-data.actions.race.0.onMissDescription = ""
-data.actions.race.0.saveFailDescription = ""
-
-data.actions.race.0.saveSuccessDescription = "Half Damage"
-data.actions.race.0.saveStatId = 2
-data.actions.race.0.actionType = 3
-
-data.actions.race.0.dice.diceCount = 1
-data.actions.race.0.dice.diceValue = 10
-data.actions.race.0.dice.diceString = "1d10"
- */

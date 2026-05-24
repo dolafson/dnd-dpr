@@ -11,17 +11,18 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
 import com.vikinghelmet.dnd.dpr.monsters.actions.LegendaryAction
-import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterSRDAction
+import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Monster(
-    val actions: List<MonsterSRDAction> ?= emptyList(),
+    val actions: List<MonsterAction> ?= emptyList(),
     val alignment: String,
     val armor_class: List<ArmorClass>,
     val challenge_rating: Float,
@@ -90,12 +91,18 @@ data class Monster(
     override fun getWeaponList(): List<Weapon>
     {
         if (actions == null) return emptyList()
-        return actions.map { Weapon(it) }.toList()
+        return actions.filter { it.dc == null }.map { Weapon(it) }.toList()
     }
 
     override fun getSpellBonusToHit() = 0 // TODO
 
-    override fun getSpellSaveDC() = 0 // TODO
+    override fun getSpellSaveDC(): Int {
+        val dc = actions?.firstNotNullOf { it.dc } // TODO: monsters with multiple dc's ?
+        if (dc != null) {
+            return dc.dc_value
+        }
+        return 0
+    }
 
     override fun getPreparedBonusActionSpells(targetProximity: Int) = emptyList<PreparedSpell>() // TODO
 
@@ -105,6 +112,8 @@ data class Monster(
 
     override fun getActionsAvailable(): ActionsAvailable { // TODO: duplication between this and PC
         val actionsAvailable = ActionsAvailable()
+        if (actions == null) return ActionsAvailable()
+
         val weaponListNames = mutableListOf<String>()
 
         for (weapon in getWeaponList()) {
@@ -118,7 +127,18 @@ data class Monster(
                 ) // this ensures it will appear in both melee and range selection
             }
         }
-        // TODO: spells
+
+        actions.filter { it.dc != null }.forEach { action ->
+            val spell = SpellLikeAction (action)
+
+            if (spell.isRangedSpellAttack()) {
+                actionsAvailable.add(spell.getRange(), spell)
+            } else {
+                // all spells - except for "ranged spell attack" - can be used in melee
+                actionsAvailable.add(Constants.MELEE_RANGE, spell)
+            }
+        }
+
         return actionsAvailable
     }
 

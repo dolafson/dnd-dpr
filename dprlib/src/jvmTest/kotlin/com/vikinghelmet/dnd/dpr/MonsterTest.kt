@@ -2,9 +2,11 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
+import com.vikinghelmet.dnd.dpr.util.Constants.MELEE_RANGE
 import com.vikinghelmet.dnd.dpr.util.Globals
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -100,7 +102,7 @@ class MonsterTest {
         )
 
         val weaponList = dragon.getWeaponList()
-        assertEquals(weaponList.size, 4)
+        assertEquals(weaponList.size, 3)
 
         val bite = weaponList.firstOrNull { it.name == "Bite" }
         assertNotNull(bite)
@@ -114,25 +116,20 @@ class MonsterTest {
         assertEquals(7, claw.getAttackBonus())
         assertEquals(1, claw.attackType)
 
-        val multiAttackWeapon = weaponList.firstOrNull { it.name == "Multiattack" } // TODO: 2 claws ...
+        // Note: multiattack is handled by ScenarioBuilder.getAttacksForTurn() -> Monster.expandMultiAttack()
+        val multiAttackWeapon = weaponList.firstOrNull { it.name == "Multiattack" }
         assertNotNull(multiAttackWeapon)
         assert(multiAttackWeapon!!.getDamageList().isEmpty())
 
-        val multiAttackAction = dragon.actions!!.firstOrNull { it.name == "Multiattack" }
+        // breath weapon has a saving throw, so it is excluded from weapon list, and included as a "spell like action"
+        val breathWeapon = weaponList.firstOrNull { it.name.startsWith("Poison Breath") }
+        assertNull(breathWeapon)
 
-        println("multiattack type: ${ multiAttackAction!!.multiattack_type }")
-        println("multiattack desc: ${ multiAttackAction.desc }")
-        multiAttackAction.actions!!.forEach { println("multiattack action: $it") }
-        /*
-            multiattack type: actions
-            multiattack desc: The dragon makes three attacks: one with its bite and two with its claws.
-            multiattack action: ActionX(action_name=Bite, count=1, type=melee)
-            multiattack action: ActionX(action_name=Claw, count=2, type=melee)
-         */
+        val breathAttack = dragon.getActionsAvailable().getPrimaryAction(MELEE_RANGE).firstOrNull { it.getActionName().contains("Breath") }
+        assertNotNull(breathAttack)
 
-        val breath = weaponList.firstOrNull { it.name.startsWith("Poison Breath") } // TODO
-        assertNotNull(breath)
-        assertEquals("[12d6 poison]", breath!!.getDamageList().toString())
+        val spellLikeAction = breathAttack as SpellLikeAction
+        assertEquals("[12d6 poison]", spellLikeAction.getSpellAttacks(0)[0].getDamageList().toString())
     }
 
 }

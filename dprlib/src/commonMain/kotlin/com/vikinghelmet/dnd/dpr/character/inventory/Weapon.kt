@@ -5,7 +5,7 @@ import com.vikinghelmet.dnd.dpr.action.Damage
 import com.vikinghelmet.dnd.dpr.action.DamageType
 import com.vikinghelmet.dnd.dpr.action.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
-import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterSRDAction
+import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import kotlinx.serialization.Serializable
@@ -61,7 +61,7 @@ open class Weapon (val name: String) : MeleeOrRangeAction, AttackAction
             DamageType.valueOf(item.definition.damageType!!.lowercase())))
     }
 
-    constructor(action: MonsterSRDAction) : this(action.name)
+    constructor(action: MonsterAction) : this(action.name)
     {
         if (action.desc.isEmpty() || !action.desc.contains("range")) {
             attackType = 1

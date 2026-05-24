@@ -20,7 +20,6 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
-import com.vikinghelmet.dnd.dpr.spells.Properties
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -487,8 +486,8 @@ open class PlayerCharacter(
                 val mod = ActionModifier.partialMatch(action.name)
                 when (mod) {
                     ActionModifier.BreathWeapon -> {
-                        val props = Properties("Instantaneous", "Spells", 0, "")
-                        val spellAction = SpellLikeAction(mod, action, props)
+                        //val props = Properties("Instantaneous", "Spells", 0, "")
+                        val spellAction = SpellLikeAction(mod, action)
                         logger.debug { "getSpellLikeActionList, spell = $spellAction" }
                         result.add(spellAction)
                     }

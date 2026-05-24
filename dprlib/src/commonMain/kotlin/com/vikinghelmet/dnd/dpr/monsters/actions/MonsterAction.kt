@@ -14,7 +14,7 @@ data class ActionX(
 )
 
 @Serializable
-data class MonsterSRDAction(
+data class MonsterAction(
     val name: String,
     val desc: String,
 

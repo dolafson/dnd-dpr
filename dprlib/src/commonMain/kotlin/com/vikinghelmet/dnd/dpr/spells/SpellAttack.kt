@@ -104,7 +104,7 @@ data class SpellAttack(
         else if (".*three times.*".toRegex().matches(onSucceed)) {
             SaveResult.NOT_APPLICABLE  // TODO: accumulated saves
         }
-        else if (".*[Hh]alf.*amage.*".toRegex().matches(onSucceed)) {
+        else if (".*[Hh]alf.*".toRegex().matches(onSucceed)) {
             SaveResult.HALF_DAMAGE
         }
         else if (".*([Ss]pell.*[Ee]nds|[Ee]nds.*[Ss]pell).*".toRegex().matches(onSucceed)) {
@@ -113,7 +113,7 @@ data class SpellAttack(
         else if (".*([Cc]ondition.*[Ee]nd|[Ee]nd.*[Ss]pell|no longer).*".toRegex().matches(onSucceed)) {
             SaveResult.CONDITION_ENDS
         }
-        else if (".*([Nn]o damage|[Nn]o effect|unaffected|isn.t Restrained|resists your efforts|isn.t affected).*".toRegex().matches(onSucceed)) {
+        else if (".*([Nn]o damage|[Nn]o effect|unaffected|isn.t Restrained|resists your efforts|isn.t affected|none).*".toRegex().matches(onSucceed)) {
             SaveResult.NO_EFFECT
         }
         else {
