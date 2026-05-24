@@ -127,4 +127,21 @@ data class Monster(
     override fun getActionList() = emptyList<ActionAdded>() // TODO
 
     override fun getExtraAttacks()= 0 // TODO
+
+    fun expandMultiAttack(): List<Weapon>
+    {
+        if (actions == null) return emptyList()
+
+        val result       = mutableListOf<Weapon>()
+        val nameToWeapon = getWeaponList().associateBy { it.name }
+        val multiAttack  = actions.firstOrNull { it.name == "Multiattack" }
+
+        multiAttack!!.actions!!.forEach { it2 ->
+            val weapon = nameToWeapon[it2.action_name]
+            repeat(it2.count) { result.add(weapon!!) }
+        }
+
+        return result
+    }
+
 }

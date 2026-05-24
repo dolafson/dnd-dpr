@@ -1,13 +1,14 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.AttackAction
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.AttackAction
-import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.time.measureTime
@@ -48,8 +49,16 @@ class ScenarioBuilder(
 
     fun getAttacksForTurn(action: AttackAction): List<Attack> {
         val result = mutableListOf<Attack>()
+
         repeat(1+attacker.getExtraAttacks()) {
             result.add(Attack(target = target, action = action),)
+        }
+
+        if (action.getActionName() == "Multiattack") {
+            val expanded = (attacker as Monster).expandMultiAttack()
+            for (w in expanded) {
+                result.add(Attack(target = target, action = w))
+            }
         }
         return result
     }
