@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.spells
 
-import com.vikinghelmet.dnd.dpr.action.AttackAction
+import com.vikinghelmet.dnd.dpr.action.Action
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
@@ -20,7 +20,7 @@ open class Spell(
     val name: String,
     val properties: Properties,
     val publisher: String
-) : AttackAction, TargetEffectCause {
+) : Action, TargetEffectCause {
     override fun getActionName(): String { return name }
 
     @Transient private val logger = LoggerFactory.get(Spell::class.simpleName ?: "")

@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Turn
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
@@ -34,7 +35,7 @@ data class Scenario(
         val level = spell.properties.Level
         if (level == 0) return true // cantrip
 
-        if (spell.name == HuntersMark.getNameWithWS()) {
+        if (attacker is PlayerCharacter && spell.name == HuntersMark.getNameWithWS()) {
             val maxSlots = levelToFavoredEnemyMap[attacker.getLevel()] ?: return false
             val slotsUsed = getSpellsAcrossTurns().count { it.name == spell.name }
             return (slotsUsed < maxSlots)

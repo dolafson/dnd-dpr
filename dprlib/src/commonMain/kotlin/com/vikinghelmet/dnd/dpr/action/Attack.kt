@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class Attack(
     // required fields
     val target: Combatant,
-    val action: AttackAction, // weapon or spell
+    val action: Action, // weapon or spell
 
     val actionModifiers: MutableList<ActionModifier> = mutableListOf(), // named, non-spell preconditions (eg Colossus Slayer)
 

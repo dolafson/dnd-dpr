@@ -1,4 +1,5 @@
 package com.vikinghelmet.dnd.dpr.action
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.scenario.EffectManager

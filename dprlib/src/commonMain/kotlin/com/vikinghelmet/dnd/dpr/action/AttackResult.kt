@@ -1,7 +1,8 @@
 package com.vikinghelmet.dnd.dpr.action
 
-import com.vikinghelmet.dnd.dpr.action.AttackResultField.*
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
+import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField
+import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField.*
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Globals.probableResult
@@ -78,7 +79,7 @@ data class AttackResult(
         val saveAbility = spellAttack?.getSaveAbility()
 
         return when (field) {
-            level           -> combatant.getLevel()
+            level           -> if (combatant is PlayerCharacter) (combatant as PlayerCharacter).getLevel() else 0
             attackerName    -> combatant.getName()
             spellSaveDC     -> combatant.getSpellSaveDC()
 

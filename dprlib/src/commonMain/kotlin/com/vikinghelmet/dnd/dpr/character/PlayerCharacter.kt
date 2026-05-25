@@ -3,6 +3,11 @@
 package com.vikinghelmet.dnd.dpr.character
 
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.Damage
+import com.vikinghelmet.dnd.dpr.action.Weapon
+import com.vikinghelmet.dnd.dpr.action.enums.AttackType
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.api.ApiRequestParameters
@@ -12,8 +17,6 @@ import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.ArmorType
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.modifiers.Modifier
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
@@ -23,13 +26,13 @@ import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
@@ -51,12 +54,8 @@ open class PlayerCharacter(
         return characterData.name
     }
 
-    override fun getLevel(): Int {
+    open fun getLevel(): Int {
         return characterData.classes.first().level
-    }
-
-    fun getJson(): String {
-        return Json.encodeToString(this)
     }
 
     // ----------------------------------------------------------------------------------------
@@ -79,12 +78,6 @@ open class PlayerCharacter(
 
     override fun getAbilityModifier(abilityType: AbilityType): Int {
         return Constants.statToBonusMap[getModifiedAbilityScore(abilityType)] ?: 0
-    }
-
-    fun updateAbilityScore(a: AbilityType, increment: Int) {
-        for (stat in characterData.stats) {
-            if (stat.id == a.ordinal) stat.value += increment
-        }
     }
 
     private fun getBonusModifierSum(a: AbilityType, list: List<Modifier>): Int {
@@ -184,11 +177,9 @@ open class PlayerCharacter(
         return AbilityType.entries[abilityId]
     }
 
-    override fun getSpellAbilityBonusWithoutPB(): Int {
-        val abilityId = characterData.classes.first().definition.spellCastingAbilityId
-        return if (abilityId == null) 0 else {
-            Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.entries[abilityId])] ?: 0
-        }
+    fun getSpellAbilityBonusWithoutPB(): Int {
+        val abilityId = characterData.classes.first().definition.spellCastingAbilityId ?: return 0
+        return getAbilityModifier(AbilityType.entries[abilityId])
     }
     override fun getSpellBonusToHit(): Int {
         return getSpellAbilityBonusWithoutPB() + getProficiencyBonus()
@@ -214,13 +205,16 @@ open class PlayerCharacter(
         val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
 
         return if (w.hasWeaponProperty(WeaponProperty.Finesse)) kotlin.math.max(strBonus, dexBonus)
-        else if (w.attackType == 1) strBonus
+        else if (w.attackType.includesMelee()) strBonus
         else dexBonus
     }
 
+    // TODO: use of "includesMelee / includesRange" (above, below) should really be based on scenario
+    //  - you get the melee bonus only if you are using the weapon in a melee attack, etc
+
     fun getAttackBonus(w: Weapon): Int {
         val statBonus = getAbilityWeaponBonus(w)
-        val weaponTypeBonus = if (w.attackType == 2) getRangeAttackModifiers() else 0  // TODO: melee attack bonuses ?
+        val weaponTypeBonus = if (w.attackType.includesRange()) getRangeAttackModifiers() else 0  // TODO: melee attack bonuses ?
         return statBonus + getProficiencyBonus() + weaponTypeBonus // for now assume proficiency in all weapons
     }
 
@@ -261,8 +255,29 @@ open class PlayerCharacter(
             val def = item.definition
             if (def.filterType == "Weapon") {
                 val name     = def.name.replace(",.*".toRegex(),"")
-                val nickname = getWeaponNicknameMap().get(""+item.id)
-                list.add(Weapon (name, nickname, item, this))
+                // val nickname = getWeaponNicknameMap().get(""+item.id)
+
+                val attackType = AttackType.getByType(item.definition.attackType ?: 1)
+                val range      = item.definition.range ?: Constants.MELEE_RANGE
+                val longRange  = item.definition.longRange ?: range
+                val propertyNames = item.definition.properties?.map {it.name} ?: emptyList()
+                val magicBonus = item.definition.grantedModifiers?.firstOrNull {
+                    it.type == "bonus" && it.subType == "magic" && it.modifierTypeId == 1 && it.modifierSubTypeId == 312
+                }?.value ?: 0
+
+                val weapon = Weapon (name, attackType, range, longRange, 0, propertyNames, mutableListOf())
+
+                // weapon attack/damage bonus are easier to modify post-constructor
+                weapon.bonusToHit = magicBonus + this.getAttackBonus(weapon)
+
+                // PC weapons almost always do a single form of damage
+                weapon._damageList = mutableListOf(Damage(
+                    DiceBlock(item.definition.damage?.diceString ?: "0d4"),
+                    magicBonus,
+                    this.getDamageBonus(weapon, false),
+                    DamageType.valueOf(item.definition.damageType!!.lowercase())))
+
+                list.add(weapon)
             }
         }
         return list
@@ -412,11 +427,9 @@ open class PlayerCharacter(
 
     override fun getActionsAvailable(): ActionsAvailable {
         val actionsAvailable = ActionsAvailable()
-        val weaponListNames = mutableListOf<String>()
 
         for (weapon in getWeaponList()) {
-            weaponListNames.add(weapon.name)
-            actionsAvailable.add(weapon.range ?: 0, weapon)
+            actionsAvailable.add(weapon.range, weapon)
 
             if (weapon.hasWeaponProperty(WeaponProperty.Thrown)) {
                 actionsAvailable.add(Constants.MELEE_RANGE, weapon) // this ensures it will appear in both melee and range selection
@@ -547,7 +560,7 @@ open class PlayerCharacter(
         return getClassFeaturesByLevel().filter { it.key.contains("Ability Score Improvement")}.map { it.value}
     }
 
-    override fun getExtraAttacks(): Int {
+    fun getExtraAttacks(): Int {
         // most martial classes get one extra at level 5, and thats it
         // fighters get an extra at L5, another at L11, and a third at L20
         return getClassFeaturesByLevel().filter { it.key.contains("Extra Attack") && it.value <= getLevel() }.count()

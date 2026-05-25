@@ -1,11 +1,11 @@
 package com.vikinghelmet.dnd.dpr.monsters
 
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.Weapon
+import com.vikinghelmet.dnd.dpr.action.enums.AttackType
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -67,8 +67,6 @@ data class Monster(
 
     override fun getName() = monsterName
 
-    override fun getLevel() = 0
-
     override fun isFeatEnabled(requested: Feat) = false
 
     override fun isRacialTraitEnabled(requested: RacialTrait) = false // TODO
@@ -91,7 +89,7 @@ data class Monster(
     override fun getWeaponList(): List<Weapon>
     {
         if (actions == null) return emptyList()
-        return actions.filter { it.dc == null }.map { Weapon(it) }.toList()
+        return actions.filter { it.dc == null }.map { it.toWeapon() }.toList()
     }
 
     override fun getSpellBonusToHit() = 0 // TODO
@@ -106,25 +104,17 @@ data class Monster(
 
     override fun getPreparedBonusActionSpells(targetProximity: Int) = emptyList<PreparedSpell>() // TODO
 
-    override fun getSpellAbilityBonusWithoutPB()= 0 // TODO
-
     override fun getSpellSlots() = emptyList<Int>() // TODO
 
     override fun getActionsAvailable(): ActionsAvailable { // TODO: duplication between this and PC
         val actionsAvailable = ActionsAvailable()
         if (actions == null) return ActionsAvailable()
 
-        val weaponListNames = mutableListOf<String>()
-
         for (weapon in getWeaponList()) {
-            weaponListNames.add(weapon.name)
-            actionsAvailable.add(weapon.range ?: 0, weapon)
+            actionsAvailable.add(weapon.range, weapon)
 
-            if (weapon.hasWeaponProperty(WeaponProperty.Thrown)) {
-                actionsAvailable.add(
-                    Constants.MELEE_RANGE,
-                    weapon
-                ) // this ensures it will appear in both melee and range selection
+            if (weapon.attackType == AttackType.MeleeOrRange) {
+                actionsAvailable.add(Constants.MELEE_RANGE, weapon)
             }
         }
 
@@ -145,8 +135,6 @@ data class Monster(
     override fun getActionModifiersAvailable() = emptyList<ActionModifier>() // TODO
 
     override fun getActionList() = emptyList<ActionAdded>() // TODO
-
-    override fun getExtraAttacks()= 0 // TODO
 
     fun expandMultiAttack(): List<Weapon>
     {

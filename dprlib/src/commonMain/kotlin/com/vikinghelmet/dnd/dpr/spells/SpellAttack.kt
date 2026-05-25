@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.spells
 
-import com.vikinghelmet.dnd.dpr.action.DamageType
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.action.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack

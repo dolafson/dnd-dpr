@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.action
 
-import com.vikinghelmet.dnd.dpr.action.AttackResultField.*
+import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField
+import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 object AttackResultFormatter {

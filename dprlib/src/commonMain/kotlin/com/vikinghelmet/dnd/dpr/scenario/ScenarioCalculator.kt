@@ -1,12 +1,9 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.action.ActionCalculator
-import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.AttackResult
+import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.TargetEffect
@@ -84,7 +81,10 @@ class ScenarioCalculator(
         }
 */
         if (weapon.hasMasteryProperty(MasteryProperty.Cleave) && scenario.numTargets > 1 && scenario.targetSpacing <= 5) {
-            val weaponWithNoBonusDamage = Weapon(weapon)
+            val baseDamage = weapon.getDamageList().firstOrNull()!!
+            val weaponWithNoBonusDamage = weapon.copy(
+                _damageList = mutableListOf(Damage (baseDamage.dice.copy(), baseDamage.bonus, 0, baseDamage.type))
+            )
             val secondAttack = Attack(attack.target, weaponWithNoBonusDamage, mutableListOf(ActionModifier.Cleave))
             resultList.add(actionCalculator.getMeleeOrRangeDPR(weaponWithNoBonusDamage, secondAttack, turnId, actionId, effect++))
         }

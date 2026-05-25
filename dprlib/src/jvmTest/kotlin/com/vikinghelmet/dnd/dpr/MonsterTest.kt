@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.action.enums.AttackType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
@@ -28,7 +29,7 @@ class MonsterTest {
         assertNotNull(scimitar)
         assertEquals("1d6", scimitar!!.getDamageList().first().dice.toString())
         assertEquals(2, scimitar.getDamageList().first().bonus)
-        assertEquals(1, scimitar.attackType)
+        assertEquals(AttackType.Melee, scimitar.attackType)
 
         // verify goblin ability mods; their best ability is Dex
         assertEquals(
@@ -108,13 +109,13 @@ class MonsterTest {
         assertNotNull(bite)
         assertEquals("[2d10 + 4 piercing, 2d6 poison]", bite!!.getDamageList().toString())
         assertEquals(7, bite.getAttackBonus())
-        assertEquals(1, bite.attackType)
+        assertEquals(AttackType.Melee, bite.attackType)
 
         val claw = weaponList.firstOrNull { it.name == "Claw" }
         assertNotNull(claw)
         assertEquals("[2d6 + 4 slashing]", claw!!.getDamageList().toString())
         assertEquals(7, claw.getAttackBonus())
-        assertEquals(1, claw.attackType)
+        assertEquals(AttackType.Melee, claw.attackType)
 
         // Note: multiattack is handled by ScenarioBuilder.getAttacksForTurn() -> Monster.expandMultiAttack()
         val multiAttackWeapon = weaponList.firstOrNull { it.name == "Multiattack" }

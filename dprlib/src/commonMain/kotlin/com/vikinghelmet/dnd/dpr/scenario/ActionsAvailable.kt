@@ -1,12 +1,12 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
-import com.vikinghelmet.dnd.dpr.action.AttackAction
+import com.vikinghelmet.dnd.dpr.action.Action
+import com.vikinghelmet.dnd.dpr.action.Weapon
+import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
 import com.vikinghelmet.dnd.dpr.util.Constants
 
 class ActionsAvailable {
-    val mapOfLists = mutableMapOf<Int, MutableList<AttackAction>>()
+    val mapOfLists = mutableMapOf<Int, MutableList<Action>>()
 
     override fun toString(): String {
         return "$mapOfLists"
@@ -16,18 +16,18 @@ class ActionsAvailable {
 
     // filter out superficial duplicates (ie, shortsword1, shortsword2)
     // to avoid wasting cpu on redundant scenarios
-    fun getLightWeaponsForBA(targetProximity: Int, exclude: Weapon): List<AttackAction> {
+    fun getLightWeaponsForBA(targetProximity: Int, exclude: Weapon): List<Action> {
         return getListWithPotentialDups(targetProximity).filter {
             it is Weapon  &&  it.hasWeaponProperty(WeaponProperty.Light)  &&  it != exclude
         }.distinctBy { it.getActionName() }
     }
 
-    fun getPrimaryAction(targetProximity: Int): List<AttackAction> {
+    fun getPrimaryAction(targetProximity: Int): List<Action> {
         return getListWithPotentialDups(targetProximity).distinctBy { it.getActionName() }
     }
 
-    private fun getListWithPotentialDups(targetProximity: Int): List<AttackAction> {
-        val result = mutableListOf<AttackAction>()
+    private fun getListWithPotentialDups(targetProximity: Int): List<Action> {
+        val result = mutableListOf<Action>()
 
         for (key in mapOfLists.keys) {
             if (targetProximity <= Constants.MELEE_RANGE) {
@@ -40,7 +40,7 @@ class ActionsAvailable {
         return result
     }
 
-    fun add(range: Int, attackAction: AttackAction) {
-        mapOfLists.getOrPut(range) { mutableListOf() }.add(attackAction)
+    fun add(range: Int, action: Action) {
+        mapOfLists.getOrPut(range) { mutableListOf() }.add(action)
     }
 }

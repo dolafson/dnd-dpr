@@ -3,7 +3,6 @@ package com.vikinghelmet.dnd.dpr.action
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -13,8 +12,6 @@ interface Combatant {
     fun is2014(): Boolean
     fun getAC(): Int
     fun getName(): String
-    fun getLevel(): Int
-
     fun isFeatEnabled(requested : Feat): Boolean
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean
     fun isEvasive(): Boolean
@@ -27,7 +24,6 @@ interface Combatant {
     fun getSpellSaveDC(): Int
 
     fun getPreparedBonusActionSpells(targetProximity: Int): List<PreparedSpell>
-    fun getSpellAbilityBonusWithoutPB(): Int
     fun getSpellSlots(): List<Int>
 
     fun getActionsAvailable(): ActionsAvailable
@@ -35,6 +31,4 @@ interface Combatant {
     fun getActionModifiersAvailable(): List<ActionModifier>
 
     fun getActionList(): List<ActionAdded>
-
-    fun getExtraAttacks(): Int
 }

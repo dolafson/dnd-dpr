@@ -1,12 +1,14 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.AttackAction
+import com.vikinghelmet.dnd.dpr.action.Action
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Turn
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
-import com.vikinghelmet.dnd.dpr.character.inventory.Weapon
-import com.vikinghelmet.dnd.dpr.character.inventory.WeaponProperty
+import com.vikinghelmet.dnd.dpr.action.Weapon
+import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -47,15 +49,16 @@ class ScenarioBuilder(
         return scenarioList
     }
 
-    fun getAttacksForTurn(action: AttackAction): List<Attack> {
+    fun getAttacksForTurn(action: Action): List<Attack> {
         val result = mutableListOf<Attack>()
+        val extra = if (attacker !is PlayerCharacter) 0 else attacker.getExtraAttacks()
 
-        repeat(1+attacker.getExtraAttacks()) {
+        repeat(1+extra) {
             result.add(Attack(target = target, action = action),)
         }
 
-        if (action.getActionName() == "Multiattack") {
-            val expanded = (attacker as Monster).expandMultiAttack()
+        if (attacker is Monster && action.getActionName() == "Multiattack") {
+            val expanded = attacker.expandMultiAttack()
             for (w in expanded) {
                 result.add(Attack(target = target, action = w))
             }
@@ -196,6 +199,11 @@ class ScenarioBuilder(
 
     fun isActionModifierValidForTurn(mod: ActionModifier, scenario: Scenario, turnId: Int, turn: Turn, attack: Attack): Boolean
     {
+        if (attacker !is PlayerCharacter) {
+            Globals.debug("for now, all modifiers are PC-only")
+            return false
+        }
+
         if (attack.action !is Weapon) {
             Globals.debug("for now, all modifiers apply only to weapon attacks")
             return false
@@ -221,7 +229,7 @@ class ScenarioBuilder(
                 // weapon attacks only
                 // at most once per turn
                 // limited use per day (tied to WIS bonus)
-                return countModifier(mod, scenario) < attacker.getSpellAbilityBonusWithoutPB()
+                return countModifier(mod, scenario) < attacker.getAbilityModifier(AbilityType.Wisdom)
             }
             ActionModifier.PolarStrikes   -> {
                 // weapon attacks only

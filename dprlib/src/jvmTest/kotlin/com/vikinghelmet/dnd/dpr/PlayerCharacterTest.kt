@@ -115,9 +115,6 @@ class PlayerCharacterTest {
         // total number of weapons
         assertEquals(23, TestUtil.party.flatMap { it.getWeaponList() }.count())
 
-        // weapons with nicknames
-        assertEquals(2, TestUtil.party.flatMap { it.getWeaponList() }.count { it2 -> it2.nickname != null })
-
         // count by damage type
         assertEquals(
             mapOf("1d4" to 5, "1d6" to 11, "1d8" to 6, "1d12" to 1),
