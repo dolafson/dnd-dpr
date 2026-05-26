@@ -3,7 +3,7 @@ package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.action.enums.AttackType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
@@ -129,8 +129,8 @@ class MonsterTest {
         val breathAttack = dragon.getActionsAvailable().getPrimaryAction(MELEE_RANGE).firstOrNull { it.getActionName().contains("Breath") }
         assertNotNull(breathAttack)
 
-        val spellLikeAction = breathAttack as SpellLikeAction
-        assertEquals("[12d6 poison]", spellLikeAction.getSpellAttacks(0)[0].getDamageList().toString())
+        val savingThrowAction = breathAttack as SavingThrowAction
+        assertEquals("[12d6 poison]", savingThrowAction.getSpellAttacks(0)[0].getDamageList().toString())
     }
 
 }

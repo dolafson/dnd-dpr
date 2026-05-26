@@ -15,7 +15,6 @@ import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
-import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -119,7 +118,7 @@ data class Monster(
         }
 
         actions.filter { it.dc != null }.forEach { action ->
-            val spell = SpellLikeAction (action)
+            val spell = action.toSpellLikeAction ()
 
             if (spell.isRangedSpellAttack()) {
                 actionsAvailable.add(spell.getRange(), spell)

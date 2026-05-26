@@ -23,8 +23,11 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.spells.SpellLikeAction
+import com.vikinghelmet.dnd.dpr.spells.payload.Attack
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -491,16 +494,27 @@ open class PlayerCharacter(
         ).filter { a -> !a.name.contains("Circle Spell") }
     }
 
-    private fun getSpellLikeActionList(): List<SpellLikeAction>
+    private fun getSpellLikeActionList(): List<SavingThrowAction>
     {
-        val result = mutableListOf<SpellLikeAction>()
+        val result = mutableListOf<SavingThrowAction>()
         for (action in getActionList()) {
             try {
                 val mod = ActionModifier.partialMatch(action.name)
                 when (mod) {
                     ActionModifier.BreathWeapon -> {
-                        //val props = Properties("Instantaneous", "Spells", 0, "")
-                        val spellAction = SpellLikeAction(mod, action)
+                        if (action.saveStatId == null || mod != ActionModifier.BreathWeapon) {
+                            throw IllegalArgumentException("currently only BreathWeapon is supported for SpellLikeAction")
+                        }
+
+                        val abilityType = AbilityType.entries[action.saveStatId]
+                        val damageType  = action.name.substringAfterLast('(').substringBeforeLast(')')
+
+                        val spellAction = SavingThrowAction(
+                            action.name, action.description ?: "",
+                            Attack.Save (abilityType, action.saveFailDescription, action.saveSuccessDescription),
+                            AreaOfEffect (AreaOfEffectShape.Line, "30"),
+                            damageType,  action.dice?.diceCount ?: 1,  action.dice?.diceValue.toString()
+                        )
                         logger.debug { "getSpellLikeActionList, spell = $spellAction" }
                         result.add(spellAction)
                     }

@@ -2,10 +2,14 @@ package com.vikinghelmet.dnd.dpr.monsters.actions
 
 import com.vikinghelmet.dnd.dpr.action.Weapon
 import com.vikinghelmet.dnd.dpr.action.enums.AttackType
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Attack
 import com.vikinghelmet.dnd.dpr.monsters.Dc
 import com.vikinghelmet.dnd.dpr.monsters.Usage
 import com.vikinghelmet.dnd.dpr.monsters.damage.Damage
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.Serializable
 
@@ -68,5 +72,21 @@ data class MonsterAction(
         return Weapon (name, attackType, range, longRange, bonusToHit, emptyList(), damageList)
     }
 
+    fun toSpellLikeAction(): SavingThrowAction {
+        if (dc == null || ! name.contains("Breath")) { // hack for dragon breath weapon
+            throw IllegalArgumentException("currently only BreathWeapon is supported for SpellLikeAction")
+        }
+
+        val abilityType = AbilityType.fromShortName(dc.dc_type.name)!!
+        val damageType  = damage?.get(0)?.damage_type?.name ?: "unknown"
+        val diceSplit   = damage?.get(0)?.damage_dice!!.split("d")
+
+        return SavingThrowAction(
+            name, desc,
+            com.vikinghelmet.dnd.dpr.spells.payload.Attack.Save (abilityType, desc, dc.success_type),
+            AreaOfEffect (AreaOfEffectShape.Cone, "30"),
+            damageType, diceSplit[0].toInt(), diceSplit[1]
+        )
+    }
 
 }
