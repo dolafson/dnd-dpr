@@ -21,21 +21,51 @@ data class ActionX(
 )
 
 @Serializable
-data class MonsterAction(
-    val name: String,
-    val desc: String,
+open class MonsterAction (
+    val name: String = "unknown",
+    val desc: String = "",
+    val damage: List<Damage> ?= emptyList(),
+    val dc: Dc?= null,
+) {
+    fun toSavingThrowAction(): SavingThrowAction {
+        if (dc == null) {
+            throw IllegalArgumentException("dc is required for SpellLikeAction")
+        }
 
-    // sadly, everything in here is optional except for name and desc; for multiattack all other fields are missing
+        val abilityType = AbilityType.fromShortName(dc.dc_type.name)!!
+        // TODO: multiple damage types per attack
+        val damageType  = if (damage.isNullOrEmpty()) null else damage[0].damage_type!!.name
+
+        var aoe: AreaOfEffect? = null
+        for (shape in AreaOfEffectShape.entries) {
+            if (desc.lowercase().contains(shape.name)) {
+                aoe = AreaOfEffect(shape, "30") // TODO: fix hard-coded aoe size (augment data source)
+                break
+            }
+        }
+
+        return SavingThrowAction(
+            name, desc,
+            com.vikinghelmet.dnd.dpr.spells.payload.Attack.Save (abilityType, desc, dc.success_type),
+            aoe,
+            damageType,
+            if (damage.isNullOrEmpty()) null else damage[0].damage_dice
+        )
+    }
+
+}
+
+@Serializable
+data class MonsterPrimaryAction(
+    // sadly, everything in here is optional; for multiattack all other fields are missing
     val attacks: List<Attack> ?= emptyList(),
     val actions: List<ActionX> ?= emptyList(),
     val attack_bonus: Int ?= 0,
-    val damage: List<Damage> ?= emptyList(),
-    val dc: Dc?= null,
     val multiattack_type: String ?= null,
     val options: ActionOptions ?= null,
     val action_options: ActionOptions ?= null,
     val usage: Usage?= null
-) {
+) : MonsterAction() {
     fun toWeapon(): Weapon
     {
         var attackType: AttackType
@@ -70,23 +100,6 @@ data class MonsterAction(
         }
 
         return Weapon (name, attackType, range, longRange, bonusToHit, emptyList(), damageList)
-    }
-
-    fun toSpellLikeAction(): SavingThrowAction {
-        if (dc == null || ! name.contains("Breath")) { // hack for dragon breath weapon
-            throw IllegalArgumentException("currently only BreathWeapon is supported for SpellLikeAction")
-        }
-
-        val abilityType = AbilityType.fromShortName(dc.dc_type.name)!!
-        val damageType  = damage?.get(0)?.damage_type?.name ?: "unknown"
-        val diceSplit   = damage?.get(0)?.damage_dice!!.split("d")
-
-        return SavingThrowAction(
-            name, desc,
-            com.vikinghelmet.dnd.dpr.spells.payload.Attack.Save (abilityType, desc, dc.success_type),
-            AreaOfEffect (AreaOfEffectShape.Cone, "30"),
-            damageType, diceSplit[0].toInt(), diceSplit[1]
-        )
     }
 
 }

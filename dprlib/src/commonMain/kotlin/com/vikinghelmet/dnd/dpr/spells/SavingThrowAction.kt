@@ -9,14 +9,13 @@ class SavingThrowAction(
     name: String,
     description: String,
     save: Attack.Save,
-    aoe: AreaOfEffect,
-    damageType: String,
-    diceCount: Int,
-    diceSize: String,
+    aoe: AreaOfEffect? = null,
+    damageType: String? = null,
+    diceString: String? = null,
 ) : PreparedSpell (true, Spell("Fake Book 2014", description, name, makeProps(), ""))
 {
     init {
-        properties.dataDatarecords = listOf(
+        val recordList = mutableListOf(
             DataDatarecord("$name Attack", payload = Attack(
                 name = name,
                 description = description,
@@ -24,13 +23,21 @@ class SavingThrowAction(
                 aoe = aoe,
                 range = properties.toString()
             )),
-            DataDatarecord("$name Damage", parent = "$name Attack", payload = Damage(
-                ability = "none",
-                damageType = damageType,
-                diceCount = diceCount,
-                diceSize = "d$diceSize"
-            ))
         )
+
+        if (damageType != null && diceString != null) {
+            val diceSplit = diceString.split("d")
+
+            recordList.add(DataDatarecord(
+                    "$name Damage", parent = "$name Attack", payload = Damage(
+                        ability = "none",
+                        damageType = damageType,
+                        diceCount = diceSplit[0].toInt(),
+                        diceSize = "d${ diceSplit[1] }"
+                    )))
+        }
+
+        properties.dataDatarecords = recordList
     }
 
     companion object {

@@ -508,12 +508,14 @@ open class PlayerCharacter(
 
                         val abilityType = AbilityType.entries[action.saveStatId]
                         val damageType  = action.name.substringAfterLast('(').substringBeforeLast(')')
+                        val damageString = if (action.dice == null) null
+                                else "${ action.dice.diceCount }d${ action.dice.diceValue }"
 
                         val spellAction = SavingThrowAction(
                             action.name, action.description ?: "",
                             Attack.Save (abilityType, action.saveFailDescription, action.saveSuccessDescription),
                             AreaOfEffect (AreaOfEffectShape.Line, "30"),
-                            damageType,  action.dice?.diceCount ?: 1,  action.dice?.diceValue.toString()
+                            damageType, damageString
                         )
                         logger.debug { "getSpellLikeActionList, spell = $spellAction" }
                         result.add(spellAction)

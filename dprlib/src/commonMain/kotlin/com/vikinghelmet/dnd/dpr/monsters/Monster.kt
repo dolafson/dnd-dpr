@@ -12,6 +12,7 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
 import com.vikinghelmet.dnd.dpr.monsters.actions.LegendaryAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
+import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterPrimaryAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
@@ -21,7 +22,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Monster(
-    val actions: List<MonsterAction> ?= emptyList(),
+    val actions: List<MonsterPrimaryAction> ?= emptyList(),
     val alignment: String,
     val armor_class: List<ArmorClass>,
     val challenge_rating: Float,
@@ -42,14 +43,14 @@ data class Monster(
     val index: String,
     val intelligence: Int,
     val languages: String,
-    val legendary_actions: List<LegendaryAction> ?= emptyList(),
+    val legendary_actions: List<LegendaryAction> = emptyList(),
     @SerialName("name") val monsterName: String,
     val proficiencies: List<Proficiency>,
     val proficiency_bonus: Int,
-    val reactions: List<Reaction> ?= emptyList(),
+    val reactions: List<Reaction> = emptyList(),
     val senses: Senses,
     val size: String,
-    val special_abilities: List<SpecialAbility> ?= emptyList(),
+    val special_abilities: List<SpecialAbility> = emptyList(),
     val speed: Speed,
     val strength: Int,
     val subtype: String ?= null,
@@ -117,16 +118,23 @@ data class Monster(
             }
         }
 
-        actions.filter { it.dc != null }.forEach { action ->
-            val spell = action.toSpellLikeAction ()
+        fun addSavingThrowActions(list: List<MonsterAction>) {
+            list.filter { it.dc != null }.forEach { a ->
+                val spell = a.toSavingThrowAction()
 
-            if (spell.isRangedSpellAttack()) {
-                actionsAvailable.add(spell.getRange(), spell)
-            } else {
-                // all spells - except for "ranged spell attack" - can be used in melee
-                actionsAvailable.add(Constants.MELEE_RANGE, spell)
+                if (spell.isRangedSpellAttack()) {
+                    actionsAvailable.add(spell.getRange(), spell)
+                } else {
+                    // all spells - except for "ranged spell attack" - can be used in melee
+                    actionsAvailable.add(Constants.MELEE_RANGE, spell)
+                }
             }
         }
+
+        addSavingThrowActions(actions)
+        addSavingThrowActions(special_abilities)
+        addSavingThrowActions(legendary_actions)
+        addSavingThrowActions(reactions)
 
         return actionsAvailable
     }

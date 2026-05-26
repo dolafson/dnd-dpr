@@ -90,7 +90,7 @@ class MonsterTest {
 
 
     @Test
-    fun dragonDamage() {
+    fun youngGreenDragonDamage() {
         TestUtil.dependency()
         val dragon = Globals.getMonster("Young Green Dragon")
         assertNotNull(dragon)
@@ -133,4 +133,69 @@ class MonsterTest {
         assertEquals("[12d6 poison]", savingThrowAction.getSpellAttacks(0)[0].getDamageList().toString())
     }
 
+    @Test
+    fun adultGreenDragonDamage() {
+        TestUtil.dependency()
+        val dragon = Globals.getMonster("Adult Green Dragon")
+        assertNotNull(dragon)
+        assertEquals(19, dragon.getAC())
+        assertFalse(dragon.isEvasive())
+
+        assertEquals(
+            listOf(6, 1, 5, 4, 2, 3),
+            AbilityType.getAllNotALL().map { dragon.getAbilityModifier(it) }.toList()
+        )
+
+        val weaponList = dragon.getWeaponList()
+        assertEquals(weaponList.size, 4)
+
+        weaponList.forEach { println(it) }
+
+        val bite = weaponList.firstOrNull { it.name == "Bite" }
+        assertNotNull(bite)
+        assertEquals("[2d10 + 6 piercing, 2d6 poison]", bite!!.getDamageList().toString())
+        assertEquals(11, bite.getAttackBonus())
+        assertEquals(AttackType.Melee, bite.attackType)
+
+        val claw = weaponList.firstOrNull { it.name == "Claw" }
+        assertNotNull(claw)
+        assertEquals("[2d6 + 6 slashing]", claw!!.getDamageList().toString())
+        assertEquals(11, claw.getAttackBonus())
+        assertEquals(AttackType.Melee, claw.attackType)
+
+        val tail = weaponList.firstOrNull { it.name == "Tail" }
+        assertNotNull(claw)
+        assertEquals("[2d8 + 6 bludgeoning]", tail!!.getDamageList().toString())
+        assertEquals(11, tail.getAttackBonus())
+        assertEquals(AttackType.Melee, tail.attackType)
+
+        // Note: multiattack is handled by ScenarioBuilder.getAttacksForTurn() -> Monster.expandMultiAttack()
+        val multiAttackWeapon = weaponList.firstOrNull { it.name == "Multiattack" }
+        assertNotNull(multiAttackWeapon)
+        assert(multiAttackWeapon!!.getDamageList().isEmpty())
+
+        // breath weapon has a saving throw, so it is excluded from weapon list, and included as a "spell like action"
+        val breathWeapon = weaponList.firstOrNull { it.name.startsWith("Poison Breath") }
+        assertNull(breathWeapon)
+
+        fun getSavingThrowAction(name: String): SavingThrowAction? {
+            return dragon.getActionsAvailable().getPrimaryAction(MELEE_RANGE).firstOrNull { it.getActionName().contains(name) }
+                    as SavingThrowAction
+        }
+
+        dragon.getActionsAvailable().getPrimaryAction(MELEE_RANGE).forEach { println(it) }
+
+        val breathAttack = getSavingThrowAction("Breath")
+        assertNotNull(breathAttack)
+        assertEquals("[16d6 poison]", breathAttack!!.getSpellAttacks(0)[0].getDamageList().toString())
+
+        val frightAttack = getSavingThrowAction("Frightful Presence")
+        assertNotNull(frightAttack)
+        assertEquals("[ undefined]", frightAttack!!.getSpellAttacks(0)[0].getDamageList().toString()) // no damage, condition only
+
+        // legendary action ...
+        val wingAttack = getSavingThrowAction("Wing Attack")
+        assertNotNull(wingAttack)
+        assertEquals("[ bludgeoning]", wingAttack!!.getSpellAttacks(0)[0].getDamageList().toString()) // source data missing damage dice
+    }
 }
