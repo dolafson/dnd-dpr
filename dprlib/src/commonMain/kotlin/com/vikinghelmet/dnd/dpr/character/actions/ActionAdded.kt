@@ -1,7 +1,16 @@
 package com.vikinghelmet.dnd.dpr.character.actions
 
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
+import com.vikinghelmet.dnd.dpr.spells.payload.Attack
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
+
+@Transient private val logger = LoggerFactory.get(ActionAdded::class.simpleName ?: "")
 
 @JsonIgnoreUnknownKeys
 @Serializable
@@ -45,4 +54,23 @@ data class ActionAdded(
     val spellRangeType: Any,
     val value: Any
  */
-)
+) {
+
+    fun toSavingThrowAction(): SavingThrowAction {
+        // val mod = ActionModifier.partialMatch(name)
+        val abilityType = AbilityType.entries[saveStatId!!]
+        val damageType  = name.substringAfterLast('(').substringBeforeLast(')')
+        val damageString = if (dice == null) null
+        else "${ dice.diceCount }d${ dice.diceValue }"
+
+        val spellAction = SavingThrowAction(
+            name, description ?: "",
+            Attack.Save (abilityType, saveFailDescription, saveSuccessDescription),
+            AreaOfEffect (AreaOfEffectShape.Line, "30"),
+            damageType, damageString
+        )
+        logger.debug { "getSpellLikeActionList, spell = $spellAction" }
+        return spellAction
+    }
+
+}

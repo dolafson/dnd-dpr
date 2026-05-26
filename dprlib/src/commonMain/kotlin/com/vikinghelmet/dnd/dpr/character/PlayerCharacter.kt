@@ -25,9 +25,6 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import com.vikinghelmet.dnd.dpr.spells.payload.Attack
-import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
-import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -321,7 +318,7 @@ open class PlayerCharacter(
         result.addAll (transformSpellList ("race", characterData.spells.raceSpells))
         result.addAll (transformSpellList ("feat", characterData.spells.featSpells))
         result.addAll (transformSpellList ("always", getAlwaysPreparedSpells()))
-        result.addAll (getSpellLikeActionList())
+        result.addAll (getSavingThrowActionList())
         return result
     }
 
@@ -494,38 +491,12 @@ open class PlayerCharacter(
         ).filter { a -> !a.name.contains("Circle Spell") }
     }
 
-    private fun getSpellLikeActionList(): List<SavingThrowAction>
+    private fun getSavingThrowActionList(): List<SavingThrowAction>
     {
         val result = mutableListOf<SavingThrowAction>()
         for (action in getActionList()) {
-            try {
-                val mod = ActionModifier.partialMatch(action.name)
-                when (mod) {
-                    ActionModifier.BreathWeapon -> {
-                        if (action.saveStatId == null || mod != ActionModifier.BreathWeapon) {
-                            throw IllegalArgumentException("currently only BreathWeapon is supported for SpellLikeAction")
-                        }
-
-                        val abilityType = AbilityType.entries[action.saveStatId]
-                        val damageType  = action.name.substringAfterLast('(').substringBeforeLast(')')
-                        val damageString = if (action.dice == null) null
-                                else "${ action.dice.diceCount }d${ action.dice.diceValue }"
-
-                        val spellAction = SavingThrowAction(
-                            action.name, action.description ?: "",
-                            Attack.Save (abilityType, action.saveFailDescription, action.saveSuccessDescription),
-                            AreaOfEffect (AreaOfEffectShape.Line, "30"),
-                            damageType, damageString
-                        )
-                        logger.debug { "getSpellLikeActionList, spell = $spellAction" }
-                        result.add(spellAction)
-                    }
-                    else -> {}
-                }
-
-            }
-            catch (e: IllegalArgumentException) {
-                Globals.debug("action is unsupported: " + action.name)
+            if (action.saveStatId != null) {
+                result.add (action.toSavingThrowAction())
             }
         }
         return result
