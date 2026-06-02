@@ -3,14 +3,14 @@
  */
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
-import com.vikinghelmet.dnd.dpr.scenario.*
-import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
-import com.vikinghelmet.dnd.dpr.action.Turn
+import com.vikinghelmet.dnd.dpr.scenario.onesided.*
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -171,10 +171,14 @@ fun runScenarios(attacker: Combatant, target: Combatant, args : Array<String>, i
 
     fun optionalArg(index: Int, default: Int) = if (index < args.size) args[index].toInt() else default
 
-    val iterator = ScenarioIterator (builder.build (proximity,
-        optionalArg (i+1, NUM_TURNS_PER_SCENARIO),
-        optionalArg (i+2, DEFAULT_NUM_TARGETS),
-        optionalArg (i+3, DEFAULT_TARGET_SPACING)))
+    val iterator = ScenarioIterator(
+        builder.build(
+            proximity,
+            optionalArg(i + 1, NUM_TURNS_PER_SCENARIO),
+            optionalArg(i + 2, DEFAULT_NUM_TARGETS),
+            optionalArg(i + 3, DEFAULT_TARGET_SPACING)
+        )
+    )
 
     val resultList: MutableList<ScenarioResult> = mutableListOf()
     iterator.forEach { resultList.add(ScenarioCalculator(it).calculateDPRForAllTurns()) }

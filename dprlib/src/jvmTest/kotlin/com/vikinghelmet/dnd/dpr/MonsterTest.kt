@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.action.enums.AttackType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS

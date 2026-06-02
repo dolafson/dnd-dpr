@@ -4,9 +4,9 @@ import com.vikinghelmet.dnd.dpr.action.ActionCalculator
 import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
-import com.vikinghelmet.dnd.dpr.scenario.EffectManager
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.EffectManager
+import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals

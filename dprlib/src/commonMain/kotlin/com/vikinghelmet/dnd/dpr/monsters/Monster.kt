@@ -15,7 +15,7 @@ import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterPrimaryAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
-import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -64,6 +64,10 @@ data class Monster(
     override fun getAC(): Int {
         return armor_class.sumOf { it.value }
     }
+
+    override fun getHP() = hit_points
+
+    override fun getInitiativeBonus() = getAbilityModifier(Dexterity)
 
     override fun getName() = monsterName
 

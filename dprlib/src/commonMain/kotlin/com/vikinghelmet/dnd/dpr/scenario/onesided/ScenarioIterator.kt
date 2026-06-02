@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.scenario
+package com.vikinghelmet.dnd.dpr.scenario.onesided
 
 import dev.shivathapaa.logger.api.LoggerFactory
 

@@ -18,7 +18,7 @@ package com.vikinghelmet.dnd.dprapp
 import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
 import kotlinx.coroutines.flow.MutableStateFlow

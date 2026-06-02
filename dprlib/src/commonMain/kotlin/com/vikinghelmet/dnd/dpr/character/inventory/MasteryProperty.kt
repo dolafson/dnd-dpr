@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr.character.inventory
 
-import com.vikinghelmet.dnd.dpr.util.TargetEffectCause
+import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffectCause
 
 enum class MasteryProperty(val supported: Boolean = false) : TargetEffectCause {
 

@@ -13,10 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioIterator
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioIterator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.Constants

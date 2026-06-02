@@ -3,9 +3,9 @@ package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LogLevel

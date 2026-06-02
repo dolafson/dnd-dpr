@@ -12,6 +12,8 @@ enum class ClassFeature {
     @SerialName("Extra Attack")             ExtraAttack,
     @SerialName("Unarmored Defense")        UnarmoredDefense,
     @SerialName("Fighting Style")           FightingStyle,
+
+    @SerialName("Dread Ambusher")           DreadAmbusher, // GloomStalker level 3
     ;
 
     fun getSerialName(): String {

@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.scenario
+package com.vikinghelmet.dnd.dpr.scenario.onesided
 
 import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Preconditions
@@ -9,7 +9,6 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.TargetEffect
 
 
 data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
@@ -29,7 +28,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
     }
 
     // TODO: support multiple forms of advantage on a single turn?
-    fun attackerHasAdvantage() = runningEffectList.firstOrNull { it.attackerHasAdvantage == true }
+    fun attackerHasAdvantage() = runningEffectList.firstOrNull { it.attackersHaveAdvantage == true }
 
     // TODO: support multiple forms of save disadvantage on a single turn?
     fun targetHasDisadvantageOnSave(abilityType: AbilityType?): TargetEffect? {

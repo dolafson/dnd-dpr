@@ -1,10 +1,10 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS

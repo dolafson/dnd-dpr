@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.scenario
+package com.vikinghelmet.dnd.dpr.scenario.onesided
 
 import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Action

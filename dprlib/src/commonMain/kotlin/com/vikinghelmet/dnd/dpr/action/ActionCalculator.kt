@@ -2,8 +2,8 @@ package com.vikinghelmet.dnd.dpr.action
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
-import com.vikinghelmet.dnd.dpr.scenario.EffectManager
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
+import com.vikinghelmet.dnd.dpr.scenario.onesided.EffectManager
+import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
 import com.vikinghelmet.dnd.dpr.spells.SaveResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
@@ -449,7 +449,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         // (this can be done manually via bonusDamageOnFirstHit, but more explicit support would be good)
 
         // TODO: only include
-        val numberOfTargets = spellAttack.getNumTargetsAffected(scenario)
+        val numberOfTargets = spellAttack.getNumTargetsAffected(scenario.numTargets, scenario.targetSpacing)
         val saveResult = spellAttack.getSaveResult()
         debug()
         debug("spell duration (max): " + spell.getDuration())
@@ -702,7 +702,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         // Normal Attack DPR (does not include bonus attack):          (B202, F202, J202)
 
-        val numTargets = meleeOrRangeAttack.getNumTargetsAffected(scenario)
+        val numTargets = meleeOrRangeAttack.getNumTargetsAffected(scenario.numTargets, scenario.targetSpacing)
 
         // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
         // we want Advantage last, so it lands in the "max" value

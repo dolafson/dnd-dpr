@@ -6,11 +6,13 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ActionsAvailable
 
 interface Combatant {
     fun is2014(): Boolean
     fun getAC(): Int
+    fun getHP(): Int
+    fun getInitiativeBonus(): Int
     fun getName(): String
     fun isFeatEnabled(requested : Feat): Boolean
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean

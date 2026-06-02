@@ -22,7 +22,7 @@ import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -170,6 +170,14 @@ open class PlayerCharacter(
             else -> {}
         }
         return armorClassSum
+    }
+
+    override fun getHP(): Int = characterData.baseHitPoints
+
+    override fun getInitiativeBonus(): Int {
+        val dexBonus = getAbilityModifier(AbilityType.Dexterity)
+        val wisBonus = getAbilityModifier(AbilityType.Wisdom)
+        return if (!isClassFeatureEnabled(ClassFeature.DreadAmbusher)) dexBonus else dexBonus +  wisBonus
     }
 
     fun getSpellAbilityType(): AbilityType? {

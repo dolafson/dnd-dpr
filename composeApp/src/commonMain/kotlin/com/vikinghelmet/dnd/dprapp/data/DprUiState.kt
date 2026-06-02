@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dprapp.data
 
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import kotlinx.serialization.Serializable

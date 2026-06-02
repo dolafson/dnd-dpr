@@ -1,10 +1,11 @@
-package com.vikinghelmet.dnd.dpr.scenario
+package com.vikinghelmet.dnd.dpr.scenario.onesided
 
 import com.vikinghelmet.dnd.dpr.action.AttackResult
 import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
+import kotlin.math.min
 
 data class ScenarioResult(
     val scenario: Scenario,
@@ -66,7 +67,7 @@ data class ScenarioResult(
             // NOTE: THERE IS NO ROUND ZERO; START AT ONE
             return resultList.sortedWith(
                 compareByDescending<ScenarioResult> { it.totalDamage } .thenByDescending { it.dprAtRound(1) }
-            ).distinct().take(kotlin.math.min(max,resultList.size))
+            ).distinct().take(min(max,resultList.size))
         }
     }
 

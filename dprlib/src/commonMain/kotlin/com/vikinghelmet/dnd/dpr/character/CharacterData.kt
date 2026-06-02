@@ -22,6 +22,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class CharacterData(
     val username: String,
     val id: Int? = 0,
+    val baseHitPoints: Int = 0,
     val name: String,
     val background: Background? = null,
     val campaign: Campaign? = null,

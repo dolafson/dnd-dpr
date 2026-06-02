@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.scenario
+package com.vikinghelmet.dnd.dpr.scenario.onesided
 
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
@@ -6,7 +6,6 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.TargetEffect
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
@@ -91,7 +90,7 @@ class ScenarioCalculator(
 
         if (weapon.hasMasteryProperty(MasteryProperty.Vex)) {
             logger.debug { "turn=$turnId, vex = true" }
-            effectManager.add(TargetEffect(turnId, MasteryProperty.Vex, resultList.first().chanceToHit.avg, attackerHasAdvantage = true))
+            effectManager.add(TargetEffect(turnId, MasteryProperty.Vex, resultList.first().chanceToHit.avg, attackersHaveAdvantage = true))
         }
 
         if (scenario.attacker.isFeatEnabled(Feat.ColdCaster)) {

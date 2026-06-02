@@ -6,7 +6,7 @@ import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.util.TargetEffectCause
+import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffectCause
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient

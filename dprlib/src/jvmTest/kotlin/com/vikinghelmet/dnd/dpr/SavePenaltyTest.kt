@@ -7,13 +7,13 @@ import com.vikinghelmet.dnd.dpr.action.AvgMinMax
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
-import com.vikinghelmet.dnd.dpr.scenario.EffectManager
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.EffectManager
+import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.TargetEffect
+import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffect
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import org.junit.jupiter.api.Assertions.assertTrue

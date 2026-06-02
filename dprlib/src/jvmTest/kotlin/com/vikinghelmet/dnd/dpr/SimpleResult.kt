@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.scenario.ScenarioResult
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 

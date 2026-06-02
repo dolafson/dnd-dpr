@@ -3,7 +3,6 @@ package com.vikinghelmet.dnd.dpr.action
 import com.vikinghelmet.dnd.dpr.action.enums.AttackType
 import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
 import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.Serializable
 
@@ -21,7 +20,7 @@ data class Weapon (
     override fun getActionName(): String { return name }
     override fun getDamageList()  = _damageList
     override fun getAttackBonus() = bonusToHit
-    override fun getNumTargetsAffected(scenario: Scenario) = 1
+    override fun getNumTargetsAffected(numTargets: Int, targetSpacing: Int) = 1
 
     // other methods
     fun hasWeaponProperty(prop: WeaponProperty)   = propertyNames.contains(prop.name)

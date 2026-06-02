@@ -1,8 +1,7 @@
 package com.vikinghelmet.dnd.dpr.spells
 
-import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.action.MeleeOrRangeAction
-import com.vikinghelmet.dnd.dpr.scenario.Scenario
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
@@ -20,9 +19,9 @@ data class SpellAttack(
 ) : MeleeOrRangeAction {
     private var numTargetsOverride: Int? = null
 
-    constructor(other: SpellAttack, scenario: Scenario) : this(other.attackPayload, other.damagePayload)
+    constructor(other: SpellAttack, numTargets: Int, targetSpacing: Int) : this(other.attackPayload, other.damagePayload)
     {
-        this.numTargetsOverride = other.getNumTargetsAffected(scenario) - 1
+        this.numTargetsOverride = other.getNumTargetsAffected(numTargets, targetSpacing) - 1
         other.numTargetsOverride = 1
     }
 
@@ -48,7 +47,7 @@ data class SpellAttack(
         return attackPayload.aoe.size.replace("Ten","10").replace("[ -].*".toRegex(), "").toInt()
     }
 
-    override fun getNumTargetsAffected(scenario: Scenario): Int
+    override fun getNumTargetsAffected(numTargets: Int, targetSpacing: Int): Int
     {
         if (numTargetsOverride != null) {
             return numTargetsOverride!!
@@ -64,9 +63,9 @@ data class SpellAttack(
 
         //if (targetSpacing > size) return 1 // redundant?
 
-        val numTargetsInArea = (1 + 2*(size / scenario.targetSpacing)).toDouble().pow(2.0).toInt()
+        val numTargetsInArea = (1 + 2*(size / targetSpacing)).toDouble().pow(2.0).toInt()
 
-        return kotlin.math.min (scenario.numTargets, numTargetsInArea)
+        return kotlin.math.min (numTargets, numTargetsInArea)
     }
 
     override fun getDamageList(): List<com.vikinghelmet.dnd.dpr.action.Damage>
