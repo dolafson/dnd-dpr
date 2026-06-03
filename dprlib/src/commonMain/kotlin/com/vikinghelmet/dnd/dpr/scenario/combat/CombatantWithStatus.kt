@@ -8,19 +8,29 @@ import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
 
-data class Location(val x: Int, val y: Int)
+data class Location(val x: Int, val y: Int) {
+    constructor(onTeamA: Boolean): this(
+        (1..4).random() * (if (onTeamA) -1 else 1),
+        (-2..2).random()
+    )
+}
 
-class CombatantStatus(
+class CombatantWithStatus(
     val combatant: Combatant,
     val onTeamA: Boolean,
-    val turn: Int,
-    var location: Location,
+    val turn: Int = 0,
+    var location: Location = Location(onTeamA),
     var currentHP: Int = combatant.getHP(),
-) : TargetEffect(turn) {
+) : Combatant by combatant, TargetEffect(turn) {
 
+    val deathSavingThrows = mutableListOf<Boolean>()
     val spellCastList = mutableListOf<SpellCast>()
 
-    fun isAlive() = currentHP > 0
+    fun isDead() = currentHP <= 0 && deathSavingThrows.count { !it } == 3
+
+    fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
+
+    fun canTakeAction() = currentHP > 0 && !noActionOrBA
 
     fun isSlotAvailable(spell: Spell): Boolean {
         val level = spell.properties.Level

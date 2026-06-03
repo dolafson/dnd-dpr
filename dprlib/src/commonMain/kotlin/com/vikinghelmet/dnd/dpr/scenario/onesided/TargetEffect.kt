@@ -13,8 +13,8 @@ open class TargetEffect (
     var cause: TargetEffectCause? = null,
     val probability: Float = 1f,
 
-    var attackersHaveAdvantage: Boolean? = false,
-    var attackerAutoCrit: Boolean? = false, // when target is hit, does attack automatically crit (double damage) ? // TODO ...
+    var attackersHaveAdvantage: Boolean = false,
+    var attackerAutoCrit: Boolean = false, // when target is hit, does attack automatically crit (double damage) ? // TODO ...
     var attackerExtraDamageOnHit: MutableList<String> = mutableListOf(), // 1d4, 1d6, ...
 
     // some effects are dependent on abilityType; these aren't modeled in Preconditions,
@@ -25,8 +25,8 @@ open class TargetEffect (
     var savePenalty: MutableList<String> = mutableListOf(),     //  1d4, 1d6, ... this effect depends on savePenaltyFilter above
 
     // remaining effects only matter when monsters fight back ...
-    var disadvantageOnAttacks: Boolean? = false,
-    var noActionOrBA: Boolean? = false,
+    var disadvantageOnAttacks: Boolean = false,
+    var noActionOrBA: Boolean = false,
     var disadvantageOnAbilityChecks: MutableList<AbilityType> = mutableListOf(), // this only matters when monsters fight back
     var attackPenalty: MutableList<String> = mutableListOf(),
     var damagePenalty: MutableList<String> = mutableListOf(),
