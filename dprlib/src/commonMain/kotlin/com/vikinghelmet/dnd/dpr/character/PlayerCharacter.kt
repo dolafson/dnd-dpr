@@ -54,6 +54,8 @@ open class PlayerCharacter(
         return characterData.name
     }
 
+    override fun getWalkingSpeed() = 30 // TODO: data.race.weightSpeeds.normal.{walk,fly,burrow,climb,swim}
+
     open fun getLevel(): Int {
         return characterData.classes.first().level
     }

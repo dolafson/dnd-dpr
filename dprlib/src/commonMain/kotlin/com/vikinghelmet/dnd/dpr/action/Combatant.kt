@@ -17,6 +17,7 @@ interface Combatant {
     fun isFeatEnabled(requested : Feat): Boolean
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean
     fun isEvasive(): Boolean
+    fun getWalkingSpeed(): Int
 
     fun getAbilityModifier(abilityType: AbilityType): Int
 

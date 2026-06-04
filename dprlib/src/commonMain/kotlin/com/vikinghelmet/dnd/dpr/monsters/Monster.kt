@@ -71,6 +71,8 @@ data class Monster(
 
     override fun getName() = monsterName
 
+    override fun getWalkingSpeed() = speed.walk!!.replace(" .*".toRegex(),"").toInt()
+
     override fun isFeatEnabled(requested: Feat) = false
 
     override fun isRacialTraitEnabled(requested: RacialTrait) = false // TODO
