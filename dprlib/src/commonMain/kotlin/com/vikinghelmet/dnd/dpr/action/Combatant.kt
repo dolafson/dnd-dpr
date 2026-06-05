@@ -1,12 +1,13 @@
 package com.vikinghelmet.dnd.dpr.action
 
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.onesided.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 
 interface Combatant {
     fun is2014(): Boolean
@@ -18,6 +19,10 @@ interface Combatant {
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean
     fun isEvasive(): Boolean
     fun getWalkingSpeed(): Int
+
+    fun getDamageImmunities(): List<DamageType>
+    fun getDamageResistances(): List<DamageType>
+    fun getDamageVulnerabilities(): List<DamageType>
 
     fun getAbilityModifier(abilityType: AbilityType): Int
 

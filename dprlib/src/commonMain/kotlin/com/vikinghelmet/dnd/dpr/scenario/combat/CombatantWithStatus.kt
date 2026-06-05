@@ -9,46 +9,6 @@ import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
-import kotlin.math.pow
-import kotlin.math.sqrt
-
-data class Location(var x: Int, var y: Int) {
-    constructor(onTeamA: Boolean): this(
-        (1..4).random() * (if (onTeamA) -1 else 1),
-        (-2..2).random()
-    )
-
-    fun distance(otherLocation: Location): Double {
-        return sqrt( (otherLocation.x - x).toDouble().pow(2.0) +
-                (otherLocation.y - y).toDouble().pow(2.0))
-    }
-
-    fun getOneOff(): List<Location> {
-        return listOf(
-            Location(x-1, y-1), Location(x, y-1), Location(x+1, y-1),
-            Location(x-1, y),                     Location(x+1, y),
-            Location(x-1, y+1), Location(x, y+1), Location(x+1, y+1),
-        )
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as Location
-
-        if (x != other.x) return false
-        if (y != other.y) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = x
-        result = 31 * result + y
-        return result
-    }
-}
 
 class CombatantWithStatus(
     val combatant: Combatant,
@@ -56,6 +16,8 @@ class CombatantWithStatus(
     val turn: Int = 0,
     var location: Location = Location(onTeamA),
     var currentHP: Int = combatant.getHP(),
+    var currentInitiative: Int = (1..20).random() + combatant.getInitiativeBonus(),
+
 ) : Combatant by combatant, TargetEffect(turn) {
 
     val deathSavingThrows = mutableListOf<Boolean>()
@@ -71,6 +33,54 @@ class CombatantWithStatus(
         return otherLocation.distance(location)
     }
 
+    fun deathSave() {
+        val saveRoll = (1..20).random()
+        if (saveRoll == 1) {
+            deathSavingThrows.add(false)
+            deathSavingThrows.add(false)
+        }
+        else if (saveRoll < 10) {
+            deathSavingThrows.add(false)
+        }
+        else if (saveRoll < 20) {
+            deathSavingThrows.add(true)
+        }
+
+        if (saveRoll == 20 || (deathSavingThrows.filter { it == true }.count() >= 3)) {
+            deathSavingThrows.clear()
+            currentHP = 1
+        }
+    }
+
+    // TODO: move most of the moveAwayFromTarget() method into Location class
+    fun moveAwayFromTarget(targetList: MutableList<CombatantWithStatus>, closestDistanceStart: Double) {
+        var closestDistance = closestDistanceStart
+        val maxMoves = getWalkingSpeed() / 5
+        var loc = location
+        val targetLocationList = targetList.map { it.location }.toList()
+
+        for (i in 1..maxMoves) {
+            for (oneOffLoc in loc.getOneOff()) {
+                // for the given new location, find the closest target
+                val nextClosest = targetLocationList.minByOrNull { it.distance(oneOffLoc) }
+                val nextClosestDistance = nextClosest!!.distance(oneOffLoc)
+
+                // if the new "closest" is larger than before, that's progress: take it
+                if (closestDistance < nextClosestDistance) {
+                    closestDistance = nextClosestDistance
+                    loc = oneOffLoc
+                    break
+                }
+            }
+            if (location == loc) break
+            location = loc
+        }
+    }
+
+    fun moveTowardTarget(target: CombatantWithStatus) {
+        location.moveTowardLocation(target.location, getWalkingSpeed() / 5)
+    }
+
     fun getPreferredCombatDistance(): Int {
         val hasBetterDexThanStr = getAbilityModifier(AbilityType.Dexterity) >= getAbilityModifier(AbilityType.Strength)
         if (hasBetterDexThanStr) {
@@ -79,9 +89,9 @@ class CombatantWithStatus(
         return Constants.MELEE_RANGE
     }
 
-    fun isDead() = currentHP <= 0 && deathSavingThrows.count { !it } == 3
+    fun isDead() = currentHP <= 0 && deathSavingThrows.filter { !it }.count() >= 3
 
-    fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
+    fun isDying() = currentHP <= 0 && deathSavingThrows.filter { !it }.count() < 3
 
     fun canTakeAction() = currentHP > 0 && !noActionOrBA
 
@@ -102,4 +112,9 @@ class CombatantWithStatus(
         if (slotsUsed >= maxSlots) Globals.debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = $spellCastList")
         return (slotsUsed < maxSlots)
     }
+
+    fun toFullString(): String {
+        return "CombatantWithStatus(combatant=$combatant, onTeamA=$onTeamA, turn=$turn, location=$location, currentHP=$currentHP, deathSavingThrows=$deathSavingThrows, spellCastList=$spellCastList, target=$target)"
+    }
+    override fun toString() = getName()
 }

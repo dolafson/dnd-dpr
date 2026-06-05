@@ -1,7 +1,16 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat
 
+import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.Damage
+import com.vikinghelmet.dnd.dpr.action.Weapon
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
+import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
@@ -14,45 +23,63 @@ class Combat()
     val combatActionList = mutableListOf<CombatAction>()
     var turn = 0
 
-    constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>) : this() {
-        val initiativeMap = mutableMapOf<CombatantWithStatus, Int>()
-        noStatusTeamA.forEach { add(CombatantWithStatus(it, true), teamA, initiativeMap) }
-        noStatusTeamB.forEach { add(CombatantWithStatus(it, false), teamB, initiativeMap) }
-
+    constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>) : this()
+    {
+        noStatusTeamA.forEach { teamA.add(CombatantWithStatus(it, true)) }
+        noStatusTeamB.forEach { teamB.add(CombatantWithStatus(it, false)) }
         // when computing initiative order, a DM will often use a single roll for an entire group of monsters
         // we won't do that here - unique rolls are more realistic, and easier to implement
-        initiativeList = initiativeMap.entries.sortedBy { it.value }.map { it.key }.toList()
-    }
-
-    private fun add(combatantWithStatus: CombatantWithStatus,
-                    team: MutableList<CombatantWithStatus>,
-                    initiativeMap: MutableMap<CombatantWithStatus, Int>)
-    {
-        team.add(combatantWithStatus)
-        initiativeMap[combatantWithStatus] = (1..20).random() + combatantWithStatus.getInitiativeBonus()
+        initiativeList = (teamA + teamB).sortedByDescending { it.currentInitiative }.toList()
     }
 
     fun run() {
+        val map = initiativeList.associateBy { it.currentInitiative }
+        logger.info { "initiativeList = $map" }
+        //logger.info { "initiativeList = $initiativeList" }
         while (!teamA.all { it.isDead() } && !teamB.all { it.isDead() }) {
+            teamA.forEach { logger.info { "turn start, teamA member: ${it.getName()}, isDead=${it.isDead()}, isDying=${it.isDying()}" } }
+            teamB.forEach { logger.info { "turn start, teamB member: ${it.getName()}, isDead=${it.isDead()}, isDying=${it.isDying()}" } }
             fullTurn()
             turn++
+        }
+        if (!teamA.all { it.isDead() }) {
+            logger.info { "winner = teamA = $teamA " }
+        }
+        else {
+            logger.info { "winner = teamB = $teamB " }
         }
     }
 
     fun fullTurn() {
         initiativeList.forEach { combatant ->
             if (combatant.isDead()) {
-                logger.debug { "combatant is dead: $combatant"}
+                logger.info { "combatant is dead: $combatant"}
             }
             else if (combatant.isDying()) {
                 // TODO: roll for death saving throw
-                logger.debug { "death saving throw: $combatant"}
+                combatant.deathSave()
+                logger.info { "after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
             }
             else if (!combatant.canTakeAction()) {
-                logger.debug { "combatant can not take action: $combatant"}
+                logger.info { "combatant can not take action: $combatant"}
             }
             else {
                 takeTurn(combatant)
+            }
+        }
+    }
+
+    fun takeTurn(combatant: CombatantWithStatus) {
+        val target = chooseTarget(combatant)
+        val attackList = chooseTurnActions(combatant, target)
+
+        logger.info { "turn = $turn, combatant = ${combatant.getName()}, selected target = ${target.getName()}" }
+        for (attack in attackList) {
+            if (attack.action is Weapon) {
+                attackWithWeapon(combatant, target, attack)
+            }
+            else {
+                // getSpellDPR(turnId, actionId, attack, actionCalculator)
             }
         }
     }
@@ -81,60 +108,96 @@ class Combat()
 
         if (preferredDistance <= Constants.MELEE_RANGE) {
             // pick a target, then move towards it
-            runToward(combatant, closest)  // TODO: improve target selection
+            combatant.moveTowardTarget(closest)    // TODO: improve target selection
             return closest
         }
 
         // if you are too close for comfort ... run away before picking a target
         if (closestDistance <= preferredDistance) {
-            runAway (combatant, targetList, closestDistance)
+            combatant.moveAwayFromTarget (targetList, closestDistance)
         }
 
         return targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection
     }
 
-    fun runAway(combatant: CombatantWithStatus, targetList: MutableList<CombatantWithStatus>, closestDistanceStart: Double) {
-        var closestDistance = closestDistanceStart
-        val maxMoves = combatant.getWalkingSpeed() / 5
-        var loc = combatant.location
-        val targetLocationList = targetList.map { it.location }.toList()
+    fun chooseTurnActions(combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
+        val builder = ScenarioBuilder(combatant, target)
+        val distance = combatant.distance(target)
+        // TODO: compute numTargets and spacing from targetList
+        val scenarioList = builder.build(distance.toInt(), 1, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
-        for (i in 1..maxMoves) {
-            for (oneOffLoc in loc.getOneOff()) {
-                // for the given new location, find the closest target
-                val nextClosest = targetLocationList.minByOrNull { it.distance(oneOffLoc) }
-                val nextClosestDistance = nextClosest!!.distance(oneOffLoc)
+        // choose an attack based on highest damage probability
+        // TODO: characters with higher INT should be able to "lookahead" more turns (better planning ability)
+        // TODO: account for spell slots and other limited-resource actions
+        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        val bestResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
+        return bestResult.scenario.turns[0].attacks
+    }
 
-                // if the new "closest" is larger than before, that's progress: take it
-                if (closestDistance < nextClosestDistance) {
-                    closestDistance = nextClosestDistance
-                    loc = oneOffLoc
-                    break
-                }
+    fun attackWithWeapon(combatant: CombatantWithStatus, target: CombatantWithStatus, attack: Attack)
+    {
+        if (attack.action !is Weapon) return
+        var attackRoll = (1..20).random()
+        if (target.attackersHaveAdvantage && !combatant.disadvantageOnAttacks) {
+            attackRoll = kotlin.math.max(attackRoll, (1..20).random())
+        }
+        else if (!target.attackersHaveAdvantage && combatant.disadvantageOnAttacks) {
+            attackRoll = kotlin.math.min(attackRoll, (1..20).random())
+        }
+
+        logger.info { "combatant = $combatant, target = $target, weapon = ${attack.action.name}" }
+
+        // TODO: bless and bane, maybe others?
+        //var bonusDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0)
+        //var penaltyDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0)
+
+        attackRoll += attack.action.getAttackBonus()
+
+        val autoHit = attackRoll == 20 // critical Hit + Damage ... TODO: for a champion, autoHit on 19 or 18
+
+        if (attackRoll >= target.getAC() || autoHit) {
+            val isCrit = autoHit || target.attackerAutoCrit
+            val damage = computeDamage(attack, target, isCrit)
+            target.currentHP -= damage
+            logger.info { "combatant = $combatant, target = $target, weapon = ${attack.action.name}, attackRoll = ${attackRoll}, hit = true, damage = $damage, remainingHP = ${ target.currentHP}" }
+        }
+        else {
+            logger.info { "combatant = $combatant, target = $target, weapon = ${attack.action.name}, attackRoll = ${attackRoll}, hit = false" }
+        }
+    }
+
+    fun computeDamage(attack: Attack, target: CombatantWithStatus, isCrit: Boolean): Int
+    {
+        if (attack.action !is Weapon) return 0
+        val damageList = attack.action.getDamageList().toMutableList()
+
+        for (modifier in attack.actionModifiers) {
+            val bonusDamage = modifier.getBonusDamage()
+            if (!bonusDamage.isEmpty()) {
+                damageList.add(Damage(bonusDamage.copy(), 0, 0, DamageType.undefined))
             }
-            if (combatant.location == loc) break
-            combatant.location = loc
         }
-    }
 
-    fun runToward(combatant: CombatantWithStatus, target: CombatantWithStatus) {
-        val maxMoves = combatant.getWalkingSpeed() / 5
-        val tloc = target.location
-        for (i in 1..maxMoves) {
-            if (combatant.location.x < tloc.x -1) combatant.location.x++
-            else if (combatant.location.x > tloc.x +1) combatant.location.x--
-            else if (combatant.location.y < tloc.y -1) combatant.location.y++
-            else if (combatant.location.y > tloc.y +1) combatant.location.y--
-            else break
+        var totalDamage = 0
+        for (it in damageList) {
+            if (target.getDamageImmunities().contains(it.type)) {
+                logger.info { "target has immunity ${it.type}" }
+                continue
+            }
+            var effectDamage = it.dice.roll() + it.bonus
+            if (attack.isBonusAction != true) {
+                effectDamage += it.abilityBonus
+            }
+            if (target.getDamageResistances().contains(it.type)) {
+                effectDamage /= 2
+            }
+            if (target.getDamageVulnerabilities().contains(it.type)) {
+                effectDamage *= 2
+            }
+            totalDamage += effectDamage
         }
-    }
 
-    fun takeTurn(combatant: CombatantWithStatus) {
-        val target = chooseTarget(combatant)
-
-        // choose target and action
-        // if not within attack range, move
-        // if successful, modify target status
-        // if not within desired post-attack range, move
+        logger.info { "target = $target, damage = $totalDamage" }
+        return totalDamage
     }
 }

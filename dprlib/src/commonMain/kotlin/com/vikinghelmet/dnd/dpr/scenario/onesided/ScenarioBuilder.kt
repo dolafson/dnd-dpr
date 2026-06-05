@@ -1,15 +1,12 @@
 package com.vikinghelmet.dnd.dpr.scenario.onesided
 
-import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.Action
-import com.vikinghelmet.dnd.dpr.action.Combatant
-import com.vikinghelmet.dnd.dpr.action.Turn
+import com.vikinghelmet.dnd.dpr.action.*
+import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
-import com.vikinghelmet.dnd.dpr.action.Weapon
-import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory

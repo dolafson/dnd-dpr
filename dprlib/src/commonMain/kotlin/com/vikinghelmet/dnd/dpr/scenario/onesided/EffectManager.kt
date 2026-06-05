@@ -2,7 +2,6 @@ package com.vikinghelmet.dnd.dpr.scenario.onesided
 
 import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Preconditions
-import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -114,13 +113,8 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
     fun getPreconditions(attack: Attack, currentSpell: Spell?): Preconditions {
         val precondition = Preconditions()
 
-        for (action in attack.actionModifiers) {
-            when (action) {
-                ActionModifier.ColossusSlayer -> precondition.bonusDamageDice += DiceBlock("1d8")
-                ActionModifier.DreadfulStrike -> precondition.bonusDamageDice += DiceBlock("2d6")
-                ActionModifier.PolarStrikes   -> precondition.bonusDamageDice += DiceBlock("1d4")
-                else -> Globals.debug("action does not modify attack preconditions: $action")
-            }
+        for (actionModifier in attack.actionModifiers) {
+            precondition.bonusDamageDice += actionModifier.getBonusDamage()
         }
 
         for (priorEffect in runningEffectList)

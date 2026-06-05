@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.character.actions
 
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 enum class ActionModifier {
@@ -30,6 +31,15 @@ enum class ActionModifier {
     fun getNameWithWS(): String {
         if (this == HuntersLore) return "Hunter's Lore"
         return Globals.addWStoCamelCase(name)
+    }
+
+    fun getBonusDamage(): DiceBlock {
+        when (this) {
+            ColossusSlayer -> return DiceBlock("1d8")
+            DreadfulStrike -> return DiceBlock("2d6")
+            PolarStrikes -> return DiceBlock("1d4")
+            else -> return DiceBlock()
+        }
     }
 
     companion object {

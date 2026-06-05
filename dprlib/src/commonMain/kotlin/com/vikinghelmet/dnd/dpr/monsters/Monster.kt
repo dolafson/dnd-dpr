@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.monsters
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Weapon
 import com.vikinghelmet.dnd.dpr.action.enums.AttackType
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.actions.ActionAdded
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
@@ -15,7 +16,7 @@ import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterPrimaryAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
-import com.vikinghelmet.dnd.dpr.scenario.onesided.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.util.Constants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -73,6 +74,10 @@ data class Monster(
 
     override fun getWalkingSpeed() = speed.walk!!.replace(" .*".toRegex(),"").toInt()
 
+    override fun getDamageImmunities()      = damage_immunities.map      { DamageType.valueOf(it) }.toList()
+    override fun getDamageResistances()     = damage_resistances.map     { DamageType.valueOf(it) }.toList()
+    override fun getDamageVulnerabilities() = damage_vulnerabilities.map { DamageType.valueOf(it) }.toList()
+
     override fun isFeatEnabled(requested: Feat) = false
 
     override fun isRacialTraitEnabled(requested: RacialTrait) = false // TODO
@@ -101,7 +106,8 @@ data class Monster(
     override fun getSpellBonusToHit() = 0 // TODO
 
     override fun getSpellSaveDC(): Int {
-        val dc = actions?.firstNotNullOf { it.dc } // TODO: monsters with multiple dc's ?
+        if (actions == null) return 0
+        val dc = actions.firstNotNullOfOrNull { it.dc } // TODO: monsters with multiple dc's ?
         if (dc != null) {
             return dc.dc_value
         }

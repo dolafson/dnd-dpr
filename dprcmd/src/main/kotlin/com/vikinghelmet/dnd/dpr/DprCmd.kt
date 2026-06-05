@@ -10,6 +10,7 @@ import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.onesided.*
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
@@ -222,7 +223,7 @@ fun runCustomAttack(attacker: Combatant, target: Combatant, turnString: String) 
 
 fun showUsage() {
     println("""
-Usage:  [-d] [--csv]  <attacker>  <target>  <attacks> 
+Usage:  [-d] [--csv]  <attacker>  <target>  <auto | attacks> 
 
 Options:
 
@@ -236,6 +237,10 @@ Attacker/Target - any of the following:
      file.json      read character from a local file
      "party:N"      read all characters stored in application data directory, and set each character level to N
 
+Auto:
+
+     Automated bi-directional combat.  Participants choose their preferred actions based on expected DPR
+      
 Attacks:
 
      <turn[;turn...] >   
@@ -290,7 +295,10 @@ fun main(args : Array<String>) {
     val attackers = getCombatantGroup(args[i++])
     val targets   = getCombatantGroup(args[i++])
 
-    if (args[i].toIntOrNull() == null) {
+    if (args[i] == "auto") {
+        Combat(attackers, targets).run()
+    }
+    else if (args[i].toIntOrNull() == null) {
         runCustomAttack (attackers[0], targets[0], args[i]) // proximity not specified: custom turns, single combat
     }
     else {

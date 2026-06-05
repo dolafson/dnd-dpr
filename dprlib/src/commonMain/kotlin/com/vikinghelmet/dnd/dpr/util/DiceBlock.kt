@@ -58,6 +58,15 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
         return DiceBlock(d4*2, d6*2, d8*2, d10*2, d12*2)
     }
 
+    fun roll(): Int {
+        // TODO: when you have multiple dice of a given type (ie, 3d6), roll each one individually ?
+        return d4 * (1..4).random() +
+                d6 * (1..6).random() +
+                d8 * (1..8).random() +
+                d10 * (1..10).random() +
+                d12 * (1..12).random()
+    }
+
     operator fun plusAssign(other: DiceBlock) {
         d4 += other.d4
         d6 += other.d6

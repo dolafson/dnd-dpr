@@ -22,7 +22,7 @@ import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.onesided.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -55,6 +55,10 @@ open class PlayerCharacter(
     }
 
     override fun getWalkingSpeed() = 30 // TODO: data.race.weightSpeeds.normal.{walk,fly,burrow,climb,swim}
+
+    override fun getDamageImmunities(): List<DamageType> = emptyList() // TODO ?
+    override fun getDamageResistances(): List<DamageType> = emptyList() // TODO ?
+    override fun getDamageVulnerabilities(): List<DamageType> = emptyList() // TODO ?
 
     open fun getLevel(): Int {
         return characterData.classes.first().level
