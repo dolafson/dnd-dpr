@@ -57,11 +57,11 @@ fun getFileOrURL(fileOrUrl: String): String? {
     }
 }
 
-fun getCombatantGroup(combatantName: String): List<Combatant> {
+fun getCombatantGroup(combatantNameList: String): List<Combatant> {
     val result: MutableList<Combatant> = mutableListOf()
 
-    if (combatantName.startsWith("party:")) {
-        val level = combatantName.split(":".toRegex())[1].toInt()
+    if (combatantNameList.startsWith("party:")) {
+        val level = combatantNameList.split(":".toRegex())[1].toInt()
 
         dprFiles.getEditableCharacterList().forEach { name ->
             val c = dprFiles.getEditableCharacter(name)
@@ -71,42 +71,46 @@ fun getCombatantGroup(combatantName: String): List<Combatant> {
         return result
     }
 
-    try {
-        val monster = Globals.getMonster(combatantName)
-        result.add(monster)
-        return result
-    }
-    catch (e: Exception) {
-        // if not a monster, combatant must be a player character
+    for (combatantName in combatantNameList.split(",".toRegex()))
+    {
+        try {
+            val monster = Globals.getMonster(combatantName)
+            result.add(monster)
+            continue
+        }
+        catch (e: Exception) {
+            // if not a monster, combatant must be a player character
+        }
+
+        var playerCharacter: PlayerCharacter? = null
+        if (combatantName.endsWith(".json") || combatantName.contains("/")) {
+            val jsonString = getFileOrURL(combatantName)
+            if (jsonString == null) {
+                println("unable to read input: $combatantName")
+            }
+            else if (jsonString.contains("\"remoteId\"")) {
+                playerCharacter = getEditableCharacter(jsonString)
+                logger.debug { "# loaded editable character: $playerCharacter" }
+            }
+            else if (jsonString.contains("\"username\"")) {
+                playerCharacter = Json.decodeFromString(jsonString)
+            }
+            else {
+                logger.error { "unsupported json file: $combatantName" }
+            }
+        }
+        else if (combatantName.startsWith("character")) {
+            var remoteId: String? = CharacterAPI.getCharacterId(combatantName)
+            if (remoteId != null) {
+                playerCharacter = getCharacter(remoteId)
+            }
+        }
+
+        if (playerCharacter != null) {
+            result.add(playerCharacter)
+        }
     }
 
-    var playerCharacter: PlayerCharacter? = null
-    if (combatantName.endsWith(".json") || combatantName.contains("/")) {
-        val jsonString = getFileOrURL(combatantName)
-        if (jsonString == null) {
-            println("unable to read input: $combatantName")
-        }
-        else if (jsonString.contains("\"remoteId\"")) {
-            playerCharacter = getEditableCharacter(jsonString)
-            logger.debug { "# loaded editable character: $playerCharacter" }
-        }
-        else if (jsonString.contains("\"username\"")) {
-            playerCharacter = Json.decodeFromString(jsonString)
-        }
-        else {
-            logger.error { "unsupported json file: $combatantName" }
-        }
-    }
-    else if (combatantName.startsWith("character")) {
-        var remoteId: String? = CharacterAPI.getCharacterId(combatantName)
-        if (remoteId != null) {
-            playerCharacter = getCharacter(remoteId)
-        }
-    }
-
-    if (playerCharacter != null) {
-        result.add(playerCharacter)
-    }
     return result
 }
 
@@ -296,7 +300,14 @@ fun main(args : Array<String>) {
     val targets   = getCombatantGroup(args[i++])
 
     if (args[i] == "auto") {
-        Combat(attackers, targets).run()
+        val max=100
+        var aTeamWinCount = 0
+        repeat(max) {
+            if (Combat(attackers, targets).run()) aTeamWinCount++
+        }
+        logger.warn { "" }
+        logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(aTeamWinCount.toFloat() / max.toFloat()) }" }
+        logger.warn { "" }
     }
     else if (args[i].toIntOrNull() == null) {
         runCustomAttack (attackers[0], targets[0], args[i]) // proximity not specified: custom turns, single combat

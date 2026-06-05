@@ -13,6 +13,9 @@ import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.fetchAndIncrement
 
 class Combat()
 {
@@ -23,42 +26,59 @@ class Combat()
     val combatActionList = mutableListOf<CombatAction>()
     var turn = 0
 
+    @OptIn(ExperimentalAtomicApi::class)
     constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>) : this()
     {
-        noStatusTeamA.forEach { teamA.add(CombatantWithStatus(it, true)) }
-        noStatusTeamB.forEach { teamB.add(CombatantWithStatus(it, false)) }
+        fun getCounter(team: List<Combatant>): AtomicInt? {
+            return if (team.size > 1 && team.all { it == team.firstOrNull() }) AtomicInt(0) else null
+        }
+        val aCounter = getCounter(noStatusTeamA)
+        val bCounter = getCounter(noStatusTeamB)
+
+        fun getNewName(combatant: Combatant, teamCounter: AtomicInt?): String {
+            val tmp = combatant.getName().replace(" .*".toRegex(), "")
+            return if (teamCounter == null) tmp else "$tmp ${ 'A'+teamCounter.fetchAndIncrement() }"
+        }
+
+        noStatusTeamA.forEach { teamA.add(CombatantWithStatus(it, getNewName(it, aCounter), true)) }
+        noStatusTeamB.forEach { teamB.add(CombatantWithStatus(it, getNewName(it, bCounter), false)) }
         // when computing initiative order, a DM will often use a single roll for an entire group of monsters
         // we won't do that here - unique rolls are more realistic, and easier to implement
         initiativeList = (teamA + teamB).sortedByDescending { it.currentInitiative }.toList()
     }
 
-    fun run() {
+    fun run(): Boolean {
         val map = initiativeList.associateBy { it.currentInitiative }
         logger.info { "initiativeList = $map" }
         //logger.info { "initiativeList = $initiativeList" }
+
         while (!teamA.all { it.isDead() } && !teamB.all { it.isDead() }) {
-            teamA.forEach { logger.info { "turn start, teamA member: ${it.getName()}, isDead=${it.isDead()}, isDying=${it.isDying()}" } }
-            teamB.forEach { logger.info { "turn start, teamB member: ${it.getName()}, isDead=${it.isDead()}, isDying=${it.isDying()}" } }
+//            teamA.forEach { logger.info { "turn start, teamA member: ${it.summary()}" } }
+//            teamB.forEach { logger.info { "turn start, teamB member: ${it.summary()}" } }
+
+            logger.info { "turn=$turn, teamA: ${ teamA.map { it.summary() }.toList() }, teamB: ${ teamB.map { it.summary() }.toList() }" }
             fullTurn()
             turn++
         }
         if (!teamA.all { it.isDead() }) {
             logger.info { "winner = teamA = $teamA " }
+            return true
         }
         else {
             logger.info { "winner = teamB = $teamB " }
+            return false
         }
     }
 
     fun fullTurn() {
         initiativeList.forEach { combatant ->
             if (combatant.isDead()) {
-                logger.info { "combatant is dead: $combatant"}
+                logger.debug { "combatant is dead: $combatant"}
             }
             else if (combatant.isDying()) {
                 // TODO: roll for death saving throw
                 combatant.deathSave()
-                logger.info { "after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
+                logger.debug { "after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
             }
             else if (!combatant.canTakeAction()) {
                 logger.info { "combatant can not take action: $combatant"}
@@ -71,9 +91,13 @@ class Combat()
 
     fun takeTurn(combatant: CombatantWithStatus) {
         val target = chooseTarget(combatant)
+        if (target == null) {
+            logger.debug { "turn = $turn, combatant = ${combatant.shortName()}, no target available" }
+            return
+        }
         val attackList = chooseTurnActions(combatant, target)
 
-        logger.info { "turn = $turn, combatant = ${combatant.getName()}, selected target = ${target.getName()}" }
+        logger.debug { "turn = $turn, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
         for (attack in attackList) {
             if (attack.action is Weapon) {
                 attackWithWeapon(combatant, target, attack)
@@ -84,20 +108,37 @@ class Combat()
         }
     }
 
-    fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus {
-        val targetList = if (combatant.onTeamA) teamB else teamA
+    fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus? {
+        var targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
+        logger.debug { "chooseTarget: targetList = $targetList" }
+        if (targetList.isEmpty()) {
+            // if all you have are a few dying opponents, keep sticking a fork in them until they're done
+            targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDead() }.toList()
+        }
+        if (targetList.isEmpty()) {
+            return null
+        }
+        targetList.forEach { logger.debug { "chooseTarget: targetList contains ${it.summary()} , isDeadOrDying = ${it.isDeadOrDying()}" } }
 
         // if you already have a target that is not dead, keep at it
-        if (combatant.target != null) return combatant.target!!
+        if (combatant.target != null && !combatant.target!!.isDeadOrDying()) {
+            logger.verbose { "chooseTarget: keeping current target = ${combatant.target}" }
+            return combatant.target!!
+        }
 
         // if you are currently someone else's target, target them back
-        targetList.forEach { if (it.target == combatant) return it }
+        targetList.forEach { if (it.target == combatant) {
+            logger.debug { "choosing a new target that is already attacking: ${combatant.target!!}" }
+            return it
+        } }
 
         // if you are within melee range, you can't move (don't provoke an oppy attack) ...
         // might as well attack
         val inMeleeRange = targetList.any { combatant.distance(it) <= 1 }
         if (inMeleeRange) {
-            return targetList.filter { combatant.distance(it) <= 1 }.random() // TODO: improve target selection
+            val result = targetList.filter { combatant.distance(it) <= 1 }.random() // TODO: improve target selection
+            logger.debug { "choosing a new target that is inMeleeRange: $result" }
+            return result
         }
 
         // now that we know we aren't in melee range, it is safe to move about the playing field as needed
@@ -108,16 +149,23 @@ class Combat()
 
         if (preferredDistance <= Constants.MELEE_RANGE) {
             // pick a target, then move towards it
+            logger.debug { "moving toward melee target: $closest" }
             combatant.moveTowardTarget(closest)    // TODO: improve target selection
             return closest
         }
 
         // if you are too close for comfort ... run away before picking a target
         if (closestDistance <= preferredDistance) {
+            logger.debug { "moving away from target, preferred distance: $preferredDistance" }
             combatant.moveAwayFromTarget (targetList, closestDistance)
         }
 
-        return targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection
+        logger.debug { "chooseTarget: before default case, targetList = $targetList" }
+        targetList.forEach { logger.debug {"chooseTarget: before default case, targetList contains ${it.summary()}, isDeadOrDying = ${it.isDeadOrDying()}" }}
+
+        val result = targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection
+        logger.debug { "choosing a new target: $result" }
+        return result
     }
 
     fun chooseTurnActions(combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
@@ -130,6 +178,8 @@ class Combat()
         // TODO: characters with higher INT should be able to "lookahead" more turns (better planning ability)
         // TODO: account for spell slots and other limited-resource actions
         val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
+        if (scenarioResultList.isEmpty()) return emptyList()
+
         val bestResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
         return bestResult.scenario.turns[0].attacks
     }
@@ -139,13 +189,15 @@ class Combat()
         if (attack.action !is Weapon) return
         var attackRoll = (1..20).random()
         if (target.attackersHaveAdvantage && !combatant.disadvantageOnAttacks) {
+            logger.info { "attacker has advantage" }
             attackRoll = kotlin.math.max(attackRoll, (1..20).random())
         }
         else if (!target.attackersHaveAdvantage && combatant.disadvantageOnAttacks) {
+            logger.info { "attacker has disadvantage" }
             attackRoll = kotlin.math.min(attackRoll, (1..20).random())
         }
 
-        logger.info { "combatant = $combatant, target = $target, weapon = ${attack.action.name}" }
+        logger.debug { "combatant = $combatant, target = $target, weapon = ${attack.action.name}" }
 
         // TODO: bless and bane, maybe others?
         //var bonusDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0)
@@ -159,10 +211,10 @@ class Combat()
             val isCrit = autoHit || target.attackerAutoCrit
             val damage = computeDamage(attack, target, isCrit)
             target.currentHP -= damage
-            logger.info { "combatant = $combatant, target = $target, weapon = ${attack.action.name}, attackRoll = ${attackRoll}, hit = true, damage = $damage, remainingHP = ${ target.currentHP}" }
+            logger.debug { "combatant = $combatant, target = $target, weapon = ${attack.action.name}, attackRoll = ${attackRoll}, hit = true, damage = $damage, remainingHP = ${ target.currentHP}" }
         }
         else {
-            logger.info { "combatant = $combatant, target = $target, weapon = ${attack.action.name}, attackRoll = ${attackRoll}, hit = false" }
+            logger.debug { "combatant = $combatant, target = $target, weapon = ${attack.action.name}, attackRoll = ${attackRoll}, hit = false" }
         }
     }
 
@@ -197,7 +249,7 @@ class Combat()
             totalDamage += effectDamage
         }
 
-        logger.info { "target = $target, damage = $totalDamage" }
+        logger.debug { "target = $target, damage = $totalDamage" }
         return totalDamage
     }
 }

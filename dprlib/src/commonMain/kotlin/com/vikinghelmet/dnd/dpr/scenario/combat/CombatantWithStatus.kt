@@ -12,6 +12,7 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 
 class CombatantWithStatus(
     val combatant: Combatant,
+    val newName: String,
     val onTeamA: Boolean,
     val turn: Int = 0,
     var location: Location = Location(onTeamA),
@@ -53,7 +54,7 @@ class CombatantWithStatus(
     }
 
     // TODO: move most of the moveAwayFromTarget() method into Location class
-    fun moveAwayFromTarget(targetList: MutableList<CombatantWithStatus>, closestDistanceStart: Double) {
+    fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Double) {
         var closestDistance = closestDistanceStart
         val maxMoves = getWalkingSpeed() / 5
         var loc = location
@@ -89,6 +90,25 @@ class CombatantWithStatus(
         return Constants.MELEE_RANGE
     }
 
+    fun shortName() = newName // getName().replace(" .*".toRegex(), "")
+
+    fun summary(): String {
+        val buffer = StringBuilder("(").append(shortName())
+        if (isDead()) {
+            buffer.append(", dead")
+        }
+        else if (isDying()) {
+            val failCount = deathSavingThrows.filter { !it }.count()
+            val passCount = deathSavingThrows.filter { it }.count()
+            buffer.append(", dying, saves=-$failCount/+$passCount")
+        }
+        else {
+            buffer.append(", hp=$currentHP/${getHP()}")
+        }
+        return buffer.append(")").toString()
+    }
+
+    fun isDeadOrDying() = currentHP <= 0
     fun isDead() = currentHP <= 0 && deathSavingThrows.filter { !it }.count() >= 3
 
     fun isDying() = currentHP <= 0 && deathSavingThrows.filter { !it }.count() < 3
@@ -116,5 +136,7 @@ class CombatantWithStatus(
     fun toFullString(): String {
         return "CombatantWithStatus(combatant=$combatant, onTeamA=$onTeamA, turn=$turn, location=$location, currentHP=$currentHP, deathSavingThrows=$deathSavingThrows, spellCastList=$spellCastList, target=$target)"
     }
-    override fun toString() = getName()
+
+    // override fun toString() = getName()
+    override fun toString() = shortName()
 }
