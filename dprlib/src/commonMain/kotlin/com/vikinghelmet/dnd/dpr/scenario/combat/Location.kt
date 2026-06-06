@@ -4,11 +4,13 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 data class Location(var x: Int, var y: Int) {
+
     constructor(onTeamA: Boolean): this(
         (1..4).random() * (if (onTeamA) -1 else 1),
         (-2..2).random()
     )
 
+    // NOTE: location units are in increment of 5 feet
     fun distance(otherLocation: Location): Double {
         return sqrt( (otherLocation.x - x).toDouble().pow(2.0) +
                 (otherLocation.y - y).toDouble().pow(2.0))
@@ -48,5 +50,9 @@ data class Location(var x: Int, var y: Int) {
         var result = x
         result = 31 * result + y
         return result
+    }
+
+    override fun toString(): String {
+        return "($x, $y)"
     }
 }

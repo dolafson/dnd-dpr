@@ -9,6 +9,10 @@ import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LoggerFactory
+import kotlinx.serialization.Transient
+
+@Transient private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")
 
 class CombatantWithStatus(
     val combatant: Combatant,
@@ -54,9 +58,9 @@ class CombatantWithStatus(
     }
 
     // TODO: move most of the moveAwayFromTarget() method into Location class
-    fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Double) {
+    fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Double): Double {
         var closestDistance = closestDistanceStart
-        val maxMoves = getWalkingSpeed() / 5
+        val maxMoves = getWalkingSpeed() / Constants.DISTANCE_GRANULARITY
         var loc = location
         val targetLocationList = targetList.map { it.location }.toList()
 
@@ -76,24 +80,27 @@ class CombatantWithStatus(
             if (location == loc) break
             location = loc
         }
+
+        return closestDistance
     }
 
     fun moveTowardTarget(target: CombatantWithStatus) {
-        location.moveTowardLocation(target.location, getWalkingSpeed() / 5)
+        location.moveTowardLocation(target.location, getWalkingSpeed() / Constants.DISTANCE_GRANULARITY)
     }
 
     fun getPreferredCombatDistance(): Int {
         val hasBetterDexThanStr = getAbilityModifier(AbilityType.Dexterity) >= getAbilityModifier(AbilityType.Strength)
-        if (hasBetterDexThanStr) {
-            return kotlin.math.min(60, getWeaponList().maxOf { it.range }) // we don't want to be too far from our own group ...
+        val range = if (hasBetterDexThanStr) {
+             kotlin.math.min(60, getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
         }
-        return Constants.MELEE_RANGE
+        else Constants.MELEE_RANGE
+        return range / Constants.DISTANCE_GRANULARITY
     }
 
     fun shortName() = newName // getName().replace(" .*".toRegex(), "")
 
     fun summary(): String {
-        val buffer = StringBuilder("(").append(shortName())
+        val buffer = StringBuilder("(").append(shortName()).append(", loc=$location")
         if (isDead()) {
             buffer.append(", dead")
         }

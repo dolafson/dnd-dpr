@@ -12,6 +12,8 @@ object Constants {
 
     const val MELEE_RANGE = 5
 
+    const val DISTANCE_GRANULARITY = 5
+
     val levelToProficiencyMap: Map<Int, Int> = mapOf(
         1 to 2,
         2 to 2,

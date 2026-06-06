@@ -11,6 +11,7 @@ import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
+import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.AtomicInt
@@ -73,17 +74,18 @@ class Combat()
     fun fullTurn() {
         initiativeList.forEach { combatant ->
             if (combatant.isDead()) {
-                logger.debug { "combatant is dead: $combatant"}
+                logger.debug { "fullTurn, turn=$turn, combatant=$combatant, is dead"}
             }
             else if (combatant.isDying()) {
                 // TODO: roll for death saving throw
                 combatant.deathSave()
-                logger.debug { "after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
+                logger.debug { "fullTurn, turn=$turn, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
             }
             else if (!combatant.canTakeAction()) {
-                logger.info { "combatant can not take action: $combatant"}
+                logger.info { "fullTurn, turn=$turn, combatant=$combatant, can not take action"}
             }
             else {
+                logger.info { "fullTurn, turn=$turn, combatant=$combatant is taking action"}
                 takeTurn(combatant)
             }
         }
@@ -110,7 +112,6 @@ class Combat()
 
     fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus? {
         var targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
-        logger.debug { "chooseTarget: targetList = $targetList" }
         if (targetList.isEmpty()) {
             // if all you have are a few dying opponents, keep sticking a fork in them until they're done
             targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDead() }.toList()
@@ -118,7 +119,6 @@ class Combat()
         if (targetList.isEmpty()) {
             return null
         }
-        targetList.forEach { logger.debug { "chooseTarget: targetList contains ${it.summary()} , isDeadOrDying = ${it.isDeadOrDying()}" } }
 
         // if you already have a target that is not dead, keep at it
         if (combatant.target != null && !combatant.target!!.isDeadOrDying()) {
@@ -144,24 +144,33 @@ class Combat()
         // now that we know we aren't in melee range, it is safe to move about the playing field as needed
 
         val closest = targetList.minByOrNull { combatant.distance(it) }
-        val closestDistance = closest!!.distance(combatant)
+        var closestDistance = closest!!.distance(combatant)
         val preferredDistance = combatant.getPreferredCombatDistance()
+        var initialLoc = combatant.location.copy()
+
+        fun logMovement(toOrFrom: String) {
+            val buf = StringBuilder(combatant.shortName()).append(": ")
+                .append(toOrFrom)
+                .append(", initialLoc = $initialLoc")
+                .append(", newLoc = ${combatant.location}")
+                .append(", preferredDistance = $preferredDistance")
+                .append(", closestDistance = ${Globals.getPercent(closestDistance.toFloat())}")
+            logger.debug { buf.toString() }
+        }
 
         if (preferredDistance <= Constants.MELEE_RANGE) {
             // pick a target, then move towards it
-            logger.debug { "moving toward melee target: $closest" }
             combatant.moveTowardTarget(closest)    // TODO: improve target selection
+            closestDistance = closest.distance(combatant)
+            logMovement("moving toward melee target $closest")
             return closest
         }
 
         // if you are too close for comfort ... run away before picking a target
         if (closestDistance <= preferredDistance) {
-            logger.debug { "moving away from target, preferred distance: $preferredDistance" }
-            combatant.moveAwayFromTarget (targetList, closestDistance)
+            closestDistance = combatant.moveAwayFromTarget (targetList, closestDistance)
+            logMovement("moving away from targets")
         }
-
-        logger.debug { "chooseTarget: before default case, targetList = $targetList" }
-        targetList.forEach { logger.debug {"chooseTarget: before default case, targetList contains ${it.summary()}, isDeadOrDying = ${it.isDeadOrDying()}" }}
 
         val result = targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection
         logger.debug { "choosing a new target: $result" }
