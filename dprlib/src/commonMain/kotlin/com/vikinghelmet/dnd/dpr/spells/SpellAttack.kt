@@ -120,6 +120,9 @@ data class SpellAttack(
         }
     }
 
+    override fun getActionName(): String {
+        return attackPayload.name!!
+    }
     override fun toString(): String {
         return attackPayload.name!!
     }

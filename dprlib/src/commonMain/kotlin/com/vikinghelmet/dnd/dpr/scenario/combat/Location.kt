@@ -1,7 +1,35 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat
 
+import com.vikinghelmet.dnd.dpr.util.Constants
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlin.math.pow
 import kotlin.math.sqrt
+
+val logger = LoggerFactory.get(Location::class.simpleName ?: "")
+
+data class Distance(val units: Int) : Comparable<Distance> { // TODO: store units as Int instead of double ?
+
+    constructor (loc1: Location, loc2: Location) :
+            this(kotlin.math.floor(
+                sqrt( (loc1.x - loc2.x).toDouble().pow(2.0) + (loc1.y - loc2.y).toDouble().pow(2.0))).toInt())
+
+    fun toFeet() = units * Constants.DISTANCE_GRANULARITY
+        //kotlin.math.round(units * Constants.DISTANCE_GRANULARITY).toInt()
+
+    override fun compareTo(other: Distance): Int {
+        return units.compareTo(other.units)
+        // units.toInt().compareTo(other.units.toInt())
+    }
+
+    override fun toString(): String {
+        return "${(units * Constants.DISTANCE_GRANULARITY)} ft"
+    }
+
+    companion object {
+        fun melee() = Distance(1)
+        fun fromFeet(value: Int) = Distance(value / Constants.DISTANCE_GRANULARITY)
+    }
+}
 
 data class Location(var x: Int, var y: Int) {
 
@@ -11,18 +39,28 @@ data class Location(var x: Int, var y: Int) {
     )
 
     // NOTE: location units are in increment of 5 feet
-    fun distance(otherLocation: Location): Double {
-        return sqrt( (otherLocation.x - x).toDouble().pow(2.0) +
-                (otherLocation.y - y).toDouble().pow(2.0))
-    }
+    fun distance(otherLocation: Location) = Distance(this, otherLocation)
 
     fun moveTowardLocation(other: Location, maxMoves: Int) {
-        for (i in 1..maxMoves) {
-            if (x < other.x -1) x++
-            else if (x > other.x +1) x--
-            else if (y < other.y -1) y++
-            else if (y > other.y +1) y--
-            else break
+        val initialLocation = this.copy()
+        //if (x == other.x && y == other.y) return // sharing the same space: should be avoided when possible
+
+        // stop when you are within 1 unit
+        if (! (kotlin.math.abs(x - other.x) <= 1 && kotlin.math.abs(y - other.y) <= 1))
+        {
+            for (i in 1..maxMoves) {
+                if (x < other.x -1) x++
+                else if (x > other.x +1) x--
+                else if (y < other.y -1) y++
+                else if (y > other.y +1) y--
+                else break
+            }
+        }
+
+        if (this == initialLocation) {
+            logger.debug { "Moving toward $other, old location = $initialLocation, no movement needed" }
+        } else {
+            logger.debug { "Moving toward $other, old location = $initialLocation, new location = $this" }
         }
     }
 

@@ -12,8 +12,6 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
-@Transient private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")
-
 class CombatantWithStatus(
     val combatant: Combatant,
     val newName: String,
@@ -25,16 +23,18 @@ class CombatantWithStatus(
 
 ) : Combatant by combatant, TargetEffect(turn) {
 
+    @Transient private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")
+
     val deathSavingThrows = mutableListOf<Boolean>()
     val spellCastList = mutableListOf<SpellCast>()
 
     var target: CombatantWithStatus? = null
 
-    fun distance(target: CombatantWithStatus): Double {
+    fun distance(target: CombatantWithStatus): Distance {
         return distance(target.location)
     }
 
-    fun distance(otherLocation: Location): Double {
+    fun distance(otherLocation: Location): Distance {
         return otherLocation.distance(location)
     }
 
@@ -58,7 +58,7 @@ class CombatantWithStatus(
     }
 
     // TODO: move most of the moveAwayFromTarget() method into Location class
-    fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Double): Double {
+    fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Distance): Distance {
         var closestDistance = closestDistanceStart
         val maxMoves = getWalkingSpeed() / Constants.DISTANCE_GRANULARITY
         var loc = location
@@ -88,13 +88,13 @@ class CombatantWithStatus(
         location.moveTowardLocation(target.location, getWalkingSpeed() / Constants.DISTANCE_GRANULARITY)
     }
 
-    fun getPreferredCombatDistance(): Int {
+    fun getPreferredCombatDistance(): Distance {
         val hasBetterDexThanStr = getAbilityModifier(AbilityType.Dexterity) >= getAbilityModifier(AbilityType.Strength)
         val range = if (hasBetterDexThanStr) {
              kotlin.math.min(60, getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
         }
         else Constants.MELEE_RANGE
-        return range / Constants.DISTANCE_GRANULARITY
+        return Distance.fromFeet(range)
     }
 
     fun shortName() = newName // getName().replace(" .*".toRegex(), "")
