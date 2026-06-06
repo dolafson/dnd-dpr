@@ -6,7 +6,6 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.Location
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
-import dev.shivathapaa.logger.api.LogLevel
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -36,8 +35,6 @@ class CombatTest {
     @Test
     fun chooseTarget() {
         TestUtil.dependency()
-        Globals.initLogger(LogLevel.INFO)
-        //Globals.initLogger(LogLevel.DEBUG)
 
         val combat = Combat(listOf(TestUtil.oleg), listOf(Globals.getMonster("Young Green Dragon")))
         val oleg = combat.teamA[0]
