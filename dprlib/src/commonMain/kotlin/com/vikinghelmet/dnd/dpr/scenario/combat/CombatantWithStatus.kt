@@ -72,7 +72,7 @@ data class CombatantWithStatus(
                 targetLocationList.forEach {
                     val d = it.distance(oneOffLoc)
                     if (d <= closestDistance) {
-                        logger.debug { "at least one target is closer/equal at this position, do not move here: $oneOffLoc" }
+                        logger.verbose { "at least one target is closer/equal at this position, do not move here: $oneOffLoc" }
                         continue
                     }
                     else distanceList.add(d)
