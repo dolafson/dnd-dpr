@@ -17,9 +17,12 @@ import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterPrimaryAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.util.Constants
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class Monster(
@@ -60,6 +63,12 @@ data class Monster(
     val wisdom: Int,
     val xp: Int
 ) : Combatant {
+    @Transient
+    private val logger = LoggerFactory.get(Monster::class.simpleName ?: "")
+
+    @Transient
+    val waitingForRecharge = mutableListOf<SavingThrowAction>()
+
     override fun is2014() = true
 
     override fun getAC(): Int {
@@ -119,8 +128,21 @@ data class Monster(
     override fun getSpellSlots() = emptyList<Int>() // TODO
 
     override fun getActionsAvailable(): ActionsAvailable { // TODO: duplication between this and PC
+
+        val iterator = waitingForRecharge.iterator()
+        while (iterator.hasNext()) {
+            val next = iterator.next()
+            if (next.rollForRecharge()) {
+                logger.info { "removing action from the waitingForRecharge list: $next" }
+                iterator.remove()
+            }
+            else {
+                logger.info { "action remains on the waitingForRecharge list: $next" }
+            }
+        }
+
         val actionsAvailable = ActionsAvailable()
-        if (actions == null) return ActionsAvailable()
+        if (actions == null) return actionsAvailable
 
         for (weapon in getWeaponList()) {
             actionsAvailable.add(weapon.range, weapon)
@@ -134,7 +156,10 @@ data class Monster(
             list.filter { it.dc != null }.forEach { a ->
                 val spell = a.toSavingThrowAction()
 
-                if (spell.isRangedSpellAttack()) {
+                if (waitingForRecharge.any { it.name.equals(spell.name) }) {
+                    logger.info { "Excluding spell, waiting for recharge: {$spell}" }
+                }
+                else if (spell.isRangedSpellAttack()) {
                     actionsAvailable.add(spell.getRange(), spell)
                 } else {
                     // all spells - except for "ranged spell attack" - can be used in melee

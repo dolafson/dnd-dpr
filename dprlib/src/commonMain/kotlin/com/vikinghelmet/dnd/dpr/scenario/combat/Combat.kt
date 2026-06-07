@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
@@ -179,6 +180,9 @@ class Combat() {
     }
 
     fun chooseTurnActions(combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
+        if (combatant.combatant is Monster) {
+            logger.info { "chooseTurnActions: waitingForRecharge: ${combatant.combatant.waitingForRecharge}" }
+        }
         val builder = ScenarioBuilder(combatant, target)
         val distance = combatant.distance(target)
         logger.info { "chooseTurnActions: distance: $distance" }
@@ -318,6 +322,12 @@ class Combat() {
         target.currentHP -= applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
 
         // TODO: on a failed save add conditions to target
+
+        // if breath weapon or similar, add to the recharge list
+        if (combatant.combatant is Monster && attack.action is SavingThrowAction) {
+            logger.info { "add attack to waitingForRecharge: ${attack.action}"}
+            combatant.combatant.waitingForRecharge.add(attack.action)
+        }
     }
 
     fun applySavingThrowDamageModifiers(spellAttack: SpellAttack, attack: Attack, initialDamage: Int, successfulSave: Boolean): Int

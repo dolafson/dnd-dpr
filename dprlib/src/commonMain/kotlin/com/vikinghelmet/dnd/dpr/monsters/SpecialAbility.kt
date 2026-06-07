@@ -7,5 +7,4 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SpecialAbility(
     val spellcasting: Spellcasting?= null,
-    val usage: Usage ?= null,
 ) : MonsterAction()

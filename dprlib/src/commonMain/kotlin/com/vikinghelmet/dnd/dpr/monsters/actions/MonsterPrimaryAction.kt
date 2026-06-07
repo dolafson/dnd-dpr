@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.monsters.Attack
 import com.vikinghelmet.dnd.dpr.monsters.Dc
 import com.vikinghelmet.dnd.dpr.monsters.Usage
 import com.vikinghelmet.dnd.dpr.monsters.damage.Damage
+import com.vikinghelmet.dnd.dpr.spells.Recharge
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
@@ -26,7 +27,8 @@ open class MonsterAction (
     val desc: String = "",
     val damage: List<Damage> ?= emptyList(),
     val dc: Dc?= null,
-) {
+    val usage: Usage ?= null,
+    ) {
     fun toSavingThrowAction(): SavingThrowAction {
         if (dc == null) {
             throw IllegalArgumentException("dc is required for SpellLikeAction")
@@ -44,12 +46,16 @@ open class MonsterAction (
             }
         }
 
+        val recharge = if (usage == null) null
+            else Recharge(usage.dice, usage.min_value, usage.type, usage.times, usage.rest_types)
+
         return SavingThrowAction(
             name, desc,
             com.vikinghelmet.dnd.dpr.spells.payload.Attack.Save (abilityType, desc, dc.success_type),
             aoe,
             damageType,
-            if (damage.isNullOrEmpty()) null else damage[0].damage_dice
+            if (damage.isNullOrEmpty()) null else damage[0].damage_dice,
+            recharge
         )
     }
 
@@ -64,7 +70,6 @@ data class MonsterPrimaryAction(
     val multiattack_type: String ?= null,
     val options: ActionOptions ?= null,
     val action_options: ActionOptions ?= null,
-    val usage: Usage?= null
 ) : MonsterAction() {
     fun toWeapon(): Weapon
     {
