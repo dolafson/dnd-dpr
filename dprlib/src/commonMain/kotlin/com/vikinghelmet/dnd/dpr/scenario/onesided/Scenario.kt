@@ -23,6 +23,17 @@ data class Scenario(
         return turns.size == other.turns.size && turns.containsAll(other.turns) && other.turns.containsAll(turns)
     }
 
+    fun partialMatch(other: Scenario, turnsSoFar: Int): Boolean {
+        if (this.attacker != other.attacker) return false
+        if (this.numTargets != other.numTargets) return false
+        if (this.targetSpacing != other.targetSpacing) return false
+
+        for (i in 0..turnsSoFar) {
+            if (turns[i] != other.turns[i]) return false
+        }
+        return true
+    }
+
     fun getSpellsAcrossTurns(): List<Spell> {
         val result = ArrayList<Spell>()
         for (turn in turns) for (a in turn.attacks) {

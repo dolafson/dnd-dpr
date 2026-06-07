@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.action
 
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,6 +12,11 @@ data class Turn(val attacks: List<Attack>) {
 
     override fun hashCode(): Int {
         return attacks.hashCode()
+    }
+
+    fun getSpell(): Spell? {
+        val spellAttack = attacks.firstOrNull { it.action is Spell } ?: return null
+        return spellAttack.action as Spell
     }
 
 }

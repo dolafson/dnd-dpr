@@ -3,14 +3,10 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
-import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
+import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
-import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.AtomicInt
@@ -25,6 +21,7 @@ class Combat() {
     var initiativeList = listOf<CombatantWithStatus>()
     val combatActionList = mutableListOf<CombatAction>()
     var turn = 0
+    val lastScenario = mutableMapOf<CombatantWithStatus, Scenario>()
 
     @OptIn(ExperimentalAtomicApi::class)
     constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>) : this() {
@@ -183,21 +180,17 @@ class Combat() {
         if (combatant.combatant is Monster) {
             logger.info { "chooseTurnActions: waitingForRecharge: ${combatant.combatant.waitingForRecharge}" }
         }
-        val builder = ScenarioBuilder(combatant, target)
         val distance = combatant.distance(target)
-        logger.info { "chooseTurnActions: distance: $distance" }
-        logger.info { "chooseTurnActions: distance.toFeet: ${distance.toFeet()}" }
-        // TODO: compute numTargets and spacing from targetList
-        val scenarioList = builder.build(distance.toFeet(), 1, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
+        val preferredTurnOption = combatant.getPreferredTurn(target, distance.toFeet())
 
-        // choose an attack based on highest damage probability
-        // TODO: characters with higher INT should be able to "lookahead" more turns (better planning ability)
-        // TODO: account for spell slots and other limited-resource actions
-        val scenarioResultList = scenarioList.map { ScenarioCalculator(it).calculateDPRForAllTurns() }.toList()
-        if (scenarioResultList.isEmpty()) return emptyList()
+        if (preferredTurnOption != null) {
+            val spell = preferredTurnOption.getSpell()
+            if (spell != null) {
+                combatant.spellCastList.add(SpellCast(combatant, spell, turn))
+            }
+        }
 
-        val bestResult = ScenarioResult.topResults(scenarioResultList, 1)[0]
-        return bestResult.scenario.turns[0].attacks
+        return preferredTurnOption?.attacks ?: emptyList()
     }
 
     fun getAttackRoll(combatant: CombatantWithStatus, target: CombatantWithStatus): Int {
@@ -359,4 +352,5 @@ class Combat() {
         logger.debug { "final damage = $damage" }
         return damage
     }
+
 }

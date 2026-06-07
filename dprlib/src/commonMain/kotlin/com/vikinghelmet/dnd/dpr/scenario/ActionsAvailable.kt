@@ -18,7 +18,7 @@ class ActionsAvailable {
     // to avoid wasting cpu on redundant scenarios
     fun getLightWeaponsForBA(targetProximity: Int, exclude: Weapon): List<Action> {
         return getListWithPotentialDups(targetProximity).filter {
-            it is Weapon &&  it.hasWeaponProperty(WeaponProperty.Light)  &&  it != exclude
+            it is Weapon &&  it.hasWeaponProperty(WeaponProperty.Light)  &&  it !== exclude // previously it != exclude
         }.distinctBy { it.getActionName() }
     }
 

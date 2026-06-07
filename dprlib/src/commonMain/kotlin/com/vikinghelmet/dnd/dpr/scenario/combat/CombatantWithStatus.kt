@@ -1,8 +1,10 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
@@ -12,7 +14,7 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
-class CombatantWithStatus(
+data class CombatantWithStatus(
     val combatant: Combatant,
     val newName: String,
     val onTeamA: Boolean,
@@ -23,7 +25,8 @@ class CombatantWithStatus(
 
 ) : Combatant by combatant, TargetEffect(turn) {
 
-    @Transient private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")
+    @Transient
+    private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")
 
     val deathSavingThrows = mutableListOf<Boolean>()
     val spellCastList = mutableListOf<SpellCast>()
@@ -43,11 +46,9 @@ class CombatantWithStatus(
         if (saveRoll == 1) {
             deathSavingThrows.add(false)
             deathSavingThrows.add(false)
-        }
-        else if (saveRoll < 10) {
+        } else if (saveRoll < 10) {
             deathSavingThrows.add(false)
-        }
-        else if (saveRoll < 20) {
+        } else if (saveRoll < 20) {
             deathSavingThrows.add(true)
         }
 
@@ -91,9 +92,10 @@ class CombatantWithStatus(
     fun getPreferredCombatDistance(): Distance {
         val hasBetterDexThanStr = getAbilityModifier(AbilityType.Dexterity) >= getAbilityModifier(AbilityType.Strength)
         val range = if (hasBetterDexThanStr) {
-             kotlin.math.min(60, getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
-        }
-        else Constants.MELEE_RANGE
+            kotlin.math.min(
+                60,
+                getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
+        } else Constants.MELEE_RANGE
         return Distance.fromFeet(range)
     }
 
@@ -103,13 +105,11 @@ class CombatantWithStatus(
         val buffer = StringBuilder("(").append(shortName()).append(", loc=$location")
         if (isDead()) {
             buffer.append(", dead")
-        }
-        else if (isDying()) {
+        } else if (isDying()) {
             val failCount = deathSavingThrows.filter { !it }.count()
             val passCount = deathSavingThrows.filter { it }.count()
             buffer.append(", dying, saves=-$failCount/+$passCount")
-        }
-        else {
+        } else {
             buffer.append(", hp=$currentHP/${getHP()}")
         }
         return buffer.append(")").toString()
@@ -134,8 +134,11 @@ class CombatantWithStatus(
             return (slotsUsed < maxSlots)
         }
 
+        if (combatant.getSpellSlots().isEmpty()) return true
+
         val maxSlots = combatant.getSpellSlots()[level - 1]
-        val slotsUsed = spellCastList.count { it.spell.properties.Level == spell.properties.Level && it.spell.name != HuntersMark.getNameWithWS() }
+        val slotsUsed =
+            spellCastList.count { it.spell.properties.Level == spell.properties.Level && it.spell.name != HuntersMark.getNameWithWS() }
         if (slotsUsed >= maxSlots) Globals.debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = $spellCastList")
         return (slotsUsed < maxSlots)
     }
@@ -146,4 +149,69 @@ class CombatantWithStatus(
 
     // override fun toString() = getName()
     override fun toString() = shortName()
+
+    fun getPossibleTurns(target: CombatantWithStatus, range: Int): List<Turn> {
+        val builder = ScenarioBuilder(this, target)
+
+        val possibleTurns = builder.possibleTurns(this.getActionsAvailable(), range).toMutableList()
+
+        val iterator = possibleTurns.iterator()
+        while (iterator.hasNext()) {
+            val turn = iterator.next()
+            for (attack in turn.attacks) {
+                if (attack.action is Spell && !this.isSlotAvailable(attack.action)) {
+                    logger.debug { "no slots available for spell = ${attack.action.name}" }
+                    iterator.remove()
+                }
+
+                // don't cast HM if you already cast it - TODO: generalize this to concentration spells that are ongoing
+                val hm = HuntersMark.getNameWithWS()
+                if (attack.action is Spell && attack.action.name == hm && spellCastList.any { it.spell.name == hm }) {
+                    logger.debug { "no slots available for spell = ${attack.action.name}" }
+                    iterator.remove()
+                }
+            }
+        }
+        return possibleTurns
+    }
+
+    fun getPreferredTurn(target: CombatantWithStatus, range: Int): Turn? {
+        val possible = getPossibleTurns(target, range)
+        val map = mutableMapOf<Turn, TurnOptionRanking>()
+
+        for (turn in possible) {
+            val ranking = TurnOptionRanking.fromTurn(turn)
+
+            if (ranking.isSpell()) {
+                val spell = turn.getSpell()!!
+                val ability = spell.getSpellSaveAbility()
+
+                // exclude saving throw spells if opponent has high probability of saving
+                // TODO: remove hard-coding, factor in spell save DC, etc
+                if (ability != null && target.getAbilityModifier(ability) > 3) {
+                    logger.debug { "skipping spell turn option, target has high probability to save: ${spell.name}" }
+                    continue
+                }
+
+                // TODO: de-prioritize AOE spells if number of targets is low
+                // TODO: fireball is AOE, but potentially high damage, so do not exclude
+
+                // TODO: damage resistance -> deprirotize ?
+
+                // exclude spells with damageType that target is immune to
+                val damageType = spell.getSpellAttacks(0).first().getDamageList().first().type // TODO: improve
+                if (target.getDamageImmunities().contains(damageType)) {
+                    logger.debug { "skipping spell turn option, target is immune: ${spell.name}" }
+                    continue
+                }
+            }
+
+            map.put(turn, ranking)
+        }
+
+        val sorted = map.toList().sortedByDescending { it.second.ordinal }
+        sorted.forEach {logger.debug { "sorted preferred option: $it" } }
+
+        return if (sorted.isEmpty()) null else sorted[0].first
+    }
 }

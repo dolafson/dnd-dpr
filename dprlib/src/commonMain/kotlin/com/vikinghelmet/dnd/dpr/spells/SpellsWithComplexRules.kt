@@ -6,6 +6,7 @@ enum class SpellsWithComplexRules {
 
     Bane,
     BestowCurse,
+    Bless,
     Blur,
     EnlargeReduce,
     Enthrall,

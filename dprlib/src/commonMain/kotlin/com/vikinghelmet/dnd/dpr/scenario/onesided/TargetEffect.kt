@@ -30,6 +30,10 @@ open class TargetEffect (
     var disadvantageOnAbilityChecks: MutableList<AbilityType> = mutableListOf(), // this only matters when monsters fight back
     var attackPenalty: MutableList<String> = mutableListOf(),
     var damagePenalty: MutableList<String> = mutableListOf(),
+
+    var attackBonus: MutableList<String> = mutableListOf(),
+    var saveBonus: MutableList<String> = mutableListOf(),
+
     var conditions: MutableList<Condition> = mutableListOf() // TODO: include these in CSV output
     ) {
 
@@ -153,6 +157,11 @@ open class TargetEffect (
                 // target must subtract 1d4 from the attack roll or save
                 attackPenalty.add ("1d4")
                 savePenalty.add ("1d4")
+            }
+            SpellsWithComplexRules.Bless -> {
+                // target may add 1d4 to the attack roll or save
+                attackBonus.add ("1d4")
+                saveBonus.add ("1d4")
             }
             SpellsWithComplexRules.BestowCurse -> {
                 // Choose one ability. The target has Disadvantage on ability checks and saving throws made with that ability.\n-The target has Disadvantage on attack rolls against you.

@@ -2,11 +2,11 @@ package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.action.Action
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffectCause
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -40,6 +40,17 @@ open class Spell(
 
     // ranged spell attacks get disadvantage when cast during melee; only 9 of these in 2014, 12 in 2024
     fun isRangedSpellAttack() = (properties.SpellAttack != null && properties.SpellAttack == "Ranged")
+
+    fun isAOE() = getSpellAttacks(0).any { it.getAoeSize() > 0 }
+
+    fun isRecurring() = (getDuration() ?: 1) > 1
+
+    fun isCantrip() = (properties.Level == 0)
+    fun isHealing(): Boolean {
+        return (properties.Healing != null) || (properties.filterTags !=null && properties.filterTags.contains("Healing"))
+    }
+
+    fun incursDamage() = getSpellAttacks(0).any { ! it.isNoDamageAttack() }
 
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage
@@ -122,6 +133,13 @@ open class Spell(
 
     fun getSpellSaveAbility(): AbilityType? {
         return getSpellAttacks(0).firstNotNullOfOrNull { it.getSaveAbility() }
+    }
+
+    override fun equals(other: Any?): Boolean { // TODO: clean this up
+        if (this === other) return true
+        if (other !is Spell) return false
+        if (name != other.name) return false
+        return true
     }
 
 }

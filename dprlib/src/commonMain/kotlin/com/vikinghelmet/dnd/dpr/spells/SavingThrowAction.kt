@@ -60,7 +60,7 @@ class SavingThrowAction(
     }
 
     companion object {
-        fun makeProps() = Properties("Instantaneous", "Spells", 0, "")
+        fun makeProps() = Properties("Instantaneous", "Spells", 1, "")
     }
 }
 

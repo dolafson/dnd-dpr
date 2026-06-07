@@ -3,12 +3,15 @@ package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.combat.Distance
 import com.vikinghelmet.dnd.dpr.scenario.combat.Location
+import com.vikinghelmet.dnd.dpr.scenario.combat.SpellCast
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 
 class CombatTest {
     @Test
@@ -33,7 +36,7 @@ class CombatTest {
     }
 
     @Test
-    fun chooseTarget() {
+    fun chooseTargetOleg() {
         TestUtil.dependency()
 
         val combat = Combat(listOf(TestUtil.oleg), listOf(Globals.getMonster("Young Green Dragon")))
@@ -92,5 +95,120 @@ class CombatTest {
         assertEquals(initialDamage, damageOnFail)
         assertNotEquals(0, damageOnSave)
         assertEquals(damageOnSave*2, damageOnFail)
+    }
+
+
+    @Test
+    fun chooseTargetLeifOld() {
+        TestUtil.dependency()
+
+        val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
+        val leif = combat.teamA[0]
+        val dragon = combat.teamB[0]
+
+        leif.location = Location(-4, 0)
+        dragon.location = Location(3, -2)
+
+        assertEquals(Distance.fromFeet(60), leif.getPreferredCombatDistance())
+        assertEquals(Distance.fromFeet(Constants.MELEE_RANGE), dragon.getPreferredCombatDistance())
+
+        // println("leif.actionsAvailable = ${leif.getActionsAvailable()}")
+
+        for (turn in 0..4) {
+            combat.turn = turn
+            combat.chooseTarget(leif)
+            var leifAttacks = combat.chooseTurnActions(leif, dragon)
+            println ("leifAttacks: $leifAttacks")
+            when (turn) {
+                0 -> assertEquals(listOf("Longbow","Hunter's Mark"), leifAttacks.map { it.action.getActionName() }.toList())
+                1,2 -> assertEquals(listOf("Longbow","Hail of Thorns"), leifAttacks.map { it.action.getActionName() }.toList())
+                3,4 -> assertEquals(listOf("Longbow"), leifAttacks.map { it.action.getActionName() }.toList())
+            }
+
+            combat.chooseTarget(dragon)
+            var dragonAttacks = combat.chooseTurnActions(dragon, leif)
+            println ("dragonAttacks: $dragonAttacks")
+
+            assertTrue(dragonAttacks.isEmpty())
+        }
+    }
+
+
+    @Test
+    fun chooseTargetLeif() {
+        TestUtil.dependency()
+
+        val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
+        val leif = combat.teamA[0]
+        val dragon = combat.teamB[0]
+
+        for(turnId in 0..4) {
+            combat.turn = turnId
+            var possibleTurns = leif.getPossibleTurns(dragon, 60)
+
+            for (turn in possibleTurns) println("turnId=$turnId, possibleTurn = $turn")
+
+            //var attackNames = possibleTurns.map { it.attacks.map { it2 -> it2.action.getActionName() } }.flatten()
+
+            when (turnId) {
+//                0,1 -> assertEquals(listOf("Longbow","Hunter's Mark"), attackNames)
+                0,1 -> assertEquals(5, possibleTurns.size) // LB, LB+Hail, LB+HM, Entangle, MS
+                2   -> assertEquals(3, possibleTurns.size) // LB, LB+HM, MS
+                3,4 -> assertEquals(2, possibleTurns.size) // LB, MS
+            }
+
+            for (turn in possibleTurns) {
+                var firstSpellAction = turn.attacks.firstNotNullOfOrNull { it.action as? Spell }
+                if (firstSpellAction != null) {
+                    println("firstSpellAction = $firstSpellAction")
+                    leif.spellCastList.add(SpellCast(leif, firstSpellAction!!, 0))
+                    break
+                }
+            }
+        }
+    }
+
+    @Test
+    fun getPreferredTurnVersusGoblin() {
+        TestUtil.dependency()
+        val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        val preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
+
+        assertEquals(listOf("Entangle"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+    }
+
+    @Test
+    fun getPreferredTurnVersusDragon() {
+        TestUtil.dependency()
+        val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
+        val preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
+
+        // dragon has high strength, so Entangle is excluded
+
+        assertEquals(listOf("Longbow","Hunter's Mark"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+    }
+
+    @Test
+    fun getDragonPreferredVersusLeif() {
+        TestUtil.dependency()
+        val combat = Combat(listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif))
+
+        // dragon has no attack options when range = 60
+        var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
+        assertNull(preferred)
+
+        // dragon has lots of options at range = 0
+        preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
+        assertEquals(listOf("Poison Breath"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+    }
+
+    @Test
+    fun getDragonPreferredVersusUndead() {
+        TestUtil.dependency()
+        val combat = Combat(listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
+
+        // skeleton is immune to poison, so we take the next best option
+        var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
+        assertEquals(listOf("Multiattack"), preferred!!.attacks.map { it.action.getActionName() }.toList())
     }
 }

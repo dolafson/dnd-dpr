@@ -30,4 +30,35 @@ data class Weapon (
         return name
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Weapon
+
+        if (range != other.range) return false
+        if (longRange != other.longRange) return false
+        if (bonusToHit != other.bonusToHit) return false
+        if (name != other.name) return false
+        if (attackType != other.attackType) return false
+//        if (propertyNames != other.propertyNames) return false
+//        if (_damageList != other._damageList) return false
+        if (!propertyNames.equals(other.propertyNames)) return false
+        //if (!_damageList.equals(other._damageList)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = range
+        result = 31 * result + longRange
+        result = 31 * result + bonusToHit
+        result = 31 * result + name.hashCode()
+        result = 31 * result + attackType.hashCode()
+        result = 31 * result + propertyNames.hashCode()
+        result = 31 * result + _damageList.hashCode()
+        return result
+    }
+
+
 }
