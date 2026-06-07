@@ -8,6 +8,7 @@ import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.util.Movement
 
 interface Combatant {
     fun is2014(): Boolean
@@ -18,7 +19,7 @@ interface Combatant {
     fun isFeatEnabled(requested : Feat): Boolean
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean
     fun isEvasive(): Boolean
-    fun getWalkingSpeed(): Int
+    fun getSpeed(movement: Movement): Int
 
     fun getDamageImmunities(): List<DamageType>
     fun getDamageResistances(): List<DamageType>

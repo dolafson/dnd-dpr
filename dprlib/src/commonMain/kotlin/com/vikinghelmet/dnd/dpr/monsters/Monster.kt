@@ -19,6 +19,7 @@ import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Movement
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -81,7 +82,17 @@ data class Monster(
 
     override fun getName() = monsterName
 
-    override fun getWalkingSpeed() = speed.walk!!.replace(" .*".toRegex(),"").toInt()
+    override fun getSpeed(movement: Movement): Int {
+        val speedString: String? = when (movement) {
+            Movement.burrow -> speed.burrow
+            Movement.climb -> speed.climb
+            Movement.hover -> speed.hover
+            Movement.fly -> speed.fly
+            Movement.swim -> speed.swim
+            Movement.walk -> speed.walk
+        } as String?
+        return speedString?.replace(" .*".toRegex(),"")?.toInt() ?: 0
+    }
 
     override fun getDamageImmunities()      = damage_immunities.map      { DamageType.valueOf(it) }.toList()
     override fun getDamageResistances()     = damage_resistances.map     { DamageType.valueOf(it) }.toList()

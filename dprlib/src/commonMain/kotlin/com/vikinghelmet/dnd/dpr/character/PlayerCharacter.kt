@@ -28,6 +28,7 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.Movement
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -54,7 +55,7 @@ open class PlayerCharacter(
         return characterData.name
     }
 
-    override fun getWalkingSpeed() = 30 // TODO: data.race.weightSpeeds.normal.{walk,fly,burrow,climb,swim}
+    override fun getSpeed(movement: Movement) = 30 // TODO: data.race.weightSpeeds.normal.{walk,fly,burrow,climb,swim}
 
     override fun getDamageImmunities(): List<DamageType> = emptyList() // TODO ?
     override fun getDamageResistances(): List<DamageType> = emptyList() // TODO ?

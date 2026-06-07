@@ -299,11 +299,12 @@ fun main(args : Array<String>) {
     val attackers = getCombatantGroup(args[i++])
     val targets   = getCombatantGroup(args[i++])
 
-    if (args[i] == "auto") {
+    if (args[i].startsWith("auto")) {
         val max=100
         var aTeamWinCount = 0
         repeat(max) {
-            if (Combat(attackers, targets).run()) aTeamWinCount++
+            val flightSupported = args[i].startsWith("auto:fly")
+            if (Combat(attackers, targets, flightSupported = flightSupported).run()) aTeamWinCount++
         }
         logger.warn { "" }
         logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(aTeamWinCount.toFloat() / max.toFloat()) }" }

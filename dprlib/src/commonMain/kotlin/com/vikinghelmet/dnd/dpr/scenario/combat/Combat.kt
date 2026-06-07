@@ -3,7 +3,6 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
-import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
@@ -13,6 +12,7 @@ import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
 
+@OptIn(ExperimentalAtomicApi::class)
 class Combat() {
     @Transient
     private val logger = LoggerFactory.get(Combat::class.simpleName ?: "")
@@ -21,35 +21,35 @@ class Combat() {
     var initiativeList = listOf<CombatantWithStatus>()
     val combatActionList = mutableListOf<CombatAction>()
     var turn = 0
-    val lastScenario = mutableMapOf<CombatantWithStatus, Scenario>()
 
-    @OptIn(ExperimentalAtomicApi::class)
-    constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>) : this() {
-        fun getCounter(team: List<Combatant>): AtomicInt? {
-            return if (team.size > 1 && team.all { it == team.firstOrNull() }) AtomicInt(0) else null
-        }
-
+    constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false) : this()
+    {
         val aCounter = getCounter(noStatusTeamA)
         val bCounter = getCounter(noStatusTeamB)
 
-        fun getNewName(combatant: Combatant, teamCounter: AtomicInt?): String {
-            if (combatant is Monster) {
-                return combatant.getName().replace(" ".toRegex(), "") // just eliminate whitespace
-            }
-            // PC: eliminate everything after+including first whitespace
-            val tmp = combatant.getName().replace(" .*".toRegex(), "")
-            return if (teamCounter == null) tmp else "$tmp ${'A' + teamCounter.fetchAndIncrement()}"
-        }
+        noStatusTeamA.forEach { teamA.add(CombatantWithStatus(it, getNewName(it, aCounter), true, flightSupported = flightSupported)) }
+        noStatusTeamB.forEach { teamB.add(CombatantWithStatus(it, getNewName(it, bCounter), false, flightSupported = flightSupported)) }
 
-        noStatusTeamA.forEach { teamA.add(CombatantWithStatus(it, getNewName(it, aCounter), true)) }
-        noStatusTeamB.forEach { teamB.add(CombatantWithStatus(it, getNewName(it, bCounter), false)) }
         // when computing initiative order, a DM will often use a single roll for an entire group of monsters
         // we won't do that here - unique rolls are more realistic, and easier to implement
-        initiativeList = (teamA + teamB).sortedByDescending { it.currentInitiative }.toList()
+        initiativeList = (teamA + teamB).sortedByDescending { it.initiative }.toList()
+    }
+
+    private fun getCounter(team: List<Combatant>): AtomicInt? {
+        return if (team.size > 1 && team.all { it == team.firstOrNull() }) AtomicInt(0) else null
+    }
+
+    private fun getNewName(combatant: Combatant, teamCounter: AtomicInt?): String {
+        if (combatant is Monster) {
+            return combatant.getName().replace(" ".toRegex(), "") // just eliminate whitespace
+        }
+        // PC: eliminate everything after+including first whitespace
+        val tmp = combatant.getName().replace(" .*".toRegex(), "")
+        return if (teamCounter == null) tmp else "$tmp ${'A' + teamCounter.fetchAndIncrement()}"
     }
 
     fun run(): Boolean {
-        val map = initiativeList.associateBy { it.currentInitiative }
+        val map = initiativeList.associateBy { it.initiative }
         logger.info { "initiativeList = $map" }
         //logger.info { "initiativeList = $initiativeList" }
 
@@ -147,28 +147,18 @@ class Combat() {
         val preferredDistance = combatant.getPreferredCombatDistance()
         var initialLoc = combatant.location.copy()
 
-        fun logMovement(toOrFrom: String) {
-            val buf = StringBuilder(combatant.shortName()).append(": ")
-                .append(toOrFrom)
-                .append(", initialLoc = $initialLoc")
-                .append(", newLoc = ${combatant.location}")
-                .append(", preferredDistance = $preferredDistance")
-                .append(", closestDistance = $closestDistance")
-            logger.debug { buf.toString() }
-        }
-
         if (preferredDistance <= Distance.melee()) {
             // pick a target, then move towards it
             combatant.moveTowardTarget(closest)    // TODO: improve target selection
             closestDistance = closest.distance(combatant)
-            logMovement("moving toward melee target $closest")
+            combatant.logMovement("moving toward melee target $closest", initialLoc, closestDistance)
             return closest
         }
 
         // if you are too close for comfort ... run away before picking a target
         if (closestDistance <= preferredDistance) {
             closestDistance = combatant.moveAwayFromTarget(targetList, closestDistance)
-            logMovement("moving away from targets")
+            combatant.logMovement("moving away from targets", initialLoc, closestDistance)
         }
 
         val result = targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection

@@ -221,7 +221,7 @@ class CombatTest {
     }
 
     @Test
-    fun chase() {
+    fun groundChase() {
         TestUtil.dependency()
 
         val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
@@ -236,14 +236,76 @@ class CombatTest {
         var oldLoc: Location? = null
         var distance: Distance = leif.distance(dragon)
 
-        repeat(5) {
+        for (turnId in 0..2) {
+            println("########## turn=$turnId")
             oldLoc = leif.location.copy()
             distance = leif.moveAwayFromTarget(listOf(dragon), distance)
             leif.logMovement("moving away from targets", oldLoc, distance)
 
+            when (turnId) {
+                0 -> { assertEquals(Location(-9,-8), leif.location); assertEquals(65, distance.toFeet()) }
+                1 -> { assertEquals(Location(-15,-14), leif.location); assertEquals(60, distance.toFeet()) }
+                2 -> { assertEquals(Location(-21,-20), leif.location); assertEquals(50, distance.toFeet()) }
+            }
+
             oldLoc = dragon.location.copy()
             distance = dragon.moveTowardTarget(leif)
             dragon.logMovement("moving toward target $leif", oldLoc, distance)
+
+            when (turnId) {
+                0 -> { assertEquals(Location(-5,-7), dragon.location); assertEquals(20, distance.toFeet()) }
+                1 -> { assertEquals(Location(-13,-13), dragon.location); assertEquals(10, distance.toFeet()) }
+                2 -> { assertEquals(Location(-20,-19), dragon.location); assertEquals(5, distance.toFeet()) }
+            }
+
+            if (distance.toFeet() <= Constants.MELEE_RANGE) {
+                println("melee range, stop moving")
+                break
+            }
+        }
+    }
+
+    @Test
+    fun airChase() {
+        TestUtil.dependency()
+
+        val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")), flightSupported = true)
+        val leif = combat.teamA[0]
+        val dragon = combat.teamB[0]
+        
+        // for flight test, move them further apart (140 ft)
+        leif.location = Location(-14, -2)
+        dragon.location = Location(14, -2)
+
+        var oldLoc: Location? = null
+        var distance: Distance = leif.distance(dragon)
+
+        for (turnId in 0..5) {
+            println("########## turn=$turnId")
+            oldLoc = leif.location.copy()
+            distance = leif.moveAwayFromTarget(listOf(dragon), distance)
+            leif.logMovement("moving away from targets", oldLoc, distance)
+
+            when (turnId) {
+                0 -> { assertEquals(Location(-20,-8), leif.location); assertEquals(170, distance.toFeet()) }
+                1 -> { assertEquals(Location(-26,-14), leif.location); assertEquals(125, distance.toFeet()) }
+                2 -> { assertEquals(Location(-32,-20), leif.location); assertEquals(75, distance.toFeet()) }
+            }
+
+            oldLoc = dragon.location.copy()
+            distance = dragon.moveTowardTarget(leif)
+            dragon.logMovement("moving toward target $leif", oldLoc, distance)
+
+            when (turnId) {
+                0 -> { assertEquals(Location(-2,-7), dragon.location); assertEquals(90, distance.toFeet()) }
+                1 -> { assertEquals(Location(-18,-13), dragon.location); assertEquals(40, distance.toFeet()) }
+                2 -> { assertEquals(Location(-31,-19), dragon.location); assertEquals(5, distance.toFeet()) }
+            }
+
+            if (distance.toFeet() <= Constants.MELEE_RANGE) {
+                println("melee range, stop moving")
+                break
+            }
         }
     }
 }

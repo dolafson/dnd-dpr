@@ -11,8 +11,10 @@ import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.Movement
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
+import kotlin.math.max
 
 data class CombatantWithStatus(
     val combatant: Combatant,
@@ -21,8 +23,8 @@ data class CombatantWithStatus(
     val turn: Int = 0,
     var location: Location = Location(onTeamA),
     var currentHP: Int = combatant.getHP(),
-    var currentInitiative: Int = (1..20).random() + combatant.getInitiativeBonus(),
-
+    var initiative: Int = (1..20).random() + combatant.getInitiativeBonus(),
+    var flightSupported: Boolean = false,
 ) : Combatant by combatant, TargetEffect(turn) {
 
     @Transient
@@ -58,10 +60,12 @@ data class CombatantWithStatus(
         }
     }
 
+    fun getSpeed() = if (flightSupported) max(getSpeed(Movement.fly),getSpeed(Movement.walk)) else getSpeed(Movement.walk)
+
     // TODO: move most of the moveAwayFromTarget() method into Location class
     fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Distance): Distance {
         var closestDistance = closestDistanceStart
-        val maxMoves = getWalkingSpeed() / Constants.DISTANCE_GRANULARITY
+        val maxMoves = getSpeed() / Constants.DISTANCE_GRANULARITY
         val targetLocationList = targetList.map { it.location }.toList()
 
         for (i in 1..maxMoves) {
@@ -93,7 +97,7 @@ data class CombatantWithStatus(
     }
 
     fun moveTowardTarget(target: CombatantWithStatus): Distance {
-        location.moveTowardLocation(target.location, getWalkingSpeed() / Constants.DISTANCE_GRANULARITY)
+        location.moveTowardLocation(target.location, getSpeed() / Constants.DISTANCE_GRANULARITY)
         return distance(target.location)
     }
 
