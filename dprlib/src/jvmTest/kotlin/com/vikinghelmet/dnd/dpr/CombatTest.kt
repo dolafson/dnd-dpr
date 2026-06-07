@@ -7,11 +7,14 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.SpellCast
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
+import dev.shivathapaa.logger.api.LoggerFactory
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
+
+private val logger = LoggerFactory.get(CombatTest::class.simpleName ?: "")
 
 class CombatTest {
     @Test
@@ -22,17 +25,19 @@ class CombatTest {
         val loc1 = Location(-4, 0)
         val loc2 = Location(3, -2)
 
-        loc1.moveTowardLocation(loc2, 6)
-        assertEquals(Location(2,0), loc1) // movement occurred
-
-        loc2.moveTowardLocation(loc1, 6)
-        assertEquals(Location(3,-1), loc2) // movement occurred
+        // note: a lot of movement may occur on a diagonal
 
         loc1.moveTowardLocation(loc2, 6)
-        assertEquals(Location(2,0), loc1) // no movement needed
+        assertEquals(Location(2,-1), loc1) // movement occurred
 
         loc2.moveTowardLocation(loc1, 6)
-        assertEquals(Location(3,-1), loc2)  // no movement needed
+        assertEquals(Location(3,-2), loc2) // movement occurred
+
+        loc1.moveTowardLocation(loc2, 6)
+        assertEquals(Location(2,-1), loc1) // no movement needed
+
+        loc2.moveTowardLocation(loc1, 6)
+        assertEquals(Location(3,-2), loc2)  // no movement needed
     }
 
     @Test
@@ -50,7 +55,7 @@ class CombatTest {
         assertEquals(Distance.fromFeet(Constants.MELEE_RANGE), dragon.getPreferredCombatDistance())
 
         combat.chooseTarget(oleg)
-        assertEquals(Location(2,0), oleg.location) // movement occurred
+        assertEquals(Location(2,-1), oleg.location) // movement occurred
 
         println("oleg.actionsAvailable = ${oleg.getActionsAvailable()}")
 
@@ -58,7 +63,7 @@ class CombatTest {
         println ("olegAttacks: $olegAttacks")
 
         combat.chooseTarget(dragon)
-        assertEquals(Location(3,-1), dragon.location) // movement occurred
+        assertEquals(Location(3,-2), dragon.location) // movement occurred
 
         var dragonAttacks = combat.chooseTurnActions(dragon, oleg)
         println ("dragonAttacks: $dragonAttacks")
@@ -67,13 +72,13 @@ class CombatTest {
 
         println("oleg.actionsAvailable = ${oleg.getActionsAvailable()}")
         combat.chooseTarget(oleg)
-        assertEquals(Location(2,0), oleg.location) // movement occurred
+        assertEquals(Location(2,-1), oleg.location) // movement occurred
 
         olegAttacks = combat.chooseTurnActions(oleg, dragon)
         println ("olegAttacks: $olegAttacks")
 
         combat.chooseTarget(dragon)
-        assertEquals(Location(3,-1), dragon.location) // movement occurred
+        assertEquals(Location(3,-2), dragon.location) // movement occurred
 
         dragonAttacks = combat.chooseTurnActions(dragon, oleg)
         println ("dragonAttacks: $dragonAttacks")
@@ -118,18 +123,21 @@ class CombatTest {
             combat.turn = turn
             combat.chooseTarget(leif)
             var leifAttacks = combat.chooseTurnActions(leif, dragon)
-            println ("leifAttacks: $leifAttacks")
+            println ("turn=$turn, leifAttacks: $leifAttacks")
             when (turn) {
                 0 -> assertEquals(listOf("Longbow","Hunter's Mark"), leifAttacks.map { it.action.getActionName() }.toList())
                 1,2 -> assertEquals(listOf("Longbow","Hail of Thorns"), leifAttacks.map { it.action.getActionName() }.toList())
-                3,4 -> assertEquals(listOf("Longbow"), leifAttacks.map { it.action.getActionName() }.toList())
+                3,4 -> assertEquals(listOf("Dagger","Shortsword"), leifAttacks.map { it.action.getActionName() }.toList())
             }
 
             combat.chooseTarget(dragon)
             var dragonAttacks = combat.chooseTurnActions(dragon, leif)
-            println ("dragonAttacks: $dragonAttacks")
 
-            assertTrue(dragonAttacks.isEmpty())
+            when(turn) {
+                0, 1  -> assertTrue(dragonAttacks.isEmpty())
+                2,3,4 -> assertEquals(listOf("Poison Breath"), dragonAttacks.map { it.action.getActionName() }.toList())
+            }
+            println ("turn=$turn, dragonAttacks: $dragonAttacks")
         }
     }
 
@@ -210,5 +218,32 @@ class CombatTest {
         // skeleton is immune to poison, so we take the next best option
         var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
         assertEquals(listOf("Multiattack"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+    }
+
+    @Test
+    fun chase() {
+        TestUtil.dependency()
+
+        val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
+        val leif = combat.teamA[0]
+        val dragon = combat.teamB[0]
+
+        // 13:09:30  INFO | Combat - turn=0, teamA: [(Leif, loc=(-3, -2), hp=16/16)], teamB: [(YoungGreenDragon, loc=(3, -2), hp=136/136)]
+
+        leif.location = Location(-3, -2)
+        dragon.location = Location(3, -2)
+
+        var oldLoc: Location? = null
+        var distance: Distance = leif.distance(dragon)
+
+        repeat(5) {
+            oldLoc = leif.location.copy()
+            distance = leif.moveAwayFromTarget(listOf(dragon), distance)
+            leif.logMovement("moving away from targets", oldLoc, distance)
+
+            oldLoc = dragon.location.copy()
+            distance = dragon.moveTowardTarget(leif)
+            dragon.logMovement("moving toward target $leif", oldLoc, distance)
+        }
     }
 }

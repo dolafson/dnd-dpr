@@ -62,31 +62,39 @@ data class CombatantWithStatus(
     fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Distance): Distance {
         var closestDistance = closestDistanceStart
         val maxMoves = getWalkingSpeed() / Constants.DISTANCE_GRANULARITY
-        var loc = location
         val targetLocationList = targetList.map { it.location }.toList()
 
         for (i in 1..maxMoves) {
-            for (oneOffLoc in loc.getOneOff()) {
-                // for the given new location, find the closest target
-                val nextClosest = targetLocationList.minByOrNull { it.distance(oneOffLoc) }
-                val nextClosestDistance = nextClosest!!.distance(oneOffLoc)
+            val oneOffMap = mutableMapOf<Location, Distance>()
 
-                // if the new "closest" is larger than before, that's progress: take it
-                if (closestDistance < nextClosestDistance) {
-                    closestDistance = nextClosestDistance
-                    loc = oneOffLoc
-                    break
+            for (oneOffLoc in location.getOneOff()) {
+                val distanceList = mutableListOf<Distance>()
+                targetLocationList.forEach {
+                    val d = it.distance(oneOffLoc)
+                    if (d <= closestDistance) {
+                        logger.debug { "at least one target is closer/equal at this position, do not move here: $oneOffLoc" }
+                        continue
+                    }
+                    else distanceList.add(d)
                 }
+                oneOffMap[oneOffLoc] = distanceList.minBy { it.units } // shortest distance to any target
             }
-            if (location == loc) break
-            location = loc
+
+            if (oneOffMap.isEmpty()) {
+                break
+            }
+
+            // choose the max of the mins
+            location        = oneOffMap.maxBy { it.value }.key
+            closestDistance = oneOffMap.maxBy { it.value }.value
         }
 
         return closestDistance
     }
 
-    fun moveTowardTarget(target: CombatantWithStatus) {
+    fun moveTowardTarget(target: CombatantWithStatus): Distance {
         location.moveTowardLocation(target.location, getWalkingSpeed() / Constants.DISTANCE_GRANULARITY)
+        return distance(target.location)
     }
 
     fun getPreferredCombatDistance(): Distance {
@@ -97,6 +105,18 @@ data class CombatantWithStatus(
                 getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
         } else Constants.MELEE_RANGE
         return Distance.fromFeet(range)
+    }
+
+
+    fun logMovement(toOrFrom: String, oldLocation: Location, newDistance: Distance) {
+        val start = Globals.rightPad("${shortName()}: $toOrFrom",45)
+        val buf = StringBuilder(start)
+            .append(", oldLoc = $oldLocation")
+            .append(", newLoc = $location")
+            .append(", preferredDistance = ${ getPreferredCombatDistance() }")
+            .append(", closestDistance = $newDistance")
+        logger.debug { buf.toString() }
+        println(buf.toString())
     }
 
     fun shortName() = newName // getName().replace(" .*".toRegex(), "")

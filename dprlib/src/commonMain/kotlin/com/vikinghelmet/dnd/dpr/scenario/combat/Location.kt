@@ -49,11 +49,8 @@ data class Location(var x: Int, var y: Int) {
         if (! (kotlin.math.abs(x - other.x) <= 1 && kotlin.math.abs(y - other.y) <= 1))
         {
             for (i in 1..maxMoves) {
-                if (x < other.x -1) x++
-                else if (x > other.x +1) x--
-                else if (y < other.y -1) y++
-                else if (y > other.y +1) y--
-                else break
+                if (x < other.x -1) x++ else if (x > other.x +1) x--
+                if (y < other.y -1) y++ else if (y > other.y +1) y--
             }
         }
 
