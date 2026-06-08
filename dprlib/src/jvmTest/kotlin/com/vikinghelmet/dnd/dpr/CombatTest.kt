@@ -1,9 +1,6 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
-import com.vikinghelmet.dnd.dpr.scenario.combat.Distance
-import com.vikinghelmet.dnd.dpr.scenario.combat.Location
-import com.vikinghelmet.dnd.dpr.scenario.combat.SpellCast
+import com.vikinghelmet.dnd.dpr.scenario.combat.*
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -120,7 +117,7 @@ class CombatTest {
         // println("leif.actionsAvailable = ${leif.getActionsAvailable()}")
 
         for (turn in 0..4) {
-            combat.turn = turn
+            combat.turnId = turn
             combat.chooseTarget(leif)
             var leifAttacks = combat.chooseTurnActions(leif, dragon)
             println ("turn=$turn, leifAttacks: $leifAttacks")
@@ -151,7 +148,7 @@ class CombatTest {
         val dragon = combat.teamB[0]
 
         for(turnId in 0..4) {
-            combat.turn = turnId
+            combat.turnId = turnId
             var possibleTurns = leif.getPossibleTurns(dragon, 60)
 
             for (turn in possibleTurns) println("turnId=$turnId, possibleTurn = $turn")
@@ -272,7 +269,7 @@ class CombatTest {
         val combat = Combat(listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")), flightSupported = true)
         val leif = combat.teamA[0]
         val dragon = combat.teamB[0]
-        
+
         // for flight test, move them further apart (140 ft)
         leif.location = Location(-14, -2)
         dragon.location = Location(14, -2)
@@ -308,4 +305,77 @@ class CombatTest {
             }
         }
     }
+
+    @Test
+    fun chooseNewTargetDamagedFriend() {
+        TestUtil.dependency()
+        val goblin = Globals.getMonster("Goblin")
+        val combat = Combat(
+            listOf(TestUtil.leif, TestUtil.oleg),
+            listOf(goblin.copy(), goblin.copy(), goblin.copy()))
+
+        val leif = combat.teamA[0]
+        val oleg = combat.teamA[1]
+        val heavyHitter = combat.teamB[1]
+
+        // make location/distance a non-issue
+        (combat.teamA + combat.teamB).forEach { it.location = Location(0, 0) }
+
+        applyDamage(combat, oleg, heavyHitter, 10)
+
+        val leifTarget = combat.chooseNewTarget(leif, combat.teamB)
+        // println(leifTarget)
+        assertEquals(heavyHitter, leifTarget.first)
+        assertEquals(TargetSelectionStrategy.targetAttackingFriendWhoIsAlmostDead, leifTarget.second)
+    }
+
+    private fun applyDamage(combat: Combat, goodGuy: CombatantWithStatus, badGuy: CombatantWithStatus, damage: Int) {
+        val attack = badGuy.getPreferredTurn(goodGuy, 0)!!.attacks[0]
+        goodGuy.currentHP -= damage
+        badGuy.target = goodGuy
+        combat.attackResultList.add(CombatAttackResult (badGuy, listOf(goodGuy), damage, attack))
+    }
+
+    @Test
+    fun chooseNewTargetHurtMePersonally() {
+        TestUtil.dependency()
+        val goblin = Globals.getMonster("Goblin")
+        val combat = Combat(
+            listOf(TestUtil.leif, TestUtil.oleg),
+            listOf(goblin.copy(), goblin.copy(), goblin.copy()))
+
+        val leif = combat.teamA[0]
+        val oleg = combat.teamA[1]
+        val heavyHitter = combat.teamB[1]
+
+        applyDamage(combat, leif, heavyHitter, 10)
+
+        val leifTarget = combat.chooseNewTarget(leif, combat.teamB)
+        // println(leifTarget)
+        assertEquals(heavyHitter, leifTarget.first)
+        assertEquals(TargetSelectionStrategy.targetWithHighDamageToAttacker, leifTarget.second)
+    }
+
+    @Test
+    fun chooseNewTargetHurtParty() {
+        TestUtil.dependency()
+        val goblin = Globals.getMonster("Goblin")
+        val combat = Combat(
+            listOf(TestUtil.leif, TestUtil.oleg, TestUtil.kael, TestUtil.lars, TestUtil.rhogar),
+            listOf(goblin.copy(), goblin.copy(), goblin.copy()))
+
+        val leif = combat.teamA[0]
+        val oleg = combat.teamA[1]
+        val heavyHitter = combat.teamB[1]
+
+        combat.teamA.forEach {
+            applyDamage(combat, it, heavyHitter, 2)
+        }
+
+        val leifTarget = combat.chooseNewTarget(leif, combat.teamB)
+        // println(leifTarget)
+        assertEquals(heavyHitter, leifTarget.first)
+        assertEquals(TargetSelectionStrategy.targetWithHighDamageToTeam, leifTarget.second)
+    }
+
 }

@@ -65,6 +65,7 @@ data class CombatantWithStatus(
     // TODO: move most of the moveAwayFromTarget() method into Location class
     fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Distance): Distance {
         var closestDistance = closestDistanceStart
+        val initialLoc = location.copy()
         val maxMoves = getSpeed() / Constants.DISTANCE_GRANULARITY
         val targetLocationList = targetList.map { it.location }.toList()
 
@@ -93,12 +94,16 @@ data class CombatantWithStatus(
             closestDistance = oneOffMap.maxBy { it.value }.value
         }
 
+        logMovement("moving away from targets", initialLoc, closestDistance)
         return closestDistance
     }
 
     fun moveTowardTarget(target: CombatantWithStatus): Distance {
+        val initialLoc = location.copy()
         location.moveTowardLocation(target.location, getSpeed() / Constants.DISTANCE_GRANULARITY)
-        return distance(target.location)
+        val distance = distance(target.location)
+        logMovement("moving toward melee target $target", initialLoc, distance)
+        return distance
     }
 
     fun getPreferredCombatDistance(): Distance {

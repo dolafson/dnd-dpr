@@ -19,16 +19,24 @@ class Combat() {
     val teamA = mutableListOf<CombatantWithStatus>()
     val teamB = mutableListOf<CombatantWithStatus>()
     var initiativeList = listOf<CombatantWithStatus>()
-    val combatActionList = mutableListOf<CombatAction>()
-    var turn = 0
+    val attackResultList = mutableListOf<CombatAttackResult>()
+    var turnId = 0
+    var actionId = 0
+    var effectId = 0
 
-    constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false) : this()
+    constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false)
+        : this()
     {
         val aCounter = getCounter(noStatusTeamA)
         val bCounter = getCounter(noStatusTeamB)
 
-        noStatusTeamA.forEach { teamA.add(CombatantWithStatus(it, getNewName(it, aCounter), true, flightSupported = flightSupported)) }
-        noStatusTeamB.forEach { teamB.add(CombatantWithStatus(it, getNewName(it, bCounter), false, flightSupported = flightSupported)) }
+        noStatusTeamA.forEach {
+            teamA.add (CombatantWithStatus (it, getNewName(it, aCounter), true, flightSupported = flightSupported))
+        }
+
+        noStatusTeamB.forEach {
+            teamB.add (CombatantWithStatus (it, getNewName(it, bCounter), false, flightSupported = flightSupported))
+        }
 
         // when computing initiative order, a DM will often use a single roll for an entire group of monsters
         // we won't do that here - unique rolls are more realistic, and easier to implement
@@ -40,27 +48,29 @@ class Combat() {
     }
 
     private fun getNewName(combatant: Combatant, teamCounter: AtomicInt?): String {
-        if (combatant is Monster) {
-            return combatant.getName().replace(" ".toRegex(), "") // just eliminate whitespace
+        val tmp = if (combatant is Monster) {
+            combatant.getName().replace(" ".toRegex(), "") // just eliminate whitespace
         }
-        // PC: eliminate everything after+including first whitespace
-        val tmp = combatant.getName().replace(" .*".toRegex(), "")
+        else {
+            combatant.getName().replace(" .*".toRegex(), "") // PC: eliminate everything after+including first whitespace
+        }
+        // for a team of equals, append a letter suffix
         return if (teamCounter == null) tmp else "$tmp ${'A' + teamCounter.fetchAndIncrement()}"
     }
 
     fun run(): Boolean {
-        val map = initiativeList.associateBy { it.initiative }
-        logger.info { "initiativeList = $map" }
-        //logger.info { "initiativeList = $initiativeList" }
+        logger.info { "initiativeList = ${ initiativeList.associateBy { it.initiative }}" }
 
         while (!teamA.all { it.isDead() } && !teamB.all { it.isDead() }) {
             logger.info {
-                "turn=$turn, teamA: ${
+                "turn=$turnId, teamA: ${
                     teamA.map { it.summary() }.toList()
                 }, teamB: ${teamB.map { it.summary() }.toList()}"
             }
             fullTurn()
-            turn++
+            turnId++
+            actionId = 0
+            effectId = 0
         }
         if (!teamA.all { it.isDead() }) {
             logger.info { "winner = teamA = $teamA " }
@@ -74,15 +84,15 @@ class Combat() {
     fun fullTurn() {
         initiativeList.forEach { combatant ->
             if (combatant.isDead()) {
-                logger.debug { "fullTurn, turn=$turn, combatant=$combatant, is dead" }
+                logger.debug { "fullTurn, turn=$turnId, combatant=$combatant, is dead" }
             } else if (combatant.isDying()) {
                 // TODO: roll for death saving throw
                 combatant.deathSave()
-                logger.debug { "fullTurn, turn=$turn, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
+                logger.debug { "fullTurn, turn=$turnId, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
             } else if (!combatant.canTakeAction()) {
-                logger.info { "fullTurn, turn=$turn, combatant=$combatant, can not take action" }
+                logger.info { "fullTurn, turn=$turnId, combatant=$combatant, can not take action" }
             } else {
-                logger.info { "fullTurn, turn=$turn, combatant=$combatant is taking action" }
+                logger.info { "fullTurn, turn=$turnId, combatant=$combatant is taking action" }
                 takeTurn(combatant)
             }
         }
@@ -91,18 +101,19 @@ class Combat() {
     fun takeTurn(combatant: CombatantWithStatus) {
         val target = chooseTarget(combatant)
         if (target == null) {
-            logger.debug { "turn = $turn, combatant = ${combatant.shortName()}, no target available" }
+            logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, no target available" }
             return
         }
         val attackList = chooseTurnActions(combatant, target)
 
-        logger.debug { "turn = $turn, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
+        logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
         for (attack in attackList) {
             if (attack.action is Weapon) {
-                meleeOrRangeAttack(combatant, target, attack, attack.action)
+                attackResultList.addAll (meleeOrRangeAttack(combatant, target, attack, attack.action))
             } else {
-                attackWithSpell(combatant, target, attack)
+                attackResultList.addAll (attackWithSpell(combatant, target, attack))
             }
+            actionId++
         }
     }
 
@@ -123,47 +134,34 @@ class Combat() {
         }
 
         // if you are currently someone else's target, target them back
-        targetList.forEach {
-            if (it.target == combatant) {
-                logger.debug { "choosing a new target that is already attacking: ${combatant.target!!}" }
-                return it
-            }
+        val attackingMeList = targetList.filter { it.target == combatant }.toList()
+        if (!attackingMeList.isEmpty()) {
+            logger.debug { "choosing a new target that is already attacking me: $attackingMeList" }
+            return chooseNewTarget(combatant, attackingMeList).first
         }
 
         // if you are within melee range, you can't move (don't provoke an oppy attack) ...
         // might as well attack
-        val inMeleeRange = targetList.any { combatant.distance(it) <= Distance.melee() }
-        if (inMeleeRange) {
-            val result = targetList.filter { combatant.distance(it) <= Distance.melee() }
-                .random() // TODO: improve target selection
-            logger.debug { "choosing a new target that is inMeleeRange: $result" }
-            return result
+        val inMeleeRange = targetList.filter { combatant.distance(it) <= Distance.melee() }
+        if (inMeleeRange.isNotEmpty()) {
+            return chooseNewTarget(combatant, inMeleeRange).first
         }
+
+        val target = chooseNewTarget(combatant, targetList).first ?: return null
 
         // now that we know we aren't in melee range, it is safe to move about the playing field as needed
 
-        val closest = targetList.minByOrNull { combatant.distance(it) }
-        var closestDistance = closest!!.distance(combatant)
-        val preferredDistance = combatant.getPreferredCombatDistance()
-        var initialLoc = combatant.location.copy()
-
-        if (preferredDistance <= Distance.melee()) {
-            // pick a target, then move towards it
-            combatant.moveTowardTarget(closest)    // TODO: improve target selection
-            closestDistance = closest.distance(combatant)
-            combatant.logMovement("moving toward melee target $closest", initialLoc, closestDistance)
-            return closest
+        if (combatant.getPreferredCombatDistance() <= Distance.melee()) {
+            combatant.moveTowardTarget(target)
+        }
+        else {
+            var distance = target.distance(combatant)
+            if (distance <= combatant.getPreferredCombatDistance()) { // too close for comfort
+                combatant.moveAwayFromTarget(targetList, distance)
+            }
         }
 
-        // if you are too close for comfort ... run away before picking a target
-        if (closestDistance <= preferredDistance) {
-            closestDistance = combatant.moveAwayFromTarget(targetList, closestDistance)
-            combatant.logMovement("moving away from targets", initialLoc, closestDistance)
-        }
-
-        val result = targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection
-        logger.debug { "choosing a new target: $result" }
-        return result
+        return target
     }
 
     fun chooseTurnActions(combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
@@ -176,7 +174,7 @@ class Combat() {
         if (preferredTurnOption != null) {
             val spell = preferredTurnOption.getSpell()
             if (spell != null) {
-                combatant.spellCastList.add(SpellCast(combatant, spell, turn))
+                combatant.spellCastList.add(SpellCast(combatant, spell, turnId))
             }
         }
 
@@ -195,7 +193,13 @@ class Combat() {
         return attackRoll
     }
 
-    fun meleeOrRangeAttack(combatant: CombatantWithStatus, target: CombatantWithStatus, attack: Attack, action: MeleeOrRangeAction) {
+    fun meleeOrRangeAttack(
+        combatant: CombatantWithStatus,
+        target: CombatantWithStatus,
+        attack: Attack,
+        action: MeleeOrRangeAction
+    ) : List<CombatAttackResult>
+    {
         var attackRoll = getAttackRoll(combatant, target)
         val name = action.getActionName()
         logger.debug { "combatant = $combatant, target = $target, action = $name" }
@@ -207,16 +211,18 @@ class Combat() {
         attackRoll += action.getAttackBonus()
 
         val autoHit = attackRoll == 20 // critical Hit + Damage ... TODO: for a champion, autoHit on 19 or 18
+        var damage = 0
 
         if (attackRoll >= target.getAC() || autoHit) {
             val isCrit = autoHit || target.attackerAutoCrit
-            val damage = computeDamage(attack, target, isCrit, action.getDamageList())
+            damage = computeDamage(attack, target, isCrit, action.getDamageList())
             target.currentHP -= damage
         }
+
+        return listOf (CombatAttackResult (combatant, listOf(target), damage, attack, turnId, actionId, effectId++))
     }
 
-    fun computeDamage(attack: Attack, target: CombatantWithStatus, isCrit: Boolean, baseDamageList: List<Damage>): Int
-    {
+    fun computeDamage(attack: Attack, target: CombatantWithStatus, isCrit: Boolean, baseDamageList: List<Damage>): Int {
         val damageList = baseDamageList.toMutableList()
 
         for (modifier in attack.actionModifiers) {
@@ -233,7 +239,7 @@ class Combat() {
                 continue
             }
             val roll = it.dice.roll()
-            var effectDamage = (if(isCrit) roll*2 else roll) + it.bonus
+            var effectDamage = (if (isCrit) roll * 2 else roll) + it.bonus
             if (attack.isBonusAction != true) {
                 effectDamage += it.abilityBonus
             }
@@ -250,11 +256,14 @@ class Combat() {
         return totalDamage
     }
 
-    fun attackWithSpell(combatant: CombatantWithStatus, target: CombatantWithStatus, attack: Attack) {
+    fun attackWithSpell(combatant: CombatantWithStatus, target: CombatantWithStatus, attack: Attack)
+        : List<CombatAttackResult>
+    {
         val attackBonus = combatant.getSpellBonusToHit()
         val spell = attack.action as com.vikinghelmet.dnd.dpr.spells.Spell
         logger.debug { "spell = ${spell.fullString()}" }
 
+        val result = mutableListOf<CombatAttackResult>()
         for (spellAttack in spell.getSpellAttacks(attackBonus)) {
             logger.debug { "spell = ${spell.name}, spellAttack = $spellAttack" }
 
@@ -264,18 +273,25 @@ class Combat() {
             }
 
             if (spellAttack.isSavingThrowAttack()) {
-                castSavingThrowSpell (combatant, target, spellAttack, attack)
+                result.addAll (castSavingThrowSpell (combatant, target, spellAttack, attack))
             } else {
-                meleeOrRangeAttack (combatant, target, attack, spellAttack)
+                result.addAll (meleeOrRangeAttack (combatant, target, attack, spellAttack))
             }
         }
+
+        return result
     }
 
-    fun castSavingThrowSpell(combatant: CombatantWithStatus, target: CombatantWithStatus, spellAttack: SpellAttack,  attack: Attack)
+    fun castSavingThrowSpell(
+        combatant: CombatantWithStatus,
+        target: CombatantWithStatus,
+        spellAttack: SpellAttack,
+        attack: Attack
+    ) : List<CombatAttackResult>
     {
         if (spellAttack.isNoDamageAttack()) {
-            logger.debug  { "This spell never directly creates damage" }
-            return
+            logger.debug { "This spell never directly creates damage" }
+            return emptyList()
         }
 
         val save = spellAttack.attackPayload.save!!
@@ -286,7 +302,7 @@ class Combat() {
 
         var successfulSave = false
 
-        if (! combatant.autoFailSave.contains(save.saveAbility)) {
+        if (!combatant.autoFailSave.contains(save.saveAbility)) {
             var saveRoll = (1..20).random()
             if (target.disadvantageOnSave.any { it2 -> it2.match(save.saveAbility) }) {
                 saveRoll = kotlin.math.max(saveRoll, (1..20).random())
@@ -302,19 +318,26 @@ class Combat() {
         var initialDamage = computeDamage(attack, target, false, spellAttack.getDamageList())
         logger.debug { "initial damage = $initialDamage" }
 
-        target.currentHP -= applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
+        val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
+        target.currentHP -= finalDamage
 
         // TODO: on a failed save add conditions to target
 
         // if breath weapon or similar, add to the recharge list
         if (combatant.combatant is Monster && attack.action is SavingThrowAction) {
-            logger.info { "add attack to waitingForRecharge: ${attack.action}"}
+            logger.info { "add attack to waitingForRecharge: ${attack.action}" }
             combatant.combatant.waitingForRecharge.add(attack.action)
         }
+
+        return listOf (CombatAttackResult (combatant, listOf(target), finalDamage, attack, turnId, actionId, effectId++))
     }
 
-    fun applySavingThrowDamageModifiers(spellAttack: SpellAttack, attack: Attack, initialDamage: Int, successfulSave: Boolean): Int
-    {
+    fun applySavingThrowDamageModifiers(
+        spellAttack: SpellAttack,
+        attack: Attack,
+        initialDamage: Int,
+        successfulSave: Boolean
+    ): Int {
         var damage = initialDamage
         val saveResult = spellAttack.getSaveResult()
         val isEvasive = attack.target.isEvasive()
@@ -322,19 +345,23 @@ class Combat() {
 
         if (!successfulSave) {
             if (isEvasive) damage /= 2
-        }
-        else {
+        } else {
             when (saveResult) {
                 SPELL_ENDS -> {
                     logger.debug { "spell ends" } // TODO: update condition list ?
                     return 0
                 }
+
                 CONDITION_ENDS -> {
                     logger.debug { "condition ends" } // TODO: update condition list ?
                     return 0
                 }
+
                 NO_EFFECT -> damage = 0
-                HALF_DAMAGE -> { if (isEvasive) damage = 0 else damage /= 2 }
+                HALF_DAMAGE -> {
+                    if (isEvasive) damage = 0 else damage /= 2
+                }
+
                 else -> {}
             }
         }
@@ -343,4 +370,60 @@ class Combat() {
         return damage
     }
 
+    fun chooseNewTarget(combatant: CombatantWithStatus, targetList: List<CombatantWithStatus>)
+        : Pair<CombatantWithStatus?, TargetSelectionStrategy>
+    {
+        val team = (if (combatant.onTeamA) teamA else teamB)
+
+        // find damagedFriend with minimal HP and distance
+        val damagedFriend = team.filter { friend -> friend != combatant && friend.currentHP < friend.getHP()/2 }
+            .sortedBy { it.currentHP * combatant.distance(it).toFeet() }
+            .firstOrNull()
+
+        if (damagedFriend != null) {
+            val targetAttackingFriend = targetList.filter { it.target == damagedFriend }
+                .filter { combatant.distance(it) < Distance.fromFeet(30) }  // can we get to them in time ?
+                .firstOrNull()
+            if (targetAttackingFriend != null) {
+                logger.debug { "selecting target attacking damaged friend: $targetAttackingFriend" }
+                return Pair(targetAttackingFriend, TargetSelectionStrategy.targetAttackingFriendWhoIsAlmostDead)
+            }
+        }
+
+        // target that has done a lot of damage to you personally
+
+        var heavyHitter = attackResultList
+            .filter { it.targetList.contains(combatant) } // damaged you personally
+            .groupBy { it.combatant }
+            .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
+            .toList()
+            .filter { it.second > combatant.getHP() / 4 } // TODO: right percentage ?
+            .sortedByDescending { it.second }
+            .firstOrNull()
+
+        if (heavyHitter != null) {
+            logger.debug { "selecting target with high damage to combatant: ${heavyHitter!!.first}" }
+            return Pair(heavyHitter.first, TargetSelectionStrategy.targetWithHighDamageToAttacker)
+        }
+
+        // target that has done a lot of damage to the party as a whole
+
+        heavyHitter = attackResultList
+            .groupBy { it.combatant }
+            .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
+            .toList()
+            .filter { it.second > combatant.getHP() / 2 }  // TODO: right percentage ?
+            .sortedByDescending { it.second }
+            .firstOrNull()
+
+        if (heavyHitter != null) {
+            logger.debug { "selecting target with high damage to party: ${heavyHitter!!.first}" }
+            return Pair(heavyHitter.first, TargetSelectionStrategy.targetWithHighDamageToTeam)
+        }
+
+        // closest
+        val result = targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection
+        logger.debug { "selecting closest target: $result" }
+        return Pair(result, TargetSelectionStrategy.closestTarget)
+    }
 }
