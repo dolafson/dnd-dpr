@@ -214,7 +214,7 @@ class CombatTest {
 
         // skeleton is immune to poison, so we take the next best option
         var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
-        assertEquals(listOf("Multiattack"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+        assertEquals(listOf("Multiattack","Bite","Claw","Claw"), preferred!!.attacks.map { it.action.getActionName() }.toList())
     }
 
     @Test
