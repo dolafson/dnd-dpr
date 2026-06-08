@@ -302,9 +302,9 @@ fun main(args : Array<String>) {
     if (args[i].startsWith("auto")) {
         val max=100
         var aTeamWinCount = 0
-        repeat(max) {
+        for (battle in 1..max) {
             val flightSupported = args[i].startsWith("auto:fly")
-            if (Combat(attackers, targets, flightSupported = flightSupported).run()) aTeamWinCount++
+            if (Combat(battle, attackers, targets, flightSupported = flightSupported).run()) aTeamWinCount++
         }
         logger.warn { "" }
         logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(aTeamWinCount.toFloat() / max.toFloat()) }" }

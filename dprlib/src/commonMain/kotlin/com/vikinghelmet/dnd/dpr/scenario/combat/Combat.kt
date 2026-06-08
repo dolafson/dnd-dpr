@@ -13,7 +13,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
 
 @OptIn(ExperimentalAtomicApi::class)
-class Combat() {
+class Combat(val battleId: Int) {
     @Transient
     private val logger = LoggerFactory.get(Combat::class.simpleName ?: "")
     val teamA = mutableListOf<CombatantWithStatus>()
@@ -24,8 +24,8 @@ class Combat() {
     var actionId = 0
     var effectId = 0
 
-    constructor(noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false)
-        : this()
+    constructor(battleId: Int, noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false)
+        : this(battleId)
     {
         val aCounter = getCounter(noStatusTeamA)
         val bCounter = getCounter(noStatusTeamB)
@@ -63,7 +63,7 @@ class Combat() {
 
         while (!teamA.all { it.isDead() } && !teamB.all { it.isDead() }) {
             logger.info {
-                "turn=$turnId, teamA: ${
+                "battleId=$battleId, turn=$turnId, teamA: ${
                     teamA.map { it.summary() }.toList()
                 }, teamB: ${teamB.map { it.summary() }.toList()}"
             }
@@ -73,10 +73,10 @@ class Combat() {
             effectId = 0
         }
         if (!teamA.all { it.isDead() }) {
-            logger.info { "winner = teamA = $teamA " }
+            logger.info { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamA.map { it.summary() }.toList() } " }
             return true
         } else {
-            logger.info { "winner = teamB = $teamB " }
+            logger.info { "battleId=$battleId, turn=$turnId, winner = teamB = ${ teamB.map { it.summary() }.toList()} " }
             return false
         }
     }
@@ -142,7 +142,7 @@ class Combat() {
 
         // if you are within melee range, you can't move (don't provoke an oppy attack) ...
         // might as well attack
-        val inMeleeRange = targetList.filter { combatant.distance(it) <= Distance.melee() }
+        val inMeleeRange = targetList.filter { !it.isDead() && combatant.distance(it) <= Distance.melee() }
         if (inMeleeRange.isNotEmpty()) {
             return TargetSelector(this, combatant, inMeleeRange).select().first
         }

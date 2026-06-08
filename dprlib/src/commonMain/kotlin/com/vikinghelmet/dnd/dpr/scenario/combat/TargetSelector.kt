@@ -3,12 +3,17 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.scenario.combat.TargetSelectionStrategy.*
+import dev.shivathapaa.logger.api.LoggerFactory
+import kotlinx.serialization.Transient
 
 data class TargetSelector(
     val combat: Combat,
     val combatant: CombatantWithStatus,
     val targetList: List<CombatantWithStatus>
 ) {
+    @Transient
+    val logger = LoggerFactory.get(TargetSelector::class.simpleName ?: "")
+
     val attackResultList = combat.attackResultList
     val team = (if (combatant.onTeamA) combat.teamA else combat.teamB)
 
@@ -25,21 +30,25 @@ data class TargetSelector(
 
     fun getTargetWithHighDamageToAttacker() : CombatantWithStatus? {
         return attackResultList
-            .filter { it.targetList.contains(combatant) } // damaged you personally
+            .filter { this.targetList.contains(it.combatant) }
+//            .filter { it.targetList.any { it2 -> it2.onTeamA != combatant.onTeamA } } // opposing team
+            .filter { it.targetList.contains(this.combatant) } // damaged you personally
             .groupBy { it.combatant }
             .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
             .toList()
-            .filter { it.second > combatant.getHP() / 4 }
+            .filter { it.second > this.combatant.getHP() / 4 }
             .maxByOrNull { it.second }
             ?.first
     }
 
     fun getTargetWithHighDamageToTeam() : CombatantWithStatus? {
         return attackResultList
+            .filter { this.targetList.contains(it.combatant) }
+//            .filter { it.targetList.any { it2 -> it2.onTeamA != combatant.onTeamA } } // opposing team
             .groupBy { it.combatant }
             .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
             .toList()
-            .filter { it.second > combatant.getHP() / 2 }
+            .filter { it.second > this.combatant.getHP() / 2 }
             .maxByOrNull { it.second }
             ?.first
     }
@@ -62,6 +71,16 @@ data class TargetSelector(
 
     fun select() : Pair<CombatantWithStatus?, TargetSelectionStrategy>
     {
+        logger.info { "combatant=$combatant, targetList = ${ targetList.map { it.summary() }.toList() } " }
+
+        targetList.forEach {
+            if (it.isDead()) throw IllegalStateException("Member of target list is dead, list = $targetList")
+
+            if (it == combatant) throw IllegalStateException("Target list contains combatant, wrong team? list = $targetList")
+        }
+
+        var result: Pair<CombatantWithStatus?, TargetSelectionStrategy>? = null
+
         // pursue strategies in enum order
         for (strategy in TargetSelectionStrategy.entries) {
             val target = when (strategy) {
@@ -76,8 +95,14 @@ data class TargetSelector(
             }
 
             if (target != null) {
-                return Pair(target, strategy)
+                result = Pair(target, strategy)
+                break
             }
+        }
+
+        if (result != null) {
+            logger.info { "combatant=$combatant, ${result.second.name} = ${result.first}" }
+            return result
         }
 
         return Pair(null, noTarget)

@@ -145,9 +145,9 @@ data class CombatantWithStatus(
     }
 
     fun isDeadOrDying() = currentHP <= 0
-    fun isDead() = currentHP <= 0 && deathSavingThrows.filter { !it }.count() >= 3
+    fun isDead() = currentHP <= 0 && deathSavingThrows.count { !it } >= 3
 
-    fun isDying() = currentHP <= 0 && deathSavingThrows.filter { !it }.count() < 3
+    fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
 
     fun canTakeAction() = currentHP > 0 && !noActionOrBA
 
@@ -228,10 +228,12 @@ data class CombatantWithStatus(
                 // TODO: damage resistance -> deprirotize ?
 
                 // exclude spells with damageType that target is immune to
-                val damageType = spell.getSpellAttacks(0).first().getDamageList().first().type // TODO: improve
-                if (target.getDamageImmunities().contains(damageType)) {
-                    logger.debug { "skipping spell turn option, target is immune: ${spell.name}" }
-                    continue
+                if (spell.incursDamage()) {
+                    val damageType = spell.getSpellAttacks(0).first().getDamageList().first().type // TODO: improve
+                    if (target.getDamageImmunities().contains(damageType)) {
+                        logger.debug { "skipping spell turn option, target is immune: ${spell.name}" }
+                        continue
+                    }
                 }
             }
 

@@ -70,7 +70,8 @@ data class SpellAttack(
 
     override fun getDamageList(): List<com.vikinghelmet.dnd.dpr.action.Damage>
     {
-        val damageType = damagePayload?.damageType ?: "undefined"
+        var damageType = damagePayload?.damageType ?: "undefined"
+        if (damageType.contains(" ")) damageType = "fire" // choose acid, cold, fire, ...
 
         return listOf(com.vikinghelmet.dnd.dpr.action.Damage(
             damagePayload?.getDamageDice() ?: DiceBlock(),
