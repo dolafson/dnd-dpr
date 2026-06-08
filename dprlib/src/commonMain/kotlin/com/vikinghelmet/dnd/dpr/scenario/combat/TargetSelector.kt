@@ -93,7 +93,7 @@ data class TargetSelector(
         }
 
         if (result != null) {
-            logger.info { "combatant=$combatant, ${result.second.name} = ${result.first}" }
+            logger.debug { "combatant=$combatant, ${result.second.name} = ${result.first}" }
             return result
         }
 

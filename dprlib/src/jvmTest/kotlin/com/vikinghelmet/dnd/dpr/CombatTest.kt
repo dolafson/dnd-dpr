@@ -421,4 +421,21 @@ class CombatTest {
         assertEquals(rhogar, target)
     }
 
+    @Test
+    fun dragonMultiattack() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
+
+        // force melee
+        combat.teamA[0].location = combat.teamB[0].location.copy()
+
+        val dragon = combat.teamA[0]
+        val skeleton = combat.teamB[0]
+
+        // skeleton is immune to poison, next best option is Multiattack
+//        combat.takeTurn(dragon)
+        var dragonAttacks = combat.chooseTurnActions(dragon, skeleton)
+
+        assertEquals(listOf("Multiattack","Bite","Claw","Claw"), dragonAttacks.map { it.action.getActionName() }.toList())
+    }
 }

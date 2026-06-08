@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.scenario.combat.CombatantWithStatus
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -54,8 +55,9 @@ class ScenarioBuilder(
             result.add(Attack(target = target, action = action),)
         }
 
-        if (attacker is Monster && action.getActionName() == "Multiattack") {
-            val expanded = attacker.expandMultiAttack()
+        if (action.getActionName() == "Multiattack") {
+            val monster = (if (attacker is CombatantWithStatus) attacker.combatant else attacker) as Monster
+            val expanded = monster.expandMultiAttack()
             for (w in expanded) {
                 result.add(Attack(target = target, action = w))
             }

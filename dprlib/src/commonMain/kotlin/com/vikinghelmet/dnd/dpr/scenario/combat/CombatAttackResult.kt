@@ -17,5 +17,8 @@ data class CombatAttackResult(
 ) {
     @Transient private val logger = LoggerFactory.get(CombatAttackResult::class.simpleName ?: "")
 
+    override fun toString(): String {
+        return "$combatant -> $targetList: totalDamage=$totalDamage, attack=${attack.action.getActionName() })"
+    }
 }
 

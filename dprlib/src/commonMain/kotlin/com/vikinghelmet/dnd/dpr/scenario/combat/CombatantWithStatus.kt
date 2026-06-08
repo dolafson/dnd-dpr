@@ -125,7 +125,6 @@ data class CombatantWithStatus(
             .append(", preferredDistance = ${ getPreferredCombatDistance() }")
             .append(", closestDistance = $newDistance")
         logger.debug { buf.toString() }
-        println(buf.toString())
     }
 
     fun shortName() = newName // getName().replace(" .*".toRegex(), "")

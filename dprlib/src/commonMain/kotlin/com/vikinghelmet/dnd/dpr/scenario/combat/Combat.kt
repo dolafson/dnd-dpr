@@ -93,11 +93,11 @@ class Combat(val battleId: Int) {
             } else if (combatant.isDying()) {
                 // TODO: roll for death saving throw
                 combatant.deathSave()
-                logger.debug { "fullTurn, turn=$turnId, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
+                logger.info { "fullTurn, turn=$turnId, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
             } else if (!combatant.canTakeAction()) {
                 logger.info { "fullTurn, turn=$turnId, combatant=$combatant, can not take action" }
             } else {
-                logger.info { "fullTurn, turn=$turnId, combatant=$combatant is taking action" }
+                logger.debug { "fullTurn, turn=$turnId, combatant=$combatant is taking action" }
                 takeTurn(combatant)
             }
         }
@@ -111,16 +111,21 @@ class Combat(val battleId: Int) {
             return
         }
         val attackList = chooseTurnActions(combatant, target)
+        val attackResultsThisTurn = mutableListOf<CombatAttackResult>()
 
         logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
+
         for (attack in attackList) {
             if (attack.action is Weapon) {
-                attackResultList.addAll (meleeOrRangeAttack(combatant, target, attack, attack.action))
+                attackResultsThisTurn.addAll (meleeOrRangeAttack(combatant, target, attack, attack.action))
             } else {
-                attackResultList.addAll (attackWithSpell(combatant, target, attack))
+                attackResultsThisTurn.addAll (attackWithSpell(combatant, target, attack))
             }
             actionId++
         }
+        logger.info { "turn = $turnId, attackResults = $attackResultsThisTurn" }
+
+        attackResultList.addAll(attackResultsThisTurn)
     }
 
     fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus?

@@ -175,6 +175,11 @@ data class Monster(
                 } else {
                     // all spells - except for "ranged spell attack" - can be used in melee
                     actionsAvailable.add(Constants.MELEE_RANGE, spell)
+
+                    val range = spell.getRange()
+                    if (range > Constants.MELEE_RANGE) {
+                        actionsAvailable.add(range, spell)
+                    }
                 }
             }
         }
