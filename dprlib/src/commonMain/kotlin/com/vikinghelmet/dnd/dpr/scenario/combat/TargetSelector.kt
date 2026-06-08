@@ -71,14 +71,6 @@ data class TargetSelector(
 
     fun select() : Pair<CombatantWithStatus?, TargetSelectionStrategy>
     {
-        logger.info { "combatant=$combatant, targetList = ${ targetList.map { it.summary() }.toList() } " }
-
-        targetList.forEach {
-            if (it.isDead()) throw IllegalStateException("Member of target list is dead, list = $targetList")
-
-            if (it == combatant) throw IllegalStateException("Target list contains combatant, wrong team? list = $targetList")
-        }
-
         var result: Pair<CombatantWithStatus?, TargetSelectionStrategy>? = null
 
         // pursue strategies in enum order

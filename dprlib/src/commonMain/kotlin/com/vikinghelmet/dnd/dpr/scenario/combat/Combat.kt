@@ -5,12 +5,15 @@ import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
+import kotlin.math.max
+import kotlin.math.min
 
 @OptIn(ExperimentalAtomicApi::class)
 class Combat(val battleId: Int) {
@@ -63,9 +66,7 @@ class Combat(val battleId: Int) {
 
         while (!teamA.all { it.isDead() } && !teamB.all { it.isDead() }) {
             logger.info {
-                "battleId=$battleId, turn=$turnId, teamA: ${
-                    teamA.map { it.summary() }.toList()
-                }, teamB: ${teamB.map { it.summary() }.toList()}"
+                "battleId=$battleId, turn=$turnId, teamA: ${ teamSummary(teamA) }, teamB: ${ teamSummary(teamB) }"
             }
             fullTurn()
             turnId++
@@ -73,12 +74,16 @@ class Combat(val battleId: Int) {
             effectId = 0
         }
         if (!teamA.all { it.isDead() }) {
-            logger.info { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamA.map { it.summary() }.toList() } " }
+            logger.info { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamSummary(teamA) } " }
             return true
         } else {
-            logger.info { "battleId=$battleId, turn=$turnId, winner = teamB = ${ teamB.map { it.summary() }.toList()} " }
+            logger.info { "battleId=$battleId, turn=$turnId, winner = teamB = ${ teamSummary(teamB) } " }
             return false
         }
+    }
+
+    fun teamSummary(team: List<CombatantWithStatus>): String {
+        return "${ team.sortedByDescending { it.initiative }.map { it.summary() }.toList() }"
     }
 
     fun fullTurn() {
@@ -100,6 +105,7 @@ class Combat(val battleId: Int) {
 
     fun takeTurn(combatant: CombatantWithStatus) {
         val target = chooseTarget(combatant)
+        combatant.target = target
         if (target == null) {
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, no target available" }
             return
@@ -119,32 +125,36 @@ class Combat(val battleId: Int) {
 
     fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus?
     {
-        // if you already have a target that is not dead, keep at it
+        var targetList: List<CombatantWithStatus>
+
+        // if you already have a target that is not dead/dying, try to finish them off
         if (combatant.target != null && !combatant.target!!.isDeadOrDying()) {
             logger.verbose { "chooseTarget: keeping current target = ${combatant.target}" }
-            return combatant.target!!
+            targetList = listOf(combatant.target!!)
+        }
+        else {
+            targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
         }
 
-        var targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
         if (targetList.isEmpty()) {
             // if all you have are a few dying opponents, keep sticking a fork in them until they're done
             targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDead() }.toList()
         }
         if (targetList.isEmpty()) {
-            return null
+            return null // early return because we have no targets
+        }
+
+        // if you are within melee range, you can't move (don't provoke an oppy attack) ...
+        // just attack someone right in front of you
+        val inMeleeRange = targetList.filter { !it.isDead() && combatant.distance(it) <= Distance.melee() }
+        if (inMeleeRange.isNotEmpty()) {
+            return TargetSelector(this, combatant, inMeleeRange).select().first  // early return because we can't move
         }
 
         // if you are currently someone else's target, target them back
         val attackingMeList = targetList.filter { it.target == combatant }.toList()
         if (!attackingMeList.isEmpty()) {
-            return TargetSelector(this, combatant, attackingMeList).select().first
-        }
-
-        // if you are within melee range, you can't move (don't provoke an oppy attack) ...
-        // might as well attack
-        val inMeleeRange = targetList.filter { !it.isDead() && combatant.distance(it) <= Distance.melee() }
-        if (inMeleeRange.isNotEmpty()) {
-            return TargetSelector(this, combatant, inMeleeRange).select().first
+            targetList = attackingMeList
         }
 
         val target = TargetSelector(this, combatant, targetList).select().first ?: return null
@@ -185,10 +195,10 @@ class Combat(val battleId: Int) {
         var attackRoll = (1..20).random()
         if (target.attackersHaveAdvantage && !combatant.disadvantageOnAttacks) {
             logger.info { "attacker has advantage" }
-            attackRoll = kotlin.math.max(attackRoll, (1..20).random())
+            attackRoll = max(attackRoll, (1..20).random())
         } else if (!target.attackersHaveAdvantage && combatant.disadvantageOnAttacks) {
             logger.info { "attacker has disadvantage" }
-            attackRoll = kotlin.math.min(attackRoll, (1..20).random())
+            attackRoll = min(attackRoll, (1..20).random())
         }
         return attackRoll
     }
@@ -260,7 +270,7 @@ class Combat(val battleId: Int) {
         : List<CombatAttackResult>
     {
         val attackBonus = combatant.getSpellBonusToHit()
-        val spell = attack.action as com.vikinghelmet.dnd.dpr.spells.Spell
+        val spell = attack.action as Spell
         logger.debug { "spell = ${spell.fullString()}" }
 
         val result = mutableListOf<CombatAttackResult>()
@@ -305,7 +315,7 @@ class Combat(val battleId: Int) {
         if (!combatant.autoFailSave.contains(save.saveAbility)) {
             var saveRoll = (1..20).random()
             if (target.disadvantageOnSave.any { it2 -> it2.match(save.saveAbility) }) {
-                saveRoll = kotlin.math.max(saveRoll, (1..20).random())
+                saveRoll = max(saveRoll, (1..20).random())
             }
 
             // TODO: bless/bane -> bonus/penalty dice to save

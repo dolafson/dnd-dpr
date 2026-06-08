@@ -102,7 +102,7 @@ data class CombatantWithStatus(
         val initialLoc = location.copy()
         location.moveTowardLocation(target.location, getSpeed() / Constants.DISTANCE_GRANULARITY)
         val distance = distance(target.location)
-        logMovement("moving toward melee target $target", initialLoc, distance)
+        logMovement("moving toward target $target", initialLoc, distance)
         return distance
     }
 
