@@ -117,7 +117,14 @@ class Combat() {
         }
     }
 
-    fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus? {
+    fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus?
+    {
+        // if you already have a target that is not dead, keep at it
+        if (combatant.target != null && !combatant.target!!.isDeadOrDying()) {
+            logger.verbose { "chooseTarget: keeping current target = ${combatant.target}" }
+            return combatant.target!!
+        }
+
         var targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
         if (targetList.isEmpty()) {
             // if all you have are a few dying opponents, keep sticking a fork in them until they're done
@@ -127,27 +134,20 @@ class Combat() {
             return null
         }
 
-        // if you already have a target that is not dead, keep at it
-        if (combatant.target != null && !combatant.target!!.isDeadOrDying()) {
-            logger.verbose { "chooseTarget: keeping current target = ${combatant.target}" }
-            return combatant.target!!
-        }
-
         // if you are currently someone else's target, target them back
         val attackingMeList = targetList.filter { it.target == combatant }.toList()
         if (!attackingMeList.isEmpty()) {
-            logger.debug { "choosing a new target that is already attacking me: $attackingMeList" }
-            return chooseNewTarget(combatant, attackingMeList).first
+            return TargetSelector(this, combatant, attackingMeList).select().first
         }
 
         // if you are within melee range, you can't move (don't provoke an oppy attack) ...
         // might as well attack
         val inMeleeRange = targetList.filter { combatant.distance(it) <= Distance.melee() }
         if (inMeleeRange.isNotEmpty()) {
-            return chooseNewTarget(combatant, inMeleeRange).first
+            return TargetSelector(this, combatant, inMeleeRange).select().first
         }
 
-        val target = chooseNewTarget(combatant, targetList).first ?: return null
+        val target = TargetSelector(this, combatant, targetList).select().first ?: return null
 
         // now that we know we aren't in melee range, it is safe to move about the playing field as needed
 
@@ -368,62 +368,5 @@ class Combat() {
 
         logger.debug { "final damage = $damage" }
         return damage
-    }
-
-    fun chooseNewTarget(combatant: CombatantWithStatus, targetList: List<CombatantWithStatus>)
-        : Pair<CombatantWithStatus?, TargetSelectionStrategy>
-    {
-        val team = (if (combatant.onTeamA) teamA else teamB)
-
-        // find damagedFriend with minimal HP and distance
-        val damagedFriend = team.filter { friend -> friend != combatant && friend.currentHP < friend.getHP()/2 }
-            .sortedBy { it.currentHP * combatant.distance(it).toFeet() }
-            .firstOrNull()
-
-        if (damagedFriend != null) {
-            val targetAttackingFriend = targetList.filter { it.target == damagedFriend }
-                .filter { combatant.distance(it) < Distance.fromFeet(30) }  // can we get to them in time ?
-                .firstOrNull()
-            if (targetAttackingFriend != null) {
-                logger.debug { "selecting target attacking damaged friend: $targetAttackingFriend" }
-                return Pair(targetAttackingFriend, TargetSelectionStrategy.targetAttackingFriendWhoIsAlmostDead)
-            }
-        }
-
-        // target that has done a lot of damage to you personally
-
-        var heavyHitter = attackResultList
-            .filter { it.targetList.contains(combatant) } // damaged you personally
-            .groupBy { it.combatant }
-            .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
-            .toList()
-            .filter { it.second > combatant.getHP() / 4 } // TODO: right percentage ?
-            .sortedByDescending { it.second }
-            .firstOrNull()
-
-        if (heavyHitter != null) {
-            logger.debug { "selecting target with high damage to combatant: ${heavyHitter!!.first}" }
-            return Pair(heavyHitter.first, TargetSelectionStrategy.targetWithHighDamageToAttacker)
-        }
-
-        // target that has done a lot of damage to the party as a whole
-
-        heavyHitter = attackResultList
-            .groupBy { it.combatant }
-            .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
-            .toList()
-            .filter { it.second > combatant.getHP() / 2 }  // TODO: right percentage ?
-            .sortedByDescending { it.second }
-            .firstOrNull()
-
-        if (heavyHitter != null) {
-            logger.debug { "selecting target with high damage to party: ${heavyHitter!!.first}" }
-            return Pair(heavyHitter.first, TargetSelectionStrategy.targetWithHighDamageToTeam)
-        }
-
-        // closest
-        val result = targetList.minByOrNull { it.distance(combatant.location) }!! // TODO: improve target selection
-        logger.debug { "selecting closest target: $result" }
-        return Pair(result, TargetSelectionStrategy.closestTarget)
     }
 }

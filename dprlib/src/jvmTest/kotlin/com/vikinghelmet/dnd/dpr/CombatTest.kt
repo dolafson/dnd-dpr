@@ -323,7 +323,7 @@ class CombatTest {
 
         applyDamage(combat, oleg, heavyHitter, 10)
 
-        val leifTarget = combat.chooseNewTarget(leif, combat.teamB)
+        val leifTarget = TargetSelector(combat, leif, combat.teamB).select()
         // println(leifTarget)
         assertEquals(heavyHitter, leifTarget.first)
         assertEquals(TargetSelectionStrategy.targetAttackingFriendWhoIsAlmostDead, leifTarget.second)
@@ -350,7 +350,7 @@ class CombatTest {
 
         applyDamage(combat, leif, heavyHitter, 10)
 
-        val leifTarget = combat.chooseNewTarget(leif, combat.teamB)
+        val leifTarget = TargetSelector(combat, leif, combat.teamB).select()
         // println(leifTarget)
         assertEquals(heavyHitter, leifTarget.first)
         assertEquals(TargetSelectionStrategy.targetWithHighDamageToAttacker, leifTarget.second)
@@ -372,7 +372,7 @@ class CombatTest {
             applyDamage(combat, it, heavyHitter, 2)
         }
 
-        val leifTarget = combat.chooseNewTarget(leif, combat.teamB)
+        val leifTarget = TargetSelector(combat, leif, combat.teamB).select()
         // println(leifTarget)
         assertEquals(heavyHitter, leifTarget.first)
         assertEquals(TargetSelectionStrategy.targetWithHighDamageToTeam, leifTarget.second)
