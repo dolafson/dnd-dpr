@@ -40,8 +40,17 @@ open class MonsterAction (
 
         var aoe: AreaOfEffect? = null
         for (shape in AreaOfEffectShape.entries) {
-            if (desc.lowercase().contains(shape.name)) {
-                aoe = AreaOfEffect(shape, "30") // TODO: fix hard-coded aoe size (augment data source)
+            if (desc.lowercase().contains(shape.name.lowercase())) {
+                var shapeSize = "20" // TODO: fix hard-coded aoe size (augment data source)
+                if (shape == AreaOfEffectShape.Cone) {
+                    val regex="""(\d+)-foot cone""".toRegex()
+                    val matchResult = regex.find(desc.lowercase())
+                    if (matchResult != null) {
+                        shapeSize = matchResult.groupValues[1]
+                        //println("cone size = $shapeSize")
+                    }
+                }
+                aoe = AreaOfEffect(shape, shapeSize)
                 break
             }
         }

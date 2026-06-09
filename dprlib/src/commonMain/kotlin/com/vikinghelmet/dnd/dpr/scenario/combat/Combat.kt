@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.AtomicInt
@@ -128,6 +129,14 @@ class Combat(val battleId: Int) {
         attackResultList.addAll(attackResultsThisTurn)
     }
 
+    fun getDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
+        return (if (combatant.onTeamA) teamB else teamA).filter { it.isDying() }.toList()
+    }
+
+    fun getNotDeadOrDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
+        return (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
+    }
+
     fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus?
     {
         var targetList: List<CombatantWithStatus>
@@ -138,12 +147,12 @@ class Combat(val battleId: Int) {
             targetList = listOf(combatant.target!!)
         }
         else {
-            targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
+            targetList = getNotDeadOrDyingOpponents(combatant)
         }
 
         if (targetList.isEmpty()) {
             // if all you have are a few dying opponents, keep sticking a fork in them until they're done
-            targetList = (if (combatant.onTeamA) teamB else teamA).filter { !it.isDead() }.toList()
+            targetList = getDyingOpponents(combatant)
         }
         if (targetList.isEmpty()) {
             return null // early return because we have no targets
@@ -299,7 +308,7 @@ class Combat(val battleId: Int) {
 
     fun castSavingThrowSpell(
         combatant: CombatantWithStatus,
-        target: CombatantWithStatus,
+        focusTarget: CombatantWithStatus,
         spellAttack: SpellAttack,
         attack: Attack
     ) : List<CombatAttackResult>
@@ -312,31 +321,59 @@ class Combat(val battleId: Int) {
         val save = spellAttack.attackPayload.save!!
 
         // TODO: area of effect spells (multiple targets)
+        val targetList = mutableListOf<CombatantWithStatus>()
+        var totalDamage = 0
+
+        val aoe = spellAttack.getAoe()
+
+        if (aoe == null || aoe.shape != AreaOfEffectShape.Cone) { // TODO: add support for other shapes
+            targetList.add(focusTarget)
+        }
+        else {
+            var maxCount=0
+            var maxDir: Direction? = null
+            for (dir in Direction.entries) {
+                val cone = Cone(combatant.location, dir, aoe.getSizeInFeet())
+                val points = cone.getPoints()
+                if (! points.contains(focusTarget.location)) continue
+
+                val potentialTargets = getNotDeadOrDyingOpponents(combatant).filter { points.contains(it.location) }
+                val count = potentialTargets.size
+                if (maxCount < count) {
+                    maxCount = count
+                    targetList.clear()
+                    targetList.addAll (potentialTargets)
+                }
+            }
+            println("cone dir=$maxDir, targetList=$targetList")
+        }
 
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
 
-        var successfulSave = false
+        for (target in targetList) {
+            var successfulSave = false
 
-        if (!combatant.autoFailSave.contains(save.saveAbility)) {
-            var saveRoll = (1..20).random()
-            if (target.disadvantageOnSave.any { it2 -> it2.match(save.saveAbility) }) {
-                saveRoll = max(saveRoll, (1..20).random())
+            if (!target.autoFailSave.contains(save.saveAbility)) {
+                var saveRoll = (1..20).random()
+                if (target.disadvantageOnSave.any { it2 -> it2.match(save.saveAbility) }) {
+                    saveRoll = max(saveRoll, (1..20).random())
+                }
+
+                // TODO: bless/bane -> bonus/penalty dice to save
+                val targetSaveBonus = attack.target.getAbilityModifier(save.saveAbility)
+                successfulSave = (saveRoll + targetSaveBonus >= combatant.getSpellSaveDC())
             }
 
-            // TODO: bless/bane -> bonus/penalty dice to save
-            val targetSaveBonus = attack.target.getAbilityModifier(save.saveAbility)
-            successfulSave = (saveRoll + targetSaveBonus >= combatant.getSpellSaveDC())
+            logger.debug { "successfulSave = $successfulSave" }
+
+            var initialDamage = computeDamage(attack, target, false, spellAttack.getDamageList())
+            logger.debug { "initial damage = $initialDamage" }
+
+            val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
+            target.currentHP -= finalDamage
+            totalDamage += finalDamage
+            // TODO: on a failed save add conditions to target
         }
-
-        logger.debug { "successfulSave = $successfulSave" }
-
-        var initialDamage = computeDamage(attack, target, false, spellAttack.getDamageList())
-        logger.debug { "initial damage = $initialDamage" }
-
-        val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
-        target.currentHP -= finalDamage
-
-        // TODO: on a failed save add conditions to target
 
         // if breath weapon or similar, add to the recharge list
         if (combatant.combatant is Monster && attack.action is SavingThrowAction) {
@@ -344,7 +381,7 @@ class Combat(val battleId: Int) {
             combatant.combatant.waitingForRecharge.add(attack.action)
         }
 
-        return listOf (CombatAttackResult (combatant, listOf(target), finalDamage, attack, turnId, actionId, effectId++))
+        return listOf (CombatAttackResult (combatant, targetList, totalDamage, attack, turnId, actionId, effectId++))
     }
 
     fun applySavingThrowDamageModifiers(

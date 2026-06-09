@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.action.MeleeOrRangeAction
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
+import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
@@ -25,26 +26,10 @@ data class SpellAttack(
         other.numTargetsOverride = 1
     }
 
+    fun getAoe(): AreaOfEffect? = attackPayload.aoe
+
     fun getAoeSize(): Int {
-        if (attackPayload.aoe == null) return 0
-        /* aoe.size values, by frequency
-    87  = "X"
-    66  = "X foot"
-    50  = "X foot radius"
-    10  = "X foot radius, X foot high"
-    10  = "X feet long, X feet high*"
-    4  = "X-foot"
-    4  = "X foot long"
-    2  = "X foot tall, X foot radius"
-    2  = "X feet wide, X feet long"
-    1  = "X-foot-radius"
-    1  = "X-foot-radius, X-foot-tall"
-    1  = "X ft"
-    1  = "X ft radius"
-    1  = "X foot radius, X foot tall*"
-    1  = "Ten X foot"
-*/
-        return attackPayload.aoe.size.replace("Ten","10").replace("[ -].*".toRegex(), "").toInt()
+        return getAoe()?.getSizeInFeet() ?: 0
     }
 
     override fun getNumTargetsAffected(numTargets: Int, targetSpacing: Int): Int

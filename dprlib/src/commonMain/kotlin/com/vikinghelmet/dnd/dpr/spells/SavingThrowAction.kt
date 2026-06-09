@@ -39,9 +39,13 @@ class SavingThrowAction(
                 description = description,
                 save = save,
                 aoe = aoe,
-                range = properties.toString()
+                range = (aoe?.size ?: properties.toString())
             )),
         )
+
+        if (aoe != null && aoe.size.toIntOrNull() != null) {
+            properties.dataRangeNum = aoe.size.toInt()
+        }
 
         if (damageType != null && diceString != null) {
             val diceSplit = diceString.split("d")
@@ -60,7 +64,7 @@ class SavingThrowAction(
     }
 
     companion object {
-        fun makeProps() = Properties("Instantaneous", "Spells", 1, "")
+        fun makeProps() = Properties("Instantaneous", "Spells", -100, "")
     }
 }
 

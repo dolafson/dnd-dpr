@@ -5,7 +5,6 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -130,11 +129,11 @@ class CombatTest {
             combat.chooseTarget(dragon)
             var dragonAttacks = combat.chooseTurnActions(dragon, leif)
 
-            when(turn) {
-                0, 1  -> assertTrue(dragonAttacks.isEmpty())
-                2,3,4 -> assertEquals(listOf("Poison Breath"), dragonAttacks.map { it.action.getActionName() }.toList())
-            }
+            // note: chooseTurnActions does not update "waitingForRecharge" (that happens elsewhere),
+            // so in this test the dragon always chooses Poison Breath
+
             println ("turn=$turn, dragonAttacks: $dragonAttacks")
+            assertEquals(listOf("Poison Breath"), dragonAttacks.map { it.action.getActionName() }.toList())
         }
     }
 
@@ -422,6 +421,38 @@ class CombatTest {
     }
 
     @Test
+    fun dragonPoisonBreath() {
+        TestUtil.dependency()
+        // Globals.initLogger(LogLevel.DEBUG) // DEBUG
+
+        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif, TestUtil.lars, TestUtil.rhogar, TestUtil.kael))
+
+        val dragon = combat.teamA[0]
+
+        // force right cone
+        dragon.location = Location(0,0)
+
+        for (i in 0..2) {
+            combat.teamB[i].location = Location(i+3, 0)
+        }
+
+        combat.teamB[3].location = Location(50,50) // far, far away
+
+        var dragonAttacks = combat.chooseTurnActions(dragon, combat.teamB[0])
+        // println("dragonAttacks = $dragonAttacks")
+        assertEquals(1, dragonAttacks.size)
+
+        val breathAttack = dragonAttacks[0]
+        assertEquals("Poison Breath", breathAttack.action.getActionName())
+
+        val attackResultList = combat.attackWithSpell(dragon, breathAttack.target as CombatantWithStatus, breathAttack)
+        // println("attackResultList = $attackResultList")
+
+        assertEquals(1, attackResultList.size)
+        assertEquals(3, attackResultList[0].targetList.size)
+    }
+
+    @Test
     fun dragonMultiattack() {
         TestUtil.dependency()
         val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
@@ -437,5 +468,17 @@ class CombatTest {
         var dragonAttacks = combat.chooseTurnActions(dragon, skeleton)
 
         assertEquals(listOf("Multiattack","Bite","Claw","Claw"), dragonAttacks.map { it.action.getActionName() }.toList())
+    }
+
+    @Test
+    fun cones() {
+        TestUtil.dependency()
+
+        for (dir in Direction.entries) {
+            val cone = Cone(Location(0,0), dir, 6)
+            println("# dir=$dir")
+            cone.dump()
+            println()
+        }
     }
 }
