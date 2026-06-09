@@ -164,6 +164,8 @@ data class CombatantWithStatus(
 
         if (combatant.getSpellSlots().isEmpty()) return true
 
+        if (level < 0) return true // SavingThrowAction such as Breath Weapon
+
         val maxSlots = combatant.getSpellSlots()[level - 1]
         val slotsUsed =
             spellCastList.count { it.spell.properties.Level == spell.properties.Level && it.spell.name != HuntersMark.getNameWithWS() }
@@ -203,7 +205,7 @@ data class CombatantWithStatus(
         return possibleTurns
     }
 
-    fun getPreferredTurn(target: CombatantWithStatus, range: Int): Turn? {
+    fun getPreferredTurn(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): Turn? {
         val possible = getPossibleTurns(target, range)
         val map = mutableMapOf<Turn, TurnOptionRanking>()
 
@@ -219,6 +221,14 @@ data class CombatantWithStatus(
                 if (ability != null && target.getAbilityModifier(ability) > 3) {
                     logger.debug { "skipping spell turn option, target has high probability to save: ${spell.name}" }
                     continue
+                }
+
+                // exclude AOE spell if all targets are already dying (finish them off with weapon if you must)
+                if (spell.isAOE() && opposingTeam.isNotEmpty()) {
+                    if (opposingTeam.all { it.isDeadOrDying() }) {
+                        logger.debug { "skipping spell turn option, avoid AOE spell if opponents are all dying: ${spell.name}" }
+                        continue
+                    }
                 }
 
                 // TODO: de-prioritize AOE spells if number of targets is low

@@ -53,7 +53,7 @@ data class Scenario(
         }
 
         if (level < 0) return true // SavingThrowAction such as Breath Weapon
-        
+
         val maxSlots = attacker.getSpellSlots()[level - 1]
         val slotsUsed = getSpellsAcrossTurns().count { it.properties.Level == spell.properties.Level && it.name != HuntersMark.getNameWithWS() }
         if (slotsUsed >= maxSlots) Globals.  debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = "+getSpellsAcrossTurns())

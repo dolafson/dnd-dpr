@@ -288,6 +288,7 @@ fun main(args : Array<String>) {
             "--csv" -> { AttackResultFormatter.isCSV = true; i++}
             "-i"    -> { Globals.initLogger(LogLevel.INFO); i++ }
             "-d"    -> { Globals.initLogger(LogLevel.DEBUG); i++ }
+            "-w"    -> { Globals.initLogger(LogLevel.WARN); i++ }
         }
     }
 

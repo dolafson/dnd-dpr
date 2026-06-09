@@ -75,10 +75,10 @@ class Combat(val battleId: Int) {
             effectId = 0
         }
         if (!teamA.all { it.isDead() }) {
-            logger.info { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamSummary(teamA) } " }
+            logger.warn { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamSummary(teamA) } " }
             return true
         } else {
-            logger.info { "battleId=$battleId, turn=$turnId, winner = teamB = ${ teamSummary(teamB) } " }
+            logger.warn { "battleId=$battleId, turn=$turnId, winner = teamB = ${ teamSummary(teamB) } " }
             return false
         }
     }
@@ -129,12 +129,14 @@ class Combat(val battleId: Int) {
         attackResultList.addAll(attackResultsThisTurn)
     }
 
+    fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA
+
     fun getDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
-        return (if (combatant.onTeamA) teamB else teamA).filter { it.isDying() }.toList()
+        return getOpponents(combatant).filter { it.isDying() }.toList()
     }
 
     fun getNotDeadOrDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
-        return (if (combatant.onTeamA) teamB else teamA).filter { !it.isDeadOrDying() }.toList()
+        return getOpponents(combatant).filter { !it.isDeadOrDying() }.toList()
     }
 
     fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus?
@@ -193,7 +195,7 @@ class Combat(val battleId: Int) {
             logger.info { "chooseTurnActions: waitingForRecharge: ${combatant.combatant.waitingForRecharge}" }
         }
         val distance = combatant.distance(target)
-        val preferredTurnOption = combatant.getPreferredTurn(target, distance.toFeet())
+        val preferredTurnOption = combatant.getPreferredTurn(target, distance.toFeet(), getOpponents(combatant))
 
         if (preferredTurnOption != null) {
             val spell = preferredTurnOption.getSpell()
@@ -345,7 +347,7 @@ class Combat(val battleId: Int) {
                     targetList.addAll (potentialTargets)
                 }
             }
-            println("cone dir=$maxDir, targetList=$targetList")
+            logger.debug { "cone dir=$maxDir, targetList=$targetList" }
         }
 
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
