@@ -5,7 +5,7 @@ import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
@@ -26,7 +26,7 @@ data class CombatantWithStatus(
     var currentHP: Int = combatant.getHP(),
     var initiative: Int = (1..20).random() + combatant.getInitiativeBonus(),
     var flightSupported: Boolean = false,
-) : Combatant by combatant, TargetEffect(turn) {
+) : Combatant by combatant, TargetEffectList() {
 
     @Transient
     private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")
@@ -152,7 +152,7 @@ data class CombatantWithStatus(
 
     fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
 
-    fun canTakeAction() = currentHP > 0 && !noActionsPossible
+    fun canTakeAction() = currentHP > 0 && !isUnableToAct()
 
     fun isSlotAvailable(spell: Spell): Boolean {
         val level = spell.properties.Level

@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -210,7 +211,9 @@ class Combat(val battleId: Int) {
 
     fun getAttackRoll(combatant: CombatantWithStatus, target: CombatantWithStatus): Int {
         var attackRoll = (1..20).random()
-        val attackAdvantage = target.attacksAgainstMe.combine(combatant.attacksAgainstOthers)
+        val attackAdvantage = AttackAdvantage.fromList (listOf (
+            target.getAttacksAgainstMe(), combatant.getAttacksAgainstOthers()
+        ))
         logger.info { "attacker advantage = $attackAdvantage" }
         when (attackAdvantage) {
             AttackAdvantage.advantage    -> attackRoll = max(attackRoll, (1..20).random())
@@ -241,7 +244,7 @@ class Combat(val battleId: Int) {
         var damage = 0
 
         if (attackRoll >= target.getAC() || autoHit) {
-            val isCritDamage = autoHit || target.attackerAutoCritDamage
+            val isCritDamage = autoHit || target.isAttackerAutoCritDamage()
             damage = computeDamage(attack, target, isCritDamage, action.getDamageList())
             target.currentHP -= damage
         }
@@ -300,7 +303,7 @@ class Combat(val battleId: Int) {
             }
 
             if (spellAttack.isSavingThrowAttack()) {
-                result.addAll (castSavingThrowSpell (combatant, target, spellAttack, attack))
+                result.addAll (castSavingThrowSpell (combatant, target, spell, spellAttack, attack))
             } else {
                 result.addAll (meleeOrRangeAttack (combatant, target, attack, spellAttack))
             }
@@ -312,6 +315,7 @@ class Combat(val battleId: Int) {
     fun castSavingThrowSpell(
         combatant: CombatantWithStatus,
         focusTarget: CombatantWithStatus,
+        spell: Spell,
         spellAttack: SpellAttack,
         attack: Attack
     ) : List<CombatAttackResult>
@@ -355,12 +359,12 @@ class Combat(val battleId: Int) {
         for (target in targetList) {
             var successfulSave = false
 
-            val autoFailSave = (target.autoFailStrAndDexSaves &&
+            val autoFailSave = (target.isAutoFailStrAndDexSaves() &&
                     listOf(AbilityType.Strength, AbilityType.Dexterity).contains(save.saveAbility))
 
             if (!autoFailSave) {
                 var saveRoll = (1..20).random()
-                if (target.disadvantageOnSave == save.saveAbility) {
+                if (target.getDisadvantageOnSave() == save.saveAbility) {
                     saveRoll = max(saveRoll, (1..20).random())
                 }
 
@@ -377,7 +381,13 @@ class Combat(val battleId: Int) {
             val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
             target.currentHP -= finalDamage
             totalDamage += finalDamage
-            // TODO: on a failed save add conditions to target
+
+            if (!successfulSave) {
+                val effect = TargetEffect(turnId, spell)
+                if (!effect.isEmpty()) {
+                    target.add(TargetEffect(turnId, spell)) // TODO: now that we are adding effects, need to remove when spell ends
+                }
+            }
         }
 
         // if breath weapon or similar, add to the recharge list

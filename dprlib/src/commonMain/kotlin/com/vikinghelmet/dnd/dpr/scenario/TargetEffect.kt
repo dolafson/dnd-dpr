@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
+import kotlin.jvm.JvmName
 
 interface TargetEffectCause {}
 
@@ -15,18 +16,25 @@ open class TargetEffect (
     var cause: TargetEffectCause? = null,
     val probability: Float = 1f,
 
+    @get:JvmName("getCustomFieldAttacksAgainstMe")
     var attacksAgainstMe:     AttackAdvantage = AttackAdvantage.normal,
+
+    @get:JvmName("getCustomFieldAttacksAgainstOthers")
     var attacksAgainstOthers: AttackAdvantage = AttackAdvantage.normal,
 
     var disadvantageOnAttacksCaster: Boolean = false, // TODO: specify which caster ... CombatantWithStatus ?
 
+    @get:JvmName("getCustomFieldAttackerAutoCritDamage")
     var attackerAutoCritDamage: Boolean = false, // when target is hit, double damage
+
+    @get:JvmName("getCustomFieldAutoFailStrAndDexSaves")
     var autoFailStrAndDexSaves: Boolean = false, // Paralyzed, Petrified, Stunned,
-    var noActionsPossible:      Boolean = false,
+    var unableToAct:            Boolean = false,
 
     // some effects are dependent on abilityType; these aren't modeled in Preconditions,
     // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
 
+    @get:JvmName("getCustomFieldDisadvantageOnSave")
     var disadvantageOnSave:          AbilityType? = null, // always just 1 at a time
     var savePenaltyFilter:           AbilityType? = null, // never assigned
     var disadvantageOnAbilityChecks: AbilityType? = null, // either STR or ALL
@@ -50,13 +58,19 @@ open class TargetEffect (
         }
     }
 
+    fun getAttacksAgainstMe() = attacksAgainstMe
+    fun getAttacksAgainstOthers() = attacksAgainstOthers
+    fun isAttackerAutoCritDamage() = attackerAutoCritDamage
+    fun isAutoFailStrAndDexSaves() = autoFailStrAndDexSaves
+    fun getDisadvantageOnSave() = disadvantageOnSave
+
     fun getSpell() = if (cause != null && cause is Spell) cause as Spell else null
     fun getDuration() = if (getSpell() == null) 1 else getSpell()?.getDuration() ?: 0
 
     fun hasSaveImpact() = savePenalty.isNotEmpty() || disadvantageOnSave != null || autoFailStrAndDexSaves
 
     fun isEmptyExceptForAdvantage(): Boolean {
-        return  attacksAgainstOthers == AttackAdvantage.normal && !noActionsPossible && !attackerAutoCritDamage &&
+        return  attacksAgainstOthers == AttackAdvantage.normal && !unableToAct && !attackerAutoCritDamage &&
                 disadvantageOnAbilityChecks == null &&
                 disadvantageOnSave == null &&
                 !autoFailStrAndDexSaves &&
@@ -92,7 +106,7 @@ open class TargetEffect (
 
             Condition.Incapacitated ->  // you can’t take any action, Bonus Action, or Reaction; conc is broken; can't speak; disadvantage on initiative
             {
-                noActionsPossible = true;
+                unableToAct = true;
                 // TODO: conc is broken; can't speak; disadvantage on initiative
             }
 
@@ -250,7 +264,7 @@ open class TargetEffect (
         if (savePenaltyFilter  != null) buf.append("savePenaltyFilter="+savePenaltyFilter).append(";")
         if (savePenalty.isNotEmpty()) buf.append("savePenalty="+savePenalty).append(";")
 
-        if (noActionsPossible) buf.append("noActionOrBA").append(";")
+        if (unableToAct) buf.append("noActionOrBA").append(";")
         if (disadvantageOnAbilityChecks != null) buf.append("disadvantageOnAbilityChecks="+disadvantageOnAbilityChecks).append(";")
         if (attackPenalty.isNotEmpty()) buf.append("attackPenalty="+attackPenalty).append(";")
         if (damagePenalty.isNotEmpty()) buf.append("damagePenalty="+damagePenalty).append(";")

@@ -102,7 +102,7 @@ enum class TurnOptionRanking {
                 return SpellThatGivesAdvantage
             }
 
-            if (targetEffect.noActionsPossible) {
+            if (targetEffect.unableToAct) {
                 return if (spell.isAOE()) SpellWithIncapcitateAOE else SpellWithIncapcitate
             }
 

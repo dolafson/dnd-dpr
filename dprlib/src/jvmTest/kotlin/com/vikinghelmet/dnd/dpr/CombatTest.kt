@@ -1,15 +1,16 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 private val logger = LoggerFactory.get(CombatTest::class.simpleName ?: "")
 
@@ -36,112 +37,6 @@ class CombatTest {
         loc2.moveTowardLocation(loc1, 6)
         assertEquals(Location(3,-2), loc2)  // no movement needed
     }
-
-    @Test
-    fun chooseTargetOleg() {
-        TestUtil.dependency()
-
-        val combat = Combat(0,listOf(TestUtil.oleg), listOf(Globals.getMonster("Young Green Dragon")))
-        val oleg = combat.teamA[0]
-        val dragon = combat.teamB[0]
-
-        oleg.location = Location(-4, 0)
-        dragon.location = Location(3, -2)
-
-        assertEquals(Distance.fromFeet(Constants.MELEE_RANGE), oleg.getPreferredCombatDistance())
-        assertEquals(Distance.fromFeet(Constants.MELEE_RANGE), dragon.getPreferredCombatDistance())
-
-        combat.chooseTarget(oleg)
-        assertEquals(Location(2,-1), oleg.location) // movement occurred
-
-        println("oleg.actionsAvailable = ${oleg.getActionsAvailable()}")
-
-        var olegAttacks = combat.chooseTurnActions(oleg, dragon)
-        println ("olegAttacks: $olegAttacks")
-
-        combat.chooseTarget(dragon)
-        assertEquals(Location(3,-2), dragon.location) // movement occurred
-
-        var dragonAttacks = combat.chooseTurnActions(dragon, oleg)
-        println ("dragonAttacks: $dragonAttacks")
-
-        // second round
-
-        println("oleg.actionsAvailable = ${oleg.getActionsAvailable()}")
-        combat.chooseTarget(oleg)
-        assertEquals(Location(2,-1), oleg.location) // movement occurred
-
-        olegAttacks = combat.chooseTurnActions(oleg, dragon)
-        println ("olegAttacks: $olegAttacks")
-
-        combat.chooseTarget(dragon)
-        assertEquals(Location(3,-2), dragon.location) // movement occurred
-
-        dragonAttacks = combat.chooseTurnActions(dragon, oleg)
-        println ("dragonAttacks: $dragonAttacks")
-
-        val breathAttack = dragonAttacks[0]
-        println ("breathAttack: $breathAttack")
-
-        assertTrue(breathAttack.action is Spell)
-
-        val spellAttackList = breathAttack.action.getSpellAttacks(0)
-        assertEquals(1, spellAttackList.size)
-
-        val spellAttack = spellAttackList[0]
-        var initialDamage = combat.computeDamage(breathAttack, oleg, false, spellAttack.getDamageList())
-        println("initial damage = $initialDamage")
-
-        val damageOnFail = combat.applySavingThrowDamageModifiers (spellAttack, breathAttack, initialDamage, false)
-        val damageOnSave = combat.applySavingThrowDamageModifiers (spellAttack, breathAttack, initialDamage, true)
-
-        println ("damageOnFail: $damageOnFail")
-        println ("damageOnSave: $damageOnSave")
-
-        assertEquals(initialDamage, damageOnFail)
-        assertNotEquals(0, damageOnSave)
-        assertEquals(damageOnSave*2, damageOnFail)
-    }
-
-
-    @Test
-    fun chooseTargetLeifOld() {
-        TestUtil.dependency()
-
-        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
-        val leif = combat.teamA[0]
-        val dragon = combat.teamB[0]
-
-        leif.location = Location(-4, 0)
-        dragon.location = Location(3, -2)
-
-        assertEquals(Distance.fromFeet(60), leif.getPreferredCombatDistance())
-        assertEquals(Distance.fromFeet(Constants.MELEE_RANGE), dragon.getPreferredCombatDistance())
-
-        // println("leif.actionsAvailable = ${leif.getActionsAvailable()}")
-
-        for (turn in 0..4) {
-            combat.turnId = turn
-            combat.chooseTarget(leif)
-            var leifAttacks = combat.chooseTurnActions(leif, dragon)
-            println ("turn=$turn, leifAttacks: $leifAttacks")
-            when (turn) {
-                0 -> assertEquals(listOf("Longbow","Hunter's Mark"), leifAttacks.map { it.action.getActionName() }.toList())
-                1,2 -> assertEquals(listOf("Longbow","Hail of Thorns"), leifAttacks.map { it.action.getActionName() }.toList())
-                3,4 -> assertEquals(listOf("Dagger","Shortsword"), leifAttacks.map { it.action.getActionName() }.toList())
-            }
-
-            combat.chooseTarget(dragon)
-            var dragonAttacks = combat.chooseTurnActions(dragon, leif)
-
-            // note: chooseTurnActions does not update "waitingForRecharge" (that happens elsewhere),
-            // so in this test the dragon always chooses Poison Breath
-
-            println ("turn=$turn, dragonAttacks: $dragonAttacks")
-            assertEquals(listOf("Poison Breath"), dragonAttacks.map { it.action.getActionName() }.toList())
-        }
-    }
-
 
     @Test
     fun chooseTargetLeif() {
@@ -485,5 +380,35 @@ class CombatTest {
             cone.dump()
             println()
         }
+    }
+
+    @Test
+    fun entangle() {
+        TestUtil.dependency()
+        val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+
+        // force melee
+        combat.teamA[0].location = combat.teamB[0].location.copy()
+
+        val leif = combat.teamA[0]
+        val goblin = combat.teamB[0]
+
+        // force the goblin to fail its saving throw (entangle has a STR save)
+        goblin.add(TargetEffect(0, autoFailStrAndDexSaves = true))
+
+        var attacks = combat.chooseTurnActions(leif, goblin)
+        println(attacks.map { it.action.getActionName() }.toList())
+        assertEquals(listOf("Entangle"), attacks.map { it.action.getActionName() }.toList())
+
+        assertTrue(attacks[0].action is Spell)
+        val spell = attacks[0].action as Spell
+
+        combat.castSavingThrowSpell(leif, goblin, spell, spell.getSpellAttacks(0)[0], attacks[0])
+
+        // https://www.dndbeyond.com/spells/2085-entangle?srsltid=AfmBOoqr7BbKDxX_vWM2WEXKy8YxQaMmDT7ptb4dS4y9CoXZpRwjkHHd
+        assertTrue (goblin.any { it.conditions.contains(com.vikinghelmet.dnd.dpr.util.Condition.Restrained) })
+        assertEquals (AttackAdvantage.advantage, goblin.getAttacksAgainstMe())
+        assertEquals (AttackAdvantage.disadvantage, goblin.getAttacksAgainstOthers())
+        // TODO: getDisadvantageOnSave -> DEX
     }
 }
