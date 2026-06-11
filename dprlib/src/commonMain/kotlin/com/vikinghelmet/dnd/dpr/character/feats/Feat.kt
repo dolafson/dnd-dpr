@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr.character.feats
 
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
-import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffectCause
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.SerialName
 

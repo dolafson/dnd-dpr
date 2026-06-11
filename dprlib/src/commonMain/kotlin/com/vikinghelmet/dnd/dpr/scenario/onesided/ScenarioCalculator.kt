@@ -4,7 +4,9 @@ import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
@@ -90,7 +92,14 @@ class ScenarioCalculator(
 
         if (weapon.hasMasteryProperty(MasteryProperty.Vex)) {
             logger.debug { "turn=$turnId, vex = true" }
-            effectManager.add(TargetEffect(turnId, MasteryProperty.Vex, resultList.first().chanceToHit.avg, attackersHaveAdvantage = true))
+            effectManager.add(
+                TargetEffect(
+                    turnId,
+                    MasteryProperty.Vex,
+                    resultList.first().chanceToHit.avg,
+                    attackersHaveAdvantage = true
+                )
+            )
         }
 
         if (scenario.attacker.isFeatEnabled(Feat.ColdCaster)) {
@@ -99,7 +108,14 @@ class ScenarioCalculator(
             // you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next
             // saving throw it makes before the end of your next turn.
             // TODO: should also check if damage type = Cold (though WW always adds cold damage to weapons, once/round)
-            effectManager.add(TargetEffect(turnId, Feat.ColdCaster, resultList.first().chanceToHit.avg, savePenalty = mutableListOf("1d4")))
+            effectManager.add(
+                TargetEffect(
+                    turnId,
+                    Feat.ColdCaster,
+                    resultList.first().chanceToHit.avg,
+                    savePenalty = DiceBlock("1d4")
+                )
+            )
             Globals.debug("after adding CC feat, effects = " + effectManager)
         }
 

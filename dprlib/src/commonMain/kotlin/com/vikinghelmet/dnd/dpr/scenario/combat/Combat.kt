@@ -92,7 +92,6 @@ class Combat(val battleId: Int) {
             if (combatant.isDead()) {
                 logger.debug { "fullTurn, turn=$turnId, combatant=$combatant, is dead" }
             } else if (combatant.isDying()) {
-                // TODO: roll for death saving throw
                 combatant.deathSave()
                 logger.info { "fullTurn, turn=$turnId, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
             } else if (!combatant.canTakeAction()) {
@@ -322,7 +321,6 @@ class Combat(val battleId: Int) {
 
         val save = spellAttack.attackPayload.save!!
 
-        // TODO: area of effect spells (multiple targets)
         val targetList = mutableListOf<CombatantWithStatus>()
         var totalDamage = 0
 
@@ -355,9 +353,9 @@ class Combat(val battleId: Int) {
         for (target in targetList) {
             var successfulSave = false
 
-            if (!target.autoFailSave.contains(save.saveAbility)) {
+            if (!target.autoFailStrAndDexSaves) {
                 var saveRoll = (1..20).random()
-                if (target.disadvantageOnSave.any { it2 -> it2.match(save.saveAbility) }) {
+                if (target.disadvantageOnSave == save.saveAbility) {
                     saveRoll = max(saveRoll, (1..20).random())
                 }
 

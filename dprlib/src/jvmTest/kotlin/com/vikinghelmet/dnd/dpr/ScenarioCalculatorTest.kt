@@ -1,12 +1,12 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
-import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
 import com.vikinghelmet.dnd.dpr.util.Constants.MELEE_RANGE
@@ -111,7 +111,7 @@ class ScenarioCalculatorTest {
         assertEquals("70.0% = Incapacitated, Unconscious, Exhaustion", withSleepResults.attackResults[1].startCondition)
 
         assertEquals("", noSleepResults.attackResults[1].startCondition)
-        assertEquals("70.0% = attackerHasAdvantage;attackerAutoCrit;autoFailSave=[Strength, Dexterity];disadvantageOnAttacks;noActionOrBA;", withSleepResults.attackResults[1].startEffects)
+        assertEquals("70.0% = attackerHasAdvantage;attackerAutoCrit;autoFailStrAndDexSaves=true;disadvantageOnAttacks;noActionOrBA;", withSleepResults.attackResults[1].startEffects)
 
         println("noSleepResults.totalDamage   = ${ noSleepResults.totalDamage }")
         println("withSleepResults.totalDamage = ${ withSleepResults.totalDamage }")

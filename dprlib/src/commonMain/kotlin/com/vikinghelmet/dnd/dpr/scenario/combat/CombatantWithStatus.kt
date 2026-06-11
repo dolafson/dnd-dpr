@@ -2,10 +2,11 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Turn
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
-import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -35,6 +36,10 @@ data class CombatantWithStatus(
 
     var target: CombatantWithStatus? = null
 
+    val temporaryDamageResistance = mutableListOf<DamageType>()
+    val temporaryDamageImmunity = mutableListOf<DamageType>()
+    val temporaryDamageVulnerability = mutableListOf<DamageType>()
+
     fun distance(target: CombatantWithStatus): Distance {
         return distance(target.location)
     }
@@ -62,7 +67,6 @@ data class CombatantWithStatus(
 
     fun getSpeed() = if (flightSupported) max(getSpeed(Movement.fly),getSpeed(Movement.walk)) else getSpeed(Movement.walk)
 
-    // TODO: move most of the moveAwayFromTarget() method into Location class
     fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Distance): Distance {
         var closestDistance = closestDistanceStart
         val initialLoc = location.copy()
@@ -254,4 +258,8 @@ data class CombatantWithStatus(
 
         return if (sorted.isEmpty()) null else sorted[0].first
     }
+
+    override fun getDamageImmunities() = combatant.getDamageImmunities() + temporaryDamageImmunity
+    override fun getDamageResistances() = combatant.getDamageResistances() + temporaryDamageResistance
+    override fun getDamageVulnerabilities() = combatant.getDamageVulnerabilities() + temporaryDamageVulnerability
 }

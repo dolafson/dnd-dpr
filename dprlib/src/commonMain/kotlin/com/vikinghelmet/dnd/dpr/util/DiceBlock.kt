@@ -54,6 +54,8 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
         return min() == 0
     }
 
+    fun isNotEmpty() = !isEmpty()
+
     fun double(): DiceBlock {
         return DiceBlock(d4*2, d6*2, d8*2, d10*2, d12*2)
     }

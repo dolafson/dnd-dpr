@@ -7,13 +7,14 @@ import com.vikinghelmet.dnd.dpr.action.AvgMinMax
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.onesided.EffectManager
 import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffect
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -80,7 +81,7 @@ class SavePenaltyTest {
 
         // second, results for same scenario WITH savePenalty
         val effectManager = EffectManager(mutableListOf(
-            TargetEffect(startTurn = 0, probability = 0.7f, savePenalty = mutableListOf("1d4"))))
+            TargetEffect(startTurn = 0, probability = 0.7f, savePenalty = DiceBlock("1d4"))))
 
         var withPenaltyResult = ActionCalculator(scenario, effectManager)
             .getMeleeOrRangeDPR(weapon, weaponAttack, 1, 1, 1)
@@ -112,7 +113,7 @@ class SavePenaltyTest {
 
         // second, results for same scenario WITH savePenalty
         val effectManager = EffectManager(mutableListOf(
-            TargetEffect(startTurn = 0, probability = 0.7f, savePenalty = mutableListOf("1d4"))))
+            TargetEffect(startTurn = 0, probability = 0.7f, savePenalty = DiceBlock("1d4"))))
 
         var withPenaltyResult = ActionCalculator(scenario, effectManager)
             .getSavingThrowSpellDPR(spell.getSpellAttacks(attackBonus)[0], spell, attack)

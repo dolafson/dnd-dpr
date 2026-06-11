@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.action.ActionCalculator
 import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.AvgMinMax
 import com.vikinghelmet.dnd.dpr.action.Turn
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.onesided.*
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS

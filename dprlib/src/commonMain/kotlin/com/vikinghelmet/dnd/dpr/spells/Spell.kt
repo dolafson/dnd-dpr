@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.action.Action
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
-import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffectCause
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.util.Condition

@@ -4,9 +4,9 @@ import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Preconditions
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 
@@ -32,7 +32,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
     // TODO: support multiple forms of save disadvantage on a single turn?
     fun targetHasDisadvantageOnSave(abilityType: AbilityType?): TargetEffect? {
         return if (abilityType != null) null
-            else runningEffectList.firstOrNull { it.disadvantageOnSave.any { it2 -> it2.match(abilityType) }}
+            else runningEffectList.firstOrNull { it.disadvantageOnSave == abilityType }
     }
 
     fun isAutoCrit() = runningEffectList.any { it.attackerAutoCrit == true }
@@ -119,28 +119,20 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
 
         for (priorEffect in runningEffectList)
         {
-            for (penalty in priorEffect.savePenalty) {
-                precondition.penaltyDiceToSave += DiceBlock(penalty)
-            }
-
-            for (damage in priorEffect.attackerExtraDamageOnHit) {
-                precondition.bonusDamageDice += DiceBlock (damage)
-            }
+            precondition.penaltyDiceToSave += priorEffect.savePenalty
+            precondition.bonusDamageDice += priorEffect.attackerExtraDamageOnHit
 
             if (currentSpell != null) {
                 // translate spell save effects to Preconditions
                 val saveAbility = currentSpell.getSpellSaveAbility()
 
-                if (priorEffect.autoFailSave.any { it.match(saveAbility) }) {
+                if (priorEffect.autoFailStrAndDexSaves) {
                     precondition.autoFailSave = true // note, we can hit this point for multiple priorEffects
                 }
 
-                for (penalty in priorEffect.savePenalty)
-                {
-                    val filterMatch = priorEffect.savePenaltyFilter.any { it.match(saveAbility) }
-                    if (filterMatch) {
-                        precondition.penaltyDiceToSave += DiceBlock(penalty)
-                    }
+                val filterMatch = priorEffect.savePenaltyFilter == saveAbility
+                if (filterMatch) {
+                    precondition.penaltyDiceToSave += priorEffect.savePenalty
                 }
             }
         }

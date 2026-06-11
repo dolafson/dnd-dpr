@@ -2,7 +2,7 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.Weapon
-import com.vikinghelmet.dnd.dpr.scenario.onesided.TargetEffect
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
 
 enum class TurnOptionRanking {
