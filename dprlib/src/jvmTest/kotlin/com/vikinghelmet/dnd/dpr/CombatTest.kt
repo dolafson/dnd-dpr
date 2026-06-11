@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 private val logger = LoggerFactory.get(CombatTest::class.simpleName ?: "")
 
@@ -82,8 +83,12 @@ class CombatTest {
         val breathAttack = dragonAttacks[0]
         println ("breathAttack: $breathAttack")
 
-        val spellAttack = (breathAttack.action as Spell).getSpellAttacks(0)[0]
+        assertTrue(breathAttack.action is Spell)
 
+        val spellAttackList = breathAttack.action.getSpellAttacks(0)
+        assertEquals(1, spellAttackList.size)
+
+        val spellAttack = spellAttackList[0]
         var initialDamage = combat.computeDamage(breathAttack, oleg, false, spellAttack.getDamageList())
         println("initial damage = $initialDamage")
 

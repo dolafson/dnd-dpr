@@ -7,6 +7,7 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 
@@ -27,7 +28,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
     }
 
     // TODO: support multiple forms of advantage on a single turn?
-    fun attackerHasAdvantage() = runningEffectList.firstOrNull { it.attackersHaveAdvantage == true }
+    fun attackerHasAdvantage() = runningEffectList.firstOrNull { it.attacksAgainstMe == AttackAdvantage.advantage }
 
     // TODO: support multiple forms of save disadvantage on a single turn?
     fun targetHasDisadvantageOnSave(abilityType: AbilityType?): TargetEffect? {
@@ -35,7 +36,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
             else runningEffectList.firstOrNull { it.disadvantageOnSave == abilityType }
     }
 
-    fun isAutoCrit() = runningEffectList.any { it.attackerAutoCrit == true }
+    fun isAutoCrit() = runningEffectList.any { it.attackerAutoCritDamage == true }
 
     override fun toString(): String {
         val buf = StringBuilder()
@@ -126,7 +127,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
                 // translate spell save effects to Preconditions
                 val saveAbility = currentSpell.getSpellSaveAbility()
 
-                if (priorEffect.autoFailStrAndDexSaves) {
+                if (priorEffect.autoFailStrAndDexSaves && listOf(AbilityType.Strength, AbilityType.Dexterity).contains(saveAbility)) {
                     precondition.autoFailSave = true // note, we can hit this point for multiple priorEffects
                 }
 

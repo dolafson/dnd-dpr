@@ -6,6 +6,7 @@ import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -97,7 +98,7 @@ class ScenarioCalculator(
                     turnId,
                     MasteryProperty.Vex,
                     resultList.first().chanceToHit.avg,
-                    attackersHaveAdvantage = true
+                    attacksAgainstMe = AttackAdvantage.advantage
                 )
             )
         }

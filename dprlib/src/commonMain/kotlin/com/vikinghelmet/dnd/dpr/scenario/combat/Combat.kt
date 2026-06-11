@@ -2,12 +2,14 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.AtomicInt
@@ -208,12 +210,12 @@ class Combat(val battleId: Int) {
 
     fun getAttackRoll(combatant: CombatantWithStatus, target: CombatantWithStatus): Int {
         var attackRoll = (1..20).random()
-        if (target.attackersHaveAdvantage && !combatant.disadvantageOnAttacks) {
-            logger.info { "attacker has advantage" }
-            attackRoll = max(attackRoll, (1..20).random())
-        } else if (!target.attackersHaveAdvantage && combatant.disadvantageOnAttacks) {
-            logger.info { "attacker has disadvantage" }
-            attackRoll = min(attackRoll, (1..20).random())
+        val attackAdvantage = target.attacksAgainstMe.combine(combatant.attacksAgainstOthers)
+        logger.info { "attacker advantage = $attackAdvantage" }
+        when (attackAdvantage) {
+            AttackAdvantage.advantage    -> attackRoll = max(attackRoll, (1..20).random())
+            AttackAdvantage.disadvantage -> attackRoll = min(attackRoll, (1..20).random())
+            AttackAdvantage.normal -> {}
         }
         return attackRoll
     }
@@ -239,8 +241,8 @@ class Combat(val battleId: Int) {
         var damage = 0
 
         if (attackRoll >= target.getAC() || autoHit) {
-            val isCrit = autoHit || target.attackerAutoCrit
-            damage = computeDamage(attack, target, isCrit, action.getDamageList())
+            val isCritDamage = autoHit || target.attackerAutoCritDamage
+            damage = computeDamage(attack, target, isCritDamage, action.getDamageList())
             target.currentHP -= damage
         }
 
@@ -353,7 +355,10 @@ class Combat(val battleId: Int) {
         for (target in targetList) {
             var successfulSave = false
 
-            if (!target.autoFailStrAndDexSaves) {
+            val autoFailSave = (target.autoFailStrAndDexSaves &&
+                    listOf(AbilityType.Strength, AbilityType.Dexterity).contains(save.saveAbility))
+
+            if (!autoFailSave) {
                 var saveRoll = (1..20).random()
                 if (target.disadvantageOnSave == save.saveAbility) {
                     saveRoll = max(saveRoll, (1..20).random())

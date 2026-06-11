@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -14,11 +15,14 @@ open class TargetEffect (
     var cause: TargetEffectCause? = null,
     val probability: Float = 1f,
 
-    var attackersHaveAdvantage: Boolean = false,
-    var attackerAutoCrit:       Boolean = false, // when target is hit, double damage
+    var attacksAgainstMe:     AttackAdvantage = AttackAdvantage.normal,
+    var attacksAgainstOthers: AttackAdvantage = AttackAdvantage.normal,
+
+    var disadvantageOnAttacksCaster: Boolean = false, // TODO: specify which caster ... CombatantWithStatus ?
+
+    var attackerAutoCritDamage: Boolean = false, // when target is hit, double damage
     var autoFailStrAndDexSaves: Boolean = false, // Paralyzed, Petrified, Stunned,
-    var disadvantageOnAttacks:  Boolean = false,
-    var noActionOrBA:           Boolean = false,
+    var noActionsPossible:      Boolean = false,
 
     // some effects are dependent on abilityType; these aren't modeled in Preconditions,
     // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
@@ -52,7 +56,7 @@ open class TargetEffect (
     fun hasSaveImpact() = savePenalty.isNotEmpty() || disadvantageOnSave != null || autoFailStrAndDexSaves
 
     fun isEmptyExceptForAdvantage(): Boolean {
-        return !disadvantageOnAttacks!! && !noActionOrBA!! && !attackerAutoCrit!! &&
+        return  attacksAgainstOthers == AttackAdvantage.normal && !noActionsPossible && !attackerAutoCritDamage &&
                 disadvantageOnAbilityChecks == null &&
                 disadvantageOnSave == null &&
                 !autoFailStrAndDexSaves &&
@@ -64,31 +68,31 @@ open class TargetEffect (
     }
 
     fun isEmpty(): Boolean {
-        return !attackersHaveAdvantage!! && isEmptyExceptForAdvantage()
+        return attacksAgainstMe == AttackAdvantage.normal && isEmptyExceptForAdvantage()
     }
 
     fun applyCondition(cond: Condition) {
         when (cond) {
             Condition.Blinded -> // Attack rolls against you have Advantage, and your attack rolls have Disadvantage.
             {
-                attackersHaveAdvantage = true
-                disadvantageOnAttacks = true
+                attacksAgainstMe     = AttackAdvantage.advantage
+                attacksAgainstOthers = AttackAdvantage.disadvantage
             }
 
             Condition.Frightened ->     // you have Disadvantage on ability checks and attack rolls while the source of fear is within line of sight.
             {
                 disadvantageOnAbilityChecks = AbilityType.ALL
-                disadvantageOnAttacks = true
+                attacksAgainstOthers = AttackAdvantage.disadvantage
             }
 
             Condition.Grappled ->       // speed=0; You have Disadvantage on attack rolls against any target other than the grappler.
             {
-                disadvantageOnAttacks = true
+                attacksAgainstOthers = AttackAdvantage.disadvantage
             }
 
             Condition.Incapacitated ->  // you can’t take any action, Bonus Action, or Reaction; conc is broken; can't speak; disadvantage on initiative
             {
-                noActionOrBA = true;
+                noActionsPossible = true;
                 // TODO: conc is broken; can't speak; disadvantage on initiative
             }
 
@@ -96,35 +100,34 @@ open class TargetEffect (
             {
                 applyCondition(Condition.Incapacitated)
                 autoFailStrAndDexSaves = true
-                attackersHaveAdvantage = true
-                attackerAutoCrit = true // TODO: 5 feet
+                attacksAgainstMe = AttackAdvantage.advantage
+                attackerAutoCritDamage = true // TODO: 5 feet
             }
 
             Condition.Petrified ->      // Incapacitated++ ; speed=0; auto-fail STR and DEX saving throws; Attack rolls against you have Advantage; resist damage; immune to poison
             {
                 applyCondition(Condition.Incapacitated)
                 autoFailStrAndDexSaves = true
-                attackersHaveAdvantage = true
+                attacksAgainstMe = AttackAdvantage.advantage
                 // TODO: resist damage; immune to poison
             }
 
             Condition.Poisoned ->       // You have Disadvantage on attack rolls and ability checks.
             {
-                disadvantageOnAttacks = true
+                attacksAgainstOthers = AttackAdvantage.disadvantage
                 disadvantageOnAbilityChecks = AbilityType.ALL
             }
 
             Condition.Prone ->          // half-speed to end; You have Disadvantage on attacks. Attacks against you: Advantage w/in 5 feet, else Disadvantage.
             {
-                disadvantageOnAttacks = true
+                attacksAgainstOthers = AttackAdvantage.disadvantage
                 // TODO: Attacks against you: Advantage w/in 5 feet, else Disadvantage.
             }
             Condition.Restrained ->    // speed=0; Attack rolls against you have Advantage, and your attack rolls have Disadvantage. You have Disadvantage on Dexterity saving throws
             {
-                attackersHaveAdvantage = true
-                disadvantageOnAttacks = true
-
-                disadvantageOnSave = AbilityType.Dexterity
+                attacksAgainstMe     = AttackAdvantage.advantage
+                attacksAgainstOthers = AttackAdvantage.disadvantage
+                disadvantageOnSave   = AbilityType.Dexterity
             }
             Condition.Stunned ->        // Incapacitated++ ; auto-fail STR and DEX saving throws; Attack rolls against you have Advantage
             {
@@ -134,11 +137,11 @@ open class TargetEffect (
             }
             Condition.Unconscious ->    // Incapacitated+Prone++ ; speed=0; Attack rolls against you have Advantage; auto-fail STR and DEX saving throws;  auto-crit (5 ft)
             {
-                attackersHaveAdvantage = true
+                attacksAgainstMe = AttackAdvantage.advantage
                 applyCondition(Condition.Incapacitated)
                 applyCondition(Condition.Prone)
                 autoFailStrAndDexSaves = true
-                attackerAutoCrit = true // TODO: within 5 feet
+                attackerAutoCritDamage = true // TODO: within 5 feet
             }
             else -> {
 //                logger.warn { "condition does not currently impact target effect: "+cond }
@@ -166,11 +169,11 @@ open class TargetEffect (
             SpellsWithComplexRules.BestowCurse -> {
                 // Choose one ability. The target has Disadvantage on ability checks and saving throws made with that ability.\n-The target has Disadvantage on attack rolls against you.
                 // TODO: user-selection ?
-                disadvantageOnAttacks = true
+                disadvantageOnAttacksCaster = true
             }
             SpellsWithComplexRules.Blur -> {
                 // Disadvantage on attack rolls against you
-                disadvantageOnAttacks = true
+                disadvantageOnAttacksCaster = true
             }
             SpellsWithComplexRules.EnlargeReduce -> {
                 // TODO: user-selection (Reduce) ?
@@ -182,13 +185,13 @@ open class TargetEffect (
                 // TODO: −10 penalty to Wisdom (Perception) checks and Passive Perception
             }
             SpellsWithComplexRules.FaerieFire -> {
-                attackersHaveAdvantage = true // TODO: only if attacker can see the target ?
+                attacksAgainstMe = AttackAdvantage.advantage // TODO: only if attacker can see the target ?
             }
             SpellsWithComplexRules.GuidingBolt -> {
                 // duration = 1 turn
                 // does NOT require concentration
                 // next attack roll made against it before the end of your next turn has Advantage
-                attackersHaveAdvantage = true
+                attacksAgainstMe = AttackAdvantage.advantage
             }
             SpellsWithComplexRules.Hex -> {
                 // duration = 1 hour
@@ -207,13 +210,11 @@ open class TargetEffect (
             SpellsWithComplexRules.OttosIrresistibleDance -> {
                 // Disadvantage on Dexterity saving throws and attack rolls, and other creatures have Advantage on attack rolls against it
                 disadvantageOnSave = AbilityType.Dexterity
-                disadvantageOnAttacks = true
-                attackersHaveAdvantage = true
+                attacksAgainstOthers = AttackAdvantage.disadvantage
+                attacksAgainstMe = AttackAdvantage.advantage
             }
             SpellsWithComplexRules.PhantasmalKiller -> {
-                // Disadvantage on ability checks and attack rolls
-                disadvantageOnAbilityChecks = AbilityType.ALL
-                disadvantageOnAttacks = true
+                applyCondition(Condition.Frightened)
             }
             SpellsWithComplexRules.RayOfEnfeeblement -> {
                 // On a failed save, the target has Disadvantage on Strength-based D20 Tests for the duration.
@@ -224,20 +225,22 @@ open class TargetEffect (
             }
             SpellsWithComplexRules.ShiningSmite -> {
                 // attack rolls against it have Advantage
-                attackersHaveAdvantage = true
+                attacksAgainstMe = AttackAdvantage.advantage
             }
             SpellsWithComplexRules.ViciousMockery -> {
                 // spell duration is "instantaneous", but effect duration is 1 turn
                 // Disadvantage on the next attack roll it makes before the end of its next turn
-                disadvantageOnAttacks = true
+                attacksAgainstOthers = AttackAdvantage.disadvantage
             }
             else -> {}
         }
     }
     override fun toString(): String {
         val buf = StringBuilder()
-        if (attackersHaveAdvantage!!) buf.append("attackerHasAdvantage").append(";")
-        if (attackerAutoCrit!!) buf.append("attackerAutoCrit").append(";")
+        if (attacksAgainstMe     != AttackAdvantage.normal) buf.append("attacksAgainstMe=$attacksAgainstMe").append(";")
+        if (attacksAgainstOthers != AttackAdvantage.normal) buf.append("attacksAgainstOthers=$attacksAgainstOthers").append(";")
+
+        if (attackerAutoCritDamage) buf.append("attackerAutoCrit").append(";")
         if (!attackerExtraDamageOnHit.isEmpty()) buf.append("extraDamageOnHit="+attackerExtraDamageOnHit).append(";")
 
         // some effects are dependent on abilityType; these aren't modelled in Preconditions,
@@ -247,9 +250,7 @@ open class TargetEffect (
         if (savePenaltyFilter  != null) buf.append("savePenaltyFilter="+savePenaltyFilter).append(";")
         if (savePenalty.isNotEmpty()) buf.append("savePenalty="+savePenalty).append(";")
 
-        // remaining effects only matter when monsters fight back ...
-        if (disadvantageOnAttacks!!) buf.append("disadvantageOnAttacks").append(";")
-        if (noActionOrBA!!) buf.append("noActionOrBA").append(";")
+        if (noActionsPossible) buf.append("noActionOrBA").append(";")
         if (disadvantageOnAbilityChecks != null) buf.append("disadvantageOnAbilityChecks="+disadvantageOnAbilityChecks).append(";")
         if (attackPenalty.isNotEmpty()) buf.append("attackPenalty="+attackPenalty).append(";")
         if (damagePenalty.isNotEmpty()) buf.append("damagePenalty="+damagePenalty).append(";")

@@ -111,7 +111,7 @@ class ScenarioCalculatorTest {
         assertEquals("70.0% = Incapacitated, Unconscious, Exhaustion", withSleepResults.attackResults[1].startCondition)
 
         assertEquals("", noSleepResults.attackResults[1].startCondition)
-        assertEquals("70.0% = attackerHasAdvantage;attackerAutoCrit;autoFailStrAndDexSaves=true;disadvantageOnAttacks;noActionOrBA;", withSleepResults.attackResults[1].startEffects)
+        assertEquals("70.0% = attacksAgainstMe=advantage;attacksAgainstOthers=disadvantage;attackerAutoCrit;autoFailStrAndDexSaves=true;noActionOrBA;", withSleepResults.attackResults[1].startEffects)
 
         println("noSleepResults.totalDamage   = ${ noSleepResults.totalDamage }")
         println("withSleepResults.totalDamage = ${ withSleepResults.totalDamage }")

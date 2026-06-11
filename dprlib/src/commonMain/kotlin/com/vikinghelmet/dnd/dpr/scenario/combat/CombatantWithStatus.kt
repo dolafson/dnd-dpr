@@ -152,7 +152,7 @@ data class CombatantWithStatus(
 
     fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
 
-    fun canTakeAction() = currentHP > 0 && !noActionOrBA
+    fun canTakeAction() = currentHP > 0 && !noActionsPossible
 
     fun isSlotAvailable(spell: Spell): Boolean {
         val level = spell.properties.Level

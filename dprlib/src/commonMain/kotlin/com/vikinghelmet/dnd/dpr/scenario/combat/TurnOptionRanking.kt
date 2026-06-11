@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.Weapon
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 
 enum class TurnOptionRanking {
     // lowest to highest
@@ -97,11 +98,11 @@ enum class TurnOptionRanking {
             }
 
             val targetEffect = TargetEffect(0, spell)
-            if (targetEffect.attackersHaveAdvantage) {
+            if (targetEffect.attacksAgainstMe == AttackAdvantage.advantage) {
                 return SpellThatGivesAdvantage
             }
 
-            if (targetEffect.noActionOrBA) {
+            if (targetEffect.noActionsPossible) {
                 return if (spell.isAOE()) SpellWithIncapcitateAOE else SpellWithIncapcitate
             }
 
