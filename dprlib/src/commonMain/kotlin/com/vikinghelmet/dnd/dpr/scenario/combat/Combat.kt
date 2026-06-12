@@ -101,34 +101,39 @@ class Combat(val battleId: Int) {
                 logger.info { "fullTurn, turn=$turnId, combatant=$combatant, can not take action" }
             } else {
                 logger.debug { "fullTurn, turn=$turnId, combatant=$combatant is taking action" }
-                takeTurn(combatant)
+                attackResultList.addAll (takeTurn (combatant))
             }
         }
     }
 
-    fun takeTurn(combatant: CombatantWithStatus) {
+    fun takeTurn(combatant: CombatantWithStatus): List<CombatAttackResult> {
+        // TODO: check for any ongoing effects that are re-evaluated at START of turn
+
+        val attackResults = mutableListOf<CombatAttackResult>()
         val target = chooseTarget(combatant)
         combatant.target = target
+
         if (target == null) {
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, no target available" }
-            return
         }
-        val attackList = chooseTurnActions(combatant, target)
-        val attackResultsThisTurn = mutableListOf<CombatAttackResult>()
+        else {
+            val attackList = chooseTurnActions(combatant, target)
 
-        logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
+            logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
-        for (attack in attackList) {
-            if (attack.action is Weapon) {
-                attackResultsThisTurn.addAll (meleeOrRangeAttack(combatant, target, attack, attack.action))
-            } else {
-                attackResultsThisTurn.addAll (attackWithSpell(combatant, target, attack))
+            for (attack in attackList) {
+                if (attack.action is Weapon) {
+                    attackResults.addAll(meleeOrRangeAttack(combatant, target, attack, attack.action))
+                } else {
+                    attackResults.addAll(attackWithSpell(combatant, target, attack))
+                }
+                actionId++
             }
-            actionId++
         }
-        logger.info { "turn = $turnId, attackResults = $attackResultsThisTurn" }
 
-        attackResultList.addAll(attackResultsThisTurn)
+        // TODO: check for any ongoing effects that are re-evaluated at END of turn
+        logger.info { "turn = $turnId, attackResults = $attackResults" }
+        return attackResults
     }
 
     fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA
@@ -198,14 +203,6 @@ class Combat(val battleId: Int) {
         }
         val distance = combatant.distance(target)
         val preferredTurnOption = combatant.getPreferredTurn(target, distance.toFeet(), getOpponents(combatant))
-
-        if (preferredTurnOption != null) {
-            val spell = preferredTurnOption.getSpell()
-            if (spell != null) {
-                combatant.spellCastList.add(SpellCast(combatant, spell, turnId))
-            }
-        }
-
         return preferredTurnOption?.attacks ?: emptyList()
     }
 
@@ -309,6 +306,8 @@ class Combat(val battleId: Int) {
             }
         }
 
+        // TODO: add attackResult[].targetList to SpellCast, so we can re-evaluate effects at start/end of future turns
+        combatant.spellCastList.add(SpellCast(combatant, spell, turnId))
         return result
     }
 

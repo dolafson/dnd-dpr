@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -7,6 +8,7 @@ import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -385,7 +387,10 @@ class CombatTest {
     @Test
     fun entangle() {
         TestUtil.dependency()
-        val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        var goblinWithHighAC = Globals.getMonster("Goblin").copy(
+            armor_class = mutableListOf(ArmorClass(type = "unobtanium", value=50)) // increase AC to keep goblin alive longer
+        )
+        val combat = Combat(0, listOf(TestUtil.leif), listOf(goblinWithHighAC))
 
         // force melee
         combat.teamA[0].location = combat.teamB[0].location.copy()
@@ -401,14 +406,35 @@ class CombatTest {
         assertEquals(listOf("Entangle"), attacks.map { it.action.getActionName() }.toList())
 
         assertTrue(attacks[0].action is Spell)
-        val spell = attacks[0].action as Spell
-
-        combat.castSavingThrowSpell(leif, goblin, spell, spell.getSpellAttacks(0)[0], attacks[0])
+        //val spell = attacks[0].action as Spell
+        //combat.castSavingThrowSpell(leif, goblin, spell, spell.getSpellAttacks(0)[0], attacks[0])
+        combat.attackWithSpell(leif, goblin, attacks[0])
 
         // https://www.dndbeyond.com/spells/2085-entangle?srsltid=AfmBOoqr7BbKDxX_vWM2WEXKy8YxQaMmDT7ptb4dS4y9CoXZpRwjkHHd
         assertTrue (goblin.any { it.conditions.contains(com.vikinghelmet.dnd.dpr.util.Condition.Restrained) })
         assertEquals (AttackAdvantage.advantage, goblin.getAttacksAgainstMe())
         assertEquals (AttackAdvantage.disadvantage, goblin.getAttacksAgainstOthers())
         // TODO: getDisadvantageOnSave -> DEX
+
+        combat.takeTurn(goblin)
+        logger.warn { "after turn=0, leif = ${leif.summary()}, goblin = ${goblin.summary()} " }
+//        var attackResults = mutableListOf<CombatAttackResult>()
+
+        assertEquals(1, leif.spellCastList.size)
+        val cast = leif.spellCastList[0]
+
+        for (turnId in 1..15) {
+            combat.turnId = turnId
+            val expired = cast.isExpired(turnId)
+            // println("turnId=$turnId, spellCast = ${leif.spellCastList[0]} , duration = ${cast.spell.getDuration()}, expired = $expired")
+
+            if (turnId == 10) {
+                assertTrue(expired)
+            }
+            else {
+                assertFalse(expired)
+            }
+        }
+        // TODO: call a method in combat that checks for TargetEffects with spells at max duration
     }
 }

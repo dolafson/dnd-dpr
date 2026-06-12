@@ -29,7 +29,8 @@ import kotlinx.serialization.Transient
 data class Monster(
     val actions: List<MonsterPrimaryAction> ?= emptyList(),
     val alignment: String,
-    val armor_class: List<ArmorClass>,
+   // val armor_class: List<ArmorClass>,
+    val armor_class: MutableList<ArmorClass> = mutableListOf(),
     val challenge_rating: Float,
     val charisma: Int,
     val condition_immunities: List<ConditionImmunity>,
