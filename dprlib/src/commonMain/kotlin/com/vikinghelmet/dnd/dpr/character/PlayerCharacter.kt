@@ -23,7 +23,6 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
-import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
@@ -333,15 +332,15 @@ open class PlayerCharacter(
         result.addAll (transformSpellList ("race", characterData.spells.raceSpells))
         result.addAll (transformSpellList ("feat", characterData.spells.featSpells))
         result.addAll (transformSpellList ("always", getAlwaysPreparedSpells()))
-        result.addAll (getSavingThrowActionList())
+        result.addAll (getSpellLikeActions())
         return result
     }
 
-    fun getPreparedAttackSpells(): List<PreparedSpell> {
+    fun getPreparedPrimaryActionSpells(): List<PreparedSpell> {
         val result = mutableListOf<PreparedSpell>()
         for (spell in getPreparedSpells()) {
             // when attacking, ignore healing spells
-            if (spell.properties.filterTags?.contains("Healing") == true) continue
+            //if (spell.properties.filterTags?.contains("Healing") == true) continue
 
             // ritual spells are not normally used in combat; they also do not consume a spell slot when read from a book
             if (spell.isRitual()) {
@@ -451,7 +450,7 @@ open class PlayerCharacter(
             }
         }
 
-        for (spell in getPreparedAttackSpells()) {
+        for (spell in getPreparedPrimaryActionSpells()) {
             logger.debug { "getActionsAvailable, spell = $spell" }
 
             if (spell.isRangedSpellAttack()) {
@@ -506,12 +505,21 @@ open class PlayerCharacter(
         ).filter { a -> !a.name.contains("Circle Spell") }
     }
 
-    private fun getSavingThrowActionList(): List<SavingThrowAction>
+    private fun getSpellLikeActions(): List<PreparedSpell>
     {
-        val result = mutableListOf<SavingThrowAction>()
+        val result = mutableListOf<PreparedSpell>()
         for (action in getActionList()) {
+            // source data for Channel Divinity is a little screwy
+            when (action.name) {
+                "Channel Divinity" -> { continue } // discard this one, keep its sub-actions
+                "Channel Divinity: Turn Undead" -> { action.saveStatId = 5 }
+                else -> {}
+            }
             if (action.saveStatId != null) {
                 result.add (action.toSavingThrowAction())
+            }
+            else if (action.name == "Channel Divinity: Preserve Life") {
+                result.add (action.toHealingSpell("15", 30)) // TODO: fix hard-coded values
             }
         }
         return result

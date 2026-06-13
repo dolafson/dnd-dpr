@@ -41,13 +41,16 @@ open class Spell(
     // ranged spell attacks get disadvantage when cast during melee; only 9 of these in 2014, 12 in 2024
     fun isRangedSpellAttack() = (properties.SpellAttack != null && properties.SpellAttack == "Ranged")
 
-    fun isAOE() = getSpellAttacks(0).any { it.getAoeSize() > 0 }
+    fun isAOE(): Boolean {
+        if (description.contains("Choose any creatures")) return true
+        return getSpellAttacks(0).any { it.getAoeSize() > 0 }
+    }
 
     fun isRecurring() = (getDuration() ?: 1) > 1
 
     fun isCantrip() = (properties.Level == 0)
     fun isHealing(): Boolean {
-        return (properties.Healing != null) || (properties.filterTags !=null && properties.filterTags.contains("Healing"))
+        return (properties.Healing != null) || (properties.filterTags !=null && properties.filterTags!!.contains("Healing"))
     }
 
     fun incursDamage() = getSpellAttacks(0).any { ! it.isNoDamageAttack() }

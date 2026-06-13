@@ -51,12 +51,12 @@ data class Properties(
     @SerialName("filter-Level") val filterLevel: Int? = null,
     @SerialName("filter-Range") val filterRange: String? = null,
     @SerialName("filter-Ritual") val filterRitual: String? = null,
-    @SerialName("filter-Tags") val filterTags: String? = null,
+    @SerialName("filter-Tags") var filterTags: String? = null,
     @SerialName("filter-Upcast") val filterUpcast: String? = null,
 
     // other
     @SerialName("Add Casting Modifier") val AddCastingModifier: String? = null,
-    val Healing: String? = null,
+    var Healing: String? = null,
     @SerialName("Higher Spell Slot Dice") val HigherSpellSlotDice: Float? = null,
     @SerialName("Higher Spell Slot Die") val HigherSpellSlotDie: String? = null,
     @SerialName("Save Success") val SaveSuccess: String? = null,

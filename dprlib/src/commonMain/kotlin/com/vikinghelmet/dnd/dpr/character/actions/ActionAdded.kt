@@ -1,7 +1,10 @@
 package com.vikinghelmet.dnd.dpr.character.actions
 
+import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction.Companion.makeProps
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
@@ -19,7 +22,7 @@ data class ActionAdded(
     val description: String? = null,
     val snippet: String,
 
-    val saveStatId: Int? = null,
+    var saveStatId: Int? = null,
     val saveFailDescription: String? = null,
     val saveSuccessDescription: String? = null,
 
@@ -71,6 +74,16 @@ data class ActionAdded(
         )
         logger.debug { "getSpellLikeActionList, spell = $spellAction" }
         return spellAction
+    }
+
+    fun toHealingSpell(healingAmount: String, range: Int): PreparedSpell {
+        val description = if (description.isNullOrEmpty()) snippet else description
+        val spell = PreparedSpell (true, Spell("Fake Book 2014", description, name, makeProps(), ""))
+        spell.properties.filterTags = "Healing"
+        spell.properties.Healing = healingAmount
+        spell.properties.dataRangeNum ?: range
+
+        return spell
     }
 
 }

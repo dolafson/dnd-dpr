@@ -123,6 +123,8 @@ class Combat(val battleId: Int) {
         else {
             val attackList = chooseTurnActions(combatant, target)
 
+            // TODO: if preferred action is a Healing spell, restore HP to team members
+
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
             for (attack in attackList) {

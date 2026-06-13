@@ -31,17 +31,16 @@ enum class TurnOptionRanking {
 
     SpellWithRecurringDamage,       //
     SpellWithIncapcitate,           // Hold Person
-    SpellWithRestoreHP,             // Cure Wounds - if team member has low HP
-
 
     // context matters ...
     // AOE spells are preferred over non-AOE, if number of targets is greater than one
     SpellWithRecurringDamageAOE,    // Conjure Animals
     SpellWithDamageAOE,             // Fireball
     SpellWithIncapcitateAOE,        // Sleep, Entangle
-    SpellWithRestoreHPAOE,          //
 
-    SpellWithLifeRestoration,       // Spare the Dying - if team member has negative HP
+    SpellWithDeathPrevention,       // Spare the Dying - if team member has negative HP, stabilizes to 0 HP
+    SpellWithRestoreHP,             // Cure Wounds - if team member has low HP, increases it; may also prevent death
+    SpellWithRestoreHPAOE,          //
     ;
 
     fun isWeapon(): Boolean {
@@ -83,9 +82,9 @@ enum class TurnOptionRanking {
         private fun fromTurnWithSpell(turn: Turn): TurnOptionRanking {
             val spell = turn.getSpell()!!
 
-            // best spell
+            // special case spell
             if (spell.name.equals("Spare the Dying")) {
-                return SpellWithLifeRestoration
+                return SpellWithDeathPrevention
             }
 
             // worst spell

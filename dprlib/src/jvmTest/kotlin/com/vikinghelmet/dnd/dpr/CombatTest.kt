@@ -473,9 +473,27 @@ class CombatTest {
     fun getClericPreferredTurnVersusGoblin() {
         TestUtil.dependency()
         val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
-        val preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
 
-        assertEquals(TurnOptionRanking.SpellWithRestoreHP, preferred!!.second)
-        assertEquals(listOf("Healing Word"), preferred.first.attacks.map { it.action.getActionName() }.toList())
+        // force melee range
+        combat.teamA[0].location = combat.teamB[0].location.copy()
+
+        println("getActionsAvailable = ${ combat.teamA[0].getActionsAvailable()}")
+
+        for (range in listOf(5,60)) {
+            var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], range)
+            val spellName = preferred!!.first.attacks.map { it.action.getActionName() }.toList()[0]
+            when (range) {
+                5 -> {
+                    //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
+                    //assertEquals("Spare the Dying", spellName)
+                    assertEquals("Channel Divinity: Preserve Life", spellName)
+                    assertEquals(TurnOptionRanking.SpellWithRestoreHPAOE, preferred.second)
+                }
+                60 -> {
+                    assertEquals(TurnOptionRanking.SpellWithRestoreHP, preferred.second)
+                    assertEquals("Healing Word", spellName)
+                }
+            }
+        }
     }
 }

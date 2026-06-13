@@ -195,6 +195,8 @@ data class CombatantWithStatus(
         val iterator = possibleTurns.iterator()
         while (iterator.hasNext()) {
             val turn = iterator.next()
+            // println("getPossibleTurns: turn=$turn")
+
             for (attack in turn.attacks) {
                 if (attack.action is Spell && !this.isSlotAvailable(attack.action)) {
                     logger.debug { "no slots available for spell = ${attack.action.name}" }
@@ -228,11 +230,19 @@ data class CombatantWithStatus(
     }
 
     fun getPreferredTurn(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): Pair<Turn, TurnOptionRanking>? {
+        val sorted = getTurnOptionRankingList(target, range, opposingTeam)
+        sorted.forEach {logger.debug { "sorted preferred option: $it" } }
+        sorted.forEach {println ("sorted preferred option: $it" ) }
+        return if (sorted.isEmpty()) null else sorted[0]
+    }
+
+    fun getTurnOptionRankingList(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): List<Pair<Turn, TurnOptionRanking>> {
         val possible = getPossibleTurns(target, range)
         val map = mutableMapOf<Turn, TurnOptionRanking>()
 
         for (turn in possible) {
             val ranking = TurnOptionRanking.fromTurn(turn)
+            // println("getPreferredTurn: turn=$turn, ranking=$ranking")
 
             if (ranking.isSpell()) {
                 val spell = turn.getSpell()!!
@@ -253,6 +263,9 @@ data class CombatantWithStatus(
                     }
                 }
 
+                // TODO: if no one in party is missing any HP, exclude healing spells
+                // TODO: if cleric solo fighting, choose healing self vs attacking target?
+
                 // TODO: de-prioritize AOE spells if number of targets is low
                 // TODO: fireball is AOE, but potentially high damage, so do not exclude
 
@@ -271,10 +284,7 @@ data class CombatantWithStatus(
             map.put(turn, ranking)
         }
 
-        val sorted = map.toList().sortedByDescending { it.second.ordinal }
-        sorted.forEach {logger.debug { "sorted preferred option: $it" } }
-
-        return if (sorted.isEmpty()) null else sorted[0]
+        return map.toList().sortedByDescending { it.second.ordinal }
     }
 
     override fun getDamageImmunities() = combatant.getDamageImmunities() + temporaryDamageImmunity
