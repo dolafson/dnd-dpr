@@ -468,4 +468,14 @@ class CombatTest {
         val avg = turnCountList.average().toInt()
         assertTrue(avg in 2..<5)
     }
+
+    @Test
+    fun getClericPreferredTurnVersusGoblin() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+        val preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
+
+        assertEquals(TurnOptionRanking.SpellWithRestoreHP, preferred!!.second)
+        assertEquals(listOf("Healing Word"), preferred.first.attacks.map { it.action.getActionName() }.toList())
+    }
 }
