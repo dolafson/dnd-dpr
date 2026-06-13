@@ -8,7 +8,6 @@ import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -399,16 +398,11 @@ class CombatTest {
         val goblin = combat.teamB[0]
 
         // force the goblin to fail its saving throw (entangle has a STR save)
-        goblin.add(TargetEffect(0, autoFailStrAndDexSaves = true))
+        val autoFailEffect = TargetEffect(0, autoFailStrAndDexSaves = true)
+        goblin.add(autoFailEffect)
 
-        var attacks = combat.chooseTurnActions(leif, goblin)
-        println(attacks.map { it.action.getActionName() }.toList())
-        assertEquals(listOf("Entangle"), attacks.map { it.action.getActionName() }.toList())
-
-        assertTrue(attacks[0].action is Spell)
-        //val spell = attacks[0].action as Spell
-        //combat.castSavingThrowSpell(leif, goblin, spell, spell.getSpellAttacks(0)[0], attacks[0])
-        combat.attackWithSpell(leif, goblin, attacks[0])
+        // this test assumes that leif will cast Entangle
+        combat.takeTurn(leif)
 
         // https://www.dndbeyond.com/spells/2085-entangle?srsltid=AfmBOoqr7BbKDxX_vWM2WEXKy8YxQaMmDT7ptb4dS4y9CoXZpRwjkHHd
         assertTrue (goblin.any { it.conditions.contains(com.vikinghelmet.dnd.dpr.util.Condition.Restrained) })
@@ -425,16 +419,17 @@ class CombatTest {
 
         for (turnId in 1..15) {
             combat.turnId = turnId
-            val expired = cast.isExpired(turnId)
-            // println("turnId=$turnId, spellCast = ${leif.spellCastList[0]} , duration = ${cast.spell.getDuration()}, expired = $expired")
+            // println("turnId=$turnId, effectList = ${goblin.toList().filter { it != autoFailEffect } }")
 
-            if (turnId == 10) {
-                assertTrue(expired)
+            // spell expires at the beginning of the spell casters turn ...
+            leif.checkForSaveAtStartOfTurn (turnId)
+
+            if (turnId >= 10) {
+                assertEquals(0, goblin.toList().filter { it != autoFailEffect }.size)
             }
             else {
-                assertFalse(expired)
+                assertEquals(1, goblin.toList().filter { it != autoFailEffect }.size)
             }
         }
-        // TODO: call a method in combat that checks for TargetEffects with spells at max duration
     }
 }

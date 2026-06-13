@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
+import com.vikinghelmet.dnd.dpr.spells.payload.Attack.Save
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
@@ -15,6 +16,9 @@ open class TargetEffect (
     val startTurn: Int,
     var cause: TargetEffectCause? = null,
     val probability: Float = 1f,
+
+    val spellSaveDC: Int = 0,
+    val save: Save? = null,
 
     @get:JvmName("getCustomFieldAttacksAgainstMe")
     var attacksAgainstMe:     AttackAdvantage = AttackAdvantage.normal,

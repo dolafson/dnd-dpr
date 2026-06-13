@@ -262,4 +262,55 @@ data class CombatantWithStatus(
     override fun getDamageImmunities() = combatant.getDamageImmunities() + temporaryDamageImmunity
     override fun getDamageResistances() = combatant.getDamageResistances() + temporaryDamageResistance
     override fun getDamageVulnerabilities() = combatant.getDamageVulnerabilities() + temporaryDamageVulnerability
+
+    fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType): Boolean  {
+        val autoFailSave = (isAutoFailStrAndDexSaves() &&
+                listOf(AbilityType.Strength, AbilityType.Dexterity).contains(saveAbility))
+
+        if (autoFailSave) return false
+
+        var saveRoll = (1..20).random()
+        if (getDisadvantageOnSave() == saveAbility) {
+            saveRoll = max(saveRoll, (1..20).random())
+        }
+
+        // TODO: bless/bane -> bonus/penalty dice to save
+        val targetSaveBonus = getAbilityModifier(saveAbility)
+        return (saveRoll + targetSaveBonus >= spellSaveDC)
+    }
+
+    fun checkForSaveAtStartOfTurn(turnId: Int) {
+        // check spells cast on others - if expired duration, remove the effect from all targets
+        spellCastList.filter { it.isExpired(turnId) }.forEach { spellCast ->
+            spellCast.targetList.forEach { target ->
+                target.removeAll {
+                    it.cause === spellCast.spell
+                }
+            }
+        }
+
+        // check spells cast on this combatant - if targetEffect allows repeat save at start of turn,
+        // roll for save, and remove effect on success
+        checkForSave (SaveAtStartOfTurn::contains)
+    }
+
+    fun checkForSaveAtEndOfTurn(turnId: Int) {
+        // check spells cast on this combatant - if targetEffect allows repeat save at end of turn,
+        // roll for save, and remove effect on success
+        checkForSave (SaveAtEndOfTurn::contains)
+    }
+
+    private fun checkForSave(spellNameFunction: (String) -> Boolean) {
+        val iter = iterator()
+        while (iter.hasNext()) {
+            val targetEffect = iter.next()
+            if (targetEffect.cause is Spell) {
+                val spell = targetEffect.cause as Spell
+                if (spellNameFunction(spell.name) &&
+                    makeSavingThrow (targetEffect.spellSaveDC, targetEffect.save!!.saveAbility)) {
+                    iter.remove()
+                }
+            }
+        }
+    }
 }

@@ -2,7 +2,6 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
-import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
@@ -107,7 +106,7 @@ class Combat(val battleId: Int) {
     }
 
     fun takeTurn(combatant: CombatantWithStatus): List<CombatAttackResult> {
-        // TODO: check for any ongoing effects that are re-evaluated at START of turn
+        combatant.checkForSaveAtStartOfTurn(turnId)
 
         val attackResults = mutableListOf<CombatAttackResult>()
         val target = chooseTarget(combatant)
@@ -131,7 +130,8 @@ class Combat(val battleId: Int) {
             }
         }
 
-        // TODO: check for any ongoing effects that are re-evaluated at END of turn
+        combatant.checkForSaveAtEndOfTurn(turnId)
+
         logger.info { "turn = $turnId, attackResults = $attackResults" }
         return attackResults
     }
@@ -306,8 +306,10 @@ class Combat(val battleId: Int) {
             }
         }
 
-        // TODO: add attackResult[].targetList to SpellCast, so we can re-evaluate effects at start/end of future turns
-        combatant.spellCastList.add(SpellCast(combatant, spell, turnId))
+        val targetList = result.map {it.targetList }.flatten().toMutableList()
+        //println("attackWithSpell: targetList = $targetList")
+
+        combatant.spellCastList.add(SpellCast(combatant, spell, turnId, targetList = targetList))
         return result
     }
 
@@ -356,22 +358,7 @@ class Combat(val battleId: Int) {
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
 
         for (target in targetList) {
-            var successfulSave = false
-
-            val autoFailSave = (target.isAutoFailStrAndDexSaves() &&
-                    listOf(AbilityType.Strength, AbilityType.Dexterity).contains(save.saveAbility))
-
-            if (!autoFailSave) {
-                var saveRoll = (1..20).random()
-                if (target.getDisadvantageOnSave() == save.saveAbility) {
-                    saveRoll = max(saveRoll, (1..20).random())
-                }
-
-                // TODO: bless/bane -> bonus/penalty dice to save
-                val targetSaveBonus = attack.target.getAbilityModifier(save.saveAbility)
-                successfulSave = (saveRoll + targetSaveBonus >= combatant.getSpellSaveDC())
-            }
-
+            var successfulSave = target.makeSavingThrow (combatant.getSpellSaveDC(), save.saveAbility)
             logger.debug { "successfulSave = $successfulSave" }
 
             var initialDamage = computeDamage(attack, target, false, spellAttack.getDamageList())
@@ -382,9 +369,9 @@ class Combat(val battleId: Int) {
             totalDamage += finalDamage
 
             if (!successfulSave) {
-                val effect = TargetEffect(turnId, spell)
+                val effect = TargetEffect(turnId, spell, save = save, spellSaveDC = combatant.getSpellSaveDC())
                 if (!effect.isEmpty()) {
-                    target.add(TargetEffect(turnId, spell)) // TODO: now that we are adding effects, need to remove when spell ends
+                    target.add(effect)
                 }
             }
         }
