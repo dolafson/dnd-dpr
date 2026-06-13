@@ -2,12 +2,16 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
+import com.vikinghelmet.dnd.dpr.scenario.combat.save.SavingThrowGenerator
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -495,5 +499,55 @@ class CombatTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun breakConcentration() {
+        TestUtil.dependency()
+        val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        val leif = combat.teamA[0]
+        val goblin = combat.teamB[0]
+
+        // force the goblin to fail its saving throw (entangle has a STR save)
+        val autoFailEffect = TargetEffect(0, autoFailStrAndDexSaves = true)
+        goblin.add(autoFailEffect)
+
+        // this test expects leif to cast Entangle - see also getPreferredTurnVersusGoblin()
+        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat.getOpponents(leif))
+        assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
+
+        combat.takeTurn(leif)
+
+        assertTrue (goblin.any { it.conditions.contains(Condition.Restrained) })
+        assertEquals(1, leif.spellCastList.filter {it.isStillRunning()}.count())
+
+        for (turnId in 1..3) {
+            // spell duration is checked at the beginning of the spell casters turn
+            leif.checkForSaveAtStartOfTurn (turnId)
+
+            assertTrue (goblin.any { it.conditions.contains(Condition.Restrained) })
+            assertEquals(1, leif.spellCastList.filter {it.isStillRunning()}.count())
+        }
+
+        // make sure Leif succeeds on next two saves, but fails the 3rd
+        val generator = mockk<SavingThrowGenerator>()
+        every { generator.makeSavingThrow(any(), any(), any()) } returnsMany listOf(true, true, false)
+        leif.savingThrowGenerator = generator
+
+        for (turnId in 4..6) {
+            leif.applyDamage(4, 3) // leif takes damage each turn, triggering a concentration check
+
+            when (turnId) {
+                4,5 -> {
+                    assertTrue (goblin.any { it.conditions.contains(Condition.Restrained) })
+                    assertEquals(1, leif.spellCastList.filter {it.isStillRunning()}.count())
+                }
+                6 -> {
+                    assertFalse (goblin.any { it.conditions.contains(Condition.Restrained) })
+                    assertEquals (0, leif.spellCastList.filter {it.isStillRunning()}.count())
+                }
+            }
+        }
+
     }
 }

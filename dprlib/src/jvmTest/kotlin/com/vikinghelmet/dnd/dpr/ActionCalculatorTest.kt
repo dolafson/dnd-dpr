@@ -5,7 +5,10 @@ import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.AvgMinMax
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
-import com.vikinghelmet.dnd.dpr.scenario.onesided.*
+import com.vikinghelmet.dnd.dpr.scenario.onesided.EffectManager
+import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_NUM_TARGETS
 import com.vikinghelmet.dnd.dpr.util.Constants.DEFAULT_TARGET_SPACING
@@ -24,7 +27,7 @@ class ActionCalculatorTest {
         val character = TestUtil.leif
 
         assertEquals(mapOf(
-            5 to listOf("Dagger", "Quarterstaff", "Shortsword", "Shortsword", "Entangle", "Mind Sliver"),
+            5 to listOf("Dagger", "Quarterstaff", "Shortsword", "Shortsword", "Cure Wounds", "Entangle", "Mind Sliver"),
             20 to listOf("Dagger"),
             60 to listOf("Mind Sliver"),
             90 to listOf("Entangle"),
@@ -34,7 +37,7 @@ class ActionCalculatorTest {
         )
 
         // melee actions
-        assertEquals(listOf("Dagger", "Quarterstaff", "Shortsword", "Entangle", "Mind Sliver"),
+        assertEquals(listOf("Dagger", "Quarterstaff", "Shortsword", "Cure Wounds", "Entangle", "Mind Sliver"),
             character.getActionsAvailable().getPrimaryAction(Constants.MELEE_RANGE).map { it.getActionName()})
 
         // melee bonus actions
@@ -83,8 +86,8 @@ class ActionCalculatorTest {
         val meleeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
         val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
-        assertEquals(9, meleeBuilder.turnOptions.size)
-        assertEquals(15625, meleeScenarios.size)
+        assertEquals(10, meleeBuilder.turnOptions.size)
+        assertEquals(32250, meleeScenarios.size)
 
         assertEquals(listOf(
                 listOf("Dagger","Shortsword"),
@@ -94,6 +97,7 @@ class ActionCalculatorTest {
                 listOf("Shortsword","Dagger"),
                 listOf("Shortsword","Shortsword"),
                 listOf("Shortsword","Hunter's Mark"),
+                listOf("Cure Wounds"),
                 listOf("Entangle"),
                 listOf("Mind Sliver"),
             ),  meleeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )

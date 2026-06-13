@@ -9,6 +9,7 @@ import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtEndOfTurn
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtStartOfTurn
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveByTakingAnAction
+import com.vikinghelmet.dnd.dpr.scenario.combat.save.SavingThrowGenerator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
@@ -42,6 +43,33 @@ data class CombatantWithStatus(
     val temporaryDamageResistance = mutableListOf<DamageType>()
     val temporaryDamageImmunity = mutableListOf<DamageType>()
     val temporaryDamageVulnerability = mutableListOf<DamageType>()
+
+    var savingThrowGenerator = SavingThrowGenerator()
+
+    fun applyDamage(turnId: Int, damage: Int) {
+        currentHP -= damage
+
+        if (damage == 0 || spellCastList.isEmpty() || !spellCastList.any { it.isStillRunning() }) {
+            return
+        }
+
+        val saveDC = kotlin.math.min (10, damage/2)
+        val savingThrowSuccess = makeSavingThrow (saveDC, AbilityType.Constitution)
+        if (savingThrowSuccess) {
+            return
+        }
+
+        logger.debug { "concentration is broken" }
+
+        spellCastList.filter { it.isStillRunning() }.forEach { spellCast ->
+            spellCast.turnEnded = turnId
+            spellCast.targetList.forEach { spellTarget ->
+                spellTarget.removeAll {
+                    it.cause === spellCast.spell
+                }
+            }
+        }
+    }
 
     fun distance(target: CombatantWithStatus): Distance {
         return distance(target.location)
@@ -232,7 +260,6 @@ data class CombatantWithStatus(
     fun getPreferredTurn(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): Pair<Turn, TurnOptionRanking>? {
         val sorted = getTurnOptionRankingList(target, range, opposingTeam)
         sorted.forEach {logger.debug { "sorted preferred option: $it" } }
-        sorted.forEach {println ("sorted preferred option: $it" ) }
         return if (sorted.isEmpty()) null else sorted[0]
     }
 
@@ -292,21 +319,7 @@ data class CombatantWithStatus(
     override fun getDamageVulnerabilities() = combatant.getDamageVulnerabilities() + temporaryDamageVulnerability
 
     fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType): Boolean  {
-        val autoFailSave = (isAutoFailStrAndDexSaves() &&
-                listOf(AbilityType.Strength, AbilityType.Dexterity).contains(saveAbility))
-
-        if (autoFailSave) return false
-
-        var saveRoll = (1..20).random()
-        if (getDisadvantageOnSave() == saveAbility) {
-            saveRoll = max(saveRoll, (1..20).random())
-        }
-
-        var targetSaveBonus = getAbilityModifier(saveAbility)
-
-        toList().forEach { targetSaveBonus += it.saveBonus.roll() - it.savePenalty.roll() } // bless & bane
-
-        return (saveRoll + targetSaveBonus >= spellSaveDC)
+        return savingThrowGenerator.makeSavingThrow(this, spellSaveDC, saveAbility)
     }
 
     fun checkForSaveAtStartOfTurn(turnId: Int) {

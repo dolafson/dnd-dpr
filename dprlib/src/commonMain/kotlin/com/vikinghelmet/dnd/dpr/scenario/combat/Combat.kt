@@ -244,7 +244,7 @@ class Combat(val battleId: Int) {
         if (attackRoll >= target.getAC() || autoHit) {
             val isCritDamage = autoHit || target.isAttackerAutoCritDamage()
             damage = computeDamage(attack, target, isCritDamage, action.getDamageList())
-            target.currentHP -= damage
+            target.applyDamage(turnId, damage)
         }
 
         return listOf (CombatAttackResult (combatant, listOf(target), damage, attack, turnId, actionId, effectId++))
@@ -366,7 +366,8 @@ class Combat(val battleId: Int) {
             logger.debug { "initial damage = $initialDamage" }
 
             val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
-            target.currentHP -= finalDamage
+            target.applyDamage(turnId, finalDamage)
+
             totalDamage += finalDamage
 
             if (!successfulSave) {

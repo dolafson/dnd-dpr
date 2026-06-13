@@ -78,6 +78,7 @@ kotlin {
             implementation("ch.qos.logback:logback-classic:1.5.11")
             implementation("org.junit.jupiter:junit-jupiter:5.7.1")
             implementation("org.junit.jupiter:junit-jupiter-params:5.1.0")
+            implementation("io.mockk:mockk:1.13.13")
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
