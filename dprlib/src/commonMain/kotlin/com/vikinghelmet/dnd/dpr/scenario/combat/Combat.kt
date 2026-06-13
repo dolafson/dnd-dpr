@@ -106,9 +106,14 @@ class Combat(val battleId: Int) {
     }
 
     fun takeTurn(combatant: CombatantWithStatus): List<CombatAttackResult> {
+        val attackResults = mutableListOf<CombatAttackResult>()
         combatant.checkForSaveAtStartOfTurn(turnId)
 
-        val attackResults = mutableListOf<CombatAttackResult>()
+        if (combatant.saveByTakingAction()) {
+            logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, save by taking action" }
+            return attackResults
+        }
+
         val target = chooseTarget(combatant)
         combatant.target = target
 
@@ -198,12 +203,8 @@ class Combat(val battleId: Int) {
     }
 
     fun chooseTurnActions(combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
-        if (combatant.combatant is Monster) {
-            logger.info { "chooseTurnActions: waitingForRecharge: ${combatant.combatant.waitingForRecharge}" }
-        }
-        val distance = combatant.distance(target)
-        val preferredTurnOption = combatant.getPreferredTurn(target, distance.toFeet(), getOpponents(combatant))
-        return preferredTurnOption?.attacks ?: emptyList()
+        val preferredTurnOption = combatant.getPreferredTurn(target, combatant.distance(target).toFeet(), getOpponents(combatant))
+        return preferredTurnOption?.first?.attacks ?: emptyList()
     }
 
     fun getAttackRoll(combatant: CombatantWithStatus, target: CombatantWithStatus): Int {

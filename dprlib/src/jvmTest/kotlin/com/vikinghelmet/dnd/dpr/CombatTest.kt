@@ -1,10 +1,10 @@
 package com.vikinghelmet.dnd.dpr
 
-import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
+import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -79,7 +79,8 @@ class CombatTest {
         val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
         val preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
 
-        assertEquals(listOf("Entangle"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+        assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred!!.second)
+        assertEquals(listOf("Entangle"), preferred.first.attacks.map { it.action.getActionName() }.toList())
     }
 
     @Test
@@ -90,7 +91,7 @@ class CombatTest {
 
         // dragon has high strength, so Entangle is excluded
 
-        assertEquals(listOf("Longbow","Hunter's Mark"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+        assertEquals(listOf("Longbow","Hunter's Mark"), preferred!!.first.attacks.map { it.action.getActionName() }.toList())
     }
 
     @Test
@@ -104,7 +105,7 @@ class CombatTest {
 
         // dragon has lots of options at range = 0
         preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
-        assertEquals(listOf("Poison Breath"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+        assertEquals(listOf("Poison Breath"), preferred!!.first.attacks.map { it.action.getActionName() }.toList())
     }
 
     @Test
@@ -114,7 +115,7 @@ class CombatTest {
 
         // skeleton is immune to poison, so we take the next best option
         var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
-        assertEquals(listOf("Multiattack","Bite","Claw","Claw"), preferred!!.attacks.map { it.action.getActionName() }.toList())
+        assertEquals(listOf("Multiattack","Bite","Claw","Claw"), preferred!!.first.attacks.map { it.action.getActionName() }.toList())
     }
 
     @Test
@@ -230,7 +231,7 @@ class CombatTest {
     }
 
     private fun applyDamage(combat: Combat, goodGuy: CombatantWithStatus, badGuy: CombatantWithStatus, damage: Int) {
-        val attack = badGuy.getPreferredTurn(goodGuy, 0)!!.attacks[0]
+        val attack = badGuy.getPreferredTurn(goodGuy, 0)!!.first.attacks[0]
         goodGuy.currentHP -= damage
         badGuy.target = goodGuy
         combat.attackResultList.add(CombatAttackResult (badGuy, listOf(goodGuy), damage, attack))
@@ -384,16 +385,13 @@ class CombatTest {
     }
 
     @Test
-    fun entangle() {
+    fun entangleDuration() {
         TestUtil.dependency()
-        var goblinWithHighAC = Globals.getMonster("Goblin").copy(
-            armor_class = mutableListOf(ArmorClass(type = "unobtanium", value=50)) // increase AC to keep goblin alive longer
-        )
-        val combat = Combat(0, listOf(TestUtil.leif), listOf(goblinWithHighAC))
-
-        // force melee
-        combat.teamA[0].location = combat.teamB[0].location.copy()
-
+//        var goblinWithHighAC = Globals.getMonster("Goblin").copy(
+//            armor_class = mutableListOf(ArmorClass(type = "unobtanium", value=50)) // increase AC to keep goblin alive longer
+//        )
+//        val combat = Combat(0, listOf(TestUtil.leif), listOf(goblinWithHighAC))
+        val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
         val leif = combat.teamA[0]
         val goblin = combat.teamB[0]
 
@@ -401,35 +399,73 @@ class CombatTest {
         val autoFailEffect = TargetEffect(0, autoFailStrAndDexSaves = true)
         goblin.add(autoFailEffect)
 
-        // this test assumes that leif will cast Entangle
+        // this test expects leif to cast Entangle - see also getPreferredTurnVersusGoblin()
+        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat.getOpponents(leif))
+        assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
+
         combat.takeTurn(leif)
 
         // https://www.dndbeyond.com/spells/2085-entangle?srsltid=AfmBOoqr7BbKDxX_vWM2WEXKy8YxQaMmDT7ptb4dS4y9CoXZpRwjkHHd
-        assertTrue (goblin.any { it.conditions.contains(com.vikinghelmet.dnd.dpr.util.Condition.Restrained) })
+        assertTrue (goblin.any { it.conditions.contains(Condition.Restrained) })
         assertEquals (AttackAdvantage.advantage, goblin.getAttacksAgainstMe())
         assertEquals (AttackAdvantage.disadvantage, goblin.getAttacksAgainstOthers())
         // TODO: getDisadvantageOnSave -> DEX
 
-        combat.takeTurn(goblin)
-        logger.warn { "after turn=0, leif = ${leif.summary()}, goblin = ${goblin.summary()} " }
-//        var attackResults = mutableListOf<CombatAttackResult>()
-
-        assertEquals(1, leif.spellCastList.size)
-        val cast = leif.spellCastList[0]
-
         for (turnId in 1..15) {
-            combat.turnId = turnId
-            // println("turnId=$turnId, effectList = ${goblin.toList().filter { it != autoFailEffect } }")
-
-            // spell expires at the beginning of the spell casters turn ...
+            // spell duration is checked at the beginning of the spell casters turn
             leif.checkForSaveAtStartOfTurn (turnId)
 
             if (turnId >= 10) {
                 assertEquals(0, goblin.toList().filter { it != autoFailEffect }.size)
+                assertEquals (AttackAdvantage.normal, goblin.getAttacksAgainstMe())
+                assertEquals (AttackAdvantage.normal, goblin.getAttacksAgainstOthers())
             }
             else {
                 assertEquals(1, goblin.toList().filter { it != autoFailEffect }.size)
+                assertEquals (AttackAdvantage.advantage, goblin.getAttacksAgainstMe())
+                assertEquals (AttackAdvantage.disadvantage, goblin.getAttacksAgainstOthers())
             }
         }
+    }
+
+    @Test
+    fun entangleExitEarly() {
+        TestUtil.dependency()
+
+        // results are non-deterministic, so take an average across multiple samples
+        val turnCountList = mutableListOf<Int>()
+        
+        repeat(100) {
+            val combat = Combat(0, listOf(TestUtil.getCharacter("party/leif.json")), listOf(Globals.getMonster("Goblin").copy()))
+            //val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+            val leif = combat.teamA[0]
+            val goblin = combat.teamB[0]
+
+            val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat.getOpponents(leif))
+            assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
+
+            combat.takeTurn(leif)
+            // ignore any turns where spell failed; we want to measure the avg duration after the spell is in effect
+
+            if (goblin.toList().isNotEmpty()) {
+                // println("goblin is restrained")
+                for (turnId in 1..15) {
+                    // spell duration is checked at the beginning of the spell casters turn
+                    leif.checkForSaveAtStartOfTurn(turnId)
+
+                    // target gets a chance to save by taking an action on their turn
+                    combat.takeTurn(goblin)
+
+                    if (goblin.toList().isEmpty()) {
+                        //println("condition ended on turn=$turnId")
+                        turnCountList.add(turnId)
+                        break
+                    }
+                }
+            }
+        }
+
+        val avg = turnCountList.average().toInt()
+        assertTrue(avg in 2..<5)
     }
 }

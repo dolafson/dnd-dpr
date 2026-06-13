@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.scenario.combat
+package com.vikinghelmet.dnd.dpr.scenario.combat.save
 
 enum class SaveAtStartOfTurn(val nameWithSpace: String) {
     BestowCurse ("Bestow Curse"),

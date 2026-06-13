@@ -6,6 +6,9 @@ import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
+import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtEndOfTurn
+import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtStartOfTurn
+import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveByTakingAnAction
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
@@ -209,7 +212,22 @@ data class CombatantWithStatus(
         return possibleTurns
     }
 
-    fun getPreferredTurn(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): Turn? {
+    fun saveByTakingAction(): Boolean {
+        val iter = iterator()
+        while (iter.hasNext()) {
+            val effect = iter.next()
+            if (effect.cause !is Spell) continue
+            if (SaveByTakingAnAction.contains((effect.cause as Spell).name)) {
+                if (makeSavingThrow(effect.spellSaveDC, effect.save!!.saveAbility)) {
+                    iter.remove()
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    fun getPreferredTurn(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): Pair<Turn, TurnOptionRanking>? {
         val possible = getPossibleTurns(target, range)
         val map = mutableMapOf<Turn, TurnOptionRanking>()
 
@@ -256,7 +274,7 @@ data class CombatantWithStatus(
         val sorted = map.toList().sortedByDescending { it.second.ordinal }
         sorted.forEach {logger.debug { "sorted preferred option: $it" } }
 
-        return if (sorted.isEmpty()) null else sorted[0].first
+        return if (sorted.isEmpty()) null else sorted[0]
     }
 
     override fun getDamageImmunities() = combatant.getDamageImmunities() + temporaryDamageImmunity

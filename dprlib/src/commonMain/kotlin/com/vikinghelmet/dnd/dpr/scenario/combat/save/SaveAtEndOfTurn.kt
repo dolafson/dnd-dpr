@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.scenario.combat
+package com.vikinghelmet.dnd.dpr.scenario.combat.save
 
 enum class SaveAtEndOfTurn(val nameWithSpace: String) {
 
