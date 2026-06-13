@@ -434,7 +434,7 @@ class CombatTest {
 
         // results are non-deterministic, so take an average across multiple samples
         val turnCountList = mutableListOf<Int>()
-        
+
         repeat(100) {
             val combat = Combat(0, listOf(TestUtil.getCharacter("party/leif.json")), listOf(Globals.getMonster("Goblin").copy()))
             //val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))

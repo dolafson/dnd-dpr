@@ -292,8 +292,10 @@ data class CombatantWithStatus(
             saveRoll = max(saveRoll, (1..20).random())
         }
 
-        // TODO: bless/bane -> bonus/penalty dice to save
-        val targetSaveBonus = getAbilityModifier(saveAbility)
+        var targetSaveBonus = getAbilityModifier(saveAbility)
+
+        toList().forEach { targetSaveBonus += it.saveBonus.roll() - it.savePenalty.roll() } // bless & bane
+
         return (saveRoll + targetSaveBonus >= spellSaveDC)
     }
 

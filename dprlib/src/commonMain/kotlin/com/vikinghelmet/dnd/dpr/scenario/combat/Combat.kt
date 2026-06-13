@@ -229,16 +229,14 @@ class Combat(val battleId: Int) {
     ) : List<CombatAttackResult>
     {
         var attackRoll = getAttackRoll(combatant, target)
+        val autoHit = attackRoll == 20 // critical Hit + Damage ... TODO: for a champion, autoHit on 19 or 18
+
         val name = action.getActionName()
         logger.debug { "combatant = $combatant, target = $target, action = $name" }
 
-        // TODO: bless and bane, maybe others?
-        //var bonusDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0)
-        //var penaltyDiceToHit: DiceBlock = DiceBlock(0, 0, 0, 0, 0)
-
         attackRoll += action.getAttackBonus()
 
-        val autoHit = attackRoll == 20 // critical Hit + Damage ... TODO: for a champion, autoHit on 19 or 18
+        combatant.forEach { attackRoll += it.attackBonus.roll() - it.attackPenalty.roll() } // bless & bane
         var damage = 0
 
         if (attackRoll >= target.getAC() || autoHit) {
