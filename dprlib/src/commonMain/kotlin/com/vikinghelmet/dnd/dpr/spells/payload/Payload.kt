@@ -37,10 +37,6 @@ data class DefensePayload(val defense: String, val condition: String? = null, va
 @SerialName("Effect")
 data class EffectPayload(val name: String) : Payload()
 
-@Serializable
-@JsonIgnoreUnknownKeys
-@SerialName("Healing")
-data class HealingPayload(val ability: String, val isTemp: Boolean) : Payload()
 
 @Serializable
 @JsonIgnoreUnknownKeys

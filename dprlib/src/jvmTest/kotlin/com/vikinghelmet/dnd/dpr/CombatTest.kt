@@ -609,4 +609,25 @@ class CombatTest {
  //       assertEquals(listOf("Entangle"), preferred.first.attacks.map { it.action.getActionName() }.toList())
     }
 
+    @Test
+    fun getClericHealing() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+
+        // force melee range
+        combat.teamA[0].location = combat.teamB[0].location.copy()
+
+        val kael = combat.teamA[0]
+        kael.currentHP = 3 // force lowHP
+
+        println("before turn, kael.currentHp = ${kael.currentHP}")
+
+        while (kael.currentHP < kael.getHP()) {
+            combat.takeTurn(kael)
+            println("after turn, kael.currentHp = ${kael.currentHP}")
+            assertTrue(kael.currentHP > 3)
+        }
+
+        assertEquals(kael.currentHP, kael.getHP())
+    }
 }

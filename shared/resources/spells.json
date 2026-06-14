@@ -27644,7 +27644,7 @@
           "payload": {
             "type": "Healing",
             "ability": "none",
-            "_bonus": "@{hp_max}",
+            "_bonus": 10000,
             "isTemp": false
           }
         }

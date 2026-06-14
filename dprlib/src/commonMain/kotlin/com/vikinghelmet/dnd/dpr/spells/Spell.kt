@@ -5,6 +5,7 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
+import com.vikinghelmet.dnd.dpr.spells.payload.Healing
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -83,8 +84,23 @@ open class Spell(
         }
     }
 
+    fun getHealing(): Healing {
+        if (properties.Healing != null) { // 2014 spells store healing in this field; 2024 do not use it
+            return Healing (DiceBlock (properties.Healing!!))
+        }
+
+        val data = properties.dataDatarecords
+        if (data != null) {
+            val payload = data.filter { it.payload is Healing }.firstOrNull()?.payload
+            if (payload != null) {
+                return payload as Healing
+            }
+        }
+        return Healing(DiceBlock())
+    }
+
     fun getSpellAttacks(attackBonus: Int): List<SpellAttack> {
-        val attackList = mutableListOf<SpellAttack>()
+       val attackList = mutableListOf<SpellAttack>()
         val data = properties.dataDatarecords ?: return attackList
         for (d in data) {
             if (d.payload is Attack) {

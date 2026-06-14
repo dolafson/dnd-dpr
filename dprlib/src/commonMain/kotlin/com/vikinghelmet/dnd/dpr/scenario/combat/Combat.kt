@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
@@ -114,13 +115,24 @@ class Combat(val battleId: Int) {
 
         if (combatant.checkForSaveByTakingAction()) {
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, save by taking action" }
+            combatant.checkForSaveAtEndOfTurn()
             return actionResults
         }
 
         val goal = combatant.getActionGoal(this)
+
         if (goal == ActionGoal.Heal) {
-            // TODO: pick a weak team member, move to them if needed, then heal them
-            // TODO: add healing result to actionResults
+            val healTarget = chooseHealTarget(combatant)
+            if (healTarget != null) {
+                combatant.moveTowardTarget(healTarget)
+                val range = combatant.distance(healTarget).toFeet()
+                val healTurn = combatant.getPreferredTurn(healTarget, range, this)
+                if (healTurn != null) {
+                    actionResults.addAll(healWithSpell(combatant, healTarget, healTurn.first))
+                }
+            }
+            combatant.checkForSaveAtEndOfTurn()
+            logger.info { "turn = $turnId, healResults = $actionResults" }
             return actionResults
         }
 
@@ -134,8 +146,6 @@ class Combat(val battleId: Int) {
         }
         else {
             val attackList = chooseTurnActions(combatant, target)
-
-            // TODO: if preferred action is a Healing spell, restore HP to team members
 
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
@@ -165,6 +175,55 @@ class Combat(val battleId: Int) {
 
     fun getNotDeadOrDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
         return getOpponents(combatant).filter { !it.isDeadOrDying() }.toList()
+    }
+
+    fun chooseHealTarget(healer: CombatantWithStatus): CombatantWithStatus? {
+        val team = getMyTeam(healer)
+        if (team.any { it.isDying() }) {
+            return team.filter { it.isDying() }.maxBy { it.deathSavingThrows.count { false }}
+        }
+        // TODO: choose the closest one ?
+        return team.filter { !it.isDead() }.minByOrNull { it.currentHP }
+    }
+
+    fun healWithSpell(healer: CombatantWithStatus, primaryTarget: CombatantWithStatus, turn: Turn): List<CombatActionResult> {
+        val attack = turn.attacks.firstOrNull() ?: return emptyList()
+        val spell = attack.action as? Spell ?: return emptyList()
+
+        val targetsToHeal = if (spell.isAOE()) {
+            getMyTeam(healer).filter { !it.isDead() }
+        } else {
+            listOf(primaryTarget)
+        }
+
+        var totalHealAmount = 0
+        for (healTarget in targetsToHeal) {
+            val healAmount = rollHealingAmount(healer, spell)
+            val wasAboutToDie = healTarget.isDying()
+            healTarget.currentHP = min(healTarget.currentHP + healAmount, healTarget.getHP())
+            if (wasAboutToDie && healTarget.currentHP > 0) {
+                healTarget.deathSavingThrows.clear()
+            }
+            totalHealAmount += healAmount
+            logger.info { "turn = $turnId, ${healer.shortName()} heals ${healTarget.shortName()} for $healAmount HP (now ${healTarget.currentHP}/${healTarget.getHP()})" }
+        }
+
+        healer.spellCastList.add(SpellCast(healer.combatant, spell, turnId, targetList = targetsToHeal.toMutableList()))
+        actionId++
+
+        return listOf(CombatActionResult(healer, targetsToHeal, -1 * totalHealAmount, attack, turnId, actionId, effectId++))
+    }
+
+    fun rollHealingAmount(healer: CombatantWithStatus, spell: Spell): Int {
+        val healing = spell.getHealing()
+        var roll = healing.healingDice.roll()
+
+        if (healing.ability == "auto") {
+            val spellCastingBonus = (healer.combatant as? PlayerCharacter)?.getSpellAbilityBonusWithoutPB() ?: 0
+            roll += spellCastingBonus
+        }
+        // TODO: tempHP
+        return roll
     }
 
     fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus?

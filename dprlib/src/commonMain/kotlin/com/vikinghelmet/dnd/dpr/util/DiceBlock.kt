@@ -3,14 +3,18 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d12: Int)
+data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d12: Int, var bonus: Int = 0)
 {
-    constructor(): this(0,0,0,0,0)
+    constructor(): this(0,0,0,0,0,0)
 
-    constructor(diceString: String): this(0,0,0,0,0) {
-        //  "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
-        val damage = diceString
-        val damageList = damage.split("d")
+    constructor(diceString: String): this(0,0,0,0,0,0) {
+        // "Damage": "2d6"  ... first = numberOfDice = [1..20];  second = typeOfDie = [4,6,8,10,12]
+        // if there is no "d", it's just a flat bonus
+        val damageList = diceString.split("d")
+        if (damageList.isEmpty() || damageList.size == 1) {
+            bonus = diceString.toInt()
+            return
+        }
         val diceCount = damageList[0].toInt()
         when (damageList[1]) {
             "4" -> d4 = diceCount
@@ -21,6 +25,10 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
         }
     }
 
+    fun addBonus(bonus: Int) {
+         this.bonus += bonus
+    }
+
     override fun toString(): String {
         val buf = StringBuilder()
         if (d4 != 0) buf.append("${d4}d4")
@@ -28,6 +36,7 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
         if (d8 != 0) buf.append("${d8}d8")
         if (d10 != 0) buf.append("${d10}d10")
         if (d12 != 0) buf.append("${d12}d12")
+        if (bonus != 0) buf.append("+${bonus}")
         return buf.toString()
     }
 
@@ -43,11 +52,11 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
     }
 
     fun min(): Int {
-        return (d4 + d6 + d8 + d10 + d12)
+        return (d4 + d6 + d8 + d10 + d12 + bonus)
     }
 
     fun max(): Int {
-        return (d4*4 + d6*6 + d8*8 + d10*10 + d12*12)
+        return (d4*4 + d6*6 + d8*8 + d10*10 + d12*12 + bonus)
     }
 
     fun isEmpty(): Boolean {
@@ -57,7 +66,7 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
     fun isNotEmpty() = !isEmpty()
 
     fun double(): DiceBlock {
-        return DiceBlock(d4*2, d6*2, d8*2, d10*2, d12*2)
+        return DiceBlock(d4*2, d6*2, d8*2, d10*2, d12*2, bonus*2)
     }
 
     fun roll(): Int {
@@ -66,7 +75,8 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
                 d6 * (1..6).random() +
                 d8 * (1..8).random() +
                 d10 * (1..10).random() +
-                d12 * (1..12).random()
+                d12 * (1..12).random() +
+                bonus
     }
 
     operator fun plusAssign(other: DiceBlock) {
@@ -75,6 +85,7 @@ data class DiceBlock(var d4: Int, var d6: Int, var d8: Int, var d10: Int, var d1
         d8 += other.d8
         d10 += other.d10
         d12 += other.d12
+        bonus += other.bonus
     }
 
 }
