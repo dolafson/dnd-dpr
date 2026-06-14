@@ -260,6 +260,18 @@ data class CombatantWithStatus(
         }
     }
 
+    fun rollHealingAmount(spell: Spell): Int {
+        val healing = spell.getHealing()
+        var roll = healing.healingDice.roll()
+
+        if (healing.ability == "auto") {
+            val spellCastingBonus = (this.combatant as? PlayerCharacter)?.getSpellAbilityBonusWithoutPB() ?: 0
+            roll += spellCastingBonus
+        }
+        // TODO: tempHP
+        return roll
+    }
+
     // --------------------------------------------------------------------
     // TURN OPTIONS
 

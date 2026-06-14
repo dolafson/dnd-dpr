@@ -325,7 +325,7 @@ class CombatTest {
         dragon.currentHP = 62
         dragon.location = Location(-18, -15)
 
-        val target = combat.chooseTarget(dragon)
+        val target = combat.chooseAttackTarget(dragon)
         println(target)
         assertEquals(rhogar, target)
     }

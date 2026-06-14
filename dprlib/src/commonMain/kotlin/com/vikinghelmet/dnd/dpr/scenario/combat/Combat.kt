@@ -2,7 +2,6 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
-import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
@@ -122,7 +121,7 @@ class Combat(val battleId: Int) {
         val goal = combatant.getActionGoal(this)
 
         if (goal == ActionGoal.Heal) {
-            val healTarget = chooseHealTarget(combatant)
+            val healTarget = chooseHealingTarget(combatant)
             if (healTarget != null) {
                 combatant.moveTowardTarget(healTarget)
                 val range = combatant.distance(healTarget).toFeet()
@@ -138,7 +137,7 @@ class Combat(val battleId: Int) {
 
         // from here on down is all about the Attack
 
-        val target = chooseTarget(combatant)
+        val target = chooseAttackTarget(combatant)
         combatant.target = target
 
         if (target == null) {
@@ -177,12 +176,13 @@ class Combat(val battleId: Int) {
         return getOpponents(combatant).filter { !it.isDeadOrDying() }.toList()
     }
 
-    fun chooseHealTarget(healer: CombatantWithStatus): CombatantWithStatus? {
+    fun chooseHealingTarget(healer: CombatantWithStatus): CombatantWithStatus? {
         val team = getMyTeam(healer)
         if (team.any { it.isDying() }) {
+            // choose the one closest to death
             return team.filter { it.isDying() }.maxBy { it.deathSavingThrows.count { false }}
         }
-        // TODO: choose the closest one ?
+        // TODO: no one is dying yet, so choose the one physically closest to me ?
         return team.filter { !it.isDead() }.minByOrNull { it.currentHP }
     }
 
@@ -198,7 +198,7 @@ class Combat(val battleId: Int) {
 
         var totalHealAmount = 0
         for (healTarget in targetsToHeal) {
-            val healAmount = rollHealingAmount(healer, spell)
+            val healAmount = healer.rollHealingAmount(spell)
             val wasAboutToDie = healTarget.isDying()
             healTarget.currentHP = min(healTarget.currentHP + healAmount, healTarget.getHP())
             if (wasAboutToDie && healTarget.currentHP > 0) {
@@ -214,19 +214,7 @@ class Combat(val battleId: Int) {
         return listOf(CombatActionResult(healer, targetsToHeal, -1 * totalHealAmount, attack, turnId, actionId, effectId++))
     }
 
-    fun rollHealingAmount(healer: CombatantWithStatus, spell: Spell): Int {
-        val healing = spell.getHealing()
-        var roll = healing.healingDice.roll()
-
-        if (healing.ability == "auto") {
-            val spellCastingBonus = (healer.combatant as? PlayerCharacter)?.getSpellAbilityBonusWithoutPB() ?: 0
-            roll += spellCastingBonus
-        }
-        // TODO: tempHP
-        return roll
-    }
-
-    fun chooseTarget(combatant: CombatantWithStatus): CombatantWithStatus?
+    fun chooseAttackTarget(combatant: CombatantWithStatus): CombatantWithStatus?
     {
         var targetList: List<CombatantWithStatus>
 
