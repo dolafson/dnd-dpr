@@ -109,7 +109,7 @@ class Combat(val battleId: Int) {
         val attackResults = mutableListOf<CombatAttackResult>()
         combatant.checkForSaveAtStartOfTurn(turnId)
 
-        if (combatant.saveByTakingAction()) {
+        if (combatant.checkForSaveByTakingAction()) {
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, save by taking action" }
             return attackResults
         }
@@ -137,13 +137,15 @@ class Combat(val battleId: Int) {
             }
         }
 
-        combatant.checkForSaveAtEndOfTurn(turnId)
+        combatant.checkForSaveAtEndOfTurn()
 
         logger.info { "turn = $turnId, attackResults = $attackResults" }
         return attackResults
     }
 
     fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA
+
+    fun getMyTeam(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamA else teamB
 
     fun getDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
         return getOpponents(combatant).filter { it.isDying() }.toList()
@@ -205,7 +207,7 @@ class Combat(val battleId: Int) {
     }
 
     fun chooseTurnActions(combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
-        val preferredTurnOption = combatant.getPreferredTurn(target, combatant.distance(target).toFeet(), getOpponents(combatant))
+        val preferredTurnOption = combatant.getPreferredTurn(target, combatant.distance(target).toFeet(), this)
         return preferredTurnOption?.first?.attacks ?: emptyList()
     }
 

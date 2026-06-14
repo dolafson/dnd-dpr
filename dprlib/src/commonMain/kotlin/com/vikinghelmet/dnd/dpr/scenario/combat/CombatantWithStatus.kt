@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtEndOfTurn
@@ -44,40 +45,48 @@ data class CombatantWithStatus(
     val temporaryDamageImmunity = mutableListOf<DamageType>()
     val temporaryDamageVulnerability = mutableListOf<DamageType>()
 
-    var savingThrowGenerator = SavingThrowGenerator()
+    var savingThrowGenerator = SavingThrowGenerator(this)
 
-    fun applyDamage(turnId: Int, damage: Int) {
-        currentHP -= damage
+    fun canTakeAction() = currentHP > 0 && !isUnableToAct()
 
-        if (damage == 0 || spellCastList.isEmpty() || !spellCastList.any { it.isStillRunning() }) {
-            return
-        }
+    override fun getDamageImmunities() = combatant.getDamageImmunities() + temporaryDamageImmunity
+    override fun getDamageResistances() = combatant.getDamageResistances() + temporaryDamageResistance
+    override fun getDamageVulnerabilities() = combatant.getDamageVulnerabilities() + temporaryDamageVulnerability
 
-        val saveDC = kotlin.math.min (10, damage/2)
-        val savingThrowSuccess = makeSavingThrow (saveDC, AbilityType.Constitution)
-        if (savingThrowSuccess) {
-            return
-        }
+    fun shortName() = newName // getName().replace(" .*".toRegex(), "")
 
-        logger.debug { "concentration is broken" }
+    // override fun toString() = getName()
+    override fun toString() = shortName()
 
-        spellCastList.filter { it.isStillRunning() }.forEach { spellCast ->
-            spellCast.turnEnded = turnId
-            spellCast.targetList.forEach { spellTarget ->
-                spellTarget.removeAll {
-                    it.cause === spellCast.spell
-                }
-            }
-        }
+    fun toFullString(): String {
+        return "CombatantWithStatus(combatant=$combatant, onTeamA=$onTeamA, turn=$turn, location=$location, currentHP=$currentHP, deathSavingThrows=$deathSavingThrows, spellCastList=$spellCastList, target=$target)"
     }
 
-    fun distance(target: CombatantWithStatus): Distance {
-        return distance(target.location)
+    fun summary(): String {
+        val buffer = StringBuilder("(").append(shortName()).append(", loc=$location")
+        if (isDead()) {
+            buffer.append(", dead")
+        } else if (isDying()) {
+            val failCount = deathSavingThrows.filter { !it }.count()
+            val passCount = deathSavingThrows.filter { it }.count()
+            buffer.append(", dying, saves=-$failCount/+$passCount")
+        } else {
+            buffer.append(", hp=$currentHP/${getHP()}")
+        }
+        return buffer.append(")").toString()
     }
 
-    fun distance(otherLocation: Location): Distance {
-        return otherLocation.distance(location)
+    // --------------------------------------------------------------------
+    // DEATH
+
+    fun isAHealer(): Boolean {
+        return (combatant is PlayerCharacter) && (combatant.getClass() == ClassName.Cleric)
     }
+
+    fun isDeadOrDying() = currentHP <= 0
+    fun isDead() = currentHP <= 0 && deathSavingThrows.count { !it } >= 3
+
+    fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
 
     fun deathSave() {
         val saveRoll = (1..20).random()
@@ -95,6 +104,13 @@ data class CombatantWithStatus(
             currentHP = 1
         }
     }
+
+    // --------------------------------------------------------------------
+    // LOCATIONS, DISTANCE, MOVEMENT
+
+    fun distance(target: CombatantWithStatus) =  distance(target.location)
+
+    fun distance(otherLocation: Location) = otherLocation.distance(location)
 
     fun getSpeed() = if (flightSupported) max(getSpeed(Movement.fly),getSpeed(Movement.walk)) else getSpeed(Movement.walk)
 
@@ -151,7 +167,6 @@ data class CombatantWithStatus(
         return Distance.fromFeet(range)
     }
 
-
     fun logMovement(toOrFrom: String, oldLocation: Location, newDistance: Distance) {
         val start = Globals.rightPad("${shortName()}: $toOrFrom",45)
         val buf = StringBuilder(start)
@@ -162,28 +177,8 @@ data class CombatantWithStatus(
         logger.debug { buf.toString() }
     }
 
-    fun shortName() = newName // getName().replace(" .*".toRegex(), "")
-
-    fun summary(): String {
-        val buffer = StringBuilder("(").append(shortName()).append(", loc=$location")
-        if (isDead()) {
-            buffer.append(", dead")
-        } else if (isDying()) {
-            val failCount = deathSavingThrows.filter { !it }.count()
-            val passCount = deathSavingThrows.filter { it }.count()
-            buffer.append(", dying, saves=-$failCount/+$passCount")
-        } else {
-            buffer.append(", hp=$currentHP/${getHP()}")
-        }
-        return buffer.append(")").toString()
-    }
-
-    fun isDeadOrDying() = currentHP <= 0
-    fun isDead() = currentHP <= 0 && deathSavingThrows.count { !it } >= 3
-
-    fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
-
-    fun canTakeAction() = currentHP > 0 && !isUnableToAct()
+    // --------------------------------------------------------------------
+    // SPELLS
 
     fun isSlotAvailable(spell: Spell): Boolean {
         val level = spell.properties.Level
@@ -208,12 +203,63 @@ data class CombatantWithStatus(
         return (slotsUsed < maxSlots)
     }
 
-    fun toFullString(): String {
-        return "CombatantWithStatus(combatant=$combatant, onTeamA=$onTeamA, turn=$turn, location=$location, currentHP=$currentHP, deathSavingThrows=$deathSavingThrows, spellCastList=$spellCastList, target=$target)"
+    // --------------------------------------------------------------------
+    // SAVING THROWS
+
+    fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType): Boolean  {
+        return savingThrowGenerator.makeSavingThrow(spellSaveDC, saveAbility)
     }
 
-    // override fun toString() = getName()
-    override fun toString() = shortName()
+    fun checkForSaveAtStartOfTurn(turnId: Int) {
+        // check spells cast on others - if expired duration, remove the effect from all targets
+        spellCastList.filter { it.isExpired(turnId) }.forEach { spellCast ->
+            spellCast.targetList.forEach { target ->
+                target.removeAll {
+                    it.cause === spellCast.spell
+                }
+            }
+        }
+
+        savingThrowGenerator.makeSavingThrows (SaveAtStartOfTurn::contains)
+    }
+
+    fun checkForSaveAtEndOfTurn() {
+        savingThrowGenerator.makeSavingThrows (SaveAtEndOfTurn::contains)
+    }
+    fun checkForSaveByTakingAction(): Boolean {
+        return savingThrowGenerator.makeSavingThrows (SaveByTakingAnAction::contains, true)
+    }
+
+    // --------------------------------------------------------------------
+    // DAMAGE
+
+    fun applyDamage(turnId: Int, damage: Int) {
+        currentHP -= damage
+
+        if (damage == 0 || spellCastList.isEmpty() || !spellCastList.any { it.isStillRunning() }) {
+            return
+        }
+
+        val saveDC = kotlin.math.min (10, damage/2)
+        val savingThrowSuccess = makeSavingThrow (saveDC, AbilityType.Constitution)
+        if (savingThrowSuccess) {
+            return
+        }
+
+        logger.debug { "concentration is broken" }
+
+        spellCastList.filter { it.isStillRunning() }.forEach { spellCast ->
+            spellCast.turnEnded = turnId
+            spellCast.targetList.forEach { spellTarget ->
+                spellTarget.removeAll {
+                    it.cause === spellCast.spell
+                }
+            }
+        }
+    }
+
+    // --------------------------------------------------------------------
+    // TURN OPTIONS
 
     fun getPossibleTurns(target: CombatantWithStatus, range: Int): List<Turn> {
         val builder = ScenarioBuilder(this, target)
@@ -231,10 +277,11 @@ data class CombatantWithStatus(
                     iterator.remove()
                 }
 
-                // don't cast HM if you already cast it - TODO: generalize this to concentration spells that are ongoing
-                val hm = HuntersMark.getNameWithWS()
-                if (attack.action is Spell && attack.action.name == hm && spellCastList.any { it.spell.name == hm }) {
-                    logger.debug { "no slots available for spell = ${attack.action.name}" }
+                // don't cast a spell if you cast it before and it is still running
+                if (attack.action is Spell &&
+                    spellCastList.any { it.isStillRunning() && it.spell.name == attack.action.name })
+                {
+                    logger.debug { "spell cast previously and still running = ${attack.action.name}" }
                     iterator.remove()
                 }
             }
@@ -242,118 +289,85 @@ data class CombatantWithStatus(
         return possibleTurns
     }
 
-    fun saveByTakingAction(): Boolean {
-        val iter = iterator()
-        while (iter.hasNext()) {
-            val effect = iter.next()
-            if (effect.cause !is Spell) continue
-            if (SaveByTakingAnAction.contains((effect.cause as Spell).name)) {
-                if (makeSavingThrow(effect.spellSaveDC, effect.save!!.saveAbility)) {
-                    iter.remove()
-                }
-                return true
-            }
-        }
-        return false
-    }
-
-    fun getPreferredTurn(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): Pair<Turn, TurnOptionRanking>? {
-        val sorted = getTurnOptionRankingList(target, range, opposingTeam)
+    fun getPreferredTurn(target: CombatantWithStatus, range: Int, combat: Combat? = null): Pair<Turn, TurnOptionRanking>? {
+        val sorted = getTurnOptionRankingList(target, range, combat)
         sorted.forEach {logger.debug { "sorted preferred option: $it" } }
         return if (sorted.isEmpty()) null else sorted[0]
     }
 
-    fun getTurnOptionRankingList(target: CombatantWithStatus, range: Int, opposingTeam: List<CombatantWithStatus> = emptyList()): List<Pair<Turn, TurnOptionRanking>> {
+    fun getTurnOptionRankingList(target: CombatantWithStatus, range: Int, combat: Combat? = null)
+        : List<Pair<Turn, TurnOptionRanking>>
+    {
         val possible = getPossibleTurns(target, range)
         val map = mutableMapOf<Turn, TurnOptionRanking>()
 
         for (turn in possible) {
             val ranking = TurnOptionRanking.fromTurn(turn)
-            // println("getPreferredTurn: turn=$turn, ranking=$ranking")
 
-            if (ranking.isSpell()) {
-                val spell = turn.getSpell()!!
-                val ability = spell.getSpellSaveAbility()
-
-                // exclude saving throw spells if opponent has high probability of saving
-                // TODO: remove hard-coding, factor in spell save DC, etc
-                if (ability != null && target.getAbilityModifier(ability) > 3) {
-                    logger.debug { "skipping spell turn option, target has high probability to save: ${spell.name}" }
-                    continue
-                }
-
-                // exclude AOE spell if all targets are already dying (finish them off with weapon if you must)
-                if (spell.isAOE() && opposingTeam.isNotEmpty()) {
-                    if (opposingTeam.all { it.isDeadOrDying() }) {
-                        logger.debug { "skipping spell turn option, avoid AOE spell if opponents are all dying: ${spell.name}" }
-                        continue
-                    }
-                }
-
-                // TODO: if no one in party is missing any HP, exclude healing spells
-                // TODO: if cleric solo fighting, choose healing self vs attacking target?
-
-                // TODO: de-prioritize AOE spells if number of targets is low
-                // TODO: fireball is AOE, but potentially high damage, so do not exclude
-
-                // TODO: damage resistance -> deprirotize ?
-
-                // exclude spells with damageType that target is immune to
-                if (spell.incursDamage()) {
-                    val damageType = spell.getSpellAttacks(0).first().getDamageList().first().type // TODO: improve
-                    if (target.getDamageImmunities().contains(damageType)) {
-                        logger.debug { "skipping spell turn option, target is immune: ${spell.name}" }
-                        continue
-                    }
-                }
+            if (isValidRanking(target, combat, turn, ranking)) {
+                map.put(turn, ranking)
             }
-
-            map.put(turn, ranking)
         }
 
         return map.toList().sortedByDescending { it.second.ordinal }
     }
 
-    override fun getDamageImmunities() = combatant.getDamageImmunities() + temporaryDamageImmunity
-    override fun getDamageResistances() = combatant.getDamageResistances() + temporaryDamageResistance
-    override fun getDamageVulnerabilities() = combatant.getDamageVulnerabilities() + temporaryDamageVulnerability
+    private fun isValidRanking(
+        target: CombatantWithStatus,
+        combat: Combat? = null,
+        turn: Turn,
+        ranking: TurnOptionRanking
+    ): Boolean
+    {
+        val opposingTeam = combat?.getOpponents(this) ?: emptyList()
+        val myTeam       = combat?.getMyTeam(this)    ?: listOf(this)
 
-    fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType): Boolean  {
-        return savingThrowGenerator.makeSavingThrow(this, spellSaveDC, saveAbility)
-    }
+        // println("getPreferredTurn: turn=$turn, ranking=$ranking")
+        if (!ranking.isSpell()) {
+            return true
+        }
 
-    fun checkForSaveAtStartOfTurn(turnId: Int) {
-        // check spells cast on others - if expired duration, remove the effect from all targets
-        spellCastList.filter { it.isExpired(turnId) }.forEach { spellCast ->
-            spellCast.targetList.forEach { target ->
-                target.removeAll {
-                    it.cause === spellCast.spell
-                }
+        val spell = turn.getSpell()!!
+        val ability = spell.getSpellSaveAbility()
+
+        // TODO: remove hard-coding, factor in spell save DC, etc
+        if (ability != null && target.getAbilityModifier(ability) > 3) {
+            logger.debug { "avoid spell, target has high probability to save: ${spell.name}" }
+            return false
+        }
+
+        if (spell.isAOE() && opposingTeam.isNotEmpty() && opposingTeam.all { it.isDeadOrDying() }) {
+            logger.debug { "avoid AOE spell, all opponents are dying: ${spell.name}" }
+            return false
+        }
+
+        if (spell.isHealing()) {
+            if (myTeam.all { it.getHP() == it.currentHP }) {
+                logger.debug { "exclude healing spells, no one in party is missing any HP" }
+                return false
+            }
+
+            if (!isAHealer() && myTeam.any { it.isAHealer() && !it.isDeadOrDying() }) {
+                logger.debug { "exclude healing spells, i'm not a healer and another team mate is" }
+                return false
             }
         }
 
-        // check spells cast on this combatant - if targetEffect allows repeat save at start of turn,
-        // roll for save, and remove effect on success
-        checkForSave (SaveAtStartOfTurn::contains)
-    }
+        // TODO: if cleric solo fighting, choose healing self vs attacking target?
 
-    fun checkForSaveAtEndOfTurn(turnId: Int) {
-        // check spells cast on this combatant - if targetEffect allows repeat save at end of turn,
-        // roll for save, and remove effect on success
-        checkForSave (SaveAtEndOfTurn::contains)
-    }
+        // TODO: de-prioritize AOE spells if number of targets is low
+        // TODO: fireball is AOE, but potentially high damage, so do not exclude
 
-    private fun checkForSave(spellNameFunction: (String) -> Boolean) {
-        val iter = iterator()
-        while (iter.hasNext()) {
-            val targetEffect = iter.next()
-            if (targetEffect.cause is Spell) {
-                val spell = targetEffect.cause as Spell
-                if (spellNameFunction(spell.name) &&
-                    makeSavingThrow (targetEffect.spellSaveDC, targetEffect.save!!.saveAbility)) {
-                    iter.remove()
-                }
+        // TODO: damage resistance -> deprirotize ?
+
+        // exclude spells with damageType that target is immune to
+        if (spell.incursDamage()) {
+            val damageType = spell.getSpellAttacks(0).first().getDamageList().first().type // TODO: improve
+            if (target.getDamageImmunities().contains(damageType)) {
+                logger.debug { "skipping spell turn option, target is immune: ${spell.name}" }
+                return false
             }
         }
+        return true
     }
 }

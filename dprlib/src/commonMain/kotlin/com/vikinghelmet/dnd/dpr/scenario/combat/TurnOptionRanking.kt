@@ -36,7 +36,7 @@ enum class TurnOptionRanking {
     // AOE spells are preferred over non-AOE, if number of targets is greater than one
     SpellWithRecurringDamageAOE,    // Conjure Animals
     SpellWithDamageAOE,             // Fireball
-    SpellWithIncapcitateAOE,        // Sleep, Entangle
+    SpellWithIncapcitateAOE,        // Sleep
 
     SpellWithDeathPrevention,       // Spare the Dying - if team member has negative HP, stabilizes to 0 HP
     SpellWithRestoreHP,             // Cure Wounds - if team member has low HP, increases it; may also prevent death

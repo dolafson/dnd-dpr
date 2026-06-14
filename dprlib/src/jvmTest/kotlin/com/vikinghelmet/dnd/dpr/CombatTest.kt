@@ -404,7 +404,7 @@ class CombatTest {
         goblin.add(autoFailEffect)
 
         // this test expects leif to cast Entangle - see also getPreferredTurnVersusGoblin()
-        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat.getOpponents(leif))
+        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat)
         assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
         combat.takeTurn(leif)
@@ -445,7 +445,7 @@ class CombatTest {
             val leif = combat.teamA[0]
             val goblin = combat.teamB[0]
 
-            val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat.getOpponents(leif))
+            val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat)
             assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
             combat.takeTurn(leif)
@@ -490,6 +490,37 @@ class CombatTest {
                 5 -> {
                     //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
                     //assertEquals("Spare the Dying", spellName)
+                    assertEquals("Channel Divinity: Turn Undead", spellName)
+                    assertEquals(TurnOptionRanking.SpellWithDamageAOE, preferred.second)
+                }
+                60 -> {
+                    assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred.second)
+                    assertEquals("Guiding Bolt", spellName)
+                }
+            }
+        }
+    }
+
+
+    @Test
+    fun getClericPreferredWhenDamaged() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+
+        // force melee range
+        combat.teamA[0].location = combat.teamB[0].location.copy()
+
+        combat.teamA[0].currentHP = 3
+
+        println("getActionsAvailable = ${ combat.teamA[0].getActionsAvailable()}")
+
+        for (range in listOf(5,60)) {
+            var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], range)
+            val spellName = preferred!!.first.attacks.map { it.action.getActionName() }.toList()[0]
+            when (range) {
+                5 -> {
+                    //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
+                    //assertEquals("Spare the Dying", spellName)
                     assertEquals("Channel Divinity: Preserve Life", spellName)
                     assertEquals(TurnOptionRanking.SpellWithRestoreHPAOE, preferred.second)
                 }
@@ -513,7 +544,7 @@ class CombatTest {
         goblin.add(autoFailEffect)
 
         // this test expects leif to cast Entangle - see also getPreferredTurnVersusGoblin()
-        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat.getOpponents(leif))
+        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat)
         assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
         combat.takeTurn(leif)
@@ -531,7 +562,7 @@ class CombatTest {
 
         // make sure Leif succeeds on next two saves, but fails the 3rd
         val generator = mockk<SavingThrowGenerator>()
-        every { generator.makeSavingThrow(any(), any(), any()) } returnsMany listOf(true, true, false)
+        every { generator.makeSavingThrow(any(), any()) } returnsMany listOf(true, true, false)
         leif.savingThrowGenerator = generator
 
         for (turnId in 4..6) {
@@ -548,6 +579,30 @@ class CombatTest {
                 }
             }
         }
-
     }
+
+
+    @Test
+    fun getTurnOptionRankingList() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        val leif = combat.teamA[0]
+        val goblin = combat.teamB[0]
+        val range = 60
+
+        val available = leif.getActionsAvailable()
+        available.getRanges().forEach { r ->
+            println("available[$r] = ${available.mapOfLists[r]}")
+        }
+
+        val possible = leif.getPossibleTurns(goblin, range)
+        possible.forEach { println("possibleTurn = $it") }
+
+        val sorted = combat.teamA[0].getTurnOptionRankingList(goblin, range, combat)
+        sorted.forEach { println("turnOptionRanking = $it") }
+
+ //       assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred!!.second)
+ //       assertEquals(listOf("Entangle"), preferred.first.attacks.map { it.action.getActionName() }.toList())
+    }
+
 }
