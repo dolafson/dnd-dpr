@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.scenario.combat.TargetSelectionStrategy.*
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
@@ -14,7 +15,7 @@ data class TargetSelector(
     @Transient
     val logger = LoggerFactory.get(TargetSelector::class.simpleName ?: "")
 
-    val attackResultList = combat.attackResultList
+    val attackResultList = combat.actionResultList
     val team = (if (combatant.onTeamA) combat.teamA else combat.teamB)
 
     fun getTargetAttackingFriendWhoIsAlmostDead() : CombatantWithStatus?

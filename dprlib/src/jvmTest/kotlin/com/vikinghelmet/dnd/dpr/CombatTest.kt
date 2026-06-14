@@ -2,6 +2,10 @@ package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Direction
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SavingThrowGenerator
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
@@ -31,16 +35,16 @@ class CombatTest {
         // note: a lot of movement may occur on a diagonal
 
         loc1.moveTowardLocation(loc2, 6)
-        assertEquals(Location(2,-1), loc1) // movement occurred
+        assertEquals(Location(2, -1), loc1) // movement occurred
 
         loc2.moveTowardLocation(loc1, 6)
-        assertEquals(Location(3,-2), loc2) // movement occurred
+        assertEquals(Location(3, -2), loc2) // movement occurred
 
         loc1.moveTowardLocation(loc2, 6)
-        assertEquals(Location(2,-1), loc1) // no movement needed
+        assertEquals(Location(2, -1), loc1) // no movement needed
 
         loc2.moveTowardLocation(loc1, 6)
-        assertEquals(Location(3,-2), loc2)  // no movement needed
+        assertEquals(Location(3, -2), loc2)  // no movement needed
     }
 
     @Test
@@ -145,9 +149,9 @@ class CombatTest {
             leif.logMovement("moving away from targets", oldLoc, distance)
 
             when (turnId) {
-                0 -> { assertEquals(Location(-9,-8), leif.location); assertEquals(65, distance.toFeet()) }
-                1 -> { assertEquals(Location(-15,-14), leif.location); assertEquals(60, distance.toFeet()) }
-                2 -> { assertEquals(Location(-21,-20), leif.location); assertEquals(50, distance.toFeet()) }
+                0 -> { assertEquals(Location(-9, -8), leif.location); assertEquals(65, distance.toFeet()) }
+                1 -> { assertEquals(Location(-15, -14), leif.location); assertEquals(60, distance.toFeet()) }
+                2 -> { assertEquals(Location(-21, -20), leif.location); assertEquals(50, distance.toFeet()) }
             }
 
             oldLoc = dragon.location.copy()
@@ -155,9 +159,9 @@ class CombatTest {
             dragon.logMovement("moving toward target $leif", oldLoc, distance)
 
             when (turnId) {
-                0 -> { assertEquals(Location(-5,-7), dragon.location); assertEquals(20, distance.toFeet()) }
-                1 -> { assertEquals(Location(-13,-13), dragon.location); assertEquals(10, distance.toFeet()) }
-                2 -> { assertEquals(Location(-20,-19), dragon.location); assertEquals(5, distance.toFeet()) }
+                0 -> { assertEquals(Location(-5, -7), dragon.location); assertEquals(20, distance.toFeet()) }
+                1 -> { assertEquals(Location(-13, -13), dragon.location); assertEquals(10, distance.toFeet()) }
+                2 -> { assertEquals(Location(-20, -19), dragon.location); assertEquals(5, distance.toFeet()) }
             }
 
             if (distance.toFeet() <= Constants.MELEE_RANGE) {
@@ -189,9 +193,9 @@ class CombatTest {
             leif.logMovement("moving away from targets", oldLoc, distance)
 
             when (turnId) {
-                0 -> { assertEquals(Location(-20,-8), leif.location); assertEquals(170, distance.toFeet()) }
-                1 -> { assertEquals(Location(-26,-14), leif.location); assertEquals(125, distance.toFeet()) }
-                2 -> { assertEquals(Location(-32,-20), leif.location); assertEquals(75, distance.toFeet()) }
+                0 -> { assertEquals(Location(-20, -8), leif.location); assertEquals(170, distance.toFeet()) }
+                1 -> { assertEquals(Location(-26, -14), leif.location); assertEquals(125, distance.toFeet()) }
+                2 -> { assertEquals(Location(-32, -20), leif.location); assertEquals(75, distance.toFeet()) }
             }
 
             oldLoc = dragon.location.copy()
@@ -199,9 +203,9 @@ class CombatTest {
             dragon.logMovement("moving toward target $leif", oldLoc, distance)
 
             when (turnId) {
-                0 -> { assertEquals(Location(-2,-7), dragon.location); assertEquals(90, distance.toFeet()) }
-                1 -> { assertEquals(Location(-18,-13), dragon.location); assertEquals(40, distance.toFeet()) }
-                2 -> { assertEquals(Location(-31,-19), dragon.location); assertEquals(5, distance.toFeet()) }
+                0 -> { assertEquals(Location(-2, -7), dragon.location); assertEquals(90, distance.toFeet()) }
+                1 -> { assertEquals(Location(-18, -13), dragon.location); assertEquals(40, distance.toFeet()) }
+                2 -> { assertEquals(Location(-31, -19), dragon.location); assertEquals(5, distance.toFeet()) }
             }
 
             if (distance.toFeet() <= Constants.MELEE_RANGE) {
@@ -238,7 +242,7 @@ class CombatTest {
         val attack = badGuy.getPreferredTurn(goodGuy, 0)!!.first.attacks[0]
         goodGuy.currentHP -= damage
         badGuy.target = goodGuy
-        combat.attackResultList.add(CombatAttackResult (badGuy, listOf(goodGuy), damage, attack))
+        combat.actionResultList.add(CombatActionResult (badGuy, listOf(goodGuy), damage, attack))
     }
 
     @Test
@@ -310,16 +314,16 @@ class CombatTest {
         val rhogar = combat.teamA[5]
         rhogar.currentHP = 11
 
-        combat.teamA[0].location = Location(-1,2)
-        combat.teamA[1].location = Location(-28,-23)
-        combat.teamA[2].location = Location(-2,-2)
-        combat.teamA[3].location = Location(-3,0)
-        combat.teamA[4].location = Location(-17,-14)
-        combat.teamA[5].location = Location(-40,35)
+        combat.teamA[0].location = Location(-1, 2)
+        combat.teamA[1].location = Location(-28, -23)
+        combat.teamA[2].location = Location(-2, -2)
+        combat.teamA[3].location = Location(-3, 0)
+        combat.teamA[4].location = Location(-17, -14)
+        combat.teamA[5].location = Location(-40, 35)
 
         val dragon = combat.teamB[0]
         dragon.currentHP = 62
-        dragon.location = Location(-18,-15)
+        dragon.location = Location(-18, -15)
 
         val target = combat.chooseTarget(dragon)
         println(target)
@@ -336,13 +340,13 @@ class CombatTest {
         val dragon = combat.teamA[0]
 
         // force right cone
-        dragon.location = Location(0,0)
+        dragon.location = Location(0, 0)
 
         for (i in 0..2) {
-            combat.teamB[i].location = Location(i+3, 0)
+            combat.teamB[i].location = Location(i + 3, 0)
         }
 
-        combat.teamB[3].location = Location(50,50) // far, far away
+        combat.teamB[3].location = Location(50, 50) // far, far away
 
         var dragonAttacks = combat.chooseTurnActions(dragon, combat.teamB[0])
         // println("dragonAttacks = $dragonAttacks")
@@ -381,7 +385,7 @@ class CombatTest {
         TestUtil.dependency()
 
         for (dir in Direction.entries) {
-            val cone = Cone(Location(0,0), dir, 6)
+            val cone = Cone(Location(0, 0), dir, 6)
             println("# dir=$dir")
             cone.dump()
             println()

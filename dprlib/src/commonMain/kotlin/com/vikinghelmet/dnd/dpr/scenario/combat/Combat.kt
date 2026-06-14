@@ -4,6 +4,9 @@ import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Direction
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -25,7 +28,7 @@ class Combat(val battleId: Int) {
     val teamA = mutableListOf<CombatantWithStatus>()
     val teamB = mutableListOf<CombatantWithStatus>()
     var initiativeList = listOf<CombatantWithStatus>()
-    val attackResultList = mutableListOf<CombatAttackResult>()
+    val actionResultList = mutableListOf<CombatActionResult>()
     var turnId = 0
     var actionId = 0
     var effectId = 0
@@ -100,19 +103,28 @@ class Combat(val battleId: Int) {
                 logger.info { "fullTurn, turn=$turnId, combatant=$combatant, can not take action" }
             } else {
                 logger.debug { "fullTurn, turn=$turnId, combatant=$combatant is taking action" }
-                attackResultList.addAll (takeTurn (combatant))
+                actionResultList.addAll (takeTurn (combatant))
             }
         }
     }
 
-    fun takeTurn(combatant: CombatantWithStatus): List<CombatAttackResult> {
-        val attackResults = mutableListOf<CombatAttackResult>()
+    fun takeTurn(combatant: CombatantWithStatus): List<CombatActionResult> {
+        val actionResults = mutableListOf<CombatActionResult>()
         combatant.checkForSaveAtStartOfTurn(turnId)
 
         if (combatant.checkForSaveByTakingAction()) {
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, save by taking action" }
-            return attackResults
+            return actionResults
         }
+
+        val goal = combatant.getActionGoal(this)
+        if (goal == ActionGoal.Heal) {
+            // TODO: pick a weak team member, move to them if needed, then heal them
+            // TODO: add healing result to actionResults
+            return actionResults
+        }
+
+        // from here on down is all about the Attack
 
         val target = chooseTarget(combatant)
         combatant.target = target
@@ -129,9 +141,9 @@ class Combat(val battleId: Int) {
 
             for (attack in attackList) {
                 if (attack.action is Weapon) {
-                    attackResults.addAll(meleeOrRangeAttack(combatant, target, attack, attack.action))
+                    actionResults.addAll(meleeOrRangeAttack(combatant, target, attack, attack.action))
                 } else {
-                    attackResults.addAll(attackWithSpell(combatant, target, attack))
+                    actionResults.addAll(attackWithSpell(combatant, target, attack))
                 }
                 actionId++
             }
@@ -139,8 +151,8 @@ class Combat(val battleId: Int) {
 
         combatant.checkForSaveAtEndOfTurn()
 
-        logger.info { "turn = $turnId, attackResults = $attackResults" }
-        return attackResults
+        logger.info { "turn = $turnId, attackResults = $actionResults" }
+        return actionResults
     }
 
     fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA
@@ -230,7 +242,7 @@ class Combat(val battleId: Int) {
         target: CombatantWithStatus,
         attack: Attack,
         action: MeleeOrRangeAction
-    ) : List<CombatAttackResult>
+    ) : List<CombatActionResult>
     {
         var attackRoll = getAttackRoll(combatant, target)
         val autoHit = attackRoll == 20 // critical Hit + Damage ... TODO: for a champion, autoHit on 19 or 18
@@ -249,7 +261,7 @@ class Combat(val battleId: Int) {
             target.applyDamage(turnId, damage)
         }
 
-        return listOf (CombatAttackResult (combatant, listOf(target), damage, attack, turnId, actionId, effectId++))
+        return listOf (CombatActionResult (combatant, listOf(target), damage, attack, turnId, actionId, effectId++))
     }
 
     fun computeDamage(attack: Attack, target: CombatantWithStatus, isCrit: Boolean, baseDamageList: List<Damage>): Int {
@@ -287,13 +299,13 @@ class Combat(val battleId: Int) {
     }
 
     fun attackWithSpell(combatant: CombatantWithStatus, target: CombatantWithStatus, attack: Attack)
-        : List<CombatAttackResult>
+        : List<CombatActionResult>
     {
         val attackBonus = combatant.getSpellBonusToHit()
         val spell = attack.action as Spell
         logger.debug { "spell = ${spell.fullString()}" }
 
-        val result = mutableListOf<CombatAttackResult>()
+        val result = mutableListOf<CombatActionResult>()
         for (spellAttack in spell.getSpellAttacks(attackBonus)) {
             logger.debug { "spell = ${spell.name}, spellAttack = $spellAttack" }
 
@@ -322,7 +334,7 @@ class Combat(val battleId: Int) {
         spell: Spell,
         spellAttack: SpellAttack,
         attack: Attack
-    ) : List<CombatAttackResult>
+    ) : List<CombatActionResult>
     {
         if (spellAttack.isNoDamageAttack()) {
             logger.debug { "This spell never directly creates damage" }
@@ -386,7 +398,7 @@ class Combat(val battleId: Int) {
             combatant.combatant.waitingForRecharge.add(attack.action)
         }
 
-        return listOf (CombatAttackResult (combatant, targetList, totalDamage, attack, turnId, actionId, effectId++))
+        return listOf (CombatActionResult (combatant, targetList, totalDamage, attack, turnId, actionId, effectId++))
     }
 
     fun applySavingThrowDamageModifiers(

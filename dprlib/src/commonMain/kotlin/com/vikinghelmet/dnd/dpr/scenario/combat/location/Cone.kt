@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.scenario.combat
+package com.vikinghelmet.dnd.dpr.scenario.combat.location
 
 class Cone(val center: Location, val direction: Direction, val length: Int) {
 

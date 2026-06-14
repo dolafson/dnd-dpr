@@ -7,6 +7,8 @@ import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtEndOfTurn
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtStartOfTurn
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveByTakingAnAction
@@ -271,15 +273,12 @@ data class CombatantWithStatus(
             val turn = iterator.next()
             // println("getPossibleTurns: turn=$turn")
 
-            for (attack in turn.attacks) {
-                if (attack.action is Spell && !this.isSlotAvailable(attack.action)) {
+            for (attack in turn.attacks) if (attack.action is Spell) {
+                if (!this.isSlotAvailable(attack.action)) {
                     logger.debug { "no slots available for spell = ${attack.action.name}" }
                     iterator.remove()
                 }
-
-                // don't cast a spell if you cast it before and it is still running
-                if (attack.action is Spell &&
-                    spellCastList.any { it.isStillRunning() && it.spell.name == attack.action.name })
+                else if (spellCastList.any { it.isStillRunning() && it.spell.name == attack.action.name })
                 {
                     logger.debug { "spell cast previously and still running = ${attack.action.name}" }
                     iterator.remove()
@@ -372,5 +371,33 @@ data class CombatantWithStatus(
             }
         }
         return true
+    }
+
+    fun getActionGoal(combat: Combat? = null): ActionGoal
+    {
+        if (this.combatant !is PlayerCharacter) {
+            return ActionGoal.Attack
+        }
+
+        if (! combatant.getPreparedSpells().any { it.isHealing() }) { // if you have no ability to heal ...
+            return ActionGoal.Attack
+        }
+
+        val myTeam          = combat?.getMyTeam(this)    ?: listOf(this)
+        val teamHasACleric  = myTeam.any { it.isCleric() && !it.isDeadOrDying() }
+        val dyingCount      = myTeam.count { it.isDying() }
+        val halfHPCount     = myTeam.count { it.currentHP <= it.getHP() / 2 }
+
+        if (halfHPCount == 0) {
+            logger.debug { "exclude healing spells, no one in party is below half HP" }
+            return ActionGoal.Attack
+        }
+
+        if (!isCleric() && teamHasACleric && dyingCount <= 1 && halfHPCount <= 3) {
+            logger.debug { "exclude healing spells, i'm not a healer and another team member is" }
+            return ActionGoal.Attack
+        }
+
+        return ActionGoal.Heal
     }
 }
