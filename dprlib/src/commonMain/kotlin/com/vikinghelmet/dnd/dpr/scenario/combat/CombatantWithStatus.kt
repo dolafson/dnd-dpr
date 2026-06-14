@@ -79,7 +79,7 @@ data class CombatantWithStatus(
     // --------------------------------------------------------------------
     // DEATH
 
-    fun isAHealer(): Boolean {
+    fun isCleric(): Boolean {
         return (combatant is PlayerCharacter) && (combatant.getClass() == ClassName.Cleric)
     }
 
@@ -309,6 +309,7 @@ data class CombatantWithStatus(
             }
         }
 
+        // TODO: secondary sorting: attacks by DPR, healing by restoration amount needed
         return map.toList().sortedByDescending { it.second.ordinal }
     }
 
@@ -342,18 +343,20 @@ data class CombatantWithStatus(
         }
 
         if (spell.isHealing()) {
-            if (myTeam.all { it.getHP() == it.currentHP }) {
-                logger.debug { "exclude healing spells, no one in party is missing any HP" }
+            val teamHasACleric = myTeam.any { it.isCleric() && !it.isDeadOrDying() }
+            val dyingCount = myTeam.count { it.isDying() }
+            val halfHPCount = myTeam.count { it.currentHP <= it.getHP() / 2 }
+
+            if (halfHPCount == 0) {
+                logger.debug { "exclude healing spells, no one in party is below half HP" }
                 return false
             }
 
-            if (!isAHealer() && myTeam.any { it.isAHealer() && !it.isDeadOrDying() }) {
+            if (!isCleric() && teamHasACleric && dyingCount <= 1 && halfHPCount <= 3) {
                 logger.debug { "exclude healing spells, i'm not a healer and another team mate is" }
                 return false
             }
         }
-
-        // TODO: if cleric solo fighting, choose healing self vs attacking target?
 
         // TODO: de-prioritize AOE spells if number of targets is low
         // TODO: fireball is AOE, but potentially high damage, so do not exclude
