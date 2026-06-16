@@ -62,7 +62,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
 
     LaunchedEffect(Unit) {
         options.clear()
-        options.addAll(dprFiles.getEditableCharacterList())
+        options.addAll(dprFiles.getEditableCharacterNameList())
 
         if (viewModel.getCurrentCharacter() != null) {
             println("CharacterScreen: LaunchedEffect: set char name: ${viewModel.getCurrentCharacter()!!.getName()}")
@@ -169,7 +169,7 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
     ) {
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             CharacterMenu(
-                "Select/Add Character", dprFiles.getEditableCharacterList(), textFieldState, false,
+                "Select/Add Character", dprFiles.getEditableCharacterNameList(), textFieldState, false,
                 { addText ->
                     addCharacter(addText)
                 },
@@ -288,8 +288,8 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Strength, AbilityType.Dexterity, AbilityType.Constitution).forEach {
-                        val baselineScore = character.from.getModifiedAbilityScore(it)
-                        val currentScore = character.getModifiedAbilityScore(it)
+                        val baselineScore = character.from.getAbilityScore(it)
+                        val currentScore = character.getAbilityScore(it)
                         Text(text = (currentScore).toString(), color = highlightIncrease(baselineScore, currentScore))
                     }
                 }
@@ -300,8 +300,8 @@ fun CharacterScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                 }
                 Column(modifier = Modifier.padding(start = 20.dp)) {
                     listOf(AbilityType.Intelligence, AbilityType.Wisdom, AbilityType.Charisma).forEach {
-                        val baselineScore = character.from.getModifiedAbilityScore(it)
-                        val currentScore = character.getModifiedAbilityScore(it)
+                        val baselineScore = character.from.getAbilityScore(it)
+                        val currentScore = character.getAbilityScore(it)
                         Text(text = (currentScore).toString(), color = highlightIncrease(baselineScore, currentScore))
                     }
                 }

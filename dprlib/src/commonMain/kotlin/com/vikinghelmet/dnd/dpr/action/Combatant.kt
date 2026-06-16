@@ -25,6 +25,7 @@ interface Combatant {
     fun getDamageResistances(): List<DamageType>
     fun getDamageVulnerabilities(): List<DamageType>
 
+    fun getAbilityScore(abilityType: AbilityType): Int
     fun getAbilityModifier(abilityType: AbilityType): Int
 
     fun getWeaponList(): List<Weapon>

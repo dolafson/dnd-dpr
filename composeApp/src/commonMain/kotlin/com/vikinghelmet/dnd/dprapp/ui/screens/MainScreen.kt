@@ -13,11 +13,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioIterator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
-import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -25,7 +25,7 @@ import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.*
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
-import com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu
+import com.vikinghelmet.dnd.dprapp.ui.widgets.CombatantMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import dev.shivathapaa.logger.api.Log
 import kotlinx.coroutines.delay
@@ -58,8 +58,8 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             characterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
         }
 
-        if (viewModel.getMainMonster() != null) {
-            monsterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getMainMonster()!!.monsterName)
+        if (viewModel.getCombatant(false) != null) {
+            monsterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(false)!!.getName())
         }
     }
 
@@ -69,7 +69,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 
             Column() {
                 CharacterMenu(
-                    "Select Character", dprFiles.getEditableCharacterList(),
+                    "Select Character", dprFiles.getEditableCharacterNameList(),
                     characterTextFieldState, true, {},
                     { selectedOption ->
                         viewModel.setMainCharacter(dprFiles.getEditableCharacter(selectedOption))
@@ -85,9 +85,10 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                     })
                 }
 
-                MonsterMenu(monsterTextFieldState, false) { selectedMonster ->
-                    viewModel.setMainMonster(selectedMonster)
-                    monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.monsterName ?: "")
+                CombatantMenu(monsterTextFieldState, false) { selectedMonster ->
+                    //viewModel.setMainMonster(selectedMonster)
+                    viewModel.setCombatant(selectedMonster, false) // TODO: fix hard-coding ?
+                    monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.getName() ?: "")
                 }
 
                 Row(modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)) {
@@ -140,14 +141,14 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                     println("Main: show view -> character")
                     viewModel.setCurrentCharacter(viewModel.getMainCharacter())
                     navHostController.navigate(ViewType.character.name)
-                }) { Text("C") }
+                }) { Text("A") }
 
                 Box(modifier = Modifier.height(60.dp)) {}
 
                 Button(onClick = {
                     println("Main: show view -> monster")
                     navHostController.navigate(ViewType.monster.name)
-                }) { Text("M") }
+                }) { Text("B") }
 
                 Button(
                     modifier = Modifier.padding(top = 40.dp),
@@ -161,7 +162,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                             viewModel.setProximity(proximityInt)
                             saveSettings(viewModel)
 
-                            val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getMainMonster()!!)
+                            val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getCombatant(false)!!)
 
                             scope.launch {
                                 outputText = "Building scenario list ...\n"
@@ -213,7 +214,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 
                         }
                     }
-                ) { Text("A") }
+                ) { Text("X") }
             }
         }
 

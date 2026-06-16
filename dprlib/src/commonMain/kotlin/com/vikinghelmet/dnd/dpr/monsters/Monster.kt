@@ -105,8 +105,8 @@ data class Monster(
 
     override fun isEvasive() = special_abilities?.any { it.name == "Evasion" } ?: false
 
-    override fun getAbilityModifier(abilityType: AbilityType): Int {
-        val score = when (abilityType) {
+    override fun getAbilityScore(abilityType: AbilityType): Int {
+        return when (abilityType) {
             Strength -> strength
             Dexterity -> dexterity
             Constitution -> constitution
@@ -115,7 +115,10 @@ data class Monster(
             Charisma -> charisma
             else -> throw IllegalArgumentException("invalid mod name: {$abilityType}")
         }
-        return Constants.statToBonusMap[score] ?: 0
+    }
+
+    override fun getAbilityModifier(abilityType: AbilityType): Int {
+        return Constants.statToBonusMap[getAbilityScore(abilityType)] ?: 0
     }
 
     override fun getWeaponList(): List<Weapon>

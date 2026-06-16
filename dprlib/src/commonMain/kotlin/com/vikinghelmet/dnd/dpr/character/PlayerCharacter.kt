@@ -83,7 +83,7 @@ open class PlayerCharacter(
     }
 
     override fun getAbilityModifier(abilityType: AbilityType): Int {
-        return Constants.statToBonusMap[getModifiedAbilityScore(abilityType)] ?: 0
+        return Constants.statToBonusMap[getAbilityScore(abilityType)] ?: 0
     }
 
     private fun getBonusModifierSum(a: AbilityType, list: List<Modifier>): Int {
@@ -95,14 +95,14 @@ open class PlayerCharacter(
         }
         return mod
     }
-    open fun getModifiedAbilityScore(a: AbilityType): Int {
-        return getRawAbilityScore(a) +
-                getBonusModifierSum(a, characterData.modifiers.race) +
-                getBonusModifierSum(a, characterData.modifiers.feat)
+    override fun getAbilityScore(abilityType: AbilityType): Int {
+        return getRawAbilityScore(abilityType) +
+                getBonusModifierSum(abilityType, characterData.modifiers.race) +
+                getBonusModifierSum(abilityType, characterData.modifiers.feat)
     }
 
     fun getRawAbilityScoreMap()      = AbilityType.getAllNotALL().associateWith { getRawAbilityScore(it) }
-    fun getModifiedAbilityScoreMap() = AbilityType.getAllNotALL().associateWith { getModifiedAbilityScore(it) }
+    fun getModifiedAbilityScoreMap() = AbilityType.getAllNotALL().associateWith { getAbilityScore(it) }
 
     fun getProficiencyBonus(): Int {
         return Constants.levelToProficiencyMap[getLevel()] ?: 0
@@ -162,8 +162,8 @@ open class PlayerCharacter(
             }
         }
 
-        val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
-        val conBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Constitution)] ?: 0
+        val dexBonus = Constants.statToBonusMap[getAbilityScore(AbilityType.Dexterity)] ?: 0
+        val conBonus = Constants.statToBonusMap[getAbilityScore(AbilityType.Constitution)] ?: 0
 
         when (armorType) {
             ArmorType.Unarmored -> {
@@ -215,8 +215,8 @@ open class PlayerCharacter(
     // this can potentially be used as part both attack and damage bonus calculation
     fun getAbilityWeaponBonus(w: Weapon): Int {
         // first calculate ability bonus, based on weapon type
-        val strBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Strength)] ?: 0
-        val dexBonus = Constants.statToBonusMap[getModifiedAbilityScore(AbilityType.Dexterity)] ?: 0
+        val strBonus = Constants.statToBonusMap[getAbilityScore(AbilityType.Strength)] ?: 0
+        val dexBonus = Constants.statToBonusMap[getAbilityScore(AbilityType.Dexterity)] ?: 0
 
         return if (w.hasWeaponProperty(WeaponProperty.Finesse)) kotlin.math.max(strBonus, dexBonus)
         else if (w.attackType.includesMelee()) strBonus

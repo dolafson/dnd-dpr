@@ -54,7 +54,8 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             viewModel.setProximity (settings.proximity)
             viewModel.setMainCharacter (Loader.getEditableCharacter(settings.characterName))
             viewModel.setCurrentCharacter (viewModel.getMainCharacter())
-            viewModel.setMainMonster (Globals.getMonsterOrNull(settings.monsterName))
+
+            viewModel.setCombatant (Globals.getMonsterOrNull(settings.monsterName), false) // TODO: fix hard-coding
         }
         catch (e: Exception) {
             println("unable to load settings: $e")
@@ -77,7 +78,7 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                 CharacterScreen(viewModel, navController)
             }
             composable(route = ViewType.monster.name) {
-                MonsterScreen(viewModel, navController)
+                CombatantScreen(viewModel, navController, false)
             }
             composable(route = ViewType.money.name) {
                 MoneyScreen(navController)

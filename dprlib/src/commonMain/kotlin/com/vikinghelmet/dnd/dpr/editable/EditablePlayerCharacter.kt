@@ -25,13 +25,13 @@ data class EditablePlayerCharacter (
 
     override fun getAlwaysPreparedSpells(): List<PreparedSpellRemote> = editableFields.alwaysPreparedSpells
 
-    override fun getModifiedAbilityScore(a: AbilityType): Int {
+    override fun getAbilityScore(a: AbilityType): Int {
         var increase = 0
         for (i in from.getLevel()..getLevel()) {
             if (a == editableFields.plan[i.toString()]?.asi1) increase++
             if (a == editableFields.plan[i.toString()]?.asi2) increase++
         }
-        return from.getModifiedAbilityScore(a) + increase
+        return from.getAbilityScore(a) + increase
     }
 
     override fun getLevel(): Int {

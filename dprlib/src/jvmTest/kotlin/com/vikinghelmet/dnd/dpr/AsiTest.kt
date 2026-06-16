@@ -30,9 +30,9 @@ class AsiTest {
         // baseline: all stats the same at level 3
         listOf(hunterPlan, gsPlan, wwPlan, wwCCPlan).forEach {
             it.editableFields.level = 3
-            assertEquals(19, it.getModifiedAbilityScore(AbilityType.Dexterity))
-            assertEquals(14, it.getModifiedAbilityScore(AbilityType.Wisdom))
-            assertEquals(12, it.getModifiedAbilityScore(AbilityType.Strength))
+            assertEquals(19, it.getAbilityScore(AbilityType.Dexterity))
+            assertEquals(14, it.getAbilityScore(AbilityType.Wisdom))
+            assertEquals(12, it.getAbilityScore(AbilityType.Strength))
             assertEquals(listOf(Feat.Archery), it.getFeatList())
         }
     }
@@ -47,18 +47,18 @@ class AsiTest {
             assertTrue(
                 it.getFeatList().contains(Feat.Sharpshooter)
             ) // some unique benefits, and a single point bump in Dex
-            assertEquals(20, it.getModifiedAbilityScore(AbilityType.Dexterity)) // +1
+            assertEquals(20, it.getAbilityScore(AbilityType.Dexterity)) // +1
         }
 
         // GS and WW prioritize Wis over Dex
         listOf(gsPlan, wwPlan).forEach {
-            assertEquals(16, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
+            assertEquals(16, it.getAbilityScore(AbilityType.Wisdom))    // +2
         }
 
         // WW CS = the CS feat confers some unique benefits, but only a single point bump in Wis
         listOf(wwCCPlan).forEach {
-            assertEquals(15, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +1
-            assertEquals(20, it.getModifiedAbilityScore(AbilityType.Dexterity))    // +1
+            assertEquals(15, it.getAbilityScore(AbilityType.Wisdom))    // +1
+            assertEquals(20, it.getAbilityScore(AbilityType.Dexterity))    // +1
         }
     }
 
@@ -67,18 +67,18 @@ class AsiTest {
         allRangerSubclasses.forEach { it.editableFields.level = 8 }
 
         listOf(hunterPlan).forEach {
-            assertEquals(16, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
+            assertEquals(16, it.getAbilityScore(AbilityType.Wisdom))    // +2
         }
 
         // GS and WW prioritize Wis over Dex
         listOf(gsPlan, wwPlan).forEach {
-            assertEquals(18, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
+            assertEquals(18, it.getAbilityScore(AbilityType.Wisdom))    // +2
         }
 
         // For WW CS, since both Dex and Wis were odd numbers, add 1 to both (ability benefits come with even numbers)
         listOf(wwCCPlan).forEach {
             assertTrue(it.getFeatList().contains(Feat.ColdCaster))
-            assertEquals(16, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +1
+            assertEquals(16, it.getAbilityScore(AbilityType.Wisdom))    // +1
         }
     }
 
@@ -88,15 +88,15 @@ class AsiTest {
 
         listOf(hunterPlan).forEach {
             assertTrue(it.getFeatList().contains(Feat.Piercer))
-            assertEquals(13, it.getModifiedAbilityScore(AbilityType.Strength))    // +2
+            assertEquals(13, it.getAbilityScore(AbilityType.Strength))    // +2
         }
 
         listOf(wwCCPlan).forEach {
-            assertEquals(18, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
+            assertEquals(18, it.getAbilityScore(AbilityType.Wisdom))    // +2
         }
 
         listOf(gsPlan, wwPlan).forEach {
-            assertEquals(20, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
+            assertEquals(20, it.getAbilityScore(AbilityType.Wisdom))    // +2
         }
     }
 
@@ -106,16 +106,16 @@ class AsiTest {
 
         listOf(hunterPlan).forEach {
             assertTrue(it.getFeatList().contains(Feat.GreatWeaponMaster))
-            assertEquals(14, it.getModifiedAbilityScore(AbilityType.Strength))    // +1
+            assertEquals(14, it.getAbilityScore(AbilityType.Strength))    // +1
         }
 
         listOf(gsPlan, wwPlan).forEach {
             assertTrue(it.getFeatList().contains(Feat.Piercer))
-            assertEquals(20, it.getModifiedAbilityScore(AbilityType.Dexterity))   // +1
+            assertEquals(20, it.getAbilityScore(AbilityType.Dexterity))   // +1
         }
 
         listOf(wwCCPlan).forEach {
-            assertEquals(20, it.getModifiedAbilityScore(AbilityType.Wisdom))    // +2
+            assertEquals(20, it.getAbilityScore(AbilityType.Wisdom))    // +2
         }
     }
 }

@@ -13,24 +13,25 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.text.input.ImeAction
-import com.vikinghelmet.dnd.dpr.monsters.Monster
+import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dprapp.ui.screens.dprFiles
 import dev.shivathapaa.logger.api.LogLevel
 import dev.shivathapaa.logger.api.LoggerFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuItemSelected: (Monster?) -> Unit) {
-    val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.widgets.MonsterMenu")
+fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuItemSelected: (Combatant?) -> Unit) {
+    val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.widgets.CombatantMenu")
 
-    val options = Globals.monsters.map { it.monsterName }
+    val options = dprFiles.getEditableCharacterList() + Globals.monsters
 
     var expanded by remember { mutableStateOf(false) }
     //val textFieldState = rememberTextFieldState()
 
     // filter options based on text field value
     val filteringOptions =
-        options.filter { it.contains(textFieldState.text, ignoreCase = true) }
+        options.filter { it.getName().contains(textFieldState.text, ignoreCase = true) }
 
     fun handleEnterKey() {
         if (textFieldState.text.toString() == "debug") {
@@ -40,13 +41,20 @@ fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuIte
             textFieldState.setTextAndPlaceCursorAtEnd("")
         }
         else {
-            val selection = if (filteringOptions.size == 1) filteringOptions[0]
-            else filteringOptions.firstOrNull { it.equals(textFieldState.text.toString(), ignoreCase = true) }
+            val currentText = textFieldState.text.toString()
+            val characters = dprFiles.getEditableCharacterNameList()
+            if (currentText in characters) {
+                onMenuItemSelected(dprFiles.getEditableCharacter(currentText))
+            }
+            else {
+                val selection = if (filteringOptions.size == 1) filteringOptions[0]
+                else filteringOptions.firstOrNull { it.getName().equals(currentText, ignoreCase = true) }
 
-            println("handleEnterKey, selection = $selection")
+                println("handleEnterKey, selection = $selection")
 
-            if (selection != null) {
-                onMenuItemSelected(Globals.getMonsterOrNull(selection))
+                if (selection != null) {
+                    onMenuItemSelected(selection)
+                }
             }
         }
     }
@@ -55,7 +63,7 @@ fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuIte
         TextField(
             state = textFieldState,
             lineLimits = TextFieldLineLimits.SingleLine,
-            label = { Text("Select Monster") },
+            label = { Text("Select Combatant") },
             readOnly = false,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded,
                 modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable))
@@ -87,10 +95,10 @@ fun MonsterMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuIte
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 filteringOptions.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(selectionOption, color = MaterialTheme.colorScheme.onSurface) },
+                        text = { Text(selectionOption.getName(), color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
-                            println("menu.onClick, monsterName = $selectionOption")
-                            onMenuItemSelected (Globals.getMonsterOrNull (selectionOption))
+                            println("menu.onClick, combatant name = ${selectionOption.getName()}")
+                            onMenuItemSelected (selectionOption)
                         }
                     )
                 }

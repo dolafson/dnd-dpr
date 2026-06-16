@@ -16,8 +16,8 @@
 package com.vikinghelmet.dnd.dprapp
 
 import androidx.lifecycle.ViewModel
+import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
-import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
@@ -33,15 +33,22 @@ class DprViewModel : ViewModel() {
     fun getProximity(): Int = _uiState.value.proximity
     fun getNumberOfTurns(): NumericRange = _uiState.value.numberOfTurns
     fun getMainCharacter(): EditablePlayerCharacter? = _uiState.value.mainCharacter
-    fun getMainMonster(): Monster? = _uiState.value.mainMonster
+
     fun getCurrentCharacter(): EditablePlayerCharacter? = _uiState.value.currentCharacter
-    fun getCurrentMonster(): Monster? = _uiState.value.currentMonster
     fun getCharacterLevel(): NumericRange = _uiState.value.characterLevel
     fun getScenarioResultList(): List<ScenarioResult>? = _uiState.value.scenarioResultList
 
+    fun getCombatant(onTeamA: Boolean): Combatant? {
+        return if (onTeamA) getMainCharacter() else _uiState.value.combatantB
+    }
+
     // ------------------------------------------
     fun isReadyForAttack(): Boolean {
-        return _uiState.value.mainCharacter != null && _uiState.value.mainMonster != null
+        // return _uiState.value.mainCharacter != null && _uiState.value.mainMonster != null
+        if (_uiState.value.combatantA == null) {
+            _uiState.value.combatantA = _uiState.value.mainCharacter
+        }
+        return _uiState.value.combatantA != null && _uiState.value.combatantB != null
     }
 
     fun setCharacterLevel(characterLevel: NumericRange) {
@@ -56,9 +63,14 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setMainMonster(mainMonster: Monster?) {
+    fun setCombatant(combatant: Combatant?, onTeamA: Boolean) {
         _uiState.update { currentState ->
-            currentState.copy(mainMonster = mainMonster)
+            if (onTeamA) {
+                currentState.copy(combatantA = combatant)
+            }
+            else {
+                currentState.copy(combatantB = combatant)
+            }
         }
     }
 
@@ -68,12 +80,6 @@ class DprViewModel : ViewModel() {
         }
         if (currentCharacter != null) {
             setCharacterLevel (NumericRange(currentCharacter.from.getLevel(),20,currentCharacter.getLevel()))
-        }
-    }
-
-    fun setCurrentMonster(currentMonster: Monster?) {
-        _uiState.update { currentState ->
-            currentState.copy(currentMonster = currentMonster)
         }
     }
 

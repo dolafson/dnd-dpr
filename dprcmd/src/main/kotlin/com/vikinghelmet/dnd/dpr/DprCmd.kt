@@ -63,7 +63,7 @@ fun getCombatantGroup(combatantNameList: String): List<Combatant> {
     if (combatantNameList.startsWith("party:")) {
         val level = combatantNameList.split(":".toRegex())[1].toInt()
 
-        dprFiles.getEditableCharacterList().forEach { name ->
+        dprFiles.getEditableCharacterNameList().forEach { name ->
             val c = dprFiles.getEditableCharacter(name)
             c!!.editableFields.level = level
             result.add(c)

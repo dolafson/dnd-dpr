@@ -1,8 +1,8 @@
 package com.vikinghelmet.dnd.dpr.util
 
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
-import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import kotlinx.io.*
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -94,8 +94,12 @@ class DprFiles(val appDataDir: String)
         return if (json !=null) Json.Default.decodeFromString(json) else null
     }
 
-    fun getEditableCharacterList(): List<String> {
+    fun getEditableCharacterNameList(): List<String> {
         return list(characterEditableDir).map { p -> p.substringAfterLast('/') }
+    }
+
+    fun getEditableCharacterList(): List<EditablePlayerCharacter> {
+        return getEditableCharacterNameList().mapNotNull { getEditableCharacter(it) }.toList()
     }
 
     fun list(subdir: String): List<String> {
