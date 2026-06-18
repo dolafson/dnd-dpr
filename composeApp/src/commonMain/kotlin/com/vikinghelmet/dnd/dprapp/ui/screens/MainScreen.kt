@@ -24,7 +24,6 @@ import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.*
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
-import com.vikinghelmet.dnd.dprapp.ui.widgets.CharacterMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CombatantMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import dev.shivathapaa.logger.api.Log
@@ -45,8 +44,8 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope() // Create a coroutine scope
 
-    val characterTextFieldState = rememberTextFieldState()
-    val monsterTextFieldState = rememberTextFieldState()
+    val teamATextFieldState = rememberTextFieldState()
+    val teamBTextFieldState = rememberTextFieldState()
 
     val uriHandler = LocalUriHandler.current
     //val fileOpener = LocalFileOpener.current
@@ -57,11 +56,12 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         Log.w("Main Screen Launched")
 
         if (viewModel.getMainCharacter() != null) {
-            characterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
+            //teamATextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
+            teamBTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(true)!!.getName())
         }
 
         if (viewModel.getCombatant(false) != null) {
-            monsterTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(false)!!.getName())
+            teamBTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(false)!!.getName())
         }
     }
 
@@ -70,27 +70,17 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
             Column() {
-                CharacterMenu(
-                    "Select Character", dprFiles.getEditableCharacterNameList(),
-                    characterTextFieldState, true, {},
-                    { selectedOption ->
-                        viewModel.setMainCharacter(dprFiles.getEditableCharacter(selectedOption))
-                        println("from menu selection, set main character = ${viewModel.getMainCharacter()!!.getName()}")
-                    })
-
-                Row(modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)) {
-                    Text(text = "Level", modifier = Modifier.padding(end = 10.dp))
-
-                    NumericMenu(viewModel.getCharacterLevel(), { newLevel ->
-                        viewModel.getMainCharacter()!!.editableFields.level = newLevel
-                        outputText = ""
-                    })
+                CombatantMenu(teamATextFieldState, false, getCombatants()) { selectedCombatant ->
+                    viewModel.setCombatant(selectedCombatant, true) // TODO: fix hard-coding ?
+                    teamATextFieldState.setTextAndPlaceCursorAtEnd(selectedCombatant?.getName() ?: "")
                 }
 
-                CombatantMenu(monsterTextFieldState, false, getCombatants()) { selectedMonster ->
-                    //viewModel.setMainMonster(selectedMonster)
-                    viewModel.setCombatant(selectedMonster, false) // TODO: fix hard-coding ?
-                    monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.getName() ?: "")
+                Row(modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)) {
+                }
+
+                CombatantMenu(teamBTextFieldState, false, getCombatants()) { selectedCombatant ->
+                    viewModel.setCombatant(selectedCombatant, false) // TODO: fix hard-coding ?
+                    teamBTextFieldState.setTextAndPlaceCursorAtEnd(selectedCombatant?.getName() ?: "")
                 }
 
                 Row(modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)) {
@@ -142,14 +132,14 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 Button(onClick = {
                     println("Main: show view -> character")
                     viewModel.setCurrentCharacter(viewModel.getMainCharacter())
-                    navHostController.navigate(ViewType.character.name)
+                    navHostController.navigate(ViewType.teamA.name)
                 }) { Text("A") }
 
                 Box(modifier = Modifier.height(60.dp)) {}
 
                 Button(onClick = {
                     println("Main: show view -> monster")
-                    navHostController.navigate(ViewType.monster.name)
+                    navHostController.navigate(ViewType.teamB.name)
                 }) { Text("B") }
 
                 Button(

@@ -74,10 +74,11 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             composable(route = ViewType.main.name) {
                 MainScreen(viewModel, navController)
             }
-            composable(route = ViewType.character.name) {
-                CharacterScreen(viewModel, navController)
+            composable(route = ViewType.teamA.name) {
+                // CharacterScreen(viewModel, navController)
+                CombatantScreen(viewModel, navController, true)
             }
-            composable(route = ViewType.monster.name) {
+            composable(route = ViewType.teamB.name) {
                 CombatantScreen(viewModel, navController, false)
             }
             composable(route = ViewType.money.name) {
