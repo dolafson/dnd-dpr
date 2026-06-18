@@ -210,7 +210,9 @@ data class Monster(
 
         multiAttack!!.actions!!.forEach { it2 ->
             val weapon = nameToWeapon[it2.action_name]
-            repeat(it2.count) { result.add(weapon!!) }
+            repeat(it2.count) {
+                result.add(weapon!!)
+            }
         }
 
         return result

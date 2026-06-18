@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.DprViewModel
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import kotlin.uuid.ExperimentalUuidApi
@@ -39,7 +40,8 @@ fun CharacterView(viewModel: DprViewModel, combatant: Combatant?)
     Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
         Column { Text("Level") }
         Column(modifier = Modifier.padding(start = 20.dp)) {
-            NumericMenu(viewModel.getCharacterLevel(), { newLevel ->
+            // NumericMenu(viewModel.getCharacterLevel(), { newLevel ->
+            NumericMenu(NumericRange(character.from.getLevel(), 20, character.getLevel()), { newLevel ->
                 character.editableFields.level = newLevel
                 modifyCounter++
             })

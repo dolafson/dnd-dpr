@@ -55,9 +55,9 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     LaunchedEffect(Unit) {
         Log.w("Main Screen Launched")
 
-        if (viewModel.getMainCharacter() != null) {
+        if (viewModel.getCombatant(true) != null) {
             //teamATextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
-            teamBTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(true)!!.getName())
+            teamATextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(true)!!.getName())
         }
 
         if (viewModel.getCombatant(false) != null) {
@@ -87,7 +87,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                     Text(text = "Proximity", modifier = Modifier.padding(end = 10.dp))
 
                     val options =
-                        (viewModel.getMainCharacter()?.getActionsAvailable()?.getRanges() ?: emptyList()).sorted().map {
+                        (viewModel.getCombatant(true)?.getActionsAvailable()?.getRanges() ?: emptyList()).sorted().map {
                             Pair("$it", Color.Black)
                         }
 
@@ -131,7 +131,6 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             Column() {
                 Button(onClick = {
                     println("Main: show view -> character")
-                    viewModel.setCurrentCharacter(viewModel.getMainCharacter())
                     navHostController.navigate(ViewType.teamA.name)
                 }) { Text("A") }
 
@@ -154,7 +153,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                             viewModel.setProximity(proximityInt)
                             saveSettings(viewModel)
 
-                            val builder = ScenarioBuilder(viewModel.getMainCharacter()!!, viewModel.getCombatant(false)!!)
+                            val builder = ScenarioBuilder(viewModel.getCombatant(true)!!, viewModel.getCombatant(false)!!)
 
                             scope.launch {
                                 outputText = "Building scenario list ...\n"

@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DprSettings(
-    var characterName: String = "",
-    var monsterName: String = "",
+    var combatantA: String = "",
+    var combatantB: String = "",
     var proximity: Int = 0
 ) {
 }

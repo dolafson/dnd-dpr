@@ -30,6 +30,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 
+fun isUrlOrID(str: String): Boolean {
+    return str.startsWith("http://") || str.startsWith("https://") || str.toIntOrNull() != null
+}
 
 fun isNotEmptyAndNotInList(textFieldState: TextFieldState, options: List<Combatant>) =
     textFieldState.text.isNotBlank() && !options.any {it.getName() == textFieldState.text }
@@ -115,7 +118,7 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
             val editableFields = EditableFields(currentText, oldCharacter!!, viewModel.getCharacterLevel())
             dprFiles.saveEditableCharacter(editableFields)
             newCharacter = EditablePlayerCharacter(oldCharacter, editableFields)
-            viewModel.setMainCharacter(newCharacter)
+            viewModel.setCombatant(newCharacter, onTeamA)
             options.add(newCharacter)
         }
         else {
@@ -165,17 +168,20 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
 
             Button(
                 modifier = Modifier.padding(start = 20.dp),
-                enabled = isCharacterInList(textFieldState, options),
-                onClick = { navHostController.navigate(ViewType.plan.name) }
+                enabled = (combatant != null && combatant is EditablePlayerCharacter), //isCharacterInList(textFieldState, options),
+                onClick = {
+                    viewModel.setCurrentCharacter(combatant as EditablePlayerCharacter?)
+                    navHostController.navigate(ViewType.plan.name)
+                }
             ) { Text("Plan") }
 
             Button(
                 modifier = Modifier.padding(start = 20.dp),
-                enabled = isCharacterInList(textFieldState, options),
+                enabled = (combatant != null && combatant is EditablePlayerCharacter), //isCharacterInList(textFieldState, options),
                 onClick = {
                     val name = textFieldState.text.toString()
-                    if (combatant == viewModel.getMainCharacter()) {
-                        viewModel.setMainCharacter(null)
+                    if (combatant == viewModel.getCombatant(onTeamA)) {
+                        viewModel.setCombatant(null, onTeamA)
                     }
                     dprFiles.deleteEditableCharacter(name)
                     options.remove(combatant)

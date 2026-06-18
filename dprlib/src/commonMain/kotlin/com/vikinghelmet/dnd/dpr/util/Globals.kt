@@ -105,23 +105,11 @@ object Globals {
     }
 
     fun getMonster(name: String): Monster {
-        for (monster in monsters) {
-            if (monster.monsterName == name) {
-                return monster
-            }
-        }
-        throw IllegalArgumentException("monster not found: "+name)
+        return getMonsterOrNull(name) ?: throw IllegalArgumentException("Monster not found: $name")
     }
 
     fun getMonsterOrNull(name: String): Monster? {
-        try {
-            return if (name.isEmpty()) null else getMonster(name)
-        }
-        catch (e: Exception) {
-            println("unable to find monster with name = $name, $e")
-            e.printStackTrace()
-            return null
-        }
+        return monsters.firstOrNull { it.monsterName == name }
     }
 
 

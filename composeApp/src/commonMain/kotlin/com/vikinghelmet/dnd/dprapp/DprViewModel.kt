@@ -32,34 +32,23 @@ class DprViewModel : ViewModel() {
 
     fun getProximity(): Int = _uiState.value.proximity
     fun getNumberOfTurns(): NumericRange = _uiState.value.numberOfTurns
-    fun getMainCharacter(): EditablePlayerCharacter? = _uiState.value.mainCharacter
 
     fun getCurrentCharacter(): EditablePlayerCharacter? = _uiState.value.currentCharacter
     fun getCharacterLevel(): NumericRange = _uiState.value.characterLevel
     fun getScenarioResultList(): List<ScenarioResult>? = _uiState.value.scenarioResultList
 
     fun getCombatant(onTeamA: Boolean): Combatant? {
-        return if (onTeamA) getMainCharacter() else _uiState.value.combatantB
+        return if (onTeamA) _uiState.value.combatantA else _uiState.value.combatantB
     }
 
     // ------------------------------------------
     fun isReadyForAttack(): Boolean {
-        // return _uiState.value.mainCharacter != null && _uiState.value.mainMonster != null
-        if (_uiState.value.combatantA == null) {
-            _uiState.value.combatantA = _uiState.value.mainCharacter
-        }
         return _uiState.value.combatantA != null && _uiState.value.combatantB != null
     }
 
-    fun setCharacterLevel(characterLevel: NumericRange) {
+    fun setCurrentCharacter(currentCharacter: EditablePlayerCharacter?) {
         _uiState.update { currentState ->
-            currentState.copy(characterLevel = characterLevel)
-        }
-    }
-
-    fun setMainCharacter(mainCharacter: EditablePlayerCharacter?) {
-        _uiState.update { currentState ->
-            currentState.copy(mainCharacter = mainCharacter)
+            currentState.copy(currentCharacter = currentCharacter)
         }
     }
 
@@ -71,15 +60,6 @@ class DprViewModel : ViewModel() {
             else {
                 currentState.copy(combatantB = combatant)
             }
-        }
-    }
-
-    fun setCurrentCharacter(currentCharacter: EditablePlayerCharacter?) {
-        _uiState.update { currentState ->
-            currentState.copy(currentCharacter = currentCharacter)
-        }
-        if (currentCharacter != null) {
-            setCharacterLevel (NumericRange(currentCharacter.from.getLevel(),20,currentCharacter.getLevel()))
         }
     }
 

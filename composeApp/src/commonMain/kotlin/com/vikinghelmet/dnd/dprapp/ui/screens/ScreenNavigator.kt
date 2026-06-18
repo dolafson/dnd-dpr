@@ -52,10 +52,10 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
         try {
             val settings = dprFiles.getSettings()
             viewModel.setProximity (settings.proximity)
-            viewModel.setMainCharacter (Loader.getEditableCharacter(settings.characterName))
-            viewModel.setCurrentCharacter (viewModel.getMainCharacter())
 
-            viewModel.setCombatant (Globals.getMonsterOrNull(settings.monsterName), false) // TODO: fix hard-coding
+            fun getCombatant(name: String) = Globals.getMonsterOrNull(name) ?: Loader.getEditableCharacter(name)
+            viewModel.setCombatant (getCombatant(settings.combatantA), true)
+            viewModel.setCombatant (getCombatant(settings.combatantB), false)
         }
         catch (e: Exception) {
             println("unable to load settings: $e")
