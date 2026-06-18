@@ -32,6 +32,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+fun getCombatants() = dprFiles.getEditableCharacterList() + Globals.monsters
+
 @Composable
 //@Preview
 fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
@@ -85,7 +87,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                     })
                 }
 
-                CombatantMenu(monsterTextFieldState, false) { selectedMonster ->
+                CombatantMenu(monsterTextFieldState, false, getCombatants()) { selectedMonster ->
                     //viewModel.setMainMonster(selectedMonster)
                     viewModel.setCombatant(selectedMonster, false) // TODO: fix hard-coding ?
                     monsterTextFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.getName() ?: "")

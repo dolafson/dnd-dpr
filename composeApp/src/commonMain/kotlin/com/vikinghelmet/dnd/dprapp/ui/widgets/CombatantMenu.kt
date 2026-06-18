@@ -21,10 +21,10 @@ import dev.shivathapaa.logger.api.LoggerFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, onMenuItemSelected: (Combatant?) -> Unit) {
+fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, options: List<Combatant>, onMenuItemSelected: (Combatant?) -> Unit) {
     val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.widgets.CombatantMenu")
 
-    val options = dprFiles.getEditableCharacterList() + Globals.monsters
+    //val options = dprFiles.getEditableCharacterList() + Globals.monsters
 
     var expanded by remember { mutableStateOf(false) }
     //val textFieldState = rememberTextFieldState()
