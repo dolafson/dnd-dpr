@@ -31,6 +31,6 @@ class CombatLoop(
     fun getPercentComplete() = battleId.toFloat() / numSimulations.toFloat()
 
     fun getTeamAWinPercentage(): Float {
-        return aTeamWinCount.toFloat() / battleId.toFloat()
+        return 100.toFloat() * aTeamWinCount.toFloat() / battleId.toFloat()
     }
 }

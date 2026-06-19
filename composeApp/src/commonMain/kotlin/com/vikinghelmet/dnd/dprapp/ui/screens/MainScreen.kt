@@ -136,17 +136,19 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         scope.launch {
             outputText = "Starting combat loop\n"
             delay(1)
+            loading = true
 
             repeat(numSimulations) {
                 loop.runOnce()
                 currentProgress = loop.getPercentComplete()
-                outputText += "."
+                //outputText += "."
                 delay(1)
                 println("currentProgress: $currentProgress")
             }
 
             outputText += "\n\nTeamA win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }%"
         }
+        loading = false
     }
 
     fun exportCSV(csvUploadUrl: String?) {
