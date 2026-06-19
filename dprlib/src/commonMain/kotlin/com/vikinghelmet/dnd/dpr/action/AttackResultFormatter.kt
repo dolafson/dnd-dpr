@@ -17,6 +17,9 @@ object AttackResultFormatter {
     fun format(fieldName: String, value: Any): String {
         val strValue = if (value is Float) Globals.getPercent(value) else value.toString()
 
+        if (isCSV && strValue.contains(",")) {  // wrap in double-quotes only if CSV and value has a comma
+            return "\"$strValue\","
+        }
         return if (isCSV) "$strValue," else "\t${ Globals.rightPad(fieldName,20) }${strValue}\n"
     }
 

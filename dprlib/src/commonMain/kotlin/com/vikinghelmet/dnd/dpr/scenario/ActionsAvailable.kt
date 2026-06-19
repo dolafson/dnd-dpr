@@ -43,4 +43,6 @@ class ActionsAvailable {
     fun add(range: Int, action: Action) {
         mapOfLists.getOrPut(range) { mutableListOf() }.add(action)
     }
+
+    fun isEmpty() = mapOfLists.isEmpty()
 }

@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.monsters
 
+import com.vikinghelmet.dnd.dpr.action.Action
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Weapon
 import com.vikinghelmet.dnd.dpr.action.enums.AttackType
@@ -70,6 +71,9 @@ data class Monster(
 
     @Transient
     val waitingForRecharge = mutableListOf<SavingThrowAction>()
+
+    @Transient
+    val _actionsAvailable = ActionsAvailable()
 
     override fun is2014() = true
 
@@ -143,75 +147,84 @@ data class Monster(
     override fun getSpellSlots() = emptyList<Int>() // TODO
 
     override fun getActionsAvailable(): ActionsAvailable { // TODO: duplication between this and PC
-
         val iterator = waitingForRecharge.iterator()
         while (iterator.hasNext()) {
             val next = iterator.next()
             if (next.rollForRecharge()) {
                 logger.info { "removing action from the waitingForRecharge list: $next" }
                 iterator.remove()
-            }
-            else {
+            } else {
                 logger.info { "action remains on the waitingForRecharge list: $next" }
             }
         }
 
-        val actionsAvailable = ActionsAvailable()
-        if (actions == null) return actionsAvailable
+        if (_actionsAvailable.isEmpty()) {
+            initActionsAvailable()
+        }
 
+        return _actionsAvailable
+    }
+
+    fun initActionsAvailable() {
         for (weapon in getWeaponList()) {
-            actionsAvailable.add(weapon.range, weapon)
+            _actionsAvailable.add(weapon.range, weapon)
 
             if (weapon.attackType == AttackType.MeleeOrRange) {
-                actionsAvailable.add(Constants.MELEE_RANGE, weapon)
+                _actionsAvailable.add(Constants.MELEE_RANGE, weapon)
             }
         }
 
-        fun addSavingThrowActions(list: List<MonsterAction>) {
-            list.filter { it.dc != null }.forEach { a ->
-                val spell = a.toSavingThrowAction()
-
-                if (waitingForRecharge.any { it.name.equals(spell.name) }) {
-                    logger.info { "Excluding spell, waiting for recharge: {$spell}" }
-                }
-                else if (spell.isRangedSpellAttack()) {
-                    actionsAvailable.add(spell.getRange(), spell)
-                } else {
-                    // all spells - except for "ranged spell attack" - can be used in melee
-                    actionsAvailable.add(Constants.MELEE_RANGE, spell)
-
-                    val range = spell.getRange()
-                    if (range > Constants.MELEE_RANGE) {
-                        actionsAvailable.add(range, spell)
-                    }
-                }
-            }
+        if (actions != null) {
+            addSavingThrowActions(actions)
         }
-
-        addSavingThrowActions(actions)
         addSavingThrowActions(special_abilities)
         addSavingThrowActions(legendary_actions)
         addSavingThrowActions(reactions)
+    }
 
-        return actionsAvailable
+    private fun addSavingThrowActions(list: List<MonsterAction>) {
+        list.filter { it.dc != null }.forEach { a ->
+            val spell = a.toSavingThrowAction()
+
+            if (waitingForRecharge.any { it.name.equals(spell.name) }) {
+                logger.info { "Excluding spell, waiting for recharge: {$spell}" }
+            }
+            else if (spell.isRangedSpellAttack()) {
+                _actionsAvailable.add(spell.getRange(), spell)
+            } else {
+                // all spells - except for "ranged spell attack" - can be used in melee
+                _actionsAvailable.add(Constants.MELEE_RANGE, spell)
+
+                val range = spell.getRange()
+                if (range > Constants.MELEE_RANGE) {
+                    _actionsAvailable.add(range, spell)
+                }
+            }
+        }
     }
 
     override fun getActionModifiersAvailable() = emptyList<ActionModifier>() // TODO
 
     override fun getActionList() = emptyList<ActionAdded>() // TODO
 
-    fun expandMultiAttack(): List<Weapon>
+    fun expandMultiAttack(): List<Action>
     {
         if (actions == null) return emptyList()
-
-        val result       = mutableListOf<Weapon>()
+        val result       = mutableListOf<Action>()
         val nameToWeapon = getWeaponList().associateBy { it.name }
         val multiAttack  = actions.firstOrNull { it.name == "Multiattack" }
 
-        multiAttack!!.actions!!.forEach { it2 ->
-            val weapon = nameToWeapon[it2.action_name]
-            repeat(it2.count) {
-                result.add(weapon!!)
+        for (subAttack in multiAttack!!.actions!!) {
+            val name = subAttack.action_name
+            val action = if (name in nameToWeapon) nameToWeapon[name] else
+                _actionsAvailable.getPrimaryAction(Constants.MELEE_RANGE).firstOrNull { it.getActionName() == name }
+
+            if (action == null) {
+                logger.error { "multiAttack: subAttack not found: $name" }
+                continue
+            }
+            repeat(subAttack.count) {
+                result.add(action)
             }
         }
 
