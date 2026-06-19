@@ -14,14 +14,13 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.scenario.combat.CombatLoop
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioIterator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
-import com.vikinghelmet.dnd.dpr.util.CharacterAPI
-import com.vikinghelmet.dnd.dpr.util.Constants
-import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.NumericRange
+import com.vikinghelmet.dnd.dpr.util.*
 import com.vikinghelmet.dnd.dprapp.*
 import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CombatantMenu
@@ -31,7 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-fun getCombatants() = dprFiles.getEditableCharacterList() + Globals.monsters
+fun getCombatants() = dprFiles.getPartyList() + dprFiles.getEditableCharacterList() + Globals.monsters
 
 @Composable
 //@Preview
@@ -57,11 +56,123 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 
         if (viewModel.getCombatant(true) != null) {
             //teamATextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCurrentCharacter()!!.getName())
-            teamATextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(true)!!.getName())
+            teamATextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(true)!!.toString())
         }
 
         if (viewModel.getCombatant(false) != null) {
-            teamBTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(false)!!.getName())
+            teamBTextFieldState.setTextAndPlaceCursorAtEnd(viewModel.getCombatant(false)!!.toString())
+        }
+    }
+
+    fun runScenarioBuilder() {
+        val proximityInt = viewModel.getProximity()
+        viewModel.setProximity(proximityInt)
+        saveSettings(viewModel)
+
+        val teamA = viewModel.getCombatant(true)!! as Combatant
+        val teamB = viewModel.getCombatant(false)!! as Combatant
+
+        val builder = ScenarioBuilder(teamA, teamB)
+
+        scope.launch {
+            outputText = "Building scenario list ...\n"
+            delay(1)
+
+            val scenarioList = builder.build(proximityInt, viewModel.getNumberOfTurns().current, numTargets, targetSpacing)
+
+            outputText += "Number of turn options = ${ builder.turnOptions.size }\n"
+            outputText += "Number of scenarios = ${ scenarioList.size }\n"
+            delay(1)
+
+            // avoid showing the progress bar for small data sets (avoid UI flicker)
+            if (scenarioList.size > 100) {
+                loading = true
+                currentProgress = 5f
+            }
+
+            val resultList: MutableList<ScenarioResult> = mutableListOf()
+
+            val iterator = ScenarioIterator(scenarioList)
+            while (iterator.hasNext()) {
+                repeat (if (isTinyCpu()) 50 else 1000) { if (iterator.hasNext()) {
+                    val scenario = iterator.next()
+                    resultList.add (ScenarioCalculator(scenario).calculateDPRForAllTurns())
+                    currentProgress = iterator.getPercentComplete()
+                }}
+                delay(1)
+                println("currentProgress: $currentProgress")
+            }
+
+            viewModel.setScenarioResultList(resultList)
+
+            val topResultList = ScenarioResult.topResults(resultList, 1)
+            if (topResultList.isNotEmpty()) {
+                val topResult = topResultList[0]
+
+                val buf = StringBuilder("Highest Avg Damage = ")
+                    .append(Globals.getPercent(topResult.totalDamage)).append("\n").append("\n")
+
+                for (turn in topResult.scenario.turns) {
+                    buf.append(turn.attacks.map { it.getLabel() }).append("\n")
+                }
+
+                outputText += buf.toString()
+            }
+            loading = false
+        }
+    }
+
+    fun runCombat() {
+        val selectedA = viewModel.getCombatant(true)!!
+        val selectedB = viewModel.getCombatant(false)!!
+
+        val teamA = if (selectedA is Party) selectedA.characterList else listOf(selectedA as Combatant)
+        val teamB = if (selectedB is Party) selectedB.characterList else listOf(selectedB as Combatant)
+
+        val numSimulations = 100
+        val loop = CombatLoop(teamA, teamB, numSimulations, false)
+        loop.log()
+
+        scope.launch {
+            outputText = "Starting combat loop\n"
+            delay(1)
+
+            repeat(numSimulations) {
+                loop.runOnce()
+                currentProgress = loop.getPercentComplete()
+                outputText += "."
+                delay(1)
+                println("currentProgress: $currentProgress")
+            }
+
+            outputText += "\n\nTeamA win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }%"
+        }
+    }
+
+    fun exportCSV(csvUploadUrl: String?) {
+        AttackResultFormatter.isCSV = true
+        val fileContent = StringBuilder()
+
+        ScenarioResult.topResults (viewModel.getScenarioResultList()!!, Constants.SCENARIO_OUTPUT_MAX)
+            .forEach {
+                fileContent.append(it.output()).append("\n")
+            }
+
+        if (isShareCsvSupported()) {
+            shareCsv("attack.csv", fileContent.toString())
+        }
+        else {
+            var csvDownloadUrl: String? = null
+
+            if (csvUploadUrl != null) runBlocking {
+                println("csvUploadUrl = $csvUploadUrl")
+                csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl, fileContent.toString())
+                println("csvDownloadUrl = $csvDownloadUrl")
+            }
+
+            if (csvDownloadUrl != null) {
+                uriHandler.openUri(csvDownloadUrl.trim())
+            }
         }
     }
 
@@ -72,7 +183,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             Column() {
                 CombatantMenu(teamATextFieldState, false, getCombatants()) { selectedCombatant ->
                     viewModel.setCombatant(selectedCombatant, true) // TODO: fix hard-coding ?
-                    teamATextFieldState.setTextAndPlaceCursorAtEnd(selectedCombatant?.getName() ?: "")
+                    teamATextFieldState.setTextAndPlaceCursorAtEnd(selectedCombatant?.toString() ?: "")
                 }
 
                 Row(modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)) {
@@ -80,16 +191,15 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 
                 CombatantMenu(teamBTextFieldState, false, getCombatants()) { selectedCombatant ->
                     viewModel.setCombatant(selectedCombatant, false) // TODO: fix hard-coding ?
-                    teamBTextFieldState.setTextAndPlaceCursorAtEnd(selectedCombatant?.getName() ?: "")
+                    teamBTextFieldState.setTextAndPlaceCursorAtEnd(selectedCombatant?.toString() ?: "")
                 }
 
                 Row(modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)) {
                     Text(text = "Proximity", modifier = Modifier.padding(end = 10.dp))
 
-                    val options =
-                        (viewModel.getCombatant(true)?.getActionsAvailable()?.getRanges() ?: emptyList()).sorted().map {
-                            Pair("$it", Color.Black)
-                        }
+                    val teamA = viewModel.getCombatant(true)
+                    val ranges = if (teamA is Combatant) teamA.getActionsAvailable().getRanges() else emptyList()
+                    val options = ranges.sorted().map { Pair("$it", Color.Black) }
 
                     BasicTextMenu("${viewModel.getProximity()}", options, 40.dp, 90.dp) { newValue ->
                         println("new proximity: $newValue")
@@ -142,70 +252,16 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 }) { Text("B") }
 
                 Button(
+                    enabled = viewModel.isReadyForScenarioBuilder(),
                     modifier = Modifier.padding(top = 40.dp),
-
-                    onClick = {
-                        if (!viewModel.isReadyForAttack()) {
-                            outputText = "select a character and monster before attacking"
-                            println(outputText)
-                        } else {
-                            val proximityInt = viewModel.getProximity()
-                            viewModel.setProximity(proximityInt)
-                            saveSettings(viewModel)
-
-                            val builder = ScenarioBuilder(viewModel.getCombatant(true)!!, viewModel.getCombatant(false)!!)
-
-                            scope.launch {
-                                outputText = "Building scenario list ...\n"
-                                delay(1)
-
-                                val scenarioList = builder.build(proximityInt, viewModel.getNumberOfTurns().current, numTargets, targetSpacing)
-
-                                outputText += "Number of turn options = ${ builder.turnOptions.size }\n"
-                                outputText += "Number of scenarios = ${ scenarioList.size }\n"
-                                delay(1)
-
-                                // avoid showing the progress bar for small data sets (avoid UI flicker)
-                                if (scenarioList.size > 100) {
-                                    loading = true
-                                    currentProgress = 5f
-                                }
-
-                                val resultList: MutableList<ScenarioResult> = mutableListOf()
-
-                                val iterator = ScenarioIterator(scenarioList)
-                                while (iterator.hasNext()) {
-                                    repeat (if (isTinyCpu()) 50 else 1000) { if (iterator.hasNext()) {
-                                        val scenario = iterator.next()
-                                        resultList.add (ScenarioCalculator(scenario).calculateDPRForAllTurns())
-                                        currentProgress = iterator.getPercentComplete()
-                                    }}
-                                    delay(1)
-                                    println("currentProgress: $currentProgress")
-                                }
-
-                                viewModel.setScenarioResultList(resultList)
-
-                                val topResultList = ScenarioResult.topResults(resultList, 1)
-                                if (topResultList.isNotEmpty()) {
-                                    val topResult = topResultList[0]
-
-                                    val buf = StringBuilder("Highest Avg Damage = ")
-                                        .append(Globals.getPercent(topResult.totalDamage)).append("\n").append("\n")
-
-                                    for (turn in topResult.scenario.turns) {
-                                        buf.append(turn.attacks.map { it.getLabel() }).append("\n")
-                                    }
-
-                                    outputText += buf.toString()
-                                }
-
-                                loading = false
-                            }
-
-                        }
-                    }
+                    onClick = { runScenarioBuilder() }
                 ) { Text("X") }
+
+                Button(
+                    enabled = viewModel.isReadyForAttack(),
+                    modifier = Modifier.padding(top = 5.dp),
+                    onClick = { runCombat() }
+                ) { Text("Y") }
             }
         }
 
@@ -243,42 +299,16 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             (isShareCsvSupported() || csvUploadUrl != null))
         {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-
-                Button(
-                    onClick = {
-                        AttackResultFormatter.isCSV = true
-                        val fileContent = StringBuilder()
-
-                        ScenarioResult.topResults (viewModel.getScenarioResultList()!!, Constants.SCENARIO_OUTPUT_MAX)
-                            .forEach {
-                                fileContent.append(it.output()).append("\n")
-                            }
-
-                        if (isShareCsvSupported()) {
-                            shareCsv("attack.csv", fileContent.toString())
-                        }
-                        else {
-                            var csvDownloadUrl: String? = null
-
-                            if (csvUploadUrl != null) runBlocking {
-                                println("csvUploadUrl = $csvUploadUrl")
-                                csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl, fileContent.toString())
-                                println("csvDownloadUrl = $csvDownloadUrl")
-                            }
-
-                            if (csvDownloadUrl != null) {
-                                uriHandler.openUri(csvDownloadUrl.trim())
-                            }
-                        }
-                    }
-                ) { Text("Export") }
+                Button( onClick = { exportCSV(csvUploadUrl) } ) {
+                    Text("Export")
+                }
             }
         }
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Button(onClick = {
-                navHostController.navigate(ViewType.money.name)
-            } )  { Text("$") }
+            Button(onClick = { navHostController.navigate(ViewType.money.name) } )  {
+                Text("$")
+            }
         }
     }
 }

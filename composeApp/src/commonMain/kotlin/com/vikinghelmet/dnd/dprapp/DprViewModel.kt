@@ -17,6 +17,7 @@ package com.vikinghelmet.dnd.dprapp
 
 import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.NumericRange
@@ -37,13 +38,17 @@ class DprViewModel : ViewModel() {
     fun getCharacterLevel(): NumericRange = _uiState.value.characterLevel
     fun getScenarioResultList(): List<ScenarioResult>? = _uiState.value.scenarioResultList
 
-    fun getCombatant(onTeamA: Boolean): Combatant? {
+    fun getCombatant(onTeamA: Boolean): CombatantMenuItem? {
         return if (onTeamA) _uiState.value.combatantA else _uiState.value.combatantB
     }
 
     // ------------------------------------------
     fun isReadyForAttack(): Boolean {
         return _uiState.value.combatantA != null && _uiState.value.combatantB != null
+    }
+    fun isReadyForScenarioBuilder(): Boolean {
+        return _uiState.value.combatantA != null && _uiState.value.combatantB != null &&
+                _uiState.value.combatantA is Combatant && _uiState.value.combatantB is Combatant
     }
 
     fun setCurrentCharacter(currentCharacter: EditablePlayerCharacter?) {
@@ -52,7 +57,7 @@ class DprViewModel : ViewModel() {
         }
     }
 
-    fun setCombatant(combatant: Combatant?, onTeamA: Boolean) {
+    fun setCombatant(combatant: CombatantMenuItem?, onTeamA: Boolean) {
         _uiState.update { currentState ->
             if (onTeamA) {
                 currentState.copy(combatantA = combatant)

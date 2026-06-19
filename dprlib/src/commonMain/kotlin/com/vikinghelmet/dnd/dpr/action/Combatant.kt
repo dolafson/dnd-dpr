@@ -10,12 +10,11 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.util.Movement
 
-interface Combatant {
+interface Combatant : CombatantMenuItem {
     fun is2014(): Boolean
     fun getAC(): Int
     fun getHP(): Int
     fun getInitiativeBonus(): Int
-    fun getName(): String
     fun isFeatEnabled(requested : Feat): Boolean
     fun isRacialTraitEnabled(requested : RacialTrait): Boolean
     fun isEvasive(): Boolean

@@ -53,7 +53,8 @@ fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
             val settings = dprFiles.getSettings()
             viewModel.setProximity (settings.proximity)
 
-            fun getCombatant(name: String) = Globals.getMonsterOrNull(name) ?: Loader.getEditableCharacter(name)
+            fun getCombatant(name: String) = Loader.getParty(name) ?:
+                Globals.getMonsterOrNull(name) ?: Loader.getEditableCharacter(name)
             viewModel.setCombatant (getCombatant(settings.combatantA), true)
             viewModel.setCombatant (getCombatant(settings.combatantB), false)
         }

@@ -3,12 +3,15 @@ package com.vikinghelmet.dnd.dpr.util
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.logger
 import kotlinx.io.*
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.json.Json
 
 const val settingsPath = ".dpr/settings.json"
+
+const val partyDir = ".dpr/party"
 const val characterBaselineDir = ".dpr/character/baseline"
 const val characterEditableDir = ".dpr/character/editable"
 const val exportDir = ".dpr/export"
@@ -20,6 +23,7 @@ class DprFiles(val appDataDir: String)
         SystemFileSystem.createDirectories(Path(appDataDir + "/" + characterBaselineDir))
         SystemFileSystem.createDirectories(Path(appDataDir + "/" + characterEditableDir))
         SystemFileSystem.createDirectories(Path(appDataDir + "/" + exportDir))
+        SystemFileSystem.createDirectories(Path(appDataDir + "/" + partyDir))
     }
 
     fun deleteAll() {
@@ -38,6 +42,10 @@ class DprFiles(val appDataDir: String)
     fun saveSettings(settings: DprSettings) {
         val settingsString = Json.Default.encodeToString(settings)
         write(settingsString, settingsPath)
+    }
+
+    fun saveParty(party: Party) {
+        write(Json.Default.encodeToString(party), partyDir +"/"+party.toString())
     }
 
     fun saveCharacter(json: String, characterId: String) {
@@ -92,6 +100,27 @@ class DprFiles(val appDataDir: String)
     fun getCharacter(characterId: String): PlayerCharacter? {
         val json = read(characterBaselineDir +"/" + characterId)
         return if (json !=null) Json.Default.decodeFromString(json) else null
+    }
+
+    fun getParty(name: String): Party? {
+        val json = read(partyDir +"/" + name) ?: return null
+        val party: Party? = Json.Default.decodeFromString(json)
+        if (party != null) {
+            for (local in party.localList) {
+                val character = getEditableCharacter(local)
+                if (character == null) {
+                    logger.error { "Party member not found: $local" }
+                }
+                else {
+                    party.characterList.add(character)
+                }
+            }
+        }
+        return party
+    }
+
+    fun getPartyList(): List<Party> {
+        return list(partyDir).map { p -> p.substringAfterLast('/') }.mapNotNull { getParty(it) }.toList()
     }
 
     fun getEditableCharacterNameList(): List<String> {

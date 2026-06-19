@@ -13,7 +13,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.text.input.ImeAction
-import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dprapp.ui.screens.dprFiles
 import dev.shivathapaa.logger.api.LogLevel
@@ -21,7 +21,7 @@ import dev.shivathapaa.logger.api.LoggerFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, options: List<Combatant>, onMenuItemSelected: (Combatant?) -> Unit) {
+fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, options: List<CombatantMenuItem>, onMenuItemSelected: (CombatantMenuItem?) -> Unit) {
     val logger = LoggerFactory.get("com.vikinghelmet.dnd.dprapp.ui.widgets.CombatantMenu")
 
     //val options = dprFiles.getEditableCharacterList() + Globals.monsters
@@ -31,7 +31,7 @@ fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, options
 
     // filter options based on text field value
     val filteringOptions =
-        options.filter { it.getName().contains(textFieldState.text, ignoreCase = true) }
+        options.filter { it.toString().contains(textFieldState.text, ignoreCase = true) }
 
     fun handleEnterKey() {
         if (textFieldState.text.toString() == "debug") {
@@ -48,7 +48,7 @@ fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, options
             }
             else {
                 val selection = if (filteringOptions.size == 1) filteringOptions[0]
-                else filteringOptions.firstOrNull { it.getName().equals(currentText, ignoreCase = true) }
+                else filteringOptions.firstOrNull { it.toString().equals(currentText, ignoreCase = true) }
 
                 println("handleEnterKey, selection = $selection")
 
@@ -95,9 +95,9 @@ fun CombatantMenu(textFieldState: TextFieldState, fillMaxWidth: Boolean, options
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 filteringOptions.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(selectionOption.getName(), color = MaterialTheme.colorScheme.onSurface) },
+                        text = { Text(selectionOption.toString(), color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
-                            println("menu.onClick, combatant name = ${selectionOption.getName()}")
+                            println("menu.onClick, combatant name = ${selectionOption.toString()}")
                             onMenuItemSelected (selectionOption)
                         }
                     )

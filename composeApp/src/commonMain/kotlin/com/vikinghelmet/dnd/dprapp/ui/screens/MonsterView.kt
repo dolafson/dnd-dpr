@@ -32,7 +32,7 @@ fun MonsterView(combatant: Combatant?)// viewModel: DprViewModel, onTeamA: Boole
             Text("Size")
         }
         Column(modifier = Modifier.padding(start = 20.dp)) {
-            Text(if (combatant == null) "?" else combatant!!.getName())
+            Text(combatant?.toString() ?: "?")
 
             if (combatant == null) {
                 Text("?")

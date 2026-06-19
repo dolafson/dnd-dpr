@@ -42,6 +42,10 @@ data class EditablePlayerCharacter (
         return editableFields.name
     }
 
+    override fun toString(): String {
+        return getName()
+    }
+
     override fun getSubclassName(): String? {
         val sub = from.getSubclassName()
         if (sub != null) return sub

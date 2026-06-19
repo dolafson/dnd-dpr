@@ -2,7 +2,6 @@ package com.vikinghelmet.dnd.dprapp.ui.screens
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
@@ -11,10 +10,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.vikinghelmet.dnd.dpr.action.Combatant
-import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Party
 import com.vikinghelmet.dnd.dprapp.DprViewModel
@@ -34,12 +33,6 @@ fun isUrlOrID(str: String): Boolean {
     return str.startsWith("http://") || str.startsWith("https://") || str.toIntOrNull() != null
 }
 
-fun isNotEmptyAndNotInList(textFieldState: TextFieldState, options: List<Combatant>) =
-    textFieldState.text.isNotBlank() && !options.any {it.getName() == textFieldState.text }
-
-fun isCharacterInList(textFieldState: TextFieldState, options: List<Combatant>) =
-    textFieldState.text.isNotBlank() && options.any {it.getName() == textFieldState.text && it is PlayerCharacter }
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 //@Preview
@@ -55,7 +48,7 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    val options = remember { mutableListOf<Combatant>() }
+    val options = remember { mutableListOf<CombatantMenuItem>() }
 
     LaunchedEffect(Unit) {
         options.clear()
@@ -84,14 +77,19 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
         println("fetching party ...")
         delay(1)
         var count = 1
-        val size = party.party.size
-        party.party.forEach {
-            val json = getRemoteJson(it)
+        val size = party.remoteList.size
+        party.remoteList.forEach { url ->
+            val json = getRemoteJson(url)
             val added = addEditableCharacter(json!!)
-            if (added != null) options.add(added)
+            if (added != null) {
+                party.add(added)
+                options.add(added)
+            }
             currentProgress = (count++ * 1f) / (size * 1f)
             delay(1)
         }
+        options.add(party)
+        dprFiles.saveParty(party)
         loading = false
     }
 
@@ -127,7 +125,7 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
             if (json.isNullOrBlank()) {
                 logger.error { "addCharacter($currentText), json is null or blank" }
             }
-            else if (json.contains("\"party\"")) {
+            else if (json.contains("\"partyName\"")) {
                 logger.info { "loading party: $json" }
                 scope.launch { addPartyBackground(Json.decodeFromString(json)) }
                 reset()
@@ -138,7 +136,7 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                 if (addResult != null) {
                     options.add(addResult)
                     newCharacter = addResult
-                    textFieldState.setTextAndPlaceCursorAtEnd(addResult.getName())
+                    textFieldState.setTextAndPlaceCursorAtEnd(addResult.toString())
                 }
             }
         }
@@ -154,15 +152,15 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
             .fillMaxSize()
             .combinedClickable(onClick = {}, onDoubleClick =  { navHostController.popBackStack() })
     ) {
-        CombatantMenu(textFieldState, false, getCombatants()) { selectedMonster ->
-            combatant = selectedMonster
-            textFieldState.setTextAndPlaceCursorAtEnd(selectedMonster?.getName() ?: "")
+        CombatantMenu(textFieldState, false, getCombatants()) { selected ->
+            combatant = selected
+            textFieldState.setTextAndPlaceCursorAtEnd(selected?.toString() ?: "")
         }
 
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
 
             Button(
-                enabled = isNotEmptyAndNotInList(textFieldState, options),
+                enabled = textFieldState.text.isNotBlank() && !options.any {it.toString() == textFieldState.text },
                 onClick = { addCharacter(textFieldState.text.toString()) }
             ) { Text("Add") }
 
@@ -184,7 +182,7 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
                         viewModel.setCombatant(null, onTeamA)
                     }
                     dprFiles.deleteEditableCharacter(name)
-                    options.remove(combatant)
+                    options.remove(combatant!!)
                     combatant = null
                     textFieldState.setTextAndPlaceCursorAtEnd("")
                 }
@@ -201,10 +199,13 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
             // do nothing
         }
         else if (combatant is EditablePlayerCharacter) {
-            CharacterView(viewModel, combatant)
+            CharacterView(viewModel, combatant as EditablePlayerCharacter)
+        }
+        else if (combatant is Monster) {
+            MonsterView(combatant as Monster?)
         }
         else {
-            MonsterView(combatant)
+            logger.warn { "TODO: display party members" }
         }
 
         Row(

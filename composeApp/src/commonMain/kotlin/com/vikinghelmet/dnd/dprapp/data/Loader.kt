@@ -1,15 +1,20 @@
 package com.vikinghelmet.dnd.dprapp.data
 
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
-import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
+import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.logger
+import com.vikinghelmet.dnd.dpr.util.Party
 import com.vikinghelmet.dnd.dprapp.ui.screens.dprFiles
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 object Loader {
+
+    fun getParty(name: String): Party? {
+        return dprFiles.getParty(name)
+    }
 
     fun getEditableCharacter(name: String): EditablePlayerCharacter? {
         return dprFiles.getEditableCharacter(name)

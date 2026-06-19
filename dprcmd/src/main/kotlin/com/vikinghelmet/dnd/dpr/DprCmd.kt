@@ -10,7 +10,7 @@ import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
-import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
+import com.vikinghelmet.dnd.dpr.scenario.combat.CombatLoop
 import com.vikinghelmet.dnd.dpr.scenario.onesided.*
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
@@ -301,14 +301,11 @@ fun main(args : Array<String>) {
     val targets   = getCombatantGroup(args[i++])
 
     if (args[i].startsWith("auto")) {
-        val max=100
-        var aTeamWinCount = 0
-        for (battle in 1..max) {
-            val flightSupported = args[i].startsWith("auto:fly")
-            if (Combat(battle, attackers, targets, flightSupported = flightSupported).run()) aTeamWinCount++
-        }
+        val loop = CombatLoop(attackers, targets, 100, args[i].startsWith("auto:fly"))
+        loop.run()
+
         logger.warn { "" }
-        logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(aTeamWinCount.toFloat() / max.toFloat()) }" }
+        logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }" }
         logger.warn { "" }
     }
     else if (args[i].toIntOrNull() == null) {

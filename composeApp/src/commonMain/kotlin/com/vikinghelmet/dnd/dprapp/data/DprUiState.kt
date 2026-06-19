@@ -1,6 +1,6 @@
 package com.vikinghelmet.dnd.dprapp.data
 
-import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.DprSettings
@@ -12,8 +12,8 @@ data class DprUiState(
     // current character: used when navigating from CombatantScreen to PlanningScreen
     var currentCharacter: EditablePlayerCharacter? = null,
 
-    var combatantA: Combatant? = null,
-    var combatantB: Combatant? = null,
+    var combatantA: CombatantMenuItem? = null,
+    var combatantB: CombatantMenuItem? = null,
 
     // editable field on main screen
     var proximity: Int = 0,
@@ -26,8 +26,8 @@ data class DprUiState(
 ) {
     fun getSettings(): DprSettings {
         return DprSettings(
-            if (combatantA == null) "" else combatantA!!.getName(),
-            if (combatantB == null) "" else combatantB!!.getName(),
+            if (combatantA == null) "" else combatantA!!.toString(),
+            if (combatantB == null) "" else combatantB!!.toString(),
             proximity
         )
     }

@@ -87,6 +87,10 @@ data class Monster(
 
     override fun getName() = monsterName
 
+    override fun toString(): String {
+        return getName()
+    }
+
     override fun getSpeed(movement: Movement): Int {
         val speedString: String? = when (movement) {
             Movement.burrow -> speed.burrow
