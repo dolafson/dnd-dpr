@@ -1,7 +1,7 @@
 package com.vikinghelmet.dnd.dpr.scenario.onesided
 
-import com.vikinghelmet.dnd.dpr.action.AttackResult
-import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.action.results.AttackResult
+import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient

@@ -4,7 +4,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter

@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.action
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.action.results.AttackResult
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.scenario.onesided.EffectManager
@@ -422,11 +423,11 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         val duration = 1f * (spell.getDuration() ?: 0)
         return AttackResult(
             1,
-            AvgMinMax(1f,1f,1f,1f),
-            AvgMinMax(0f,0f,0f,0f),
-            AvgMinMax(0f,0f,0f,0f),
-            AvgMinMax(duration, duration, duration,duration),
-            AvgMinMax(0f,0f,0f,0f),
+            AvgMinMax(1f, 1f, 1f, 1f),
+            AvgMinMax(0f, 0f, 0f, 0f),
+            AvgMinMax(0f, 0f, 0f, 0f),
+            AvgMinMax(duration, duration, duration, duration),
+            AvgMinMax(0f, 0f, 0f, 0f),
             combatant = attacker, attack = attack,
             startEffects = effectManager.toString(),
             startCondition = effectManager.toStringConditions()
@@ -496,8 +497,8 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         if (spellAttack.isNoDamageAttack()) {
             debug ("This spell never directly creates damage")
             val result = AttackResult(
-                numberOfTargets, chanceToHit, AvgMinMax(0f,0f,0f),
-                AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f), AvgMinMax(0f,0f,0f),
+                numberOfTargets, chanceToHit, AvgMinMax(0f, 0f, 0f),
+                AvgMinMax(0f, 0f, 0f), AvgMinMax(0f, 0f, 0f), AvgMinMax(0f, 0f, 0f),
                 combatant = attacker, attack = attack,
                 startEffects = effectManager.toString(),
                 startCondition = effectManager.toStringConditions()
@@ -723,8 +724,18 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
                     =J202+IF($G$42="Same as other attacks",Y202,$AD$202)+AR211  +AR199
         */
 
-        var result = AttackResult(numTargets, chanceToHit, damagePerHit, attackDPR, AvgMinMax(1f,1f,1f), attackDPR,
-            combatant = attacker, attack = attack, startEffects = effectManager.toString(), startCondition = effectManager.toStringConditions())
+        var result = AttackResult(
+            numTargets,
+            chanceToHit,
+            damagePerHit,
+            attackDPR,
+            AvgMinMax(1f, 1f, 1f),
+            attackDPR,
+            combatant = attacker,
+            attack = attack,
+            startEffects = effectManager.toString(),
+            startCondition = effectManager.toStringConditions()
+        )
 
         result.select (effectManager.attackerHasAdvantage()?.probability ?: 0f)
         result.update(turnId, actionId, effect)

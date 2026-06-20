@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dprapp.data
 
 import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.DprSettings
 import com.vikinghelmet.dnd.dpr.util.NumericRange
@@ -23,6 +24,7 @@ data class DprUiState(
     var numberOfTurns: NumericRange = NumericRange(1,5,1),
 
     var scenarioResultList: List<ScenarioResult>? = null,
+    var combatList: List<Combat>? = null,
 ) {
     fun getSettings(): DprSettings {
         return DprSettings(

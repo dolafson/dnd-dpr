@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.scenario.onesided
 
 import com.vikinghelmet.dnd.dpr.action.*
+import com.vikinghelmet.dnd.dpr.action.results.AttackResult
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty

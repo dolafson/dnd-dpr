@@ -31,11 +31,11 @@ data class TargetSelector(
 
     fun getTargetWithHighDamageToAttacker() : CombatantWithStatus? {
         return attackResultList
-            .filter { this.targetList.contains(it.combatant) }
+            .filter { this.targetList.contains(it.attacker) }
 //            .filter { it.targetList.any { it2 -> it2.onTeamA != combatant.onTeamA } } // opposing team
-            .filter { it.targetList.contains(this.combatant) } // damaged you personally
-            .groupBy { it.combatant }
-            .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
+            .filter { it.target == this.combatant } // damaged you personally
+            .groupBy { it.attacker }
+            .mapValues { entry -> entry.value.sumOf { it.damageResultList.sumOf { it.amount } } }
             .toList()
             .filter { it.second > this.combatant.getHP() / 4 }
             .maxByOrNull { it.second }
@@ -44,10 +44,10 @@ data class TargetSelector(
 
     fun getTargetWithHighDamageToTeam() : CombatantWithStatus? {
         return attackResultList
-            .filter { this.targetList.contains(it.combatant) }
+            .filter { this.targetList.contains(it.attacker) }
 //            .filter { it.targetList.any { it2 -> it2.onTeamA != combatant.onTeamA } } // opposing team
-            .groupBy { it.combatant }
-            .mapValues { entry -> entry.value.sumOf { it.totalDamage } }
+            .groupBy { it.attacker }
+            .mapValues { entry -> entry.value.sumOf { it.damageResultList.sumOf { it.amount } } }
             .toList()
             .filter { it.second > this.combatant.getHP() / 2 }
             .maxByOrNull { it.second }

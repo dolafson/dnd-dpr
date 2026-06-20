@@ -1,4 +1,4 @@
-package com.vikinghelmet.dnd.dpr.action.enums
+package com.vikinghelmet.dnd.dpr.action.results
 
 // TODO: abilities: Str, Dex, ... ?
 enum class AttackResultField(val constantAcrossTurns: Boolean = false)

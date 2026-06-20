@@ -1,11 +1,14 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Direction
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SavingThrowGenerator
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
@@ -242,7 +245,7 @@ class CombatTest {
         val attack = badGuy.getPreferredTurn(goodGuy, 0)!!.first.attacks[0]
         goodGuy.currentHP -= damage
         badGuy.target = goodGuy
-        combat.actionResultList.add(CombatActionResult (badGuy, listOf(goodGuy), damage, attack))
+        combat.actionResultList.add(CombatActionResult(badGuy, listOf(goodGuy), damage, attack))
     }
 
     @Test
@@ -358,8 +361,7 @@ class CombatTest {
         val attackResultList = combat.attackWithSpell(dragon, breathAttack.target as CombatantWithStatus, breathAttack)
         // println("attackResultList = $attackResultList")
 
-        assertEquals(1, attackResultList.size)
-        assertEquals(3, attackResultList[0].targetList.size)
+        assertEquals(3, attackResultList.size)
     }
 
     @Test
@@ -570,7 +572,7 @@ class CombatTest {
         leif.savingThrowGenerator = generator
 
         for (turnId in 4..6) {
-            leif.applyDamage(4, 3) // leif takes damage each turn, triggering a concentration check
+            leif.applyDamage(4, listOf(DamageResult(3,DamageType.piercing))) // leif takes damage each turn, triggering a concentration check
 
             when (turnId) {
                 4,5 -> {

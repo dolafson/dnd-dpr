@@ -1,7 +1,7 @@
-package com.vikinghelmet.dnd.dpr.action
+package com.vikinghelmet.dnd.dpr.action.results
 
-import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField
-import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField.*
+import com.vikinghelmet.dnd.dpr.action.*
+import com.vikinghelmet.dnd.dpr.action.results.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -53,11 +53,21 @@ data class AttackResult(
         }" }
 
         return AttackResult (numTargets,
-          AvgMinMax (0f,0f,0f,probableResult (chanceToHit.final,    secondary.chanceToHit.final, chanceOfSuccess)),
-          AvgMinMax (0f,0f,0f,probableResult (damagePerHit.final,   secondary.damagePerHit.final, chanceOfSuccess)),
-          AvgMinMax (0f,0f,0f,probableResult (damagePerRound.final, secondary.damagePerRound.final, chanceOfSuccess)),
-          AvgMinMax (0f,0f,0f,probableResult (duration.final,         secondary.duration.final, chanceOfSuccess)),
-          AvgMinMax (0f,0f,0f,probableResult (damageFullEffect.final, secondary.damageFullEffect.final, chanceOfSuccess)),
+            AvgMinMax(0f, 0f, 0f, probableResult(chanceToHit.final, secondary.chanceToHit.final, chanceOfSuccess)),
+            AvgMinMax(0f, 0f, 0f, probableResult(damagePerHit.final, secondary.damagePerHit.final, chanceOfSuccess)),
+            AvgMinMax(
+                0f,
+                0f,
+                0f,
+                probableResult(damagePerRound.final, secondary.damagePerRound.final, chanceOfSuccess)
+            ),
+            AvgMinMax(0f, 0f, 0f, probableResult(duration.final, secondary.duration.final, chanceOfSuccess)),
+            AvgMinMax(
+                0f,
+                0f,
+                0f,
+                probableResult(damageFullEffect.final, secondary.damageFullEffect.final, chanceOfSuccess)
+            ),
           combatant, attack, startEffects, startCondition, turnId, actionId, effectId, spellAttack)
     }
 
@@ -74,7 +84,8 @@ data class AttackResult(
 
     fun getValue(field: AttackResultField): Any {
         val meleeOrRangeAction: MeleeOrRangeAction =
-            if (this.attack.action is Weapon) { this.attack.action as Weapon } else spellAttack!!
+            if (this.attack.action is Weapon) { this.attack.action as Weapon
+            } else spellAttack!!
 
         val saveAbility = spellAttack?.getSaveAbility()
 

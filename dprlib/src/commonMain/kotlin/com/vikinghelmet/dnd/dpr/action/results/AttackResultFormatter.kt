@@ -1,7 +1,6 @@
-package com.vikinghelmet.dnd.dpr.action
+package com.vikinghelmet.dnd.dpr.action.results
 
-import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField
-import com.vikinghelmet.dnd.dpr.action.enums.AttackResultField.*
+import com.vikinghelmet.dnd.dpr.action.results.AttackResultField.*
 import com.vikinghelmet.dnd.dpr.util.Globals
 
 object AttackResultFormatter {
@@ -29,7 +28,7 @@ object AttackResultFormatter {
         }
 
         val buf = StringBuilder()
-        AttackResultField.entries.forEach {
+        entries.forEach {
             val value = when (it) {
                 //scenario -> scenarioName
                 turn -> currentTurnId
@@ -49,7 +48,7 @@ object AttackResultFormatter {
         this.scenarioName = scenarioName
         val buf = StringBuilder("")
         if (isCSV) {
-            AttackResultField.entries.forEach { buf.append(it.name).append(",") }
+            entries.forEach { buf.append(it.name).append(",") }
             return buf.toString()
         }
 
@@ -57,7 +56,7 @@ object AttackResultFormatter {
         // no need to display them on every turn
         separate();
 
-        AttackResultField.entries.filter { it.constantAcrossTurns }.forEach {
+        entries.filter { it.constantAcrossTurns }.forEach {
             buf.append(format(it, firstAttackResult))
         }
         return buf.toString()
@@ -66,7 +65,7 @@ object AttackResultFormatter {
     fun output(attackResult: AttackResult): String {
         val buf = StringBuilder("")
 
-        AttackResultField.entries.filter { isCSV || ! it.constantAcrossTurns }.forEach {
+        entries.filter { isCSV || ! it.constantAcrossTurns }.forEach {
             buf.append(format(it, attackResult))
         }
         return buf.toString()

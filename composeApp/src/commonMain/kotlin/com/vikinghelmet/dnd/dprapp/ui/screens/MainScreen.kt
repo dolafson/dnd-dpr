@@ -13,8 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.vikinghelmet.dnd.dpr.action.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatLoop
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
@@ -65,6 +66,8 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     }
 
     fun runScenarioBuilder() {
+        viewModel.setCombatList(emptyList())
+
         val proximityInt = viewModel.getProximity()
         viewModel.setProximity(proximityInt)
         saveSettings(viewModel)
@@ -123,15 +126,19 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     }
 
     fun runCombat() {
+        viewModel.setScenarioResultList(emptyList())
+
         val selectedA = viewModel.getCombatant(true)!!
         val selectedB = viewModel.getCombatant(false)!!
 
         val teamA = if (selectedA is Party) selectedA.characterList else listOf(selectedA as Combatant)
         val teamB = if (selectedB is Party) selectedB.characterList else listOf(selectedB as Combatant)
 
-        val numSimulations = 100
+        val numSimulations = 30 // TODO ?
         val loop = CombatLoop(teamA, teamB, numSimulations, false)
         loop.log()
+
+        val combatList = mutableListOf<Combat>()
 
         scope.launch {
             outputText = "Starting combat loop\n"
@@ -139,7 +146,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             loading = true
 
             repeat(numSimulations) {
-                loop.runOnce()
+                combatList.add (loop.runOnce())
                 currentProgress = loop.getPercentComplete()
                 //outputText += "."
                 delay(1)
@@ -149,9 +156,10 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             outputText += "\n\nTeamA win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }%"
         }
         loading = false
+        viewModel.setCombatList(combatList)
     }
 
-    fun exportCSV(csvUploadUrl: String?) {
+    fun getScenarioResultCSV(): String {
         AttackResultFormatter.isCSV = true
         val fileContent = StringBuilder()
 
@@ -160,15 +168,32 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 fileContent.append(it.output()).append("\n")
             }
 
+        return fileContent.toString()
+    }
+
+    fun getCombatResultCSV(): String {
+        val fileContent = StringBuilder()
+        viewModel.getCombatList()!!.forEach { fileContent.append(it.output()).append("\n")  }
+        return fileContent.toString()
+    }
+
+    fun exportCSV(csvUploadUrl: String?) {
+        val result = if (viewModel.getCombatList() != null && viewModel.getCombatList()!!.isNotEmpty()) {
+            getCombatResultCSV()
+        }
+        else {
+            getScenarioResultCSV()
+        }
+
         if (isShareCsvSupported()) {
-            shareCsv("attack.csv", fileContent.toString())
+            shareCsv("attack.csv", result)
         }
         else {
             var csvDownloadUrl: String? = null
 
             if (csvUploadUrl != null) runBlocking {
                 println("csvUploadUrl = $csvUploadUrl")
-                csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl, fileContent.toString())
+                csvDownloadUrl = CharacterAPI.postRequest(csvUploadUrl, result)
                 println("csvDownloadUrl = $csvDownloadUrl")
             }
 
@@ -177,6 +202,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             }
         }
     }
+
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp))
     {
@@ -293,12 +319,10 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             )
         }
 
-        // export button behavior is different on mobile vs desktop
+        // export button behavior may vary on mobile vs desktop
         val csvUploadUrl = Secrets.getCsvUploadUrl()
 
-        if (viewModel.getScenarioResultList() != null &&
-            viewModel.getScenarioResultList()!!.isNotEmpty() &&
-            (isShareCsvSupported() || csvUploadUrl != null))
+        if (viewModel.isReadyForExport() && (isShareCsvSupported() || csvUploadUrl != null))
         {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Button( onClick = { exportCSV(csvUploadUrl) } ) {

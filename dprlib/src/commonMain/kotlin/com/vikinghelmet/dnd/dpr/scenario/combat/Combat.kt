@@ -7,6 +7,10 @@ import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Direction
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResultFormatter
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatResult
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -88,6 +92,10 @@ class Combat(val battleId: Int) {
         }
     }
 
+    fun isWinnerTeamA() = !teamA.all { it.isDead() }
+
+    fun getResult() = CombatResult(this, actionResultList)
+
     fun teamSummary(team: List<CombatantWithStatus>): String {
         return "${ team.sortedByDescending { it.initiative }.map { it.summary() }.toList() }"
     }
@@ -97,7 +105,7 @@ class Combat(val battleId: Int) {
             if (combatant.isDead()) {
                 logger.debug { "fullTurn, turn=$turnId, combatant=$combatant, is dead" }
             } else if (combatant.isDying()) {
-                combatant.deathSave()
+                actionResultList.add (combatant.deathSave(turnId))
                 logger.info { "fullTurn, turn=$turnId, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
             } else if (!combatant.canTakeAction()) {
                 logger.info { "fullTurn, turn=$turnId, combatant=$combatant, can not take action" }
@@ -196,22 +204,37 @@ class Combat(val battleId: Int) {
             listOf(primaryTarget)
         }
 
-        var totalHealAmount = 0
+        val resultList = mutableListOf<CombatActionResult>()
+        val healAmountRolled = healer.rollHealingAmount(spell)
+
         for (healTarget in targetsToHeal) {
-            val healAmount = healer.rollHealingAmount(spell)
+            var healAmount = healAmountRolled
+            if (spell.name == "Channel Divinity: Preserve Life") { // TODO: other spells that partition healing amount
+                healAmount /= targetsToHeal.size    // TODO: support uneven distribution of healing amount
+            }
             val wasAboutToDie = healTarget.isDying()
             healTarget.currentHP = min(healTarget.currentHP + healAmount, healTarget.getHP())
             if (wasAboutToDie && healTarget.currentHP > 0) {
                 healTarget.deathSavingThrows.clear()
             }
-            totalHealAmount += healAmount
             logger.info { "turn = $turnId, ${healer.shortName()} heals ${healTarget.shortName()} for $healAmount HP (now ${healTarget.currentHP}/${healTarget.getHP()})" }
+
+            val damageResultList = listOf(DamageResult(healAmount, DamageType.healing))
+            resultList.add (CombatActionResult(
+                healer,
+                healTarget,
+                turnId,
+                actionId,
+                effectId++,
+                attack,
+                damageResultList
+            ))
         }
 
         healer.spellCastList.add(SpellCast(healer.combatant, spell, turnId, targetList = targetsToHeal.toMutableList()))
         actionId++
 
-        return listOf(CombatActionResult(healer, targetsToHeal, -1 * totalHealAmount, attack, turnId, actionId, effectId++))
+        return resultList
     }
 
     fun chooseAttackTarget(combatant: CombatantWithStatus): CombatantWithStatus?
@@ -300,18 +323,23 @@ class Combat(val battleId: Int) {
         attackRoll += action.getAttackBonus()
 
         combatant.forEach { attackRoll += it.attackBonus.roll() - it.attackPenalty.roll() } // bless & bane
-        var damage = 0
+        val damageResultList = mutableListOf<DamageResult>()
 
         if (attackRoll >= target.getAC() || autoHit) {
             val isCritDamage = autoHit || target.isAttackerAutoCritDamage()
-            damage = computeDamage(attack, target, isCritDamage, action.getDamageList())
-            target.applyDamage(turnId, damage)
+
+            val initialDamage = getInitialDamage(attack, isCritDamage, action.getDamageList())
+
+            damageResultList.addAll (getDamageAgainstTarget (target, initialDamage))
+
+            target.applyDamage(turnId, damageResultList)
         }
 
-        return listOf (CombatActionResult (combatant, listOf(target), damage, attack, turnId, actionId, effectId++))
+        return listOf (CombatActionResult(combatant, target, turnId, actionId, effectId++, attack, damageResultList))
     }
 
-    fun computeDamage(attack: Attack, target: CombatantWithStatus, isCrit: Boolean, baseDamageList: List<Damage>): Int {
+    fun getInitialDamage(attack: Attack, isCrit: Boolean, baseDamageList: List<Damage>): List<DamageResult>
+    {
         val damageList = baseDamageList.toMutableList()
 
         for (modifier in attack.actionModifiers) {
@@ -321,28 +349,41 @@ class Combat(val battleId: Int) {
             }
         }
 
-        var totalDamage = 0
+        val result = mutableListOf<DamageResult>()
         for (it in damageList) {
-            if (target.getDamageImmunities().contains(it.type)) {
-                logger.info { "target has immunity ${it.type}" }
-                continue
-            }
             val roll = it.dice.roll()
             var effectDamage = (if (isCrit) roll * 2 else roll) + it.bonus
             if (attack.isBonusAction != true) {
                 effectDamage += it.abilityBonus
             }
+            result.add (DamageResult (effectDamage, it.type))
+        }
+
+        return result
+    }
+
+    fun getDamageAgainstTarget(target: CombatantWithStatus, initialDamage: List<DamageResult>)
+        : List<DamageResult>
+    {
+        val result = mutableListOf<DamageResult>()
+
+        for (it in initialDamage) {
+            if (target.getDamageImmunities().contains(it.type)) {
+                logger.info { "target has immunity ${it.type}" }
+                continue
+            }
+            var effectDamage = it.amount
             if (target.getDamageResistances().contains(it.type)) {
                 effectDamage /= 2
             }
             if (target.getDamageVulnerabilities().contains(it.type)) {
                 effectDamage *= 2
             }
-            totalDamage += effectDamage
+            result.add (DamageResult (effectDamage, it.type))
         }
 
-        logger.debug { "target = $target, damage = $totalDamage" }
-        return totalDamage
+        logger.debug { "target = $target, damage = $result" }
+        return result
     }
 
     fun attackWithSpell(combatant: CombatantWithStatus, target: CombatantWithStatus, attack: Attack)
@@ -368,7 +409,7 @@ class Combat(val battleId: Int) {
             }
         }
 
-        val targetList = result.map {it.targetList }.flatten().toMutableList()
+        val targetList = result.map {it.target }.toMutableList()
         //println("attackWithSpell: targetList = $targetList")
 
         combatant.spellCastList.add(SpellCast(combatant, spell, turnId, targetList = targetList))
@@ -419,17 +460,21 @@ class Combat(val battleId: Int) {
 
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
 
+        val resultList = mutableListOf<CombatActionResult>()
+        var sharedDamageList = getInitialDamage(attack, false, spellAttack.getDamageList())
+
         for (target in targetList) {
             var successfulSave = target.makeSavingThrow (combatant.getSpellSaveDC(), save.saveAbility)
             logger.debug { "successfulSave = $successfulSave" }
 
-            var initialDamage = computeDamage(attack, target, false, spellAttack.getDamageList())
+            var damageResultList = getDamageAgainstTarget(target, sharedDamageList)
+            var initialDamage = damageResultList.sumOf { it.amount }
             logger.debug { "initial damage = $initialDamage" }
 
-            val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave)
+            val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave, damageResultList)
             target.applyDamage(turnId, finalDamage)
 
-            totalDamage += finalDamage
+            totalDamage += finalDamage.sumOf { it.amount }
 
             if (!successfulSave) {
                 val effect = TargetEffect(turnId, spell, save = save, spellSaveDC = combatant.getSpellSaveDC())
@@ -437,6 +482,16 @@ class Combat(val battleId: Int) {
                     target.add(effect)
                 }
             }
+
+            resultList.add (CombatActionResult(
+                combatant,
+                target,
+                turnId,
+                actionId,
+                effectId++,
+                attack,
+                damageResultList
+            ))
         }
 
         // if breath weapon or similar, add to the recharge list
@@ -445,44 +500,99 @@ class Combat(val battleId: Int) {
             combatant.combatant.waitingForRecharge.add(attack.action)
         }
 
-        return listOf (CombatActionResult (combatant, targetList, totalDamage, attack, turnId, actionId, effectId++))
+        return resultList
     }
 
     fun applySavingThrowDamageModifiers(
         spellAttack: SpellAttack,
         attack: Attack,
         initialDamage: Int,
-        successfulSave: Boolean
-    ): Int {
+        successfulSave: Boolean,
+        damageResultList: List<DamageResult>
+    ): List<DamageResult> {
         var damage = initialDamage
         val saveResult = spellAttack.getSaveResult()
         val isEvasive = attack.target.isEvasive()
         logger.debug { "saveResult (onSuccess) = ${saveResult.name}, isEvasive = $isEvasive" }
 
-        if (!successfulSave) {
-            if (isEvasive) damage /= 2
-        } else {
-            when (saveResult) {
-                SPELL_ENDS -> {
-                    logger.debug { "spell ends" } // TODO: update condition list ?
-                    return 0
-                }
+        // TODO: (almost?) all saving throw actions apply a single damage result ?
 
-                CONDITION_ENDS -> {
-                    logger.debug { "condition ends" } // TODO: update condition list ?
-                    return 0
-                }
+        for (damageResult in damageResultList) {
+            damageResult.amount
+            if (!successfulSave) {
+                if (isEvasive) damage /= 2
+            } else {
+                when (saveResult) {
+                    SPELL_ENDS -> {
+                        logger.debug { "spell ends" } // TODO: update condition list ?
+                        damageResult.amount = 0
+                    }
 
-                NO_EFFECT -> damage = 0
-                HALF_DAMAGE -> {
-                    if (isEvasive) damage = 0 else damage /= 2
-                }
+                    CONDITION_ENDS -> {
+                        logger.debug { "condition ends" } // TODO: update condition list ?
+                        damageResult.amount = 0
+                    }
 
-                else -> {}
+                    NO_EFFECT -> damageResult.amount = 0
+                    HALF_DAMAGE -> {
+                        if (isEvasive) damageResult.amount = 0 else damageResult.amount /= 2
+                    }
+
+                    else -> {}
+                }
             }
         }
 
-        logger.debug { "final damage = $damage" }
-        return damage
+        return damageResultList
     }
+
+
+    fun shortSummary(actionResult: CombatActionResult?): String {
+        if (actionResult == null) return ""
+        val target = actionResult.target
+
+        // TODO: store location in CombatActionResult ... also, add results just for movement ...
+        //val buffer = StringBuilder("(").append(target.shortName()).append(", loc=$location")
+        val buffer = StringBuilder("(").append(target.shortName())
+
+        if (actionResult.targetHP <= 0 && actionResult.deathSaves.count { it == "fail" } >= 3) {
+            buffer.append(", dead")
+        } else if (actionResult.targetHP <= 0 && actionResult.deathSaves.count { it == "fail" } < 3) {
+            buffer.append(", dying")
+        } else {
+            buffer.append(", hp=${actionResult.targetHP}/${target.getHP()}")
+        }
+        return buffer.append(")").toString()
+    }
+
+    fun output(): String {
+
+        val buf = StringBuilder()
+        buf.append(CombatActionResultFormatter.header()).append("\n")
+
+        var outputTurnId = 0
+        val priorState = mutableMapOf<String, CombatActionResult>()
+
+        fun getTeamStatus(): String {
+            val aList = teamA.map { shortSummary ( priorState[it.getName()] ) }.toList()
+            val bList = teamB.map { shortSummary ( priorState[it.getName()] ) }.toList()
+            return "\"$aList     $bList\""
+        }
+
+        for (result in actionResultList) {
+            if (outputTurnId < result.turnId) {
+                outputTurnId = result.turnId
+                buf.append (CombatActionResultFormatter.footer(outputTurnId, "END OF TURN", getTeamStatus()))
+                    .append("\n")
+            }
+            buf.append (CombatActionResultFormatter.output(result)).append("\n")
+            priorState[result.target.getName()] = result
+        }
+
+        buf.append (CombatActionResultFormatter.footer(outputTurnId, "END OF TURN", getTeamStatus()))
+            .append("\n")
+
+        return buf.toString()
+    }
+
 }

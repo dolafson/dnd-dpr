@@ -24,8 +24,10 @@ class CombatLoop(
     // run the specified number of simulations, then return teamA win percentage
     fun run() = repeat(numSimulations) { runOnce() }
 
-    fun runOnce() {
-        if (Combat(battleId++, teamA, teamB, flightSupported = flightSupported).run()) aTeamWinCount++
+    fun runOnce(): Combat {
+        val combat = Combat(battleId++, teamA, teamB, flightSupported = flightSupported)
+        if (combat.run()) aTeamWinCount++
+        return combat
     }
 
     fun getPercentComplete() = battleId.toFloat() / numSimulations.toFloat()

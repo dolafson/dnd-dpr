@@ -9,6 +9,8 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtEndOfTurn
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtStartOfTurn
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveByTakingAnAction
@@ -90,21 +92,38 @@ data class CombatantWithStatus(
 
     fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
 
-    fun deathSave() {
+    fun deathSave(turnId: Int): CombatActionResult {
         val saveRoll = (1..20).random()
+        var label = ""
         if (saveRoll == 1) {
             deathSavingThrows.add(false)
             deathSavingThrows.add(false)
+            label = "double fail"
         } else if (saveRoll < 10) {
             deathSavingThrows.add(false)
+            label = "fail"
         } else if (saveRoll < 20) {
             deathSavingThrows.add(true)
+            label = "success"
+        }
+        else if (saveRoll == 20) {
+            label = "crit success"
         }
 
         if (saveRoll == 20 || (deathSavingThrows.filter { it == true }.count() >= 3)) {
             deathSavingThrows.clear()
             currentHP = 1
+            label += ", revived"
         }
+
+        if (deathSavingThrows.filter { it == false }.count() >= 3) {
+            label += ", died"
+        }
+
+        return CombatActionResult(this, this, turnId, "0", 0,
+            "deathSave: $label", emptyList(), currentHP, CombatActionResult.toDeathSaves(deathSavingThrows),
+            getEffectString(), getConditionString()
+        )
     }
 
     // --------------------------------------------------------------------
@@ -235,14 +254,24 @@ data class CombatantWithStatus(
     // --------------------------------------------------------------------
     // DAMAGE
 
-    fun applyDamage(turnId: Int, damage: Int) {
-        currentHP -= damage
+    fun applyDamage(turnId: Int, damageResultList: List<DamageResult>) {
+        val totalDamage = damageResultList.sumOf { it.amount }
 
-        if (damage == 0 || spellCastList.isEmpty() || !spellCastList.any { it.isStillRunning() }) {
+        // if Sleep spell was cast, cancel it here
+        val effectIterator = iterator()
+        effectIterator.forEach { if (it.cause.toString() == "Sleep") {
+            logger.debug { "Sleep cancelled by attack damage" }
+            effectIterator.remove()
+        }}
+
+        currentHP -= totalDamage
+
+        if (totalDamage == 0 || spellCastList.isEmpty() || !spellCastList.any { it.isStillRunning() }) {
             return
         }
 
-        val saveDC = kotlin.math.min (10, damage/2)
+        // spellcaster: when taking damage, make a saving throw to maintain concentration
+        val saveDC = kotlin.math.min (10, totalDamage/2)
         val savingThrowSuccess = makeSavingThrow (saveDC, AbilityType.Constitution)
         if (savingThrowSuccess) {
             return
@@ -411,5 +440,25 @@ data class CombatantWithStatus(
         }
 
         return ActionGoal.Heal
+    }
+
+    fun getEffectString(): String {
+        val buf = StringBuilder()
+        for (effect in toList()) {
+            if (buf.isNotEmpty()) {buf.append(",")}
+            buf.append(effect)
+        }
+        return buf.toString()
+    }
+
+    fun getConditionString(): String {
+        val buf = StringBuilder()
+        for (effect in toList()) {
+            effect.conditions.forEach {
+                if (buf.isNotEmpty()) {buf.append(",")}
+                buf.append(it)
+            }
+        }
+        return buf.toString()
     }
 }

@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.util.NumericRange
 import com.vikinghelmet.dnd.dprapp.data.DprUiState
@@ -42,6 +43,8 @@ class DprViewModel : ViewModel() {
         return if (onTeamA) _uiState.value.combatantA else _uiState.value.combatantB
     }
 
+    fun getCombatList() = _uiState.value.combatList
+
     // ------------------------------------------
     fun isReadyForAttack(): Boolean {
         return _uiState.value.combatantA != null && _uiState.value.combatantB != null
@@ -49,6 +52,11 @@ class DprViewModel : ViewModel() {
     fun isReadyForScenarioBuilder(): Boolean {
         return _uiState.value.combatantA != null && _uiState.value.combatantB != null &&
                 _uiState.value.combatantA is Combatant && _uiState.value.combatantB is Combatant
+    }
+
+    fun isReadyForExport(): Boolean {
+        return (getScenarioResultList() != null && getScenarioResultList()!!.isNotEmpty()) ||
+                (getCombatList() != null && getCombatList()!!.isNotEmpty())
     }
 
     fun setCurrentCharacter(currentCharacter: EditablePlayerCharacter?) {
@@ -71,6 +79,12 @@ class DprViewModel : ViewModel() {
     fun setScenarioResultList(scenarioResultList: List<ScenarioResult>) {
         _uiState.update { currentState ->
             currentState.copy(scenarioResultList = scenarioResultList)
+        }
+    }
+
+    fun setCombatList(combatList: List<Combat>) {
+        _uiState.update { currentState ->
+            currentState.copy(combatList = combatList)
         }
     }
 
