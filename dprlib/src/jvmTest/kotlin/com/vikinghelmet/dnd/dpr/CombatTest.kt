@@ -158,7 +158,7 @@ class CombatTest {
             }
 
             oldLoc = dragon.location.copy()
-            distance = dragon.moveTowardTarget(leif)
+            distance = dragon.moveTowardTarget(leif, combat)
             dragon.logMovement("moving toward target $leif", oldLoc, distance)
 
             when (turnId) {
@@ -202,7 +202,7 @@ class CombatTest {
             }
 
             oldLoc = dragon.location.copy()
-            distance = dragon.moveTowardTarget(leif)
+            distance = dragon.moveTowardTarget(leif, combat)
             dragon.logMovement("moving toward target $leif", oldLoc, distance)
 
             when (turnId) {

@@ -1,8 +1,10 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat.results
 
 import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatantWithStatus
+import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResultField.*
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.HealthStatus
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -26,19 +28,28 @@ data class CombatActionResult(
 
     val effects: String,
     val condition: String,
+
+    val attackerNewLocation: Location,
 ) {
     @Transient
     private val logger = LoggerFactory.get(CombatActionResult::class.simpleName ?: "")
+
+    constructor(c: CombatantWithStatus) : this(
+        c, c, 0, "0", 0, "start", listOf(DamageResult(0, DamageType.undefined)),
+        c.getHP(), deathSaves = listOf(""), effects = "", condition = "", attackerNewLocation = c.location.copy()
+    )
 
     constructor(
         combatant: CombatantWithStatus, target: CombatantWithStatus,
         turnId: Int, actionId: Int, effectId: Int,
         attack: Attack, damageResultList: List<DamageResult>
-    ) : this(combatant, target,
-            turnId, (if (attack.isBonusAction == true) "BA" else "$actionId"), effectId,
-            attack.getLabel(), damageResultList,
-            target.currentHP, target.healthStatus, toDeathSaves(target.deathSavingThrows),
-            target.getEffectString(), target.getConditionString())
+    ) : this(
+        combatant, target,
+        turnId, (if (attack.isBonusAction == true) "BA" else "$actionId"), effectId,
+        attack.getLabel(), damageResultList,
+        target.currentHP, target.healthStatus, toDeathSaves(target.deathSavingThrows),
+        target.getEffectString(), target.getConditionString(), combatant.location.copy()
+    )
 
     fun getValue(field: CombatActionResultField): Any {
         return when (field) {
@@ -64,6 +75,8 @@ data class CombatActionResult(
 
             endCondition -> Globals.wrapWithQuotes(this.condition)
             endEffects -> Globals.wrapWithQuotes(this.effects)
+
+            attackerLocation -> this.attackerNewLocation
             /* else -> {
                 println("WARNING: unhandled field: $field")
                 Exception("warning").printStackTrace()

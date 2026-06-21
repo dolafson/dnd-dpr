@@ -4,7 +4,9 @@ package com.vikinghelmet.dnd.dpr.scenario.combat.results
 enum class CombatActionResultField(val constantAcrossTurns: Boolean = false)
 {
     attackerName(true),
-    battle(true), turn,action,effect, actionTaken, damageList,
+    battle(true), turn,action,effect,
+    attackerLocation,
+    actionTaken, damageList,
 
     targetName(true), targetAC(true), targetHP, deathSaves,
 

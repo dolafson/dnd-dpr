@@ -38,6 +38,15 @@ class Combat(val battleId: Int) {
     var actionId = 0
     var effectId = 0
 
+    val initialState = mutableMapOf<CombatantWithStatus, CombatActionResult>() // used for debugging
+    val priorState = mutableMapOf<CombatantWithStatus, CombatActionResult>() // used during output()
+
+    fun initInitialState() {
+        for (c in (teamA+teamB)) {
+            initialState[c] = CombatActionResult(c)
+        }
+    }
+
     constructor(battleId: Int, noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false)
         : this(battleId)
     {
@@ -55,6 +64,8 @@ class Combat(val battleId: Int) {
         // when computing initiative order, a DM will often use a single roll for an entire group of monsters
         // we won't do that here - unique rolls are more realistic, and easier to implement
         initiativeList = (teamA + teamB).sortedByDescending { it.initiative }.toList()
+
+        initInitialState()
     }
 
     private fun getCounter(team: List<Combatant>): AtomicInt? {
@@ -75,14 +86,35 @@ class Combat(val battleId: Int) {
     fun run(): Boolean {
         logger.info { "initiativeList = ${ initiativeList.associateBy { it.initiative }}" }
 
-        while (!teamA.all { it.isDead() } && !teamB.all { it.isDead() }) {
+        while (!teamA.all { it.isDead() || it.isStable() } && !teamB.all { it.isDead() || it.isStable() }) {
             logger.info {
                 "battleId=$battleId, turn=$turnId, teamA: ${ teamSummary(teamA) }, teamB: ${ teamSummary(teamB) }"
             }
             fullTurn()
             turnId++
+            val notDeadA = teamA.filter { !it.isDead() }
+            val notDeadB = teamB.filter { !it.isDead() }
+            if (turnId > 100 ||notDeadA.any { it -> notDeadB.any { it2 -> it2.location == it.location }}) {
+                repeat(3) { logger.warn { "" } }
+                logger.warn {"turnId=$turnId, combat is running too long, and/or combatants in the same space" }
+                logger.warn {"turnId=$turnId, teamA = ${ teamSummary(teamA)}" }
+                logger.warn {"turnId=$turnId, teamB = ${ teamSummary(teamB)}" }
+
+                initialState.forEach { (c, state) ->
+                    logger.warn {
+                        "turn=-1, combatant=$c, initialLoc=${state.attackerNewLocation}"
+                    }
+                }
+                actionResultList.forEach { r ->
+                    logger.warn {
+                        "turn=${r.turnId}, combatant=${r.attacker}, newLoc=${r.attackerNewLocation}"
+                    }
+                }
+
+                throw IllegalStateException("turnId=$turnId, combat is running too long")
+            }
         }
-        if (!teamA.all { it.isDead() }) {
+        if (teamB.all { it.isDead() || it.isStable() }) {
             logger.warn { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamSummary(teamA) } " }
             return true
         } else {
@@ -140,7 +172,7 @@ class Combat(val battleId: Int) {
         if (goal == ActionGoal.Heal) {
             val healTarget = chooseHealingTarget(combatant)
             if (healTarget != null) {
-                combatant.moveTowardTarget(healTarget)
+                combatant.moveTowardTarget(healTarget, this)
                 val range = combatant.distance(healTarget).toFeet()
                 val healTurn = combatant.getPreferredTurn(healTarget, range, this)
                 if (healTurn != null) {
@@ -284,13 +316,13 @@ class Combat(val battleId: Int) {
 
         // if you are within melee range, you can't move (don't provoke an oppy attack) ...
         // just attack someone right in front of you
-        val inMeleeRange = targetList.filter { !it.isDead() && combatant.distance(it) <= Distance.melee() }
+        val inMeleeRange = targetList.filter { it.canTakeAction() && combatant.distance(it) <= Distance.melee() }
         if (inMeleeRange.isNotEmpty()) {
             return TargetSelector(this, combatant, inMeleeRange).select().first  // early return because we can't move
         }
 
         // if you are currently someone else's target, target them back
-        val attackingMeList = targetList.filter { it.target == combatant }.toList()
+        val attackingMeList = targetList.filter { it.canTakeAction() && it.target == combatant }.toList()
         if (!attackingMeList.isEmpty()) {
             targetList = attackingMeList
         }
@@ -300,7 +332,7 @@ class Combat(val battleId: Int) {
         // now that we know we aren't in melee range, it is safe to move about the playing field as needed
 
         if (combatant.getPreferredCombatDistance() <= Distance.melee()) {
-            combatant.moveTowardTarget(target)
+            combatant.moveTowardTarget(target, this)
         }
         else {
             var distance = target.distance(combatant)
@@ -582,14 +614,10 @@ class Combat(val battleId: Int) {
     // -----------------------------------------------------------------------
     // CSV output
 
-    val priorState = mutableMapOf<CombatantWithStatus, CombatActionResult>()
-
     fun initPriorState() {
         priorState.clear()
-        val damageList = listOf(DamageResult(0, DamageType.undefined))
         for (c in (teamA+teamB)) {
-            priorState[c] = CombatActionResult(c, c, 0,"0",0, "start", damageList,
-                c.getHP(), HealthStatus.positive, listOf(""), "", "")
+            priorState[c] = CombatActionResult(c)
         }
     }
 

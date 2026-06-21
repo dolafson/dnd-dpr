@@ -44,21 +44,33 @@ data class Location(var x: Int, var y: Int) {
     // NOTE: location units are in increment of 5 feet
     fun distance(otherLocation: Location) = Distance(this, otherLocation)
 
-    fun moveTowardLocation(other: Location, maxMoves: Int) {
+    fun moveTowardLocation(other: Location, maxMoves: Int, locationsToAvoid: List<Location> = listOf(other)) {
         val initialLocation = this.copy()
         //if (x == other.x && y == other.y) return // sharing the same space: should be avoided when possible
 
+        val alreadyWithinOneUnit = (abs(x - other.x) <= 1 && abs(y - other.y) <= 1)
+
         // stop when you are within 1 unit
-        if (! (abs(x - other.x) <= 1 && abs(y - other.y) <= 1))
+        if (! alreadyWithinOneUnit)
         {
+            val newLoc = this.copy()
             for (i in 1..maxMoves) {
-                if (x < other.x -1) x++ else if (x > other.x +1) x--
-                if (y < other.y -1) y++ else if (y > other.y +1) y--
+                if (x < other.x -1) newLoc.x = x+1 else if (x > other.x +1) newLoc.x = x-1
+                if (y < other.y -1) newLoc.y = y+1 else if (y > other.y +1) newLoc.y = y-1
+                // TODO: allow movement through (or around) combatants, just don't allow ending turn in an occupied space
+                // https://app.roll20.net/forum/post/6025034/reference-post-occupied-squares-and-creature-size
+                if (locationsToAvoid.contains(newLoc)) {
+                    // two characters may not occupy the same space
+                    break
+                } else {
+                    this.x = newLoc.x
+                    this.y = newLoc.y
+                }
             }
         }
 
         if (this == initialLocation) {
-            logger.debug { "Moving toward $other, old location = $initialLocation, no movement needed" }
+            logger.warn { "Moving toward $other, old location = $initialLocation, no movement, alreadyWithinOneUnit=$alreadyWithinOneUnit" }
         } else {
             logger.debug { "Moving toward $other, old location = $initialLocation, new location = $this" }
         }

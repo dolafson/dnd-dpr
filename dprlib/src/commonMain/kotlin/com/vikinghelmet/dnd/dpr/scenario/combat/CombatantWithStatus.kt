@@ -6,6 +6,7 @@ import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
@@ -98,6 +99,10 @@ data class CombatantWithStatus(
     fun isDamaged() = healthStatus == HealthStatus.positive && getHP() > currentHP
 
     fun startDying(turnId: Int, cause: TargetEffectCause) {
+        if (combatant is Monster) { // monsters dont get death saves
+            die(turnId)
+            return
+        }
         currentHP = 0
         healthStatus = HealthStatus.dying
         // add the Unconscious if not there already
@@ -142,9 +147,20 @@ data class CombatantWithStatus(
             die(turnId)
         }
 
-        return CombatActionResult(this, this, turnId, "0", 0,
-            "deathSave: $label", emptyList(), currentHP, healthStatus, CombatActionResult.toDeathSaves(deathSavingThrows),
-            getEffectString(), getConditionString()
+        return CombatActionResult(
+            this,
+            this,
+            turnId,
+            "0",
+            0,
+            "deathSave: $label",
+            emptyList(),
+            currentHP,
+            healthStatus,
+            CombatActionResult.toDeathSaves(deathSavingThrows),
+            getEffectString(),
+            getConditionString(),
+            this.location
         )
     }
 
@@ -192,9 +208,13 @@ data class CombatantWithStatus(
         return closestDistance
     }
 
-    fun moveTowardTarget(target: CombatantWithStatus): Distance {
+    fun moveTowardTarget(target: CombatantWithStatus, combat: Combat): Distance {
         val initialLoc = location.copy()
-        location.moveTowardLocation(target.location, getSpeed() / Constants.DISTANCE_GRANULARITY)
+        // you can not occupy the same space as another creature ... unless they are dead
+        val locationsToAvoid = (combat.teamA + combat.teamB).filter { !it.isDead() }.map { it.location }
+
+        location.moveTowardLocation(target.location, getSpeed() / Constants.DISTANCE_GRANULARITY, locationsToAvoid)
+
         val distance = distance(target.location)
         logMovement("moving toward target $target", initialLoc, distance)
         return distance
@@ -472,11 +492,11 @@ data class CombatantWithStatus(
             return ActionGoal.Attack
         }
 
-        if (! combatant.getPreparedSpells().any { it.isHealing() }) { // if you have no ability to heal ...
+        if (! combatant.getPreparedSpells().any { it.isHealing() && isSlotAvailable(it)}) { // if you have no ability to heal ...
             return ActionGoal.Attack
         }
 
-        val myTeam          = combat?.getMyTeam(this)    ?: listOf(this)
+        val myTeam          = combat?.getMyTeam(this)?.filter { !it.isDead() } ?: listOf(this)
         val teamHasACleric  = myTeam.any { it.isCleric() && !it.isDeadOrDying() }
         val dyingCount      = myTeam.count { it.isDying() }
         val halfHPCount     = myTeam.count { it.currentHP <= it.getHP() / 2 }
