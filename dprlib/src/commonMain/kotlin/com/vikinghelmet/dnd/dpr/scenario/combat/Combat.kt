@@ -86,12 +86,13 @@ class Combat(val battleId: Int) {
     fun run(): Boolean {
         logger.info { "initiativeList = ${ initiativeList.associateBy { it.initiative }}" }
 
-        while (!teamA.all { it.isDead() || it.isStable() } && !teamB.all { it.isDead() || it.isStable() }) {
+        while (teamA.any { it.isPositive() } && teamB.any { it.isPositive() }) {
             logger.info {
                 "battleId=$battleId, turn=$turnId, teamA: ${ teamSummary(teamA) }, teamB: ${ teamSummary(teamB) }"
             }
             fullTurn()
             turnId++
+            // exit after 100 turns, or in any aberrant situation where a live A and B occupy the same space
             val notDeadA = teamA.filter { !it.isDead() }
             val notDeadB = teamB.filter { !it.isDead() }
             if (turnId > 100 ||notDeadA.any { it -> notDeadB.any { it2 -> it2.location == it.location }}) {
@@ -114,7 +115,7 @@ class Combat(val battleId: Int) {
                 throw IllegalStateException("turnId=$turnId, combat is running too long")
             }
         }
-        if (teamB.all { it.isDead() || it.isStable() }) {
+        if (!teamB.any { it.isPositive() }) {
             logger.warn { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamSummary(teamA) } " }
             return true
         } else {
@@ -132,6 +133,10 @@ class Combat(val battleId: Int) {
     }
 
     fun fullTurn() {
+        if (initiativeList.isEmpty()) {
+            logger.warn { "turnId=$turnId, initiative list is empty!!" }
+            return
+        }
         initiativeList.forEach { combatant ->
             if (combatant.isDead()) {
                 logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, is dead" }
@@ -336,8 +341,14 @@ class Combat(val battleId: Int) {
         }
         else {
             var distance = target.distance(combatant)
-            if (distance <= combatant.getPreferredCombatDistance()) { // too close for comfort
+            if (distance == combatant.getPreferredCombatDistance()) {
+                // no movement needed
+            }
+            else if (distance < combatant.getPreferredCombatDistance()) { // too close for comfort
                 combatant.moveAwayFromTarget(targetList, distance)
+            }
+            else {
+                combatant.moveTowardTarget(target, this)
             }
         }
 

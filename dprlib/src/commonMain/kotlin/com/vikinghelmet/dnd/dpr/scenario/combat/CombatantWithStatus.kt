@@ -92,6 +92,7 @@ data class CombatantWithStatus(
 
     fun isDeadOrDying() = listOf(HealthStatus.dead, HealthStatus.dying).contains(healthStatus)
 
+    fun isPositive() = healthStatus == HealthStatus.positive
     fun isDead() = healthStatus == HealthStatus.dead
 
     fun isDying() = healthStatus == HealthStatus.dying
@@ -226,6 +227,10 @@ data class CombatantWithStatus(
             min(60, getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
         } else Constants.MELEE_RANGE
         return Distance.fromFeet(range)
+    }
+
+    fun getMaxRange(): Int {
+        return getWeaponList().maxOf { it.range }
     }
 
     fun logMovement(toOrFrom: String, oldLocation: Location, newDistance: Distance) {
