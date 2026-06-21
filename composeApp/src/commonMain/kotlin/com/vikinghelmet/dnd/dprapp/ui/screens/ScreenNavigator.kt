@@ -22,6 +22,7 @@ import com.vikinghelmet.dnd.dprapp.Secrets
 import com.vikinghelmet.dnd.dprapp.ViewType
 import com.vikinghelmet.dnd.dprapp.data.Loader
 import com.vikinghelmet.dnd.dprapp.getDocumentsDirPath
+import dev.shivathapaa.logger.api.LogLevel
 import dpr.composeapp.generated.resources.Res
 
 val dprFiles = DprFiles(getDocumentsDirPath())
@@ -34,6 +35,8 @@ fun saveSettings(viewModel: DprViewModel) {
 fun ScreenNavigator(viewModel: DprViewModel = viewModel { DprViewModel() },
                     navController: NavHostController = rememberNavController())
 {
+    Globals.initLogger(LogLevel.WARN)
+
     LaunchedEffect(Unit) {
         println("ScreenNavigator: launchedEffect")
 

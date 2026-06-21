@@ -1,9 +1,11 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat.location
 
+import kotlin.math.abs
+
 class Cone(val center: Location, val direction: Direction, val length: Int) {
 
     fun getPoints(): List<Location> {
-        return when (direction) {
+        val result = when (direction) {
             Direction.up        -> upDown(1)
             Direction.upRight   -> diagonal(1,1)
             Direction.right     -> rightLeft(1)
@@ -13,7 +15,14 @@ class Cone(val center: Location, val direction: Direction, val length: Int) {
             Direction.downLeft  -> diagonal(-1, -1)
             Direction.left      -> rightLeft(-1)
             Direction.upLeft    -> diagonal(-1, 1)
+
+            Direction.upRight2   -> diagonal2(1,1)
+            Direction.downRight2 -> diagonal2(1, -1)
+
+            Direction.downLeft2  -> diagonal2(-1, -1)
+            Direction.upLeft2    -> diagonal2(-1, 1)
         }
+        return result.distinct()
     }
 
     private fun upDown(yMult: Int): List<Location> {
@@ -24,7 +33,7 @@ class Cone(val center: Location, val direction: Direction, val length: Int) {
 
             for (x in xStart..xEnd ) {
                 for (y in i..length) {
-                    result.add (Location ((center.x + x), yMult * (center.y + y)))
+                    result.add (Location (center.x + x, center.y + (yMult * y)))
                 }
             }
         }
@@ -39,7 +48,7 @@ class Cone(val center: Location, val direction: Direction, val length: Int) {
                 val yStart = if (i==1) 0 else -1 * (i     / 2)  // bottom
 
                 for (y in yStart..yEnd) {
-                    result.add (Location (xMult * (center.x + x), center.y + y))
+                    result.add (Location (center.x + (xMult * x), center.y + y))
                 }
             }
         }
@@ -51,21 +60,59 @@ class Cone(val center: Location, val direction: Direction, val length: Int) {
         for (i in 1..length) {
             for (x in i..length) {
                 for (y in 1..i) {
-                    result.add (Location (xMult*(center.x + x), yMult*(center.y + y)))
+                    result.add (Location (center.x + (xMult *  x), center.y + (yMult * y)))
                 }
             }
         }
         return result
     }
 
-    fun dump(radius: Int = 8) {
-        val points = getPoints()
-        for (y in -1 *radius..radius) {
-            val line = StringBuilder()
-            for (x in -1 *radius..radius) {
-                line.append(if (Location(x, -1 * y) in points) "X" else ".")
+    private fun diagonal2(xMult: Int, yMult: Int): List<Location> {
+        val result = mutableListOf<Location>()
+        for (i in 1..length) {
+            for (y in i..length) {
+                for (x in 1..i) {
+                    result.add (Location (center.x + (xMult *  x), center.y + (yMult * y)))
+                }
             }
-            println(line.toString())
+        }
+        return result
+    }
+
+    fun dump(radius: Int = 15, target: Location? = null) {
+        val points = getPoints()
+        dump(center, radius, points, target)
+    }
+
+    companion object {
+        fun dump(center: Location, radius: Int = 15, points: List<Location>, target: Location? = null) {
+
+            println("  FEDCBA9876543210123456789ABCDEF")
+            println("")
+
+            for (y in -1 *radius..radius) {
+                val line = StringBuilder()
+                line.append(abs(y).toString(16).uppercase()).append(" ")
+
+                for (x in -1 *radius..radius) {
+                    val loc = Location(x, -1 * y)
+                    val count = points.count { it == loc}.toString(16).uppercase()
+                    line.append(if (loc == center) "c" else if (loc == target) "X" else if (loc in points) count else ".")
+                }
+                println(line.toString())
+            }
+        }
+
+        fun getIntersection(center: Location, target: Location, length: Int): List<Cone> {
+            val result = mutableListOf<Cone>()
+            for (dir in Direction.entries) {
+                val cone = Cone(center, dir, length)
+                val points = cone.getPoints()
+                if (points.contains(target)) {
+                    result.add(cone)
+                }
+            }
+            return result
         }
     }
 }

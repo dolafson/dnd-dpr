@@ -28,7 +28,7 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
         return (saveRoll + targetSaveBonus >= spellSaveDC)
     }
 
-
+    // return true if you had to make at least one saving throw
     fun makeSavingThrows (spellNameFunction: (String) -> Boolean, thereCanBeOnlyOne: Boolean = false): Boolean {
         val iter = target.iterator()
         var result = false

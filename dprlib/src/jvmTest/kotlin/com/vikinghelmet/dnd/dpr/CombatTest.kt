@@ -245,7 +245,9 @@ class CombatTest {
         val attack = badGuy.getPreferredTurn(goodGuy, 0)!!.first.attacks[0]
         goodGuy.currentHP -= damage
         badGuy.target = goodGuy
-        combat.actionResultList.add(CombatActionResult(badGuy, listOf(goodGuy), damage, attack))
+
+        val damageList = listOf(DamageResult(damage, DamageType.undefined))
+        combat.actionResultList.add(CombatActionResult(badGuy, goodGuy, 0,0,0, attack, damageList))
     }
 
     @Test
@@ -311,8 +313,7 @@ class CombatTest {
          */
 
         for (i in 0..4) {
-            combat.teamA[i].currentHP = -1
-            combat.teamA[i].deathSavingThrows.addAll(listOf(false, false, false))
+            combat.teamA[i].die(0)
         }
         val rhogar = combat.teamA[5]
         rhogar.currentHP = 11
@@ -364,6 +365,38 @@ class CombatTest {
         assertEquals(3, attackResultList.size)
     }
 
+
+    @Test
+    fun dragonPoisonBreathVeryClose() {
+        TestUtil.dependency()
+        // Globals.initLogger(LogLevel.DEBUG) // DEBUG
+
+        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.oleg))
+
+        val dragon = combat.teamA[0]
+        val oleg   = combat.teamB[0]
+
+        dragon.location = Location(3, 0)
+        oleg.location   = Location(2, -1) // very close
+
+        var dragonAttacks = combat.chooseTurnActions(dragon, oleg)
+        // println("dragonAttacks = $dragonAttacks")
+        assertEquals(1, dragonAttacks.size)
+
+        val breathAttack = dragonAttacks[0]
+        assertEquals("Poison Breath", breathAttack.action.getActionName())
+
+        val cones = Cone.getIntersection(dragon.location, oleg.location, 6)
+        val coneNames = cones.map { it.direction.toString() }.toList()
+
+        assertEquals(listOf("downLeft","downLeft2"), coneNames)
+
+        val attackResultList = combat.attackWithSpell(dragon, breathAttack.target as CombatantWithStatus, breathAttack)
+        // println("attackResultList = $attackResultList")
+
+        assertEquals(1, attackResultList.size)
+    }
+
     @Test
     fun dragonMultiattack() {
         TestUtil.dependency()
@@ -386,12 +419,18 @@ class CombatTest {
     fun cones() {
         TestUtil.dependency()
 
+        val points = mutableListOf<Location>()
+
+        val center = Location(0, 0)
         for (dir in Direction.entries) {
-            val cone = Cone(Location(0, 0), dir, 6)
+            val cone = Cone(center, dir, 6)
             println("# dir=$dir")
             cone.dump()
-            println()
+            points.addAll (cone.getPoints())
         }
+
+        println("# dir=ALL")
+        Cone.dump(center, 6, points)
     }
 
     @Test
@@ -631,5 +670,31 @@ class CombatTest {
         }
 
         assertEquals(kael.currentHP, kael.getHP())
+    }
+
+    @Test
+
+    fun initiativeDups() {
+        TestUtil.dependency()
+        //Globals.initLogger(LogLevel.DEBUG) // DEBUG
+
+        val dragonNoStatus = Globals.getMonster("Young Green Dragon")
+        val combat = Combat(0,
+            listOf(TestUtil.eldir, TestUtil.kael, TestUtil.lars, TestUtil.leif, TestUtil.oleg, TestUtil.rhogar),
+            listOf(dragonNoStatus))
+
+        val teamA = combat.teamA
+        val teamB = combat.teamB
+
+        for (i in 0..3) {
+            teamA[i].initiative = 10
+        }
+        val initiativeList = (teamA + teamB).sortedByDescending { it.initiative }.toList()
+
+        println("")
+        println("initiative list: $initiativeList")
+        println("")
+        initiativeList.forEach { println("${it.initiative}: $it") }
+        println("")
     }
 }

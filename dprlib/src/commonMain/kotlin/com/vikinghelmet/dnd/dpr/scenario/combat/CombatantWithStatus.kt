@@ -6,18 +6,18 @@ import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
-import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtEndOfTurn
-import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveAtStartOfTurn
-import com.vikinghelmet.dnd.dpr.scenario.combat.save.SaveByTakingAnAction
-import com.vikinghelmet.dnd.dpr.scenario.combat.save.SavingThrowGenerator
+import com.vikinghelmet.dnd.dpr.scenario.combat.save.*
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
+import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -25,6 +25,7 @@ import com.vikinghelmet.dnd.dpr.util.Movement
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.math.max
+import kotlin.math.min
 
 data class CombatantWithStatus(
     val combatant: Combatant,
@@ -44,6 +45,8 @@ data class CombatantWithStatus(
     val spellCastList = mutableListOf<SpellCast>()
 
     var target: CombatantWithStatus? = null
+
+    var healthStatus: HealthStatus = HealthStatus.positive
 
     val temporaryDamageResistance = mutableListOf<DamageType>()
     val temporaryDamageImmunity = mutableListOf<DamageType>()
@@ -68,14 +71,17 @@ data class CombatantWithStatus(
 
     fun summary(): String {
         val buffer = StringBuilder("(").append(shortName()).append(", loc=$location")
-        if (isDead()) {
-            buffer.append(", dead")
-        } else if (isDying()) {
-            val failCount = deathSavingThrows.filter { !it }.count()
-            val passCount = deathSavingThrows.filter { it }.count()
-            buffer.append(", dying, saves=-$failCount/+$passCount")
-        } else {
-            buffer.append(", hp=$currentHP/${getHP()}")
+        buffer.append(", ").append(healthStatus)
+        when (healthStatus) {
+            HealthStatus.dying -> {
+                val failCount = deathSavingThrows.filter { !it }.count()
+                val passCount = deathSavingThrows.filter { it }.count()
+                buffer.append(", saves=-$failCount/+$passCount")
+            }
+            HealthStatus.positive -> {
+                buffer.append(", hp=$currentHP/${getHP()}")
+            }
+            else -> {}
         }
         return buffer.append(")").toString()
     }
@@ -83,14 +89,28 @@ data class CombatantWithStatus(
     // --------------------------------------------------------------------
     // DEATH
 
-    fun isCleric(): Boolean {
-        return (combatant is PlayerCharacter) && (combatant.getClass() == ClassName.Cleric)
+    fun isDeadOrDying() = listOf(HealthStatus.dead, HealthStatus.dying).contains(healthStatus)
+
+    fun isDead() = healthStatus == HealthStatus.dead
+
+    fun isDying() = healthStatus == HealthStatus.dying
+    fun isStable() = healthStatus == HealthStatus.stable
+    fun isDamaged() = healthStatus == HealthStatus.positive && getHP() > currentHP
+
+    fun startDying(turnId: Int, cause: TargetEffectCause) {
+        currentHP = 0
+        healthStatus = HealthStatus.dying
+        // add the Unconscious if not there already
+        if (! (any { it.cause != null && it.cause is DamageResult } )) {
+            add(TargetEffect(turnId, cause = cause, conditions = mutableListOf(Condition.Unconscious)))
+        }
     }
 
-    fun isDeadOrDying() = currentHP <= 0
-    fun isDead() = currentHP <= 0 && deathSavingThrows.count { !it } >= 3
-
-    fun isDying() = currentHP <= 0 && deathSavingThrows.count { !it } < 3
+    fun die(turnId: Int) {
+        currentHP = 0
+        healthStatus = HealthStatus.dead
+        breakConcentration(turnId)
+    }
 
     fun deathSave(turnId: Int): CombatActionResult {
         val saveRoll = (1..20).random()
@@ -107,21 +127,23 @@ data class CombatantWithStatus(
             label = "success"
         }
         else if (saveRoll == 20) {
-            label = "crit success"
+            label = "crit success, revived"
+            stabilize(1)
         }
 
-        if (saveRoll == 20 || (deathSavingThrows.filter { it == true }.count() >= 3)) {
+        if (deathSavingThrows.filter { it == true }.count() >= 3) {
             deathSavingThrows.clear()
-            currentHP = 1
-            label += ", revived"
+            stabilize(0)
+            label += ", stable"
         }
 
         if (deathSavingThrows.filter { it == false }.count() >= 3) {
             label += ", died"
+            die(turnId)
         }
 
         return CombatActionResult(this, this, turnId, "0", 0,
-            "deathSave: $label", emptyList(), currentHP, CombatActionResult.toDeathSaves(deathSavingThrows),
+            "deathSave: $label", emptyList(), currentHP, healthStatus, CombatActionResult.toDeathSaves(deathSavingThrows),
             getEffectString(), getConditionString()
         )
     }
@@ -181,9 +203,7 @@ data class CombatantWithStatus(
     fun getPreferredCombatDistance(): Distance {
         val hasBetterDexThanStr = getAbilityModifier(AbilityType.Dexterity) >= getAbilityModifier(AbilityType.Strength)
         val range = if (hasBetterDexThanStr) {
-            kotlin.math.min(
-                60,
-                getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
+            min(60, getWeaponList().maxOf { it.range }) // TODO: we don't want to be too far from our own group ...
         } else Constants.MELEE_RANGE
         return Distance.fromFeet(range)
     }
@@ -252,7 +272,7 @@ data class CombatantWithStatus(
     }
 
     // --------------------------------------------------------------------
-    // DAMAGE
+    // DAMAGE and HEALING
 
     fun applyDamage(turnId: Int, damageResultList: List<DamageResult>) {
         val totalDamage = damageResultList.sumOf { it.amount }
@@ -264,19 +284,33 @@ data class CombatantWithStatus(
             effectIterator.remove()
         }}
 
-        currentHP -= totalDamage
+        if (totalDamage == 0) {
+            return
+        }
+        else if (currentHP > totalDamage) {
+            currentHP -= totalDamage
+        }
+        else if (totalDamage - currentHP > getHP()) {
+            logger.debug { "instant death: totalDamage=$totalDamage, currentHP=$currentHP, maxHP=${getHP()}" }
+            die(turnId)
+        }
+        else {
+            startDying(turnId, damageResultList.first());
+        }
 
-        if (totalDamage == 0 || spellCastList.isEmpty() || !spellCastList.any { it.isStillRunning() }) {
+        if (spellCastList.isEmpty() || !spellCastList.any { it.isStillRunning() }) {
             return
         }
 
         // spellcaster: when taking damage, make a saving throw to maintain concentration
-        val saveDC = kotlin.math.min (10, totalDamage/2)
+        val saveDC = min (10, totalDamage/2)
         val savingThrowSuccess = makeSavingThrow (saveDC, AbilityType.Constitution)
-        if (savingThrowSuccess) {
-            return
+        if (!savingThrowSuccess) {
+            breakConcentration (turnId)
         }
+    }
 
+    fun breakConcentration(turnId: Int) {
         logger.debug { "concentration is broken" }
 
         spellCastList.filter { it.isStillRunning() }.forEach { spellCast ->
@@ -289,6 +323,10 @@ data class CombatantWithStatus(
         }
     }
 
+    fun isCleric(): Boolean {
+        return (combatant is PlayerCharacter) && (combatant.getClass() == ClassName.Cleric)
+    }
+
     fun rollHealingAmount(spell: Spell): Int {
         val healing = spell.getHealing()
         var roll = healing.healingDice.roll()
@@ -299,6 +337,20 @@ data class CombatantWithStatus(
         }
         // TODO: tempHP
         return roll
+    }
+
+    fun stabilize(newHP: Int) {
+        deathSavingThrows.clear()
+        currentHP = newHP
+        healthStatus = if (newHP > 0) HealthStatus.positive else HealthStatus.stable
+        if (newHP > 0) {
+            removeAll { it.cause != null && it.cause is DamageResult }
+        }
+    }
+
+    fun applyHealing(healAmount: Int) {
+        val newHP = min(currentHP + healAmount, getHP())
+        stabilize(newHP)
     }
 
     // --------------------------------------------------------------------

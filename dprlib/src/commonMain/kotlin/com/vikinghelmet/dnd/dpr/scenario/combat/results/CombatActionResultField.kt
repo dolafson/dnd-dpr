@@ -3,9 +3,8 @@ package com.vikinghelmet.dnd.dpr.scenario.combat.results
 // TODO: abilities: Str, Dex, ... ?
 enum class CombatActionResultField(val constantAcrossTurns: Boolean = false)
 {
-    attackerName(true),level(true),
-
-    turn,action,effect, actionTaken, damageList,
+    attackerName(true),
+    battle(true), turn,action,effect, actionTaken, damageList,
 
     targetName(true), targetAC(true), targetHP, deathSaves,
 

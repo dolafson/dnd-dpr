@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatantWithStatus
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResultField.*
+import com.vikinghelmet.dnd.dpr.scenario.combat.save.HealthStatus
 import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
@@ -20,6 +21,7 @@ data class CombatActionResult(
     val damageResultList: List<DamageResult>,
 
     val targetHP: Int,
+    val targetHealth: HealthStatus = HealthStatus.positive,
     val deathSaves: List<String>,
 
     val effects: String,
@@ -35,7 +37,7 @@ data class CombatActionResult(
     ) : this(combatant, target,
             turnId, (if (attack.isBonusAction == true) "BA" else "$actionId"), effectId,
             attack.getLabel(), damageResultList,
-            target.currentHP, toDeathSaves(target.deathSavingThrows),
+            target.currentHP, target.healthStatus, toDeathSaves(target.deathSavingThrows),
             target.getEffectString(), target.getConditionString())
 
     fun getValue(field: CombatActionResultField): Any {
@@ -43,7 +45,7 @@ data class CombatActionResult(
             // fields that do not vary across turns ...
             attackerName    -> attacker.getName()
             targetName      -> target.getName()
-            level           -> (attacker.combatant as? PlayerCharacter)?.getLevel() ?: 0
+            battle           -> (attacker.combatant as? PlayerCharacter)?.getLevel() ?: 0
             //spellSaveDC   -> attacker.getSpellSaveDC()
             targetAC        -> target.getAC()
 
