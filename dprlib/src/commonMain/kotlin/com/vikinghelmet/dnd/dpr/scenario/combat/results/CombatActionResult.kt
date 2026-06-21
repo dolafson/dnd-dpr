@@ -42,6 +42,18 @@ data class CombatActionResult(
     constructor(
         combatant: CombatantWithStatus, target: CombatantWithStatus,
         turnId: Int, actionId: Int, effectId: Int,
+        actionLabel: String
+    ) : this(
+        combatant, target,
+        turnId, "$actionId", effectId,
+        actionLabel, emptyList(),
+        target.currentHP, target.healthStatus, toDeathSaves(target.deathSavingThrows),
+        target.getEffectString(), target.getConditionString(), combatant.location.copy()
+    )
+
+    constructor(
+        combatant: CombatantWithStatus, target: CombatantWithStatus,
+        turnId: Int, actionId: Int, effectId: Int,
         attack: Attack, damageResultList: List<DamageResult>
     ) : this(
         combatant, target,

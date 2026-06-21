@@ -174,11 +174,13 @@ data class CombatantWithStatus(
 
     fun getSpeed() = if (flightSupported) max(getSpeed(Movement.fly),getSpeed(Movement.walk)) else getSpeed(Movement.walk)
 
-    fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Distance): Distance {
+    fun moveAwayFromTarget(targetList: List<CombatantWithStatus>, closestDistanceStart: Distance, combat: Combat?): Distance {
         var closestDistance = closestDistanceStart
         val initialLoc = location.copy()
         val maxMoves = getSpeed() / Constants.DISTANCE_GRANULARITY
         val targetLocationList = targetList.map { it.location }.toList()
+
+        val locationsToAvoid = if (combat == null) emptyList() else (combat.teamA + combat.teamB).filter { it.canTakeAction() }.map { it.location }
 
         for (i in 1..maxMoves) {
             val oneOffMap = mutableMapOf<Location, Distance>()
@@ -200,9 +202,13 @@ data class CombatantWithStatus(
                 break
             }
 
+            val oneOffAllowed = oneOffMap.filter { !locationsToAvoid.contains(it.key) }
+            if (oneOffAllowed.isEmpty()) {
+                break
+            }
             // choose the max of the mins
-            location        = oneOffMap.maxBy { it.value }.key
-            closestDistance = oneOffMap.maxBy { it.value }.value
+            location        = oneOffAllowed.maxBy { it.value }.key
+            closestDistance = oneOffAllowed.maxBy { it.value }.value
         }
 
         logMovement("moving away from targets", initialLoc, closestDistance)
@@ -211,8 +217,8 @@ data class CombatantWithStatus(
 
     fun moveTowardTarget(target: CombatantWithStatus, combat: Combat): Distance {
         val initialLoc = location.copy()
-        // you can not occupy the same space as another creature ... unless they are dead
-        val locationsToAvoid = (combat.teamA + combat.teamB).filter { !it.isDead() }.map { it.location }
+        // you can not occupy the same space as another creature ... unless they are dead / unconscious
+        val locationsToAvoid = (combat.teamA + combat.teamB).filter { it.canTakeAction() }.map { it.location }
 
         location.moveTowardLocation(target.location, getSpeed() / Constants.DISTANCE_GRANULARITY, locationsToAvoid)
 

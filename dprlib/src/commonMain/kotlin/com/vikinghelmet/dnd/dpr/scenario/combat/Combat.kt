@@ -93,11 +93,21 @@ class Combat(val battleId: Int) {
             fullTurn()
             turnId++
             // exit after 100 turns, or in any aberrant situation where a live A and B occupy the same space
-            val notDeadA = teamA.filter { !it.isDead() }
-            val notDeadB = teamB.filter { !it.isDead() }
-            if (turnId > 100 ||notDeadA.any { it -> notDeadB.any { it2 -> it2.location == it.location }}) {
+            val notDeadA = teamA.filter { it.isPositive() }
+            val notDeadB = teamB.filter { it.isPositive() }
+            val runningTooLong = turnId > 100
+
+            while (notDeadA.any { it -> notDeadB.any { it2 -> it2.location == it.location }}) {
+                notDeadA.filter { it -> notDeadB.any { it2 -> it2.location == it.location }}.forEach {
+                    logger.error { "combatant in same space as opponents; jitter: $it" }
+                    it.location.jitter()
+                }
+            }
+
+            if (runningTooLong) {
                 repeat(3) { logger.warn { "" } }
-                logger.warn {"turnId=$turnId, combat is running too long, and/or combatants in the same space" }
+                logger.warn {"turnId=$turnId, combat is running too long" }
+
                 logger.warn {"turnId=$turnId, teamA = ${ teamSummary(teamA)}" }
                 logger.warn {"turnId=$turnId, teamB = ${ teamSummary(teamB)}" }
 
@@ -112,7 +122,8 @@ class Combat(val battleId: Int) {
                     }
                 }
 
-                throw IllegalStateException("turnId=$turnId, combat is running too long")
+                // throw IllegalStateException("turnId=$turnId, combat is running too long")
+                return false
             }
         }
         if (!teamB.any { it.isPositive() }) {
@@ -146,12 +157,14 @@ class Combat(val battleId: Int) {
             } else if (!combatant.canTakeAction()) {
                 val reason = if (combatant.currentHP == 0) "zeroHP" else
                     combatant.toList().filter { it.unableToAct }.toList().toString()
-
+                actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to act"))
                 logger.warn { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, can not take action: reason=$reason" }
             } else {
                 logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant is taking action" }
                 val turnActionResults = takeTurn (combatant)
                 if (turnActionResults.isEmpty()) {
+                    actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "able to act, but no action results"))
+
                     logger.warn { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, action taken but NO RESULTS !!!" }
                 }
                 actionResultList.addAll (turnActionResults)
@@ -176,12 +189,23 @@ class Combat(val battleId: Int) {
 
         if (goal == ActionGoal.Heal) {
             val healTarget = chooseHealingTarget(combatant)
+
             if (healTarget != null) {
+                // move towards target, even if you can't heal them yet ...
                 combatant.moveTowardTarget(healTarget, this)
-                val range = combatant.distance(healTarget).toFeet()
-                val healTurn = combatant.getPreferredTurn(healTarget, range, this)
-                if (healTurn != null) {
-                    actionResults.addAll(healWithSpell(combatant, healTarget, healTurn.first))
+
+                if (getOpponents(healTarget).any { it.location == healTarget.location }) {
+                    actionResults.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to heal, opponent standing on healing target"))
+                }
+                else {
+                    val range = combatant.distance(healTarget).toFeet()
+                    val healTurn = combatant.getPreferredTurn(healTarget, range, this)
+                    if (healTurn != null) {
+                        actionResults.addAll(healWithSpell(combatant, healTarget, healTurn.first))
+                    } else {
+                        actionResults.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "able to heal, but no healing results"))
+                        logger.warn { "turnId=$turnId, combatant = ${combatant.shortName()}, goal=healing, healTurn=null" }
+                    }
                 }
             }
             combatant.checkForSaveAtEndOfTurn()
@@ -195,31 +219,34 @@ class Combat(val battleId: Int) {
         combatant.target = target
 
         if (target == null) {
-            logger.warn { "battle=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no target available" }
+            logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no target available" }
         }
         else {
             val attackList = chooseTurnActions(combatant, target)
 
             if (attackList.isEmpty()) {
-                logger.warn { "battle=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no attacks available for target = ${target.shortName()}" }
+                logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no attacks available for target = ${target.shortName()}" }
+                actionResults.add(CombatActionResult(combatant, target, turnId, 0, 0, "no attacks available for target"))
             }
 
             logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
             for (attack in attackList) {
+                var attackResults: List<CombatActionResult>
+
                 if (attack.action is Weapon) {
-                    val weaponAttackResults = meleeOrRangeAttack(combatant, target, attack, attack.action)
-                    if (weaponAttackResults.isEmpty()) {
-                        logger.warn { "battle=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, weapon attack results is empty" }
-                    }
-                    actionResults.addAll(weaponAttackResults)
+                    attackResults = meleeOrRangeAttack(combatant, target, attack, attack.action)
                 } else {
-                    val spellAttackResults = attackWithSpell(combatant, target, attack)
-                    if (spellAttackResults.isEmpty()) {
-                        logger.warn { "battle=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, spell attack results is empty" }
-                    }
-                    actionResults.addAll(spellAttackResults)
+                    attackResults = attackWithSpell(combatant, target, attack)
                 }
+
+                if (attackResults.isEmpty()) {
+                    logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, attack results is empty for ${attack.action}" }
+                    actionResults.add(CombatActionResult(combatant, target, turnId, 0, 0, "no results for attack: ${attack.action}"))
+                } else {
+                    actionResults.addAll(attackResults)
+                }
+
                 actionId++
             }
         }
@@ -234,12 +261,12 @@ class Combat(val battleId: Int) {
 
     fun getMyTeam(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamA else teamB
 
-    fun getDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
-        return getOpponents(combatant).filter { it.isDying() }.toList()
+    fun getNotDeadOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
+        return getOpponents(combatant).filter { !it.isDead() }.toList()
     }
 
-    fun getNotDeadOrDyingOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
-        return getOpponents(combatant).filter { !it.isDeadOrDying() }.toList()
+    fun getPositiveOpponents(combatant: CombatantWithStatus): List<CombatantWithStatus> {
+        return getOpponents(combatant).filter { it.isPositive() }.toList()
     }
 
     fun chooseHealingTarget(healer: CombatantWithStatus): CombatantWithStatus? {
@@ -300,30 +327,30 @@ class Combat(val battleId: Int) {
 
     fun chooseAttackTarget(combatant: CombatantWithStatus): CombatantWithStatus?
     {
+        // if you are within melee range of a healthy opponent, you can't move (don't provoke an oppy attack) ...
+        // just attack someone right in front of you
+        val inMeleeRange = getPositiveOpponents(combatant).filter { combatant.distance(it) <= Distance.melee() }
+        if (inMeleeRange.isNotEmpty()) {
+            return TargetSelector(this, combatant, inMeleeRange).select().first  // early return because we can't move
+        }
+
         var targetList: List<CombatantWithStatus>
 
         // if you already have a target that is not dead/dying, try to finish them off
-        if (combatant.target != null && !combatant.target!!.isDeadOrDying()) {
+        if (combatant.target != null && combatant.target!!.isPositive()) {
             logger.verbose { "chooseTarget: keeping current target = ${combatant.target}" }
             targetList = listOf(combatant.target!!)
         }
         else {
-            targetList = getNotDeadOrDyingOpponents(combatant)
+            targetList = getPositiveOpponents(combatant)
         }
 
         if (targetList.isEmpty()) {
-            // if all you have are a few dying opponents, keep sticking a fork in them until they're done
-            targetList = getDyingOpponents(combatant)
+            // if all you have are a few dying/stable opponents, keep sticking a fork in them until they're done
+            targetList = getNotDeadOpponents(combatant)
         }
         if (targetList.isEmpty()) {
             return null // early return because we have no targets
-        }
-
-        // if you are within melee range, you can't move (don't provoke an oppy attack) ...
-        // just attack someone right in front of you
-        val inMeleeRange = targetList.filter { it.canTakeAction() && combatant.distance(it) <= Distance.melee() }
-        if (inMeleeRange.isNotEmpty()) {
-            return TargetSelector(this, combatant, inMeleeRange).select().first  // early return because we can't move
         }
 
         // if you are currently someone else's target, target them back
@@ -345,7 +372,7 @@ class Combat(val battleId: Int) {
                 // no movement needed
             }
             else if (distance < combatant.getPreferredCombatDistance()) { // too close for comfort
-                combatant.moveAwayFromTarget(targetList, distance)
+                combatant.moveAwayFromTarget(targetList, distance, this)
             }
             else {
                 combatant.moveTowardTarget(target, this)
@@ -519,7 +546,7 @@ class Combat(val battleId: Int) {
                 val points = cone.getPoints()
                 if (! points.contains(focusTarget.location)) continue
 
-                val potentialTargets = getNotDeadOrDyingOpponents(combatant).filter { points.contains(it.location) }
+                val potentialTargets = getPositiveOpponents(combatant).filter { points.contains(it.location) }
                 val count = potentialTargets.size
                 if (maxCount < count) {
                     maxCount = count
@@ -632,9 +659,15 @@ class Combat(val battleId: Int) {
         }
     }
 
-    fun getTeamStatus(): String {
-        val aList = teamA.map { shortSummary ( priorState[it] ) }.toList()
-        val bList = teamB.map { shortSummary ( priorState[it] ) }.toList()
+    fun getTeamStatus(short: Boolean): String {
+        if (short) {
+            val aList = teamA.map { shortSummary(priorState[it]) }.toList()
+            val bList = teamB.map { shortSummary(priorState[it]) }.toList()
+            return "\"$aList     $bList\""
+        }
+
+        val aList = teamA.map { fullSummary(priorState[it]) }.toList()
+        val bList = teamB.map { fullSummary(priorState[it]) }.toList()
         return "\"$aList     $bList\""
     }
 
@@ -656,26 +689,51 @@ class Combat(val battleId: Int) {
         return buffer.append(")").toString()
     }
 
+    fun fullSummary(actionResult: CombatActionResult?): String { // same as short, but with location added
+        if (actionResult == null) return ""
+        val target = actionResult.target
 
+        // TODO: store location in CombatActionResult ... also, add results just for movement ...
+        //val buffer = StringBuilder("(").append(target.shortName()).append(", loc=$location")
+
+        val buffer = StringBuilder("(")
+            .append(target.shortName())
+            .append(", loc=${actionResult.attackerNewLocation}")
+            .append(", ")
+
+        if (actionResult.targetHealth == HealthStatus.positive) {
+            buffer.append("hp=${actionResult.targetHP}/${target.getHP()}")
+        }
+        else {
+            buffer.append(actionResult.targetHealth)
+        }
+        return buffer.append(")").toString()
+    }
     fun output(): String {
         initPriorState()
 
         val buf = StringBuilder()
         buf.append(CombatActionResultFormatter.header()).append("\n")
 
+        buf.append (CombatActionResultFormatter.footer(battleId, 0, "START OF COMBAT", getTeamStatus(false)))
+            .append("\n")
+
         var outputTurnId = 0
 
         for (result in actionResultList) {
             if (outputTurnId < result.turnId) {
-                outputTurnId = result.turnId
-                buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF TURN", getTeamStatus()))
+                buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF TURN", getTeamStatus(true)))
                     .append("\n")
+                outputTurnId = result.turnId
             }
             buf.append (CombatActionResultFormatter.output(battleId, result)).append("\n")
             priorState[result.target] = result
         }
 
-        buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF TURN", getTeamStatus()))
+        buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF TURN", getTeamStatus(true)))
+            .append("\n")
+
+        buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF COMBAT", getTeamStatus(false)))
             .append("\n")
 
         return buf.toString()

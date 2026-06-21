@@ -41,6 +41,11 @@ data class Location(var x: Int, var y: Int) {
         (-2..2).random()
     )
 
+    fun jitter() {
+        x += (-2..2).random()
+        y += (-2..2).random()
+    }
+
     // NOTE: location units are in increment of 5 feet
     fun distance(otherLocation: Location) = Distance(this, otherLocation)
 
