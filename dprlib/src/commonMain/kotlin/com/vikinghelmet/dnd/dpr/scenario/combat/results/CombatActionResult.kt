@@ -35,7 +35,7 @@ data class CombatActionResult(
     private val logger = LoggerFactory.get(CombatActionResult::class.simpleName ?: "")
 
     constructor(c: CombatantWithStatus) : this(
-        c, c, 0, "0", 0, "start", listOf(DamageResult(0, DamageType.undefined)),
+        c, c, 0, "0", 0, "initiative = ${c.initiative}", listOf(DamageResult(0, DamageType.undefined)),
         c.getHP(), deathSaves = listOf(""), effects = "", condition = "", attackerNewLocation = c.location.copy()
     )
 

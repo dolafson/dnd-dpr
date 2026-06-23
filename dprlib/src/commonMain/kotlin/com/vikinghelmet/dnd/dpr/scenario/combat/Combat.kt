@@ -659,18 +659,6 @@ class Combat(val battleId: Int) {
         }
     }
 
-    fun getTeamStatus(short: Boolean): String {
-        if (short) {
-            val aList = teamA.map { shortSummary(priorState[it]) }.toList()
-            val bList = teamB.map { shortSummary(priorState[it]) }.toList()
-            return "\"$aList     $bList\""
-        }
-
-        val aList = teamA.map { fullSummary(priorState[it]) }.toList()
-        val bList = teamB.map { fullSummary(priorState[it]) }.toList()
-        return "\"$aList     $bList\""
-    }
-
     fun shortSummary(actionResult: CombatActionResult?): String {
         if (actionResult == null) return ""
         val target = actionResult.target
@@ -689,54 +677,36 @@ class Combat(val battleId: Int) {
         return buffer.append(")").toString()
     }
 
-    fun fullSummary(actionResult: CombatActionResult?): String { // same as short, but with location added
-        if (actionResult == null) return ""
-        val target = actionResult.target
-
-        // TODO: store location in CombatActionResult ... also, add results just for movement ...
-        //val buffer = StringBuilder("(").append(target.shortName()).append(", loc=$location")
-
-        val buffer = StringBuilder("(")
-            .append(target.shortName())
-            .append(", loc=${actionResult.attackerNewLocation}")
-            .append(", ")
-
-        if (actionResult.targetHealth == HealthStatus.positive) {
-            buffer.append("hp=${actionResult.targetHP}/${target.getHP()}")
-        }
-        else {
-            buffer.append(actionResult.targetHealth)
-        }
-        return buffer.append(")").toString()
+    fun footer(turnId: Int, label: String): String {
+        val aList = teamA.map { shortSummary(priorState[it])  }.toList()
+        val bList = teamB.map { shortSummary(priorState[it])  }.toList()
+        return CombatActionResultFormatter.footer(battleId, turnId, label, aList, bList) +"\n"
     }
+
     fun output(): String {
         initPriorState()
 
         val buf = StringBuilder()
         buf.append(CombatActionResultFormatter.header()).append("\n")
 
-        buf.append (CombatActionResultFormatter.footer(battleId, 0, "START OF COMBAT", getTeamStatus(false)))
-            .append("\n")
+        //buf.append (footer(0, "START OF COMBAT", false))
+        for (v in initialState.values.sortedByDescending { it.attacker.initiative }) {
+            buf.append (CombatActionResultFormatter.output(battleId,v)).append("\n")
+        }
+        buf.append(",\n")
 
         var outputTurnId = 0
 
         for (result in actionResultList) {
             if (outputTurnId < result.turnId) {
-                buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF TURN", getTeamStatus(true)))
-                    .append("\n")
+                buf.append (footer(outputTurnId, "END OF TURN"))
                 outputTurnId = result.turnId
             }
             buf.append (CombatActionResultFormatter.output(battleId, result)).append("\n")
             priorState[result.target] = result
         }
 
-        buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF TURN", getTeamStatus(true)))
-            .append("\n")
-
-        buf.append (CombatActionResultFormatter.footer(battleId, outputTurnId, "END OF COMBAT", getTeamStatus(false)))
-            .append("\n")
-
+        buf.append (footer(outputTurnId, "END OF TURN"))
         return buf.toString()
     }
-
 }

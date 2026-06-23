@@ -20,8 +20,9 @@ object CombatActionResultFormatter {
         return buf.append(",").toString()
     }
 
-    fun footer(battleId: Int, currentTurnId: Any, actionLabel: String, teamStatus: String): String {
-
+    fun footer(battleId: Int, currentTurnId: Any, actionLabel: String, teamAStatus: List<String>, teamBStatus: List<String>)
+        : String
+    {
         val buf = StringBuilder()
         entries.forEach {
             val value = when (it) {
@@ -29,7 +30,8 @@ object CombatActionResultFormatter {
                 CombatActionResultField.battle -> battleId
                 CombatActionResultField.turn -> currentTurnId
                 CombatActionResultField.action -> actionLabel
-                CombatActionResultField.actionTaken -> teamStatus
+                CombatActionResultField.actionTaken -> "\"$teamAStatus\""
+                CombatActionResultField.targetName -> "\"$teamBStatus\""
                 else -> null
             }
             if (value != null) buf.append(value)
