@@ -11,7 +11,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class Definition(
     val name: String,
     val type: String? = null,
-    val filterType: String,
+    val filterType: String? = null,
     val magic: Boolean,
 
     // val type: String,

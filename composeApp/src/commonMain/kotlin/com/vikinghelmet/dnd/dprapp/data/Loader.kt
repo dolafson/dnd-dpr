@@ -34,9 +34,16 @@ object Loader {
         return json
     }
 
-    fun addEditableCharacter(json: String): EditablePlayerCharacter?
+    fun addEditableCharacter(origin: String, json: String): EditablePlayerCharacter?
     {
-        val baseline: PlayerCharacter = Json.Default.decodeFromString(json) ?: return null
+        val baseline: PlayerCharacter
+        try {
+            baseline = Json.Default.decodeFromString(json) ?: return null
+        }
+        catch (e: Exception) {
+            logger.error(e) { "Error parsing JSON, origin $origin" }
+            return null
+        }
         val result = EditablePlayerCharacter(baseline, EditableFields(baseline))
 
         // save raw json (large), so we have local access to ALL remote data, even if we don't know what to do with it yet

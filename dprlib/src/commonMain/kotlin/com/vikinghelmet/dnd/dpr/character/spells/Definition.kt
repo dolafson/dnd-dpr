@@ -6,10 +6,10 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class Definition(
-    val name: String,
-    val range: com.vikinghelmet.dnd.dpr.character.spells.Range,
-    val concentration: Boolean,
-    val tags: List<String>,
+    val name: String ?= null,
+    val range: com.vikinghelmet.dnd.dpr.character.spells.Range ?= null,
+    val concentration: Boolean ?= false,
+    val tags: List<String> = emptyList(),
     /*
         val activation: Activation,
         val asPartOfWeaponAttack: Boolean,

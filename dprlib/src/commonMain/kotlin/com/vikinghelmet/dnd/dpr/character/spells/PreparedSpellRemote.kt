@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class PreparedSpellRemote(
-    val definition: com.vikinghelmet.dnd.dpr.character.spells.Definition,
+    val definition: com.vikinghelmet.dnd.dpr.character.spells.Definition ?= null,
     val alwaysPrepared: Boolean = false,
 
     /*

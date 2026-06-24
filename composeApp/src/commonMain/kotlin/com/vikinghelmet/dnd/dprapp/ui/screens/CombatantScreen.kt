@@ -80,7 +80,7 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
         val size = party.remoteList.size
         party.remoteList.forEach { url ->
             val json = getRemoteJson(url)
-            val added = addEditableCharacter(json!!)
+            val added = addEditableCharacter(url, json!!)
             if (added != null) {
                 party.add(added)
                 options.add(added)
@@ -132,7 +132,7 @@ fun CombatantScreen(viewModel: DprViewModel, navHostController: NavHostControlle
             }
             else {
                 logger.info { "loading editable character: ${json.substring(0, 30) + "..."}" }
-                val addResult = Loader.addEditableCharacter(json)
+                val addResult = Loader.addEditableCharacter(currentText, json)
                 if (addResult != null) {
                     options.add(addResult)
                     newCharacter = addResult

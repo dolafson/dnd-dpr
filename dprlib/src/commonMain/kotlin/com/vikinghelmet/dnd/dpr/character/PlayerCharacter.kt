@@ -307,17 +307,18 @@ open class PlayerCharacter(
 
     private fun transformSpellList(origin: String, input: List<PreparedSpellRemote>): List<PreparedSpell>
     {
-        val originNameList = input.map { it.definition.name }
+        val originNameList = input.mapNotNull { it.definition?.name }
         logger.debug { "transformSpellList($origin), before transform = ${ originNameList  }" }
 
         val result = mutableListOf<PreparedSpell>()
         for (psRemote in input) {
+            val name = psRemote.definition?.name ?: continue
             try {
-                val spell =  Globals.getSpell(psRemote.definition.name, is2014())
+                val spell =  Globals.getSpell(name, is2014())
                 result.add (PreparedSpell(psRemote.alwaysPrepared, spell))
             }
             catch (e: Exception) {
-                logger.error { "unable to add preparedSpell ${psRemote.definition.name}: $e" }
+                logger.error { "unable to add preparedSpell ${name}: $e" }
             }
         }
         return result
