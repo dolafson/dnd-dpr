@@ -89,7 +89,7 @@ class CombatTest {
     fun getPreferredTurnVersusGoblin() {
         TestUtil.dependency()
         val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
-        val preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
+        val preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], 60)
 
         assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred!!.second)
         assertEquals(listOf("Entangle"), preferred.first.attacks.map { it.action.getActionName() }.toList())
@@ -99,7 +99,7 @@ class CombatTest {
     fun getPreferredTurnVersusDragon() {
         TestUtil.dependency()
         val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
-        val preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
+        val preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], 60)
 
         // dragon has high strength, so Entangle is excluded
 
@@ -112,11 +112,11 @@ class CombatTest {
         val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif))
 
         // dragon has no attack options when range = 60
-        var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 60)
+        var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack,combat.teamB[0], 60)
         assertNull(preferred)
 
         // dragon has lots of options at range = 0
-        preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
+        preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack,combat.teamB[0], 0)
         assertEquals(listOf("Poison Breath"), preferred!!.first.attacks.map { it.action.getActionName() }.toList())
     }
 
@@ -126,7 +126,7 @@ class CombatTest {
         val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
 
         // skeleton is immune to poison, so we take the next best option
-        var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], 0)
+        var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], 0)
         assertEquals(listOf("Multiattack","Bite","Claw","Claw"), preferred!!.first.attacks.map { it.action.getActionName() }.toList())
     }
 
@@ -243,7 +243,7 @@ class CombatTest {
     }
 
     private fun applyDamage(combat: Combat, goodGuy: CombatantWithStatus, badGuy: CombatantWithStatus, damage: Int) {
-        val attack = badGuy.getPreferredTurn(goodGuy, 0)!!.first.attacks[0]
+        val attack = badGuy.getPreferredTurn(ActionGoal.Attack, goodGuy, 0)!!.first.attacks[0]
         goodGuy.currentHP -= damage
         badGuy.target = goodGuy
 
@@ -353,7 +353,7 @@ class CombatTest {
 
         combat.teamB[3].location = Location(50, 50) // far, far away
 
-        var dragonAttacks = combat.chooseTurnActions(dragon, combat.teamB[0])
+        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, combat.teamB[0])
         // println("dragonAttacks = $dragonAttacks")
         assertEquals(1, dragonAttacks.size)
 
@@ -380,7 +380,7 @@ class CombatTest {
         dragon.location = Location(3, 0)
         oleg.location   = Location(2, -1) // very close
 
-        var dragonAttacks = combat.chooseTurnActions(dragon, oleg)
+        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, oleg)
         // println("dragonAttacks = $dragonAttacks")
         assertEquals(1, dragonAttacks.size)
 
@@ -411,7 +411,7 @@ class CombatTest {
 
         // skeleton is immune to poison, next best option is Multiattack
 //        combat.takeTurn(dragon)
-        var dragonAttacks = combat.chooseTurnActions(dragon, skeleton)
+        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, skeleton)
 
         assertEquals(listOf("Multiattack","Bite","Claw","Claw"), dragonAttacks.map { it.action.getActionName() }.toList())
     }
@@ -450,7 +450,7 @@ class CombatTest {
         goblin.add(autoFailEffect)
 
         // this test expects leif to cast Entangle - see also getPreferredTurnVersusGoblin()
-        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat)
+        val preferredTurnOption = leif.getPreferredTurn(ActionGoal.Attack, goblin, 10, combat)
         assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
         combat.takeTurn(leif)
@@ -491,7 +491,7 @@ class CombatTest {
             val leif = combat.teamA[0]
             val goblin = combat.teamB[0]
 
-            val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat)
+            val preferredTurnOption = leif.getPreferredTurn(ActionGoal.Attack, goblin, 10, combat)
             assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
             combat.takeTurn(leif)
@@ -530,7 +530,7 @@ class CombatTest {
         println("getActionsAvailable = ${ combat.teamA[0].getActionsAvailable()}")
 
         for (range in listOf(5,60)) {
-            var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], range)
+            var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], range)
             val spellName = preferred!!.first.attacks.map { it.action.getActionName() }.toList()[0]
             when (range) {
                 5 -> {
@@ -561,7 +561,7 @@ class CombatTest {
         println("getActionsAvailable = ${ combat.teamA[0].getActionsAvailable()}")
 
         for (range in listOf(5,60)) {
-            var preferred = combat.teamA[0].getPreferredTurn(combat.teamB[0], range)
+            var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Heal, combat.teamB[0], range)
             val spellName = preferred!!.first.attacks.map { it.action.getActionName() }.toList()[0]
             when (range) {
                 5 -> {
@@ -590,7 +590,7 @@ class CombatTest {
         goblin.add(autoFailEffect)
 
         // this test expects leif to cast Entangle - see also getPreferredTurnVersusGoblin()
-        val preferredTurnOption = leif.getPreferredTurn(goblin, 10, combat)
+        val preferredTurnOption = leif.getPreferredTurn(ActionGoal.Attack, goblin, 10, combat)
         assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
         combat.takeTurn(leif)
