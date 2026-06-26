@@ -305,7 +305,7 @@ data class CombatantWithStatus(
     fun checkForSaveAtEndOfTurn() {
         savingThrowGenerator.makeSavingThrows (SaveAtEndOfTurn::contains)
     }
-    fun checkForSaveByTakingAction(): Boolean {
+    fun checkForSaveByTakingAction(): Pair<Boolean, Boolean> {
         return savingThrowGenerator.makeSavingThrows (SaveByTakingAnAction::contains, true)
     }
 

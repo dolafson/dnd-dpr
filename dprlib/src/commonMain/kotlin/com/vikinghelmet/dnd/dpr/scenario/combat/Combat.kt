@@ -149,69 +149,71 @@ class Combat(val battleId: Int) {
             logger.warn { "turnId=$turnId, initiative list is empty!!" }
             return
         }
-        initiativeList.forEach { combatant ->
+
+        for (combatant in initiativeList)
+        {
             if (combatant.isDead()) {
                 logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, is dead" }
+                continue
             } else if (combatant.isDying()) {
-                actionResultList.add (combatant.deathSave(turnId))
+                actionResultList.add(combatant.deathSave(turnId))
                 logger.info { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
-            } else if (!combatant.canTakeAction()) {
+                continue
+            }
+
+            combatant.checkForSaveAtStartOfTurn(turnId)
+
+            if (!combatant.canTakeAction()) {
                 val reason = if (combatant.currentHP == 0) "zeroHP" else
                     combatant.toList().filter { it.unableToAct }.toList().toString()
                 actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to act"))
                 logger.warn { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, can not take action: reason=$reason" }
             } else {
-                logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant is taking action" }
                 val turnActionResults = takeTurn (combatant)
                 if (turnActionResults.isEmpty()) {
+                    // this should not happen ... if no action is possible, takeTurn should return a result explaining why
                     actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "able to act, but no action results"))
 
                     logger.warn { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, action taken but NO RESULTS !!!" }
                 }
                 actionResultList.addAll (turnActionResults)
             }
+
+            combatant.checkForSaveAtEndOfTurn()
         }
     }
 
     fun takeTurn(combatant: CombatantWithStatus): List<CombatActionResult> {
+        logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant is taking action" }
         actionId = 0
         effectId = 0
 
-        val actionResults = mutableListOf<CombatActionResult>()
-        combatant.checkForSaveAtStartOfTurn(turnId)
-
-        if (combatant.checkForSaveByTakingAction()) {
-            logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, save by taking action" }
-            combatant.checkForSaveAtEndOfTurn()
-            return actionResults
+        val savingThrow = combatant.checkForSaveByTakingAction()
+        if (savingThrow.first) {
+            return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "saving throw action, result = ${savingThrow.second}"))
         }
 
         val goal = combatant.getActionGoal(this)
 
         if (goal == ActionGoal.Heal) {
-            val healTarget = chooseHealingTarget(combatant)
+            val healTarget = chooseHealingTarget(combatant) ?:
+                return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "goal is healing, but no healing target chosen"))
 
-            if (healTarget != null) {
-                // move towards target, even if you can't heal them yet ...
-                combatant.moveTowardTarget(healTarget, this)
+            // move towards target, even if you can't heal them yet ...
+            combatant.moveTowardTarget(healTarget, this)
 
-                if (getOpponents(healTarget).any { it.location == healTarget.location }) {
-                    actionResults.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to heal, opponent standing on healing target"))
-                }
-                else {
-                    val range = combatant.distance(healTarget).toFeet()
-                    val healTurn = combatant.getPreferredTurn(goal, healTarget, range, this)
-                    if (healTurn != null) {
-                        actionResults.addAll(healWithSpell(combatant, healTarget, healTurn.first))
-                    } else {
-                        actionResults.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "able to heal, but no healing results"))
-                        logger.warn { "turnId=$turnId, combatant = ${combatant.shortName()}, goal=healing, healTurn=null" }
-                    }
-                }
+            if (getOpponents(healTarget).any { it.location == healTarget.location }) {
+                return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to heal, opponent standing on healing target"))
             }
-            combatant.checkForSaveAtEndOfTurn()
-            logger.info { "turn = $turnId, healResults = $actionResults" }
-            return actionResults
+
+            val range = combatant.distance(healTarget).toFeet()
+            val healTurn = combatant.getPreferredTurn(goal, healTarget, range, this)
+
+            return if (healTurn != null) {
+                healWithSpell(combatant, healTarget, healTurn.first)
+            } else {
+                listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "goal is healing, but no healing action available"))
+            }
         }
 
         // from here on down is all about the Attack
@@ -220,39 +222,36 @@ class Combat(val battleId: Int) {
         combatant.target = target
 
         if (target == null) {
-            logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no target available" }
-        }
-        else {
-            val attackList = chooseTurnActions(goal, combatant, target)
-
-            if (attackList.isEmpty()) {
-                logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no attacks available for target = ${target.shortName()}" }
-                actionResults.add(CombatActionResult(combatant, target, turnId, 0, 0, "no attacks available for target"))
-            }
-
-            logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
-
-            for (attack in attackList) {
-                var attackResults: List<CombatActionResult>
-
-                if (attack.action is Weapon) {
-                    attackResults = meleeOrRangeAttack(combatant, target, attack, attack.action)
-                } else {
-                    attackResults = attackWithSpell(combatant, target, attack)
-                }
-
-                if (attackResults.isEmpty()) {
-                    logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, attack results is empty for ${attack.action}" }
-                    actionResults.add(CombatActionResult(combatant, target, turnId, 0, 0, "no results for attack: ${attack.action}"))
-                } else {
-                    actionResults.addAll(attackResults)
-                }
-
-                actionId++
-            }
+            return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "no target available"))
         }
 
-        combatant.checkForSaveAtEndOfTurn()
+        val attackList = chooseTurnActions(goal, combatant, target)
+
+        if (attackList.isEmpty()) {
+            return listOf(CombatActionResult(combatant, target, turnId, 0, 0, "no attacks available for target"))
+        }
+
+        logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
+
+        val actionResults = mutableListOf<CombatActionResult>()
+
+        for (attack in attackList) {
+            var attackResults: List<CombatActionResult>
+
+            if (attack.action is Weapon) {
+                attackResults = meleeOrRangeAttack(combatant, target, attack, attack.action)
+            } else {
+                attackResults = attackWithSpell(combatant, target, attack)
+            }
+
+            if (attackResults.isEmpty()) {
+                actionResults.add(CombatActionResult(combatant, target, turnId, 0, 0, "no results for attack: ${attack.action}"))
+            } else {
+                actionResults.addAll(attackResults)
+            }
+
+            actionId++
+        }
 
         logger.info { "turn = $turnId, attackResults = $actionResults" }
         return actionResults

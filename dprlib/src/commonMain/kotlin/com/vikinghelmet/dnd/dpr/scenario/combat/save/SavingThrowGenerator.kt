@@ -28,26 +28,30 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
         return (saveRoll + targetSaveBonus >= spellSaveDC)
     }
 
-    // return true if you had to make at least one saving throw
-    fun makeSavingThrows (spellNameFunction: (String) -> Boolean, thereCanBeOnlyOne: Boolean = false): Boolean {
+    // first: true if at least one saving throw was made; second: true only if first is true and the save succeeded
+    fun makeSavingThrows (spellNameFunction: (String) -> Boolean, thereCanBeOnlyOne: Boolean = false): Pair<Boolean, Boolean> {
         val iter = target.iterator()
-        var result = false
+        var attempted = false
+        var succeeded = false
         while (iter.hasNext()) {
             val effect = iter.next()
             if (effect.cause is Spell) {
                 val spell = effect.cause as Spell
-                if (spellNameFunction(spell.name) &&
-                    makeSavingThrow (effect.spellSaveDC, effect.save!!.saveAbility))
-                {
-                    iter.remove()
-                    result = true
-                    if (thereCanBeOnlyOne) {
-                        return result
+                if (spellNameFunction(spell.name)) {
+                    attempted = true
+                    if (makeSavingThrow(effect.spellSaveDC, effect.save!!.saveAbility)) {
+                        iter.remove()
+                        succeeded = true
+                        if (thereCanBeOnlyOne) {
+                            return Pair(true, true)
+                        }
+                    } else if (thereCanBeOnlyOne) {
+                        return Pair(true, false)
                     }
                 }
             }
         }
-        return result
+        return Pair(attempted, succeeded)
     }
 
     fun saveByTakingAction(): Boolean {
