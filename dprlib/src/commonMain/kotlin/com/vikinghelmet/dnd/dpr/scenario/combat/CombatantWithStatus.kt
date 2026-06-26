@@ -267,7 +267,7 @@ data class CombatantWithStatus(
 
         if (combatant is PlayerCharacter && spell.name.startsWith(ChannelDivinity.getNameWithWS(), false)) {
             val maxSlots = 1 // TODO: table for cleric usage of Channel Divinity
-            val slotsUsed = spellCastList.count { it.spell.name == spell.name }
+            val slotsUsed = spellCastList.count { it.spell.name.startsWith(ChannelDivinity.getNameWithWS(), false) }
             return (slotsUsed < maxSlots)
         }
 
@@ -514,6 +514,14 @@ data class CombatantWithStatus(
 
         if (! combatant.getPreparedSpells().any { it.isHealing() && isSlotAvailable(it)}) { // if you have no ability to heal ...
             return ActionGoal.Attack
+        }
+
+        if (combat != null) {
+            logger.warn {
+                "battleId=${combat.battleId}, turnId=${combat.turnId}, getActionGoal: remaining healing spells: ${
+                    combatant.getPreparedSpells().all { it.isHealing() && isSlotAvailable(it) }
+                }"
+            }
         }
 
         val myTeam          = combat?.getMyTeam(this)?.filter { !it.isDead() } ?: listOf(this)

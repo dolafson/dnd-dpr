@@ -272,6 +272,11 @@ class Combat(val battleId: Int) {
     fun chooseHealingTarget(healer: CombatantWithStatus): CombatantWithStatus? {
         val team = getMyTeam(healer)
 
+        // if the team has a dying cleric, heal them first (so they can heal others)
+        if (team.any { it.isCleric() && it.isDying() }) {
+            return team.filter { it.isDying() }.maxBy { it.deathSavingThrows.count { false }}
+        }
+
         // choose the one closest to death ... first the dying, then the stable
         if (team.any { it.isDying() }) {
             return team.filter { it.isDying() }.maxBy { it.deathSavingThrows.count { false }}
