@@ -24,6 +24,7 @@ import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpellRemote
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
@@ -510,16 +511,17 @@ open class PlayerCharacter(
     {
         val result = mutableListOf<PreparedSpell>()
         for (action in getActionList()) {
+            val complex = SpellsWithComplexRules.fromNameWithWS(action.name)
             // source data for Channel Divinity is a little screwy
-            when (action.name) {
-                "Channel Divinity" -> { continue } // discard this one, keep its sub-actions
-                "Channel Divinity: Turn Undead" -> { action.saveStatId = 5 }
+            when (complex) {
+                SpellsWithComplexRules.ChannelDivinity -> { continue } // discard this one, keep its sub-actions
+                SpellsWithComplexRules.ChannelDivinityTurnUndead -> { action.saveStatId = 5 }
                 else -> {}
             }
             if (action.saveStatId != null) {
                 result.add (action.toSavingThrowAction())
             }
-            else if (action.name == "Channel Divinity: Preserve Life") {
+            else if (complex == SpellsWithComplexRules.ChannelDivinityPreserveLife) {
                 result.add (action.toHealingSpell("15", 30)) // TODO: fix hard-coded values
             }
         }

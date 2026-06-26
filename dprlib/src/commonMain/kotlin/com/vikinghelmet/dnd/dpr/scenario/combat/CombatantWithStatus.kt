@@ -17,6 +17,7 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.*
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.ChannelDivinity
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -264,6 +265,12 @@ data class CombatantWithStatus(
             return (slotsUsed < maxSlots)
         }
 
+        if (combatant is PlayerCharacter && spell.name.startsWith(ChannelDivinity.getNameWithWS(), false)) {
+            val maxSlots = 1 // TODO: table for cleric usage of Channel Divinity
+            val slotsUsed = spellCastList.count { it.spell.name == spell.name }
+            return (slotsUsed < maxSlots)
+        }
+
         if (combatant.getSpellSlots().isEmpty()) return true
 
         if (level < 0) return true // SavingThrowAction such as Breath Weapon
@@ -412,8 +419,10 @@ data class CombatantWithStatus(
         return possibleTurns
     }
 
-    fun getPreferredTurn(target: CombatantWithStatus, range: Int, combat: Combat? = null): Pair<Turn, TurnOptionRanking>? {
-        val sorted = getTurnOptionRankingList(target, range, combat)
+    fun getPreferredTurn(goal: ActionGoal, target: CombatantWithStatus, range: Int, combat: Combat? = null): Pair<Turn, TurnOptionRanking>? {
+        val sorted = getTurnOptionRankingList(target, range, combat).filter {
+            it.first.matchesGoal(goal) // if goal is healing, don't choose weapons, etc
+        }
         sorted.forEach {logger.debug { "sorted preferred option: $it" } }
         return if (sorted.isEmpty()) null else sorted[0]
     }
@@ -508,9 +517,9 @@ data class CombatantWithStatus(
         }
 
         val myTeam          = combat?.getMyTeam(this)?.filter { !it.isDead() } ?: listOf(this)
-        val teamHasACleric  = myTeam.any { it.isCleric() && !it.isDeadOrDying() }
+        val teamHasACleric  = myTeam.any { it.isCleric() && it.isPositive() }
         val dyingCount      = myTeam.count { it.isDying() }
-        val halfHPCount     = myTeam.count { it.currentHP <= it.getHP() / 2 }
+        val halfHPCount     = myTeam.count { !it.isDead() && it.currentHP <= it.getHP() / 2 }
 
         if (halfHPCount == 0) {
             logger.debug { "exclude healing spells, no one in party is below half HP" }

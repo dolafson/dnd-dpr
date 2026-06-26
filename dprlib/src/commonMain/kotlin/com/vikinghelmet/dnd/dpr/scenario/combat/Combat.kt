@@ -16,6 +16,7 @@ import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
+import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -199,7 +200,7 @@ class Combat(val battleId: Int) {
                 }
                 else {
                     val range = combatant.distance(healTarget).toFeet()
-                    val healTurn = combatant.getPreferredTurn(healTarget, range, this)
+                    val healTurn = combatant.getPreferredTurn(goal, healTarget, range, this)
                     if (healTurn != null) {
                         actionResults.addAll(healWithSpell(combatant, healTarget, healTurn.first))
                     } else {
@@ -222,7 +223,7 @@ class Combat(val battleId: Int) {
             logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no target available" }
         }
         else {
-            val attackList = chooseTurnActions(combatant, target)
+            val attackList = chooseTurnActions(goal, combatant, target)
 
             if (attackList.isEmpty()) {
                 logger.warn { "battleId=$battleId, turn = $turnId, combatant = ${combatant.shortName()}, no attacks available for target = ${target.shortName()}" }
@@ -301,7 +302,7 @@ class Combat(val battleId: Int) {
 
         for (healTarget in targetsToHeal) {
             var healAmount = healAmountRolled
-            if (spell.name == "Channel Divinity: Preserve Life") { // TODO: other spells that partition healing amount
+            if (spell.name == SpellsWithComplexRules.ChannelDivinityPreserveLife.getNameWithWS()) { // TODO: other spells that partition healing amount
                 healAmount /= targetsToHeal.size    // TODO: support uneven distribution of healing amount
             }
             healTarget.applyHealing(healAmount)
@@ -382,8 +383,8 @@ class Combat(val battleId: Int) {
         return target
     }
 
-    fun chooseTurnActions(combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
-        val preferredTurnOption = combatant.getPreferredTurn(target, combatant.distance(target).toFeet(), this)
+    fun chooseTurnActions(goal: ActionGoal, combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
+        val preferredTurnOption = combatant.getPreferredTurn(goal, target, combatant.distance(target).toFeet(), this)
         return preferredTurnOption?.first?.attacks ?: emptyList()
     }
 
@@ -693,7 +694,6 @@ class Combat(val battleId: Int) {
         for (v in initialState.values.sortedByDescending { it.attacker.initiative }) {
             buf.append (CombatActionResultFormatter.output(battleId,v)).append("\n")
         }
-        buf.append(",\n")
 
         var outputTurnId = 0
 

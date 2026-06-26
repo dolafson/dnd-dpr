@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.action
 
+import com.vikinghelmet.dnd.dpr.scenario.combat.ActionGoal
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import kotlinx.serialization.Serializable
 
@@ -12,6 +13,14 @@ data class Turn(val attacks: List<Attack>) {
 
     override fun hashCode(): Int {
         return attacks.hashCode()
+    }
+
+    fun matchesGoal(goal: ActionGoal): Boolean {
+        val spell = getSpell()
+        if (spell == null || !spell.isHealing()) {
+            return (goal == ActionGoal.Attack)
+        }
+        return (goal == ActionGoal.Heal)
     }
 
     fun getSpell(): Spell? {

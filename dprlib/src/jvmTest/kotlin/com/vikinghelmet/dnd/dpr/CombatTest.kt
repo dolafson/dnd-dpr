@@ -11,6 +11,7 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SavingThrowGenerator
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.Constants
@@ -535,7 +536,7 @@ class CombatTest {
                 5 -> {
                     //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
                     //assertEquals("Spare the Dying", spellName)
-                    assertEquals("Channel Divinity: Turn Undead", spellName)
+                    assertEquals(SpellsWithComplexRules.ChannelDivinityTurnUndead.getNameWithWS(), spellName)   // TODO: this shouldn't be chosen vs Goblin
                     assertEquals(TurnOptionRanking.SpellWithDamageAOE, preferred.second)
                 }
                 60 -> {
@@ -566,7 +567,7 @@ class CombatTest {
                 5 -> {
                     //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
                     //assertEquals("Spare the Dying", spellName)
-                    assertEquals("Channel Divinity: Preserve Life", spellName)
+                    assertEquals(SpellsWithComplexRules.ChannelDivinityPreserveLife.getNameWithWS(), spellName)
                     assertEquals(TurnOptionRanking.SpellWithRestoreHPAOE, preferred.second)
                 }
                 60 -> {

@@ -8,6 +8,9 @@ enum class SpellsWithComplexRules {
     BestowCurse,
     Bless,
     Blur,
+    ChannelDivinity,
+    ChannelDivinityPreserveLife,
+    ChannelDivinityTurnUndead,
     EnlargeReduce,
     Enthrall,
     FaerieFire,
@@ -24,10 +27,14 @@ enum class SpellsWithComplexRules {
     ;
 
     fun getNameWithWS(): String {
-        when (this) {
-            HuntersMark -> return "Hunter's Mark"
-            OttosIrresistibleDance -> return "Otto's Irresistible Dance"
-            else -> return Globals.addWStoCamelCase(name)
+        return when (this) {
+            ChannelDivinity             -> "Channel Divinity"
+            ChannelDivinityPreserveLife -> "Channel Divinity: Preserve Life"
+            ChannelDivinityTurnUndead   -> "Channel Divinity: Turn Undead"
+
+            HuntersMark                 -> "Hunter's Mark"
+            OttosIrresistibleDance      -> "Otto's Irresistible Dance"
+            else ->  Globals.addWStoCamelCase(name)
         }
     }
 
