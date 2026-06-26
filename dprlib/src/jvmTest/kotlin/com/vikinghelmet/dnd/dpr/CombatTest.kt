@@ -148,7 +148,7 @@ class CombatTest {
         for (turnId in 0..2) {
             println("########## turn=$turnId")
             oldLoc = leif.location.copy()
-            distance = leif.moveAwayFromTarget(listOf(dragon), distance)
+            distance = leif.moveAwayFromTarget(listOf(dragon), distance, combat)
             leif.logMovement("moving away from targets", oldLoc, distance)
 
             when (turnId) {
@@ -192,7 +192,7 @@ class CombatTest {
         for (turnId in 0..5) {
             println("########## turn=$turnId")
             oldLoc = leif.location.copy()
-            distance = leif.moveAwayFromTarget(listOf(dragon), distance)
+            distance = leif.moveAwayFromTarget(listOf(dragon), distance, combat)
             leif.logMovement("moving away from targets", oldLoc, distance)
 
             when (turnId) {
@@ -656,7 +656,8 @@ class CombatTest {
         val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
 
         // force melee range
-        combat.teamA[0].location = combat.teamB[0].location.copy()
+        combat.teamA[0].location = Location(0, 0)
+        combat.teamB[0].location = Location(1, 0)
 
         val kael = combat.teamA[0]
         kael.currentHP = 3 // force lowHP
@@ -664,7 +665,8 @@ class CombatTest {
         println("before turn, kael.currentHp = ${kael.currentHP}")
 
         while (kael.currentHP < kael.getHP()) {
-            combat.takeTurn(kael)
+            val results = combat.takeTurn(kael)
+            println("combat results = $results")
             println("after turn, kael.currentHp = ${kael.currentHP}")
             assertTrue(kael.currentHP > 3)
         }
