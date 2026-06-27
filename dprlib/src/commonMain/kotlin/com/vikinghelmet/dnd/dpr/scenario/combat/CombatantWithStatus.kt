@@ -15,7 +15,11 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.*
+import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
+import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
+import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.ChannelDivinity
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
@@ -55,6 +59,8 @@ data class CombatantWithStatus(
     val temporaryDamageVulnerability = mutableListOf<DamageType>()
 
     var savingThrowGenerator = SavingThrowGenerator(this)
+
+    val waitingForRecharge = mutableListOf<SavingThrowAction>()
 
     fun canTakeAction() = currentHP > 0 && !isUnableToAct()
 
@@ -299,6 +305,18 @@ data class CombatantWithStatus(
             }
         }
 
+        // breath weapons (and similar): check for recharge
+        val iterator = waitingForRecharge.iterator()
+        while (iterator.hasNext()) {
+            val next = iterator.next()
+            if (next.rollForRecharge()) {
+                logger.info { "removing action from the waitingForRecharge list: $next" }
+                iterator.remove()
+            } else {
+                logger.info { "action remains on the waitingForRecharge list: $next" }
+            }
+        }
+
         savingThrowGenerator.makeSavingThrows (SaveAtStartOfTurn::contains)
     }
 
@@ -365,9 +383,10 @@ data class CombatantWithStatus(
         return (combatant is PlayerCharacter) && (combatant.getClass() == ClassName.Cleric)
     }
 
-    fun rollHealingAmount(spell: Spell): Int {
+    // return either a random or maximum value
+    fun getHealingAmount(spell: Spell, random: Boolean): Int {
         val healing = spell.getHealing()
-        var roll = healing.healingDice.roll()
+        var roll = if (random) healing.healingDice.roll() else healing.healingDice.max()
 
         if (healing.ability == "auto") {
             val spellCastingBonus = (this.combatant as? PlayerCharacter)?.getSpellAbilityBonusWithoutPB() ?: 0
@@ -420,50 +439,64 @@ data class CombatantWithStatus(
     }
 
     fun getPreferredTurn(goal: ActionGoal, target: CombatantWithStatus, range: Int, combat: Combat? = null): Pair<Turn, TurnOptionRanking>? {
-        val sorted = getTurnOptionRankingList(target, range, combat).filter {
-            it.first.matchesGoal(goal) // if goal is healing, don't choose weapons, etc
-        }
+        val sorted = getRankedTurnOptions(goal, target, range, combat)
         sorted.forEach {logger.debug { "sorted preferred option: $it" } }
-        return if (sorted.isEmpty()) null else sorted[0]
+        return if (sorted.isEmpty()) null else Pair(sorted[0].turn, sorted[0].ranking)
     }
 
-    fun getTurnOptionRankingList(target: CombatantWithStatus, range: Int, combat: Combat? = null)
-        : List<Pair<Turn, TurnOptionRanking>>
+    data class RankedTurnOption(
+        val turn: Turn,
+        val ranking: TurnOptionRanking, // primary sort
+        val scenarioResult: ScenarioResult, // secondary sort
+    )
+
+    fun getRankedTurnOptions(goal: ActionGoal, target: CombatantWithStatus, range: Int, combat: Combat? = null)
+        : List<RankedTurnOption>
     {
         val possible = getPossibleTurns(target, range)
-        val map = mutableMapOf<Turn, TurnOptionRanking>()
+            .filter { it.matchesGoal(goal) }
+            .filter { it.getSpell() == null || isSpellViable(target,combat, it) }
+
+        val numOpponents = combat?.getOpponents(this)?.size ?: 1
+        val initialResults = mutableListOf<RankedTurnOption>()
 
         for (turn in possible) {
             val ranking = TurnOptionRanking.fromTurn(turn)
+            val scenario = Scenario(this.combatant, listOf(turn), numOpponents, Constants.DEFAULT_TARGET_SPACING) // TODO: spacing
+            val scenarioResult = ScenarioCalculator(scenario,).calculateDPRForAllTurns()
 
-            if (isValidRanking(target, combat, turn, ranking)) {
-                map.put(turn, ranking)
-            }
+            initialResults.add (RankedTurnOption (turn, ranking, scenarioResult,))
         }
 
-        // TODO: secondary sorting: attacks by DPR, healing by restoration amount needed
-        return map.toList().sortedByDescending { it.second.ordinal }
+        if (goal == ActionGoal.Attack) {
+            return initialResults.sortedWith( compareByDescending<RankedTurnOption> { it.ranking.ordinal }
+                .thenByDescending { it.scenarioResult.totalDamage } )
+        }
+
+        // healing: sort first by ranking, then by max heal amount
+
+        return initialResults.sortedWith(  compareByDescending<RankedTurnOption> { it.ranking.ordinal }
+            .thenByDescending { getHealingAmount(it.turn.getSpell()!!, false) } )
     }
 
-    private fun isValidRanking(
+    private fun isSpellViable(
         target: CombatantWithStatus,
         combat: Combat? = null,
         turn: Turn,
-        ranking: TurnOptionRanking
     ): Boolean
     {
         val opposingTeam = combat?.getOpponents(this) ?: emptyList()
         val myTeam       = combat?.getMyTeam(this)    ?: listOf(this)
 
-        // println("getPreferredTurn: turn=$turn, ranking=$ranking")
-        if (!ranking.isSpell()) {
-            return true
-        }
-
         val spell = turn.getSpell()!!
         val ability = spell.getSpellSaveAbility()
 
-        // TODO: remove hard-coding, factor in spell save DC, etc
+        if (spell is SavingThrowAction && spell.recharge != null && waitingForRecharge.contains(spell)) {
+            logger.debug { "avoid spell, waiting for recharge: ${spell.name}" }
+            return false
+        }
+
+            // TODO: remove hard-coding, factor in spell save DC, etc
         if (ability != null && target.getAbilityModifier(ability) > 3) {
             logger.debug { "avoid spell, target has high probability to save: ${spell.name}" }
             return false

@@ -404,13 +404,14 @@ class CombatTest {
         val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
 
         // force melee
-        combat.teamA[0].location = combat.teamB[0].location.copy()
+        combat.teamA[0].location = Location(0,0)
+        combat.teamB[0].location = Location(1,0)
 
         val dragon = combat.teamA[0]
         val skeleton = combat.teamB[0]
 
         // skeleton is immune to poison, next best option is Multiattack
-//        combat.takeTurn(dragon)
+        // this validates attack filtering in CombatantWithStatus.isSpellValid (getDamageImmunities)
         var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, skeleton)
 
         assertEquals(listOf("Multiattack","Bite","Claw","Claw"), dragonAttacks.map { it.action.getActionName() }.toList())
@@ -644,7 +645,7 @@ class CombatTest {
         val possible = leif.getPossibleTurns(goblin, range)
         possible.forEach { println("possibleTurn = $it") }
 
-        val sorted = combat.teamA[0].getTurnOptionRankingList(goblin, range, combat)
+        val sorted = combat.teamA[0].getRankedTurnOptions(ActionGoal.Attack, goblin, range, combat)
         sorted.forEach { println("turnOptionRanking = $it") }
 
  //       assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred!!.second)
@@ -700,4 +701,37 @@ class CombatTest {
         initiativeList.forEach { println("${it.initiative}: $it") }
         println("")
     }
+
+
+
+    @Test
+    fun dragonPoisonBreathRecharge() {
+        TestUtil.dependency()
+        // Globals.initLogger(LogLevel.DEBUG) // DEBUG
+
+        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif))
+
+        val dragon = combat.teamA[0]
+        val leif = combat.teamB[0]
+        // force right cone
+        dragon.location = Location(0, 0)
+        leif.location = Location(1, 0)
+
+        var dragonAttackResult = combat.takeTurn(dragon)
+        assertEquals(1, dragonAttackResult.size)
+        //println("dragonAttackResult 1 = $dragonAttackResult")
+
+        assertEquals("Poison Breath", dragonAttackResult[0].actionTaken)
+        assertEquals(1, dragon.waitingForRecharge.size)
+
+        dragonAttackResult = combat.takeTurn(dragon)
+        //println("dragonAttackResult 2 = $dragonAttackResult")
+
+        // recharge happens 2 times out of 6; should be guaranteed to happen at least once after 10 rounds
+        for (turn in 1..10) {
+            dragon.checkForSaveAtStartOfTurn(turn)
+        }
+        assertEquals(0, dragon.waitingForRecharge.size)
+    }
+
 }

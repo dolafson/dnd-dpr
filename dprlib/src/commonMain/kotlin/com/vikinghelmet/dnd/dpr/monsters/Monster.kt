@@ -18,7 +18,6 @@ import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterPrimaryAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
-import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.Movement
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -68,9 +67,6 @@ data class Monster(
 ) : Combatant {
     @Transient
     private val logger = LoggerFactory.get(Monster::class.simpleName ?: "")
-
-    @Transient
-    val waitingForRecharge = mutableListOf<SavingThrowAction>()
 
     @Transient
     val _actionsAvailable = ActionsAvailable()
@@ -151,25 +147,14 @@ data class Monster(
     override fun getSpellSlots() = emptyList<Int>() // TODO
 
     override fun getActionsAvailable(): ActionsAvailable { // TODO: duplication between this and PC
-        val iterator = waitingForRecharge.iterator()
-        while (iterator.hasNext()) {
-            val next = iterator.next()
-            if (next.rollForRecharge()) {
-                logger.info { "removing action from the waitingForRecharge list: $next" }
-                iterator.remove()
-            } else {
-                logger.info { "action remains on the waitingForRecharge list: $next" }
-            }
-        }
-
         if (_actionsAvailable.isEmpty()) {
             initActionsAvailable()
         }
-
         return _actionsAvailable
     }
 
     fun initActionsAvailable() {
+        // WARNING: since we are caching actions here, we can't do any turn-by-turn filtering (at this level)
         for (weapon in getWeaponList()) {
             _actionsAvailable.add(weapon.range, weapon)
 
@@ -190,10 +175,7 @@ data class Monster(
         list.filter { it.dc != null }.forEach { a ->
             val spell = a.toSavingThrowAction()
 
-            if (waitingForRecharge.any { it.name.equals(spell.name) }) {
-                logger.info { "Excluding spell, waiting for recharge: {$spell}" }
-            }
-            else if (spell.isRangedSpellAttack()) {
+            if (spell.isRangedSpellAttack()) {
                 _actionsAvailable.add(spell.getRange(), spell)
             } else {
                 // all spells - except for "ranged spell attack" - can be used in melee

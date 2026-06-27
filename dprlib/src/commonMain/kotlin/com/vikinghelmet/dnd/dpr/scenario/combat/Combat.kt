@@ -302,7 +302,7 @@ class Combat(val battleId: Int) {
         }
 
         val resultList = mutableListOf<CombatActionResult>()
-        val healAmountRolled = healer.rollHealingAmount(spell)
+        val healAmountRolled = healer.getHealingAmount(spell, true)
 
         for (healTarget in targetsToHeal) {
             var healAmount = healAmountRolled
@@ -603,9 +603,9 @@ class Combat(val battleId: Int) {
         }
 
         // if breath weapon or similar, add to the recharge list
-        if (combatant.combatant is Monster && attack.action is SavingThrowAction) {
+        if (attack.action is SavingThrowAction && attack.action.recharge != null) {
             logger.info { "add attack to waitingForRecharge: ${attack.action}" }
-            combatant.combatant.waitingForRecharge.add(attack.action)
+            combatant.waitingForRecharge.add(attack.action)
         }
 
         return resultList
