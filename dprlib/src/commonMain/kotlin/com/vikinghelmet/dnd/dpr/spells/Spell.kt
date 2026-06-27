@@ -62,26 +62,37 @@ open class Spell(
     // concentration up to 1 min, but only 1 instant of damage
     // note, in 2024 the spell was changed to Instantaneous (Bonus Action)
     fun getDuration(): Int? {
-        val dur = properties.filterDuration ?: return null
-
         if (SpellsWithComplexRules.WindWall == SpellsWithComplexRules.fromNameWithWS(name)) {
             logger.warn { "WindWall, force duration = 1 "} // spell only does instantaneous damage; does nothing after round 1
             throw IllegalArgumentException("WindWall, force duration = 1 ")
             return 1
         }
+        return getNumberOfTurns(properties.filterDuration)
+    }
 
-        when (dur) {
+    fun getCastingTime() = getNumberOfTurns(properties.CastingTime)
+
+    fun getNumberOfTurns(timeField: String?): Int?
+    {
+        when (timeField) {
             "Instantaneous" -> return 0
             "Permanent" -> return Int.MAX_VALUE
+            null -> return null
         }
 
-        val durList = dur.split(" ")
+        val fieldList = timeField.split(" ")
+        val firstFieldInt = fieldList[0].toIntOrNull()
 
-        return durList[0].toInt() * when (durList[1].lowercase()) {
-            "turn", "round" -> 1
-            "min", "minute" -> 10
+        return if (firstFieldInt == null) convertTimeUnit(timeField)
+            else firstFieldInt * convertTimeUnit (fieldList[1].lowercase())
+    }
+
+    fun convertTimeUnit(timeUnit: String): Int {
+        return when (timeUnit.lowercase()) {
+            "action", "turn", "round", "rounds" -> 1
+            "min", "minute", "minutes" -> 10
             "hour", "hours" -> 600
-            "days" -> 600 * 24
+            "day", "days" -> 600 * 24
             else -> 0
         }
     }

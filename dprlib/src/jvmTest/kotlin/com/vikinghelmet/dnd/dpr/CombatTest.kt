@@ -1,5 +1,7 @@
 package com.vikinghelmet.dnd.dpr
 
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
@@ -740,14 +742,15 @@ class CombatTest {
         val combat = Combat(0,listOf(TestUtil.kael3), listOf(Globals.getMonster("Goblin")))
 
         // TODO - there are multiple things broken with this spell
-        // 1. it routinely returns 0 healing (due to some combination of the below ...)
-        // 2. it shows up with 2024 data (kael is 2014)
+        // 1. it routinely returns 0 healing (probably due to #2 below ...)
+        // 2. it shows up with 2024 data (while kael is 2014)
         // 3. due to a long casting time (10 mins), it should ONLY be used AFTER combat
-        
+
         // force melee range
         combat.teamA[0].location = combat.teamB[0].location.copy()
 
         val kael = combat.teamA[0]
+        val goblin = combat.teamB[0]
         kael.currentHP = 3
 
         val available = kael.getActionsAvailable()
@@ -762,9 +765,9 @@ class CombatTest {
         val prayer = meleeRangeList.first { it.getActionName() == "Prayer of Healing" } as Spell
         assertNotNull(prayer)
 
-        val healAmountRolled = kael.getHealingAmount(prayer, true)
-        println("healAmountRolled = ${ healAmountRolled}")
+        println("casting time = ${prayer.getCastingTime()}")
 
+        assertFalse (kael.isSpellViable (goblin, combat, Turn(listOf(Attack(goblin, prayer)))))
     }
 
 }

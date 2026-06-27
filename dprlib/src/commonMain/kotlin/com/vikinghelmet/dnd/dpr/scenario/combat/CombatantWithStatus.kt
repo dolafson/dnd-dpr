@@ -479,7 +479,7 @@ data class CombatantWithStatus(
             .thenByDescending { getHealingAmount(it.turn.getSpell()!!, false) } )
     }
 
-    private fun isSpellViable(
+    fun isSpellViable(
         target: CombatantWithStatus,
         combat: Combat? = null,
         turn: Turn,
@@ -511,7 +511,12 @@ data class CombatantWithStatus(
             val teamHasACleric = myTeam.any { it.isCleric() && !it.isDeadOrDying() }
             val dyingCount = myTeam.count { it.isDying() }
             val halfHPCount = myTeam.count { it.currentHP <= it.getHP() / 2 }
+            val castingTime = spell.getCastingTime() ?: 0
 
+            if (combat != null && combat.isRunning() && castingTime > 3) {
+                logger.debug { "exclude healing spells with long casting time: $castingTime" }
+                return false
+            }
             if (halfHPCount == 0) {
                 logger.debug { "exclude healing spells, no one in party is below half HP" }
                 return false

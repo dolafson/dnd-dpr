@@ -83,10 +83,12 @@ class Combat(val battleId: Int) {
         return if (teamCounter == null) tmp else "$tmp ${'A' + teamCounter.fetchAndIncrement()}"
     }
 
+    fun isRunning() =  (teamA.any { it.isPositive() } && teamB.any { it.isPositive() })
+
     fun run(): Boolean {
         logger.info { "initiativeList = ${ initiativeList.associateBy { it.initiative }}" }
 
-        while (teamA.any { it.isPositive() } && teamB.any { it.isPositive() }) {
+        while (isRunning()) {
             logger.info {
                 "battleId=$battleId, turn=$turnId, teamA: ${ teamSummary(teamA) }, teamB: ${ teamSummary(teamB) }"
             }
