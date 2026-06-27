@@ -43,9 +43,11 @@ open class Spell(
     fun isRangedSpellAttack() = (properties.SpellAttack != null && properties.SpellAttack == "Ranged")
 
     fun isAOE(): Boolean {
-        if (description.contains("Choose any creatures")) return true
-        return getSpellAttacks(0).any { it.getAoeSize() > 0 }
+        return impactMultipleCreatures() || getSpellAttacks(0).any { it.getAoeSize() > 0 }
     }
+
+    fun impactMultipleCreatures(): Boolean =
+        (description.contains("Choose any creatures") || description.contains("creatures of your choice"))
 
     fun isRecurring() = (getDuration() ?: 1) > 1
 

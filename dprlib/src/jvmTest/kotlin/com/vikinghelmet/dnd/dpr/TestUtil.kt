@@ -77,13 +77,15 @@ object TestUtil {
         return expected
     }
 
-    val eldir = getCharacter("party/eldir.json")
-    val kael =  getCharacter("party/kael.json")
-    val lars =  getCharacter("party/lars.json")
-    val leif =  getCharacter("party/leif.json")
-    val oleg =  getCharacter("party/oleg.json")
-    val rhogar = getCharacter("party/rhogar.json")
+    val eldir = getCharacter("party2/eldir.json")
+    val kael =  getCharacter("party2/kael.json")
+    val lars =  getCharacter("party2/lars.json")
+    val leif =  getCharacter("party2/leif.json")
+    val oleg =  getCharacter("party2/oleg.json")
+    val rhogar = getCharacter("party2/rhogar.json")
     val party = listOf(eldir, kael, lars, leif, oleg, rhogar)
+
+    val kael3 =  getCharacter("party3/kael.json")
 
     val ww = getCharacter("ranger.subclass/ww.json")
     val gs = getCharacter("ranger.subclass/gs.json")

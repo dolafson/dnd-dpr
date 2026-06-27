@@ -16,7 +16,6 @@ import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
-import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -295,18 +294,20 @@ class Combat(val battleId: Int) {
         val attack = turn.attacks.firstOrNull() ?: return emptyList()
         val spell = attack.action as? Spell ?: return emptyList()
 
-        val targetsToHeal = if (spell.isAOE()) {
+        val targetsToHeal = if (spell.impactMultipleCreatures()) {
             getMyTeam(healer).filter { !it.isDead() && it.getHP() > it.currentHP } // TODO: more selective healing targets
         } else {
             listOf(primaryTarget)
         }
+
+        // TODO: filter healing targets by spell range
 
         val resultList = mutableListOf<CombatActionResult>()
         val healAmountRolled = healer.getHealingAmount(spell, true)
 
         for (healTarget in targetsToHeal) {
             var healAmount = healAmountRolled
-            if (spell.name == SpellsWithComplexRules.ChannelDivinityPreserveLife.getNameWithWS()) { // TODO: other spells that partition healing amount
+            if (spell.impactMultipleCreatures()) {
                 healAmount /= targetsToHeal.size    // TODO: support uneven distribution of healing amount
             }
             healTarget.applyHealing(healAmount)

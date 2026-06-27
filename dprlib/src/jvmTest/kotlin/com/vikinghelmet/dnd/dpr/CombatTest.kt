@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 private val logger = LoggerFactory.get(CombatTest::class.simpleName ?: "")
@@ -487,7 +488,7 @@ class CombatTest {
         val turnCountList = mutableListOf<Int>()
 
         repeat(100) {
-            val combat = Combat(0, listOf(TestUtil.getCharacter("party/leif.json")), listOf(Globals.getMonster("Goblin").copy()))
+            val combat = Combat(0, listOf(TestUtil.getCharacter("party2/leif.json")), listOf(Globals.getMonster("Goblin").copy()))
             //val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
             val leif = combat.teamA[0]
             val goblin = combat.teamB[0]
@@ -677,7 +678,6 @@ class CombatTest {
     }
 
     @Test
-
     fun initiativeDups() {
         TestUtil.dependency()
         //Globals.initLogger(LogLevel.DEBUG) // DEBUG
@@ -732,6 +732,39 @@ class CombatTest {
             dragon.checkForSaveAtStartOfTurn(turn)
         }
         assertEquals(0, dragon.waitingForRecharge.size)
+    }
+
+    @Test
+    fun prayerOfHealing() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(TestUtil.kael3), listOf(Globals.getMonster("Goblin")))
+
+        // TODO - there are multiple things broken with this spell
+        // 1. it routinely returns 0 healing (due to some combination of the below ...)
+        // 2. it shows up with 2024 data (kael is 2014)
+        // 3. due to a long casting time (10 mins), it should ONLY be used AFTER combat
+        
+        // force melee range
+        combat.teamA[0].location = combat.teamB[0].location.copy()
+
+        val kael = combat.teamA[0]
+        kael.currentHP = 3
+
+        val available = kael.getActionsAvailable()
+        println("getActionsAvailable = ${ available}")
+
+        val meleeRangeList = available.mapOfLists[Constants.MELEE_RANGE]!!
+
+        meleeRangeList.filter { it is Spell }.forEach { it as Spell
+            println("is2014=${it.is2014()}, $it")
+        }
+
+        val prayer = meleeRangeList.first { it.getActionName() == "Prayer of Healing" } as Spell
+        assertNotNull(prayer)
+
+        val healAmountRolled = kael.getHealingAmount(prayer, true)
+        println("healAmountRolled = ${ healAmountRolled}")
+
     }
 
 }
