@@ -15,6 +15,7 @@ enum class SpellsWithComplexRules {
     Enthrall,
     FaerieFire,
     GuidingBolt,
+    Grease,
     Hex,
     HuntersMark,
     MindSliver,

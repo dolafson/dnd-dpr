@@ -21,6 +21,7 @@ import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.ChannelDivinity
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Condition
@@ -526,6 +527,11 @@ data class CombatantWithStatus(
                 logger.debug { "exclude healing spells, i'm not a healer and another team mate is" }
                 return false
             }
+        }
+
+        if (spell.name == SpellsWithComplexRules.Grease.toString() && target.getSpeed(Movement.fly) > 0) {
+            logger.debug { "exclude spell, no impact on flying target: $target, spell: $spell" }
+            return false
         }
 
         // TODO: de-prioritize AOE spells if number of targets is low

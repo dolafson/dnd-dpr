@@ -153,6 +153,10 @@ class Combat(val battleId: Int) {
 
         for (combatant in initiativeList)
         {
+            if (!isRunning()) { // combat may end mid-turn, once either team has no remaining members with HP > 0
+                break
+            }
+
             if (combatant.isDead()) {
                 logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, is dead" }
                 continue
