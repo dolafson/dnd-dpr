@@ -45,7 +45,7 @@ enum class WeaponProperty(val supported: Boolean = false) {
                 // with the property. The weapon deals that damage when used with two hands to make a melee attack.
 ;
 
-    fun getNameWithWS(): String {
+    override fun toString(): String {
         return if (this == TwoHanded)  "Two-Handed" else name
     }
 }

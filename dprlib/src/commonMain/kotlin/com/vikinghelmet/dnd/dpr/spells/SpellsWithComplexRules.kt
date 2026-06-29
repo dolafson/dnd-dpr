@@ -8,7 +8,7 @@ enum class SpellsWithComplexRules {
     BestowCurse,
     Bless,
     Blur,
-    ChannelDivinity,
+    ChannelDivinity,  // only the derived forms of this can be cast, but we still need this here for filtering
     ChannelDivinityPreserveLife,
     ChannelDivinityTurnUndead,
     EnlargeReduce,
@@ -27,9 +27,10 @@ enum class SpellsWithComplexRules {
     WindWall,
     ;
 
-    fun getNameWithWS(): String {   // TODO: make this private
+    fun isChannelDivinity() = listOf(ChannelDivinityPreserveLife,ChannelDivinityTurnUndead).contains(this)
+
+    override fun toString(): String {
         return when (this) {
-            ChannelDivinity             -> "Channel Divinity"
             ChannelDivinityPreserveLife -> "Channel Divinity: Preserve Life"
             ChannelDivinityTurnUndead   -> "Channel Divinity: Turn Undead"
 
@@ -39,11 +40,7 @@ enum class SpellsWithComplexRules {
         }
     }
 
-    override fun toString(): String {
-        return getNameWithWS()
-    }
-
     companion object {
-        fun fromName(nameWithWS: String) = entries.firstOrNull { it.getNameWithWS() == nameWithWS }
+        fun fromName(nameWithWS: String) = entries.firstOrNull { it.toString() == nameWithWS }
     }
 }

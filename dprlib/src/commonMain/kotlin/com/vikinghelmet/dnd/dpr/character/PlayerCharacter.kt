@@ -506,7 +506,7 @@ open class PlayerCharacter(
             val complex = SpellsWithComplexRules.fromName(action.name)
             // source data for Channel Divinity is a little screwy
             when (complex) {
-                SpellsWithComplexRules.ChannelDivinity -> { continue } // discard this one, keep its sub-actions
+                SpellsWithComplexRules.ChannelDivinity -> { continue } // only the derived forms of this can be cast
                 SpellsWithComplexRules.ChannelDivinityTurnUndead -> { action.saveStatId = 5 }
                 else -> {}
             }

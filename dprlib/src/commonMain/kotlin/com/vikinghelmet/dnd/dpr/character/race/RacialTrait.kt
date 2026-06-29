@@ -10,11 +10,11 @@ enum class RacialTrait {
     // https://www.dndbeyond.com/sources/dnd/xgte/character-options-racial-feats#ElvenAccuracy
     ElvenAccuracy
     ;
-    private fun getNameWithWS(): String {
+    override fun toString(): String {
         return Globals.addWStoCamelCase(name)
     }
 
     companion object {
-        fun fromName(nameWithWS: String) = RacialTrait.entries.firstOrNull { it.getNameWithWS() == nameWithWS }
+        fun fromName(nameWithWS: String) = RacialTrait.entries.firstOrNull { it.toString() == nameWithWS }
     }
 }

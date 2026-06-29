@@ -31,7 +31,7 @@ fun FeatMenu(
     val featNamesWithColor = FeatEligibility.getListByCharacter(playerCharacter).filter {
         !fightingStyleOnly || it.isFightingStyle
     }.map {
-        Pair(it.getNameWithWS(), if (it.fullSupport) Color.Blue else Color.LightGray)
+        Pair(it.toString(), if (it.fullSupport) Color.Blue else Color.LightGray)
     }
 
     val feat = Feat.entries.find { it == selectedFeat.value }

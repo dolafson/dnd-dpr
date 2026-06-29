@@ -1,13 +1,18 @@
 package com.vikinghelmet.dnd.dpr.spells
 
 import com.vikinghelmet.dnd.dpr.action.Action
+import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
+import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.spells.payload.Healing
 import com.vikinghelmet.dnd.dpr.util.Condition
+import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -174,4 +179,41 @@ open class Spell(
         return true
     }
 
+    companion object {
+        fun isSlotAvailable(combatant: Combatant, spell: Spell, spellCastList: List<Spell>): Boolean {
+            val level = spell.properties.Level
+            if (level == 0) return true // cantrip
+
+            if (spellCastList.isEmpty()) return true
+
+            val complex = SpellsWithComplexRules.fromName(spell.name)
+
+            if (combatant is PlayerCharacter) {
+                if (complex == HuntersMark) {
+                    val maxSlots = levelToFavoredEnemyMap[combatant.getLevel()] ?: return false
+                    val slotsUsed = spellCastList.count { it.name == spell.name }
+                    return (slotsUsed < maxSlots)
+                }
+
+                if (complex?.isChannelDivinity() == true) {
+                    val maxSlots = 1 // TODO: table for cleric usage of Channel Divinity
+                    val slotsUsed = spellCastList.count {
+                        SpellsWithComplexRules.fromName(spell.name)?.isChannelDivinity() == true }
+                    return (slotsUsed < maxSlots)
+                }
+            }
+
+            if (combatant.getSpellSlots().isEmpty()) return true // why ???
+
+            if (level < 0) return true // SavingThrowAction such as Breath Weapon
+
+            val maxSlots = combatant.getSpellSlots()[level - 1]
+            val slotsUsed = spellCastList.count {
+                it.properties.Level == level && SpellsWithComplexRules.fromName(it.name) != HuntersMark
+            }
+            if (slotsUsed >= maxSlots) Globals.debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = $spellCastList")
+            return (slotsUsed < maxSlots)
+        }
+
+    }
 }

@@ -94,12 +94,12 @@ enum class Feat(
     UnarmedFighting(false, isFightingStyle = true),
     ;
 
-    fun getNameWithWS(): String {
+    override fun toString(): String {
         return if (this == TwoWeaponFighting) "Two-Weapon Fighting" else Globals.addWStoCamelCase(name)
     }
 
     companion object {
-        fun fromName(input: String) = entries.find { it.name == input || it.getNameWithWS() == input }
+        fun fromName(input: String) = entries.find { it.name == input || it.toString() == input }
     }
 }
 

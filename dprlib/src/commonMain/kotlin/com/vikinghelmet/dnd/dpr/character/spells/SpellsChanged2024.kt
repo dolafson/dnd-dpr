@@ -199,7 +199,7 @@ enum class SpellsChanged2024 {
     WrathfulSmite,
     ;
 
-    private fun getNameWithWS(): String {
+    override fun toString(): String {
         return when(this) {
             BigbysHand -> "Bigby’s Hand"
 
@@ -223,6 +223,6 @@ enum class SpellsChanged2024 {
     }
 
     companion object {
-        fun contains(name: String) = entries.any { it.getNameWithWS() == name }
+        fun contains(name: String) = entries.any { it.toString() == name }
     }
 }

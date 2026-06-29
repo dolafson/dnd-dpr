@@ -60,7 +60,7 @@ enum class ActionModifier(val supported: Boolean = false) {
 
     ;
 
-    fun getNameWithWS(): String {
+    override fun toString(): String {
         if (this == HuntersLore) return "Hunter's Lore"
         return Globals.addWStoCamelCase(name)
     }
@@ -75,11 +75,8 @@ enum class ActionModifier(val supported: Boolean = false) {
     }
 
     companion object {
-        fun fromName(name: String): com.vikinghelmet.dnd.dpr.character.actions.ActionModifier? {
-            return entries.firstOrNull { it.getNameWithWS() == name }
-        }
-        fun partialMatch(name: String): com.vikinghelmet.dnd.dpr.character.actions.ActionModifier? {
-            return entries.firstOrNull { name.startsWith(it.getNameWithWS()) }
+        fun fromName(name: String): ActionModifier? {
+            return entries.firstOrNull { it.toString() == name }
         }
     }
 }

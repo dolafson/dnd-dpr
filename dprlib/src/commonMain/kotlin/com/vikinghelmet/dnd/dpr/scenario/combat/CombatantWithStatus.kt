@@ -22,11 +22,8 @@ import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
-import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.ChannelDivinity
-import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules.HuntersMark
 import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.Constants
-import com.vikinghelmet.dnd.dpr.util.Constants.levelToFavoredEnemyMap
 import com.vikinghelmet.dnd.dpr.util.Globals
 import com.vikinghelmet.dnd.dpr.util.Movement
 import dev.shivathapaa.logger.api.LoggerFactory
@@ -261,34 +258,7 @@ data class CombatantWithStatus(
     // SPELLS
 
     fun isSlotAvailable(spell: Spell): Boolean {
-        val level = spell.properties.Level
-        if (level == 0) return true // cantrip
-
-        if (spellCastList.isEmpty()) return true
-
-        val complex = SpellsWithComplexRules.fromName(spell.name)
-
-        if (combatant is PlayerCharacter && complex == HuntersMark) {
-            val maxSlots = levelToFavoredEnemyMap[combatant.getLevel()] ?: return false
-            val slotsUsed = spellCastList.count { it.spell.name == spell.name }
-            return (slotsUsed < maxSlots)
-        }
-
-        if (combatant is PlayerCharacter && spell.name.startsWith(ChannelDivinity.getNameWithWS(), false)) {
-            val maxSlots = 1 // TODO: table for cleric usage of Channel Divinity
-            val slotsUsed = spellCastList.count { it.spell.name.startsWith(ChannelDivinity.getNameWithWS(), false) }
-            return (slotsUsed < maxSlots)
-        }
-
-        if (combatant.getSpellSlots().isEmpty()) return true
-
-        if (level < 0) return true // SavingThrowAction such as Breath Weapon
-
-        val maxSlots = combatant.getSpellSlots()[level - 1]
-        val slotsUsed =
-            spellCastList.count { it.spell.properties.Level == spell.properties.Level && it.spell.name != HuntersMark.getNameWithWS() }
-        if (slotsUsed >= maxSlots) Globals.debug("not enough slots: level=$level, slotsUsed=$slotsUsed, max=$maxSlots, spellsUsed = $spellCastList")
-        return (slotsUsed < maxSlots)
+        return Spell.isSlotAvailable(this, spell, spellCastList.map { it.spell})
     }
 
     // --------------------------------------------------------------------

@@ -112,7 +112,7 @@ fun CharacterView(viewModel: DprViewModel, combatant: Combatant?)
         Row(modifier = Modifier.padding(start = 20.dp, top = 10.dp)) {
             Column {
                 Text("Feat", fontWeight = FontWeight.Bold)
-                character.getFeatList().forEach { feat -> Text(feat.getNameWithWS()) }
+                character.getFeatList().forEach { feat -> Text(feat.toString()) }
             }
         }
     }

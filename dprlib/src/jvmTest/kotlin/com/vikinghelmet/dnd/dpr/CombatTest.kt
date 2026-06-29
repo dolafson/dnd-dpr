@@ -71,10 +71,8 @@ class CombatTest {
             //var attackNames = possibleTurns.map { it.attacks.map { it2 -> it2.action.getActionName() } }.flatten()
 
             when (turnId) {
-//                0,1 -> assertEquals(listOf("Longbow","Hunter's Mark"), attackNames)
                 0,1 -> assertEquals(5, possibleTurns.size) // LB, LB+Hail, LB+HM, Entangle, MS
-                2   -> assertEquals(3, possibleTurns.size) // LB, LB+HM, MS
-                3,4 -> assertEquals(2, possibleTurns.size) // LB, MS
+                2,3,4 -> assertEquals(2, possibleTurns.size) // LB, MS
             }
 
             for (turn in possibleTurns) {
@@ -536,11 +534,13 @@ class CombatTest {
         for (range in listOf(5,60)) {
             var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], range)
             val spellName = preferred!!.first.attacks.map { it.action.getActionName() }.toList()[0]
+            println("range=$range, spellName=$spellName")
             when (range) {
                 5 -> {
                     //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
                     //assertEquals("Spare the Dying", spellName)
-                    assertEquals(SpellsWithComplexRules.ChannelDivinityTurnUndead.getNameWithWS(), spellName)   // TODO: this shouldn't be chosen vs Goblin
+                    assertEquals(SpellsWithComplexRules.ChannelDivinityTurnUndead,  // TODO: this shouldn't be chosen vs Goblin
+                        SpellsWithComplexRules.fromName(spellName))
                     assertEquals(TurnOptionRanking.SpellWithDamageAOE, preferred.second)
                 }
                 60 -> {
@@ -571,7 +571,7 @@ class CombatTest {
                 5 -> {
                     //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
                     //assertEquals("Spare the Dying", spellName)
-                    assertEquals(SpellsWithComplexRules.ChannelDivinityPreserveLife.getNameWithWS(), spellName)
+                    assertEquals(SpellsWithComplexRules.ChannelDivinityPreserveLife, SpellsWithComplexRules.fromName(spellName))
                     assertEquals(TurnOptionRanking.SpellWithRestoreHPAOE, preferred.second)
                 }
                 60 -> {
