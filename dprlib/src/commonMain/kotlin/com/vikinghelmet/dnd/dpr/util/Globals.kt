@@ -115,8 +115,7 @@ object Globals {
 
     fun addWStoCamelCase(input: String): String {
         // ensure capitalization of each word, and join with single space
-        val words = input.split(Regex("[\\s_]+"))
-        return words.joinToString(" ") { word -> word.lowercase().replaceFirstChar { it.uppercase() } }
+        return input.replace("([A-Z])".toRegex(), " $1").trim()
     }
 
     fun removeNonAlpha(input: String): String {

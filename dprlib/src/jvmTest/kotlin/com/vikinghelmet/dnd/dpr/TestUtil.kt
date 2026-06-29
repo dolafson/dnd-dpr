@@ -85,7 +85,13 @@ object TestUtil {
     val rhogar = getCharacter("party2/rhogar.json")
     val party = listOf(eldir, kael, lars, leif, oleg, rhogar)
 
+    val eldir3 = getCharacter("party3/eldir.json")
     val kael3 =  getCharacter("party3/kael.json")
+    val lars3 =  getCharacter("party3/lars.json")
+    val leif3 =  getCharacter("party3/leif.json")
+    val oleg3 =  getCharacter("party3/oleg.json")
+    val rhogar3 = getCharacter("party3/rhogar.json")
+    val party3 = listOf(eldir3, kael3, lars3, leif3, oleg3, rhogar3)
 
     val ww = getCharacter("ranger.subclass/ww.json")
     val gs = getCharacter("ranger.subclass/gs.json")

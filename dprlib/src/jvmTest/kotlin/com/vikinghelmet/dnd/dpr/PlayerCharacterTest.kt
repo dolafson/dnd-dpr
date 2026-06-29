@@ -1,6 +1,8 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier.*
 import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
@@ -181,6 +183,45 @@ class PlayerCharacterTest {
                             "Slow (Longbow)", "Second Wind", "Action Surge", "Tactical Mind"),
             TestUtil.rhogar.getActionList().map { it.name })
     }
+
+    @Test
+    fun getActionListL3() {
+        assertEquals(listOf("Magical Absorption", "Arcane Recovery"),
+            TestUtil.eldir3.getActionList().map { it.name })
+
+        assertEquals(emptyList<ActionModifier>(), TestUtil.eldir3.getActionModifiersAvailable())
+
+        assertEquals(listOf("Channel Divinity", "Channel Divinity: Turn Undead", "Channel Divinity: Preserve Life", "Harness Divine Power"),
+            TestUtil.kael3.getActionList().map { it.name })
+
+        assertEquals(listOf(ChannelDivinity), TestUtil.kael3.getActionModifiersAvailable())
+
+        assertEquals(listOf("Vex (Shortbow)", "Vex (Shortsword)", "Sneak Attack", "Cunning Action", "Steady Aim"),
+            TestUtil.lars3.getActionList().map { it.name })
+
+        assertEquals(listOf(SneakAttack, CunningAction, SteadyAim), TestUtil.lars3.getActionModifiersAvailable())
+
+        assertEquals(listOf("Slow (Longbow)", "Nick (Scimitar)", "Hunter’s Mark", "Dreadful Strike"),
+            TestUtil.leif3.getActionList().map { it.name })
+
+        assertEquals(listOf(HuntersMark, DreadfulStrike), TestUtil.leif3.getActionModifiersAvailable())
+
+        assertEquals(listOf("Relentless Endurance", "Graze (Greatsword)", "Cleave (Greataxe)", "Rage (Enter)", "Extend Rage", "Rage: Primal Knowledge"),
+            TestUtil.oleg3.getActionList().map { it.name })
+
+        assertEquals(listOf(RageEnter), TestUtil.oleg3.getActionModifiersAvailable())
+
+        assertEquals(listOf("Breath Weapon (Fire)", "Topple (Battleaxe)", "Sap (Longsword)",
+            "Slow (Longbow)", "Second Wind", "Action Surge", "Tactical Mind",
+            "Superiority Dice", "Maneuver: Parry (Dex.)", "Maneuver: Parry (Str.)",
+            "Maneuver: Precision Attack", "Maneuver: Distracting Strike"),
+            TestUtil.rhogar3.getActionList().map { it.name })
+
+        assertEquals(listOf(BreathWeaponFire, SecondWind, ManeuverParryDex, ManeuverParryStr,
+            ManeuverPrecisionAttack, ManeuverDistractingStrike),
+            TestUtil.rhogar3.getActionModifiersAvailable())
+    }
+
 
     @Test
     fun getRacialTraitList() {
