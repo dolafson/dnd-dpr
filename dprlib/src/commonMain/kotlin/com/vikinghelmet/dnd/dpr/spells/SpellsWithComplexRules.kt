@@ -23,24 +23,16 @@ enum class SpellsWithComplexRules {
     PhantasmalKiller,
     RayOfEnfeeblement,
     ShiningSmite,
+    SpareTheDying,
     ViciousMockery,
     WindWall,
     ;
 
     fun isChannelDivinity() = listOf(ChannelDivinityPreserveLife,ChannelDivinityTurnUndead).contains(this)
 
-    override fun toString(): String {
-        return when (this) {
-            ChannelDivinityPreserveLife -> "Channel Divinity: Preserve Life"
-            ChannelDivinityTurnUndead   -> "Channel Divinity: Turn Undead"
-
-            HuntersMark                 -> "Hunter's Mark"
-            OttosIrresistibleDance      -> "Otto's Irresistible Dance"
-            else ->  Globals.addWStoCamelCase(name)
-        }
-    }
+    override fun toString() = Globals.addWStoCamelCase(name)
 
     companion object {
-        fun fromName(nameWithWS: String) = entries.firstOrNull { it.toString() == nameWithWS }
+        fun fromName(name: String) = entries.firstOrNull { it.name == Globals.removeNonAlpha(name) }
     }
 }

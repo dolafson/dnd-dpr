@@ -15,6 +15,9 @@ class Damage(val dice: DiceBlock, var bonus: Int, var abilityBonus: Int, val typ
         return builder.toString()
     }
 
+    fun isEmpty() = dice.isEmpty() && bonus == 0
+    fun isNotEmpty() = !isEmpty()
+
     companion object {
         fun fromStringPair(diceStringWithBonus: String, damageTypeString: String): Damage {
             val damageSplit = diceStringWithBonus.split("+")

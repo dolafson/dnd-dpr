@@ -94,12 +94,10 @@ enum class Feat(
     UnarmedFighting(false, isFightingStyle = true),
     ;
 
-    override fun toString(): String {
-        return if (this == TwoWeaponFighting) "Two-Weapon Fighting" else Globals.addWStoCamelCase(name)
-    }
+    override fun toString() = Globals.addWStoCamelCase(name)
 
     companion object {
-        fun fromName(input: String) = entries.find { it.name == input || it.toString() == input }
+        fun fromName(name: String) = entries.find { it.name == name || it.name == Globals.removeNonAlpha(name) }
     }
 }
 
@@ -110,6 +108,13 @@ object FeatSerializer : KSerializer<Feat> {
         encoder.encodeString (Globals.addWStoCamelCase (value.toString()))
     }
 
-    override fun deserialize(decoder: Decoder) = Feat.fromName (decoder.decodeString())!!
+   // override fun deserialize(decoder: Decoder) = Feat.fromName (decoder.decodeString())!!
+    override fun deserialize(decoder: Decoder) : Feat {
+       val input = decoder.decodeString()
+
+       val result = Feat.fromName (input)
+       if (result == null) println("deserialize failed: $input")
+       return result!!
+   }
 
 }

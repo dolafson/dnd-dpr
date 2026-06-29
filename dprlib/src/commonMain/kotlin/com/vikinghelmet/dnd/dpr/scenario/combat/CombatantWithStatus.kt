@@ -501,8 +501,17 @@ data class CombatantWithStatus(
             }
         }
 
-        if (spell.name == SpellsWithComplexRules.Grease.toString() && target.getSpeed(Movement.fly) > 0) {
+        val complex = SpellsWithComplexRules.fromName(spell.name)
+
+        if (complex == SpellsWithComplexRules.Grease && target.getSpeed(Movement.fly) > 0) {
             logger.debug { "exclude spell, no impact on flying target: $target, spell: $spell" }
+            return false
+        }
+
+        if (complex == SpellsWithComplexRules.ChannelDivinityTurnUndead &&
+            !opposingTeam.any { it.combatant is Monster && it.combatant.type == "undead" })  // TODO: enum for monster type
+        {
+            logger.debug { "exclude spell, only works on undead, and no undead targets: $target, spell: $spell" }
             return false
         }
 

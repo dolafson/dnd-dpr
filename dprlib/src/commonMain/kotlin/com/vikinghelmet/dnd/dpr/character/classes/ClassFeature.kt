@@ -15,8 +15,10 @@ enum class ClassFeature {
     DreadAmbusher, // GloomStalker level 3
     ;
 
+    override fun toString() = Globals.addWStoCamelCase(name)
+
     companion object {
-        fun fromName(name: String) = entries.firstOrNull { Globals.addWStoCamelCase(it.name) == name }
+        fun fromName(name: String) = entries.firstOrNull { it.name == Globals.removeNonAlpha(name) }
     }
 }
 

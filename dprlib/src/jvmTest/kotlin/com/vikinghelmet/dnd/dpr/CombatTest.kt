@@ -526,22 +526,29 @@ class CombatTest {
         TestUtil.dependency()
         val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
 
+        val kael = combat.teamA[0]
         // force melee range
-        combat.teamA[0].location = combat.teamB[0].location.copy()
+        kael.location = combat.teamB[0].location.copy()
 
-        println("getActionsAvailable = ${ combat.teamA[0].getActionsAvailable()}")
+        println("getActionsAvailable = ${ kael.getActionsAvailable()}")
 
         for (range in listOf(5,60)) {
-            var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], range)
+
+            val sorted = kael.getRankedTurnOptions(ActionGoal.Attack, combat.teamB[0], range, combat)
+
+            sorted.forEach {
+                println("ranking=${it.ranking}, action=${it.turn.attacks[0].action.getActionName()} ")
+            }
+
+            var preferred = kael.getPreferredTurn(ActionGoal.Attack, combat.teamB[0], range)
             val spellName = preferred!!.first.attacks.map { it.action.getActionName() }.toList()[0]
             println("range=$range, spellName=$spellName")
             when (range) {
                 5 -> {
                     //assertEquals(TurnOptionRanking.SpellWithDeathPrevention, preferred.second)
                     //assertEquals("Spare the Dying", spellName)
-                    assertEquals(SpellsWithComplexRules.ChannelDivinityTurnUndead,  // TODO: this shouldn't be chosen vs Goblin
-                        SpellsWithComplexRules.fromName(spellName))
-                    assertEquals(TurnOptionRanking.SpellWithDamageAOE, preferred.second)
+                    assertEquals(SpellsWithComplexRules.Bane, SpellsWithComplexRules.fromName(spellName)) // TODO: inflict wounds ?
+                    assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred.second)
                 }
                 60 -> {
                     assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred.second)
@@ -770,4 +777,11 @@ class CombatTest {
         assertFalse (kael.isSpellViable (goblin, combat, Turn(listOf(Attack(goblin, prayer)))))
     }
 
+    @Test
+    fun spareTheDying() {
+        val input = "Spare the Dying"
+        val words = input.split(Regex("[\\s_]+"))
+        val joined = words.joinToString("") { word -> word.lowercase().replaceFirstChar { it.uppercase() } }
+        assertEquals("SpareTheDying", joined)
+    }
 }

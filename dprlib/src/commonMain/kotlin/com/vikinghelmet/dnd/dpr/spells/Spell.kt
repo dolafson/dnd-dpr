@@ -58,10 +58,12 @@ open class Spell(
 
     fun isCantrip() = (properties.Level == 0)
     fun isHealing(): Boolean {
-        return (properties.Healing != null) || (properties.filterTags !=null && properties.filterTags!!.contains("Healing"))
+        return (properties.Healing != null) ||
+                (properties.filterTags !=null && properties.filterTags!!.contains("Healing")) ||
+                SpellsWithComplexRules.fromName(name) == SpellsWithComplexRules.SpareTheDying
     }
 
-    fun incursDamage() = getSpellAttacks(0).any { ! it.isNoDamageAttack() }
+    fun incursDamage() = getSpellAttacks(0).any { it.getDamageList().any { it.isNotEmpty() } }
 
     // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage

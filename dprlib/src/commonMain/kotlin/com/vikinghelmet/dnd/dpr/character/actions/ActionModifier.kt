@@ -60,10 +60,7 @@ enum class ActionModifier(val supported: Boolean = false) {
 
     ;
 
-    override fun toString(): String {
-        if (this == HuntersLore) return "Hunter's Lore"
-        return Globals.addWStoCamelCase(name)
-    }
+    override fun toString() = Globals.addWStoCamelCase(name)
 
     fun getBonusDamage(): DiceBlock {
         when (this) {
@@ -75,8 +72,6 @@ enum class ActionModifier(val supported: Boolean = false) {
     }
 
     companion object {
-        fun fromName(name: String): ActionModifier? {
-            return entries.firstOrNull { it.toString() == name }
-        }
+        fun fromName(name: String) = entries.firstOrNull { it.name == Globals.removeNonAlpha(name) }
     }
 }

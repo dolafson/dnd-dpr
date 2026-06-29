@@ -97,7 +97,9 @@ enum class TurnOptionRanking {
             }
 
             val targetEffect = TargetEffect(0, spell)
-            if (targetEffect.attacksAgainstMe == AttackAdvantage.advantage) {
+            if (targetEffect.attacksAgainstMe == AttackAdvantage.advantage ||
+                targetEffect.attackPenalty.isNotEmpty() || targetEffect.attackBonus.isNotEmpty()) // not really advantage, but close enough
+            {
                 return SpellThatGivesAdvantage
             }
 

@@ -73,6 +73,10 @@ data class SpellAttack(
     fun isMeleeOrRangeAttack() = (!isNoDamageAttack() && !isSavingThrowAttack())
 
     fun isNoDamageAttack(): Boolean {
+        return damagePayload == null || damagePayload.getDamageDice().isEmpty()
+    }
+
+    fun isNoImpactAttack(): Boolean { // TODO: why would this ever get used ?
         return (attackPayload.description == null && damagePayload == null) // TODO: find a cleaner way to represent this
     }
 

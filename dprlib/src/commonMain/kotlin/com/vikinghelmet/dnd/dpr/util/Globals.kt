@@ -114,7 +114,15 @@ object Globals {
 
 
     fun addWStoCamelCase(input: String): String {
-        return input.replace(Regex("(?<!^)([A-Z])"), " $1")
+        // ensure capitalization of each word, and join with single space
+        val words = input.split(Regex("[\\s_]+"))
+        return words.joinToString(" ") { word -> word.lowercase().replaceFirstChar { it.uppercase() } }
+    }
+
+    fun removeNonAlpha(input: String): String {
+        // replace dash with WS, then strip anything not alpha or WS, then ensure capitalization of each word, and join with empty string
+        val words = input.replace("-"," ").replace("[^A-Za-z ]".toRegex(), "").split(Regex("[\\s_]+"))
+        return words.joinToString("") { word -> word.lowercase().replaceFirstChar { it.uppercase() } }
     }
 
     // logging ...

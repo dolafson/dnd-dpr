@@ -77,7 +77,7 @@ class ScenarioCalculatorTest {
         val spellTurn = listOf(Turn(listOf(Attack(monster, holdPerson))))
         var scenario2 = Scenario(character, spellTurn + fourTurns, 4, DEFAULT_TARGET_SPACING)
         var result2   = ScenarioCalculator(scenario2).calculateDPRForAllTurns()
-        assertEquals(182, result2.totalDamage.toInt())
+        assertEquals(182, result2.totalDamage.toInt()) // TODO: this feels low for Hold Person / Paralyzed
     }
 
     @Test

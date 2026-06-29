@@ -404,8 +404,8 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
     // this is where the fun really begins
 
     fun getSpellDPR(spellAttack: SpellAttack, spell: Spell, attack: Attack, turnId: Int, actionId: Int, effectCount: Int): AttackResult {
-        val attackResult = if (spellAttack.isNoDamageAttack()) {
-            getNoDamageSpellDPR (spell, attack)
+        val attackResult = if (spellAttack.isNoImpactAttack()) {
+            getNoImpactSpellDPR (spell, attack)
         }
         else if (spellAttack.isSavingThrowAttack()) {
             getSavingThrowSpellDPR (spellAttack, spell, attack)
@@ -419,7 +419,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         return attackResult
     }
 
-    fun getNoDamageSpellDPR(spell: Spell, attack: Attack): AttackResult {
+    fun getNoImpactSpellDPR(spell: Spell, attack: Attack): AttackResult {
         val duration = 1f * (spell.getDuration() ?: 0)
         return AttackResult(
             1,

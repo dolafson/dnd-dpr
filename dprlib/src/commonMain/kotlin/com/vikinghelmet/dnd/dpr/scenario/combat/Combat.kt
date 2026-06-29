@@ -503,11 +503,6 @@ class Combat(val battleId: Int) {
         for (spellAttack in spell.getSpellAttacks(attackBonus)) {
             logger.debug { "spell = ${spell.name}, spellAttack = $spellAttack" }
 
-            if (spellAttack.isNoDamageAttack()) {
-                logger.debug { "no damage" }
-                continue
-            }
-
             val spellAttackResults = if (spellAttack.isSavingThrowAttack()) {
                 castSavingThrowSpell (combatant, target, spell, spellAttack, attack)
             } else {
@@ -535,11 +530,6 @@ class Combat(val battleId: Int) {
         attack: Attack
     ) : List<CombatActionResult>
     {
-        if (spellAttack.isNoDamageAttack()) {
-            logger.warn { "This spell never directly creates damage" }
-            return emptyList()
-        }
-
         val save = spellAttack.attackPayload.save!!
 
         val targetList = mutableListOf<CombatantWithStatus>()

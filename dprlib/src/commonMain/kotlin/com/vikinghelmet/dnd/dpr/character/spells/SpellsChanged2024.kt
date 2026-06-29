@@ -199,30 +199,10 @@ enum class SpellsChanged2024 {
     WrathfulSmite,
     ;
 
-    override fun toString(): String {
-        return when(this) {
-            BigbysHand -> "Bigby’s Hand"
-
-            BlindnessDeafness -> "Blindness/Deafness"
-            DominateMonsterDominatePerson -> "Dominate Monster / Dominate Person"
-
-            DrawmijsInstantSummons -> "Drawmij’s Instant Summons"
-            EvardsBlackTentacles -> "Evard’s Black Tentacles"
-            HuntersMark -> "Hunter’s Mark"
-            LeomundsTinyHut -> "Leomund’s Tiny Hut"
-            MordenkainensFaithfulHound -> "Mordenkainen’s Faithful Hound"
-            MordenkainensMagnificentMansion -> "Mordenkainen’s Magnificent Mansion"
-            MordenkainensSword -> "Mordenkainen’s Sword"
-            NystulsMagicAura -> "Nystul’s Magic Aura"
-            OttosIrresistibleDance -> "Otto’s Irresistible Dance"
-            RarysTelepathicBond -> "Rary’s Telepathic Bond"
-            TashasHideousLaughter -> "Tasha’s Hideous Laughter"
-
-            else -> Globals.addWStoCamelCase(name)
-        }
-    }
+    override fun toString() = Globals.addWStoCamelCase(name)
 
     companion object {
-        fun contains(name: String) = entries.any { it.toString() == name }
+        fun fromName(name: String) = entries.firstOrNull { it.name == Globals.removeNonAlpha(name) }
+        fun contains(name: String) = fromName(name) != null
     }
 }
