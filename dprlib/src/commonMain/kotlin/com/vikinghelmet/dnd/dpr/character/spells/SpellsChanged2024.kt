@@ -199,7 +199,7 @@ enum class SpellsChanged2024 {
     WrathfulSmite,
     ;
 
-    fun getNameWithWS(): String {
+    private fun getNameWithWS(): String {
         return when(this) {
             BigbysHand -> "Bigby’s Hand"
 
@@ -220,5 +220,9 @@ enum class SpellsChanged2024 {
 
             else -> Globals.addWStoCamelCase(name)
         }
+    }
+
+    companion object {
+        fun contains(name: String) = entries.any { it.getNameWithWS() == name }
     }
 }

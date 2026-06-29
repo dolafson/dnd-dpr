@@ -13,7 +13,6 @@ import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.api.ApiRequestParameters
 import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
-import com.vikinghelmet.dnd.dpr.character.feats.Definition
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.inventory.ArmorType
@@ -113,15 +112,8 @@ open class PlayerCharacter(
         return getFeatList().any { it == requested }
     }
 
-    fun addFeat(requested : Feat) {
-        characterData.feats.add(FeatAdded(definition = Definition(name = requested.getNameWithWS())))
-    }
-
     override fun isRacialTraitEnabled(requested : RacialTrait): Boolean {
-        for (trait in getRacialTraitList()) {
-            if (trait.definition.name == requested.getNameWithWS()) return true
-        }
-        return false
+        return getRacialTraitList().map { RacialTrait.fromName(it.definition.name) }.contains(requested)
     }
 
     override fun isEvasive(): Boolean {
@@ -511,7 +503,7 @@ open class PlayerCharacter(
     {
         val result = mutableListOf<PreparedSpell>()
         for (action in getActionList()) {
-            val complex = SpellsWithComplexRules.fromNameWithWS(action.name)
+            val complex = SpellsWithComplexRules.fromName(action.name)
             // source data for Channel Divinity is a little screwy
             when (complex) {
                 SpellsWithComplexRules.ChannelDivinity -> { continue } // discard this one, keep its sub-actions
@@ -580,7 +572,7 @@ open class PlayerCharacter(
     }
 
     fun isClassFeatureEnabled(feature: ClassFeature): Boolean {
-        return getClassFeaturesByLevel().any { it.key == feature.getSerialName() }
+        return getClassFeaturesByLevel().map { ClassFeature.fromName(it.key) }.contains(feature)
     }
 
     fun getLevelsForFightingStyle(): List<Int> {

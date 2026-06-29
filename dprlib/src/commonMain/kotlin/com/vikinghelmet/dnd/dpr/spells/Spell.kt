@@ -62,7 +62,7 @@ open class Spell(
     // concentration up to 1 min, but only 1 instant of damage
     // note, in 2024 the spell was changed to Instantaneous (Bonus Action)
     fun getDuration(): Int? {
-        if (SpellsWithComplexRules.WindWall == SpellsWithComplexRules.fromNameWithWS(name)) {
+        if (SpellsWithComplexRules.WindWall == SpellsWithComplexRules.fromName(name)) {
             logger.warn { "WindWall, force duration = 1 "} // spell only does instantaneous damage; does nothing after round 1
             throw IllegalArgumentException("WindWall, force duration = 1 ")
             return 1

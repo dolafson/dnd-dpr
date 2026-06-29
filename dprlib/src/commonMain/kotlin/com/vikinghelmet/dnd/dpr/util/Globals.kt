@@ -67,7 +67,7 @@ object Globals {
         val matches = spells.filter { it.name == name }
 
         if (!matches.isEmpty()) {
-            val spellChanged = SpellsChanged2024.entries.filter { it.getNameWithWS() == name }.isNotEmpty()
+            val spellChanged = SpellsChanged2024.contains(name)
             val spellIn2024 = matches.firstOrNull { !it.is2014() }
 
             if (!spellChanged && (spellIn2024 != null)) {

@@ -27,7 +27,7 @@ enum class SpellsWithComplexRules {
     WindWall,
     ;
 
-    fun getNameWithWS(): String {
+    fun getNameWithWS(): String {   // TODO: make this private
         return when (this) {
             ChannelDivinity             -> "Channel Divinity"
             ChannelDivinityPreserveLife -> "Channel Divinity: Preserve Life"
@@ -44,8 +44,6 @@ enum class SpellsWithComplexRules {
     }
 
     companion object {
-        fun fromNameWithWS(nameWithWS: String): SpellsWithComplexRules? {
-            return entries.firstOrNull { it.getNameWithWS().lowercase().startsWith(nameWithWS.lowercase()) }
-        }
+        fun fromName(nameWithWS: String) = entries.firstOrNull { it.getNameWithWS() == nameWithWS }
     }
 }

@@ -54,7 +54,7 @@ fun FeatMenu(
             val priorFeatName = preselectedValues.feat?.name ?: ""
             BasicTextMenu(priorFeatName, featNamesWithColor, 200.dp, 200.dp) { s ->
                 //println("featMenu changed, new feat = $s")
-                selectedFeat.value = Feat.fromNameWithWS(s)
+                selectedFeat.value = Feat.fromName(s)
                 asi1.value = null
                 asi2.value = null
                 onValueChanged(selectedFeat.value!!, asi1.value, asi2.value)

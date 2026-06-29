@@ -266,7 +266,9 @@ data class CombatantWithStatus(
 
         if (spellCastList.isEmpty()) return true
 
-        if (combatant is PlayerCharacter && spell.name == HuntersMark.getNameWithWS()) {
+        val complex = SpellsWithComplexRules.fromName(spell.name)
+
+        if (combatant is PlayerCharacter && complex == HuntersMark) {
             val maxSlots = levelToFavoredEnemyMap[combatant.getLevel()] ?: return false
             val slotsUsed = spellCastList.count { it.spell.name == spell.name }
             return (slotsUsed < maxSlots)

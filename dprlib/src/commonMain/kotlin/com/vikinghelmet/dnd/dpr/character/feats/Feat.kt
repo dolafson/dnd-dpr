@@ -4,7 +4,12 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType.*
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.util.Globals
-import kotlinx.serialization.SerialName
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 private val strAndDex = listOf(Strength,Dexterity)
 private val str = listOf(Strength)
@@ -16,6 +21,7 @@ private val cha = listOf(Charisma)
 
 private val spellCaster = listOf(Intelligence, Wisdom, Charisma)
 
+@Serializable(with = FeatSerializer::class)
 enum class Feat(
     val fullSupport: Boolean = false,
     val asiPrerequisite: List<AbilityType> = emptyList(),
@@ -31,7 +37,7 @@ enum class Feat(
     Athlete (false, strAndDex),
     Charger (false, strAndDex),
     Chef (false, emptyList(), listOf(Constitution,Wisdom)),
-    @SerialName("Cold Caster") ColdCaster(true, emptyList(), spellCaster),     // https://www.dndbeyond.com/sources/dnd/frhof/character-options#ColdCaster
+    ColdCaster(true, emptyList(), spellCaster),     // https://www.dndbeyond.com/sources/dnd/frhof/character-options#ColdCaster
 
     CrossbowExpert (false, dex),
     Crusher (false, emptyList(), listOf(Strength,Constitution)),
@@ -41,7 +47,8 @@ enum class Feat(
     ElementalAdept(true, emptyList(), spellCaster),
     FeyTouched (false, emptyList(), spellCaster),
     Grappler (false, strAndDex),
-    @SerialName("Great Weapon Master") GreatWeaponMaster(false, str),
+    GreatWeaponMaster(false, str),
+
     HeavilyArmored (false, emptyList(), str),
     HeavyArmorMaster (false, emptyList(), listOf(Strength,Constitution)),
     InspiringLeader (false, listOf(Wisdom,Charisma)),
@@ -83,20 +90,26 @@ enum class Feat(
     Interception(false, isFightingStyle = true),
     Protection(false, isFightingStyle = true),
     ThrownWeaponFighting(false, isFightingStyle = true),
-    @SerialName("Two-Weapon Fighting") TwoWeaponFighting(false, isFightingStyle = true),
+    TwoWeaponFighting(false, isFightingStyle = true),
     UnarmedFighting(false, isFightingStyle = true),
     ;
 
     fun getNameWithWS(): String {
-        if (this == TwoWeaponFighting) return "Two-Weapon Fighting"
-        return Globals.addWStoCamelCase(name)
+        return if (this == TwoWeaponFighting) "Two-Weapon Fighting" else Globals.addWStoCamelCase(name)
     }
+
     companion object {
-        fun getFightingStyleFeats(): List<Feat> {
-            return entries.filter { it.isFightingStyle }
-        }
-        fun fromNameWithWS(input: String): Feat? {
-            return entries.find { it.getNameWithWS() == input }
-        }
+        fun fromName(input: String) = entries.find { it.name == input || it.getNameWithWS() == input }
     }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializer(forClass = Feat::class)
+object FeatSerializer : KSerializer<Feat> {
+    override fun serialize(encoder: Encoder, value: Feat) {
+        encoder.encodeString (Globals.addWStoCamelCase (value.toString()))
+    }
+
+    override fun deserialize(decoder: Decoder) = Feat.fromName (decoder.decodeString())!!
+
 }
