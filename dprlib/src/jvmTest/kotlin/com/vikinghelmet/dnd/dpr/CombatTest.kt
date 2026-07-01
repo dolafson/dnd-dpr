@@ -354,7 +354,7 @@ class CombatTest {
 
         combat.teamB[3].location = Location(50, 50) // far, far away
 
-        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, combat.teamB[0])
+        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, combat.teamB[0]).attacks
         // println("dragonAttacks = $dragonAttacks")
         assertEquals(1, dragonAttacks.size)
 
@@ -381,7 +381,7 @@ class CombatTest {
         dragon.location = Location(3, 0)
         oleg.location   = Location(2, -1) // very close
 
-        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, oleg)
+        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, oleg).attacks
         // println("dragonAttacks = $dragonAttacks")
         assertEquals(1, dragonAttacks.size)
 
@@ -413,7 +413,7 @@ class CombatTest {
 
         // skeleton is immune to poison, next best option is Multiattack
         // this validates attack filtering in CombatantWithStatus.isSpellValid (getDamageImmunities)
-        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, skeleton)
+        var dragonAttacks = combat.chooseTurnActions(ActionGoal.Attack, dragon, skeleton).attacks
 
         assertEquals(listOf("Multiattack","Bite","Claw","Claw"), dragonAttacks.map { it.action.getActionName() }.toList())
     }

@@ -2,6 +2,8 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier.*
+import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
@@ -18,6 +20,7 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
+import com.vikinghelmet.dnd.dpr.util.Constants
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.AtomicInt
@@ -201,24 +204,7 @@ class Combat(val battleId: Int) {
         val goal = combatant.getActionGoal(this)
 
         if (goal == ActionGoal.Heal) {
-            val healTarget = chooseHealingTarget(combatant) ?:
-                return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "goal is healing, but no healing target chosen"))
-
-            // move towards target, even if you can't heal them yet ...
-            combatant.moveTowardTarget(healTarget, this)
-
-            if (getOpponents(healTarget).any { it.location == healTarget.location }) {
-                return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to heal, opponent standing on healing target"))
-            }
-
-            val range = combatant.distance(healTarget).toFeet()
-            val healTurn = combatant.getPreferredTurn(goal, healTarget, range, this)
-
-            return if (healTurn != null) {
-                healWithSpell(combatant, healTarget, healTurn.first)
-            } else {
-                listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "goal is healing, but no healing action available"))
-            }
+            return getHealingActionResults(combatant)
         }
 
         // from here on down is all about the Attack
@@ -230,7 +216,7 @@ class Combat(val battleId: Int) {
             return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "no target available"))
         }
 
-        val attackList = chooseTurnActions(goal, combatant, target)
+        val attackList = chooseTurnActions(goal, combatant, target).attacks.toMutableList()
 
         if (attackList.isEmpty()) {
             return listOf(CombatActionResult(combatant, target, turnId, 0, 0, "no attacks available for target"))
@@ -239,8 +225,10 @@ class Combat(val battleId: Int) {
         logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
         val actionResults = mutableListOf<CombatActionResult>()
+        val iterator = attackList.listIterator()
 
-        for (attack in attackList) {
+        while (iterator.hasNext()) {
+            val attack = iterator.next()
             var attackResults: List<CombatActionResult>
 
             if (attack.action is Weapon) {
@@ -255,11 +243,84 @@ class Combat(val battleId: Int) {
                 actionResults.addAll(attackResults)
             }
 
+            val additionalAttack = getExtraAttackTriggeredByLastAttack(combatant, target, attackList)
+            if (additionalAttack != null) {
+                iterator.add(additionalAttack)
+            }
+
             actionId++
         }
 
         logger.info { "turn = $turnId, attackResults = $actionResults" }
         return actionResults
+    }
+
+    fun getExtraAttackTriggeredByLastAttack(
+        combatant: CombatantWithStatus, target: CombatantWithStatus, attackList: List<Attack>): Attack?
+    {
+        val nearbyTargets = getOpponents(combatant).filter { it != target && it.isPositive() && it.distance(target).toFeet() <= Constants.MELEE_RANGE }
+        if (nearbyTargets.isEmpty()) return null
+        val nextTarget = nearbyTargets.first()
+
+        val lastAttack = attackList.last()
+
+        // TODO: if last attack was not successful return null
+
+        val modifiersAlreadyUsedThisTurn = attackList.map { it.actionModifiers }.flatten()
+
+        val modifiers = combatant.getActionModifiersAvailable()
+        for (modifier in modifiers) {
+            if (modifier in modifiersAlreadyUsedThisTurn) {
+                logger.debug { "modifier already used this turn: $modifier" }
+                continue
+            }
+
+            when (modifier) {
+                Cleave -> {
+                    if (lastAttack.action is Weapon &&
+                        lastAttack.action.hasMasteryProperty(MasteryProperty.Cleave))
+                    {
+                        return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
+                    }
+                }
+                HordeBreaker -> {
+                    // TODO: only if 2nd target not attacked by you this turn
+                    return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
+                }
+                SuddenStrike -> {
+                    if (DreadfulStrike in modifiersAlreadyUsedThisTurn) {
+                        return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
+                    }
+                }
+                else -> {}
+            }
+        }
+        return null
+    }
+
+    fun getHealingActionResults(combatant: CombatantWithStatus): List<CombatActionResult> {
+        val healTarget = chooseHealingTarget(combatant) ?: return listOf(
+            CombatActionResult(combatant, combatant, turnId, 0, 0,
+                "goal is healing, but no healing target chosen" )
+        )
+
+        // move towards target, even if you can't heal them yet ...
+        combatant.moveTowardTarget(healTarget, this)
+
+        if (getOpponents(healTarget).any { it.location == healTarget.location }) {
+            return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0,
+                "unable to heal, opponent standing on healing target"))
+        }
+
+        val range = combatant.distance(healTarget).toFeet()
+        val healTurn = combatant.getPreferredTurn(ActionGoal.Heal, healTarget, range, this)
+
+        return if (healTurn != null) {
+            healWithSpell(combatant, healTarget, healTurn.first)
+        } else {
+            listOf(CombatActionResult(combatant, combatant, turnId, 0, 0,
+                "goal is healing, but no healing action available"))
+        }
     }
 
     fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA
@@ -394,9 +455,9 @@ class Combat(val battleId: Int) {
         return target
     }
 
-    fun chooseTurnActions(goal: ActionGoal, combatant: CombatantWithStatus, target: CombatantWithStatus): List<Attack> {
+    fun chooseTurnActions(goal: ActionGoal, combatant: CombatantWithStatus, target: CombatantWithStatus): Turn {
         val preferredTurnOption = combatant.getPreferredTurn(goal, target, combatant.distance(target).toFeet(), this)
-        return preferredTurnOption?.first?.attacks ?: emptyList()
+        return preferredTurnOption?.first ?: Turn(emptyList())
     }
 
     fun getAttackRoll(combatant: CombatantWithStatus, target: CombatantWithStatus): Int {
