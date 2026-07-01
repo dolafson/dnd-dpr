@@ -68,7 +68,7 @@ data class CombatantWithStatus(
 
     fun shortName() = newName // getName().replace(" .*".toRegex(), "")
 
-    // override fun toString() = getName()
+    override fun getName() = shortName()
     override fun toString() = shortName()
 
     fun toFullString(): String {

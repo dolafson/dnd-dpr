@@ -120,7 +120,7 @@ object Globals {
 
     fun removeNonAlpha(input: String): String {
         // replace dash with WS, then strip anything not alpha or WS, then ensure capitalization of each word, and join with empty string
-        val words = input.replace("-"," ").replace("[^A-Za-z ]".toRegex(), "").split(Regex("[\\s_]+"))
+        val words = input.replace("\\s*\\([^)]*\\)".toRegex(), "").replace("-"," ").replace("[^A-Za-z ]".toRegex(), "").split(Regex("[\\s_]+"))
         return words.joinToString("") { word -> word.lowercase().replaceFirstChar { it.uppercase() } }
     }
 

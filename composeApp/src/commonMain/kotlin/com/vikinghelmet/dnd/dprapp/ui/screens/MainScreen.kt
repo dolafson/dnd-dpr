@@ -14,7 +14,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.vikinghelmet.dnd.dpr.action.Combatant
+import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
+import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatLoop
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
@@ -125,14 +127,19 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         }
     }
 
+    fun pickTeam(selected: CombatantMenuItem): List<Combatant> {
+        return when (selected) {
+            is Party    -> selected.characterList
+            is Monster  -> List(numTargets) { selected }
+            else        -> listOf(selected as Combatant)
+        }
+    }
+
     fun runCombat() {
         viewModel.setScenarioResultList(emptyList())
 
-        val selectedA = viewModel.getCombatant(true)!!
-        val selectedB = viewModel.getCombatant(false)!!
-
-        val teamA = if (selectedA is Party) selectedA.characterList else listOf(selectedA as Combatant)
-        val teamB = if (selectedB is Party) selectedB.characterList else listOf(selectedB as Combatant)
+        val teamA = pickTeam (viewModel.getCombatant(true)!!)
+        val teamB = pickTeam (viewModel.getCombatant(false)!!)
 
         val numSimulations = 30 // TODO ?
         val loop = CombatLoop(teamA, teamB, numSimulations, false)

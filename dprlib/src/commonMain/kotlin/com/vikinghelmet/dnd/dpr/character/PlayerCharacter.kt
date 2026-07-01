@@ -489,7 +489,7 @@ open class PlayerCharacter(
                 Globals.debug("action is unsupported: " + name)
             }
         }
-        return result
+        return result.distinct()
     }
 
     override fun getActionList(): List<ActionAdded> {

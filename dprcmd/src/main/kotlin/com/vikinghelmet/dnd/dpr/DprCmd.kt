@@ -4,12 +4,13 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Turn
+import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatLoop
 import com.vikinghelmet.dnd.dpr.scenario.onesided.*
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
@@ -71,11 +72,15 @@ fun getCombatantGroup(combatantNameList: String): List<Combatant> {
         return result
     }
 
-    for (combatantName in combatantNameList.split(",".toRegex()))
+    for (combatantGroup in combatantNameList.split(",".toRegex()))
     {
+        val namePair = combatantGroup.split(":".toRegex())
+        val combatantName = namePair[0]
+        val groupCount = if (namePair.size == 1) 1 else namePair[1].toIntOrNull() ?: 1
+
         try {
             val monster = Globals.getMonster(combatantName)
-            result.add(monster)
+            repeat(groupCount) { result.add(monster) }
             continue
         }
         catch (e: Exception) {
@@ -229,23 +234,23 @@ fun showUsage() {
     println("""
 Usage:  [-d] [--csv]  <attacker>  <target>  <auto | attacks> 
 
-Options:
+options:
 
     -i, -d          info/debug logging (default = warn)
     --csv           CSV output
 
-Attacker/Target - any of the following:
+attacker and target - comma separated lists, with one or more of the following:
 
-     monsterName    read monster from application resources
+     name[:count]   read named monster, and construct a group with size count (default=1)
      NumericID      read character from DND Beyond API (character must have public visibility)
      file.json      read character from a local file
      "party:N"      read all characters stored in application data directory, and set each character level to N
 
-Auto:
+auto:
 
-     Automated bi-directional combat.  Participants choose their preferred actions based on expected DPR
+     Automated bi-directional combat.  Actions are selected based on TargetSelectionStrategy, TurnOptionRanking, and expected DPR
       
-Attacks:
+attacks:
 
      <turn[;turn...] >   
 
@@ -301,12 +306,18 @@ fun main(args : Array<String>) {
     val targets   = getCombatantGroup(args[i++])
 
     if (args[i].startsWith("auto")) {
-        val loop = CombatLoop(attackers, targets, 100, args[i].startsWith("auto:fly"))
-        loop.run()
+        val loop = CombatLoop(attackers, targets, 30, args[i].startsWith("auto:fly"))
+
+        val combatList = mutableListOf<Combat>()
+        repeat(30) { combatList.add(loop.runOnce()) }
 
         logger.warn { "" }
         logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }" }
         logger.warn { "" }
+
+        val fileContent = StringBuilder()
+        combatList.forEach { fileContent.append(it.output()).append("\n")  }
+        println(fileContent.toString())
     }
     else if (args[i].toIntOrNull() == null) {
         runCustomAttack (attackers[0], targets[0], args[i]) // proximity not specified: custom turns, single combat

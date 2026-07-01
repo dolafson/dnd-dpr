@@ -209,7 +209,7 @@ class PlayerCharacterTest {
         assertEquals(listOf("Relentless Endurance", "Graze (Greatsword)", "Cleave (Greataxe)", "Rage (Enter)", "Extend Rage", "Rage: Primal Knowledge"),
             TestUtil.oleg3.getActionList().map { it.name })
 
-        assertEquals(listOf(RageEnter), TestUtil.oleg3.getActionModifiersAvailable())
+        assertEquals(listOf(Cleave, Rage), TestUtil.oleg3.getActionModifiersAvailable())
 
         assertEquals(listOf("Breath Weapon (Fire)", "Topple (Battleaxe)", "Sap (Longsword)",
             "Slow (Longbow)", "Second Wind", "Action Surge", "Tactical Mind",
@@ -217,7 +217,7 @@ class PlayerCharacterTest {
             "Maneuver: Precision Attack", "Maneuver: Distracting Strike"),
             TestUtil.rhogar3.getActionList().map { it.name })
 
-        assertEquals(listOf(BreathWeaponFire, SecondWind, ManeuverParryDex, ManeuverParryStr,
+        assertEquals(listOf(BreathWeapon, SecondWind, ManeuverParry,
             ManeuverPrecisionAttack, ManeuverDistractingStrike),
             TestUtil.rhogar3.getActionModifiersAvailable())
     }

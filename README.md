@@ -51,33 +51,44 @@ java -jar ./dprcmd/build/libs/dprcmd-standalone.jar
 
 ## Usage
 ```
-Usage:  [-d] [--csv]  <attacker>  <target>  <attacks> 
+Usage:  [-d] [--csv]  <attacker>  <target>  <auto | attacks>
 
-Options:
+options:
 
     -i, -d          info/debug logging (default = warn)
     --csv           CSV output
 
-Attacker/Target - any of the following:
+attacker and target - comma separated lists, with one or more of the following:
 
-     monsterName    read monster from application resources
+     name[:count]   read named monster, and construct a group with size count (default=1)
      NumericID      read character from DND Beyond API (character must have public visibility)
      file.json      read character from a local file
      "party:N"      read all characters stored in application data directory, and set each character level to N
 
-Attacks:
+auto:
 
-     <turn[;turn...] >   
+     Automated bi-directional combat.  Actions are selected based on TargetSelectionStrategy, TurnOptionRanking, and expected DPR
+
+attacks:
+
+     <turn[;turn...] >
 
        - one/more turns (separated by semi-colon); each turn is a comma-separated list of spell or weapon name
-       
+
 OR
-     <proximityInFeet>  [numTurns (5)]  [numTargets (1)]  [targetSpacing (5)]   
+     <proximityInFeet>  [numTurns (5)]  [numTargets (1)]  [targetSpacing (5)]
 
        - identify all possible attack scenarios for given conditions, compute DPR, and present the top 30 results
+
 ```
 
 <br>
+
+## Automated Combat
+
+- [TargetSelectionStrategy](dprlib/src/commonMain/kotlin/com/vikinghelmet/dnd/dpr/scenario/combat/TargetSelectionStrategy.kt)
+- [TurnOptionRanking](dprlib/src/commonMain/kotlin/com/vikinghelmet/dnd/dpr/scenario/combat/TurnOptionRanking.kt)
+
 
 ## Output Format (TXT)
 

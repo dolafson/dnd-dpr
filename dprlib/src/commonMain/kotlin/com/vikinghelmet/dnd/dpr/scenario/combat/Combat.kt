@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier.*
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
 import com.vikinghelmet.dnd.dpr.monsters.Monster
@@ -204,7 +205,7 @@ class Combat(val battleId: Int) {
         val goal = combatant.getActionGoal(this)
 
         if (goal == ActionGoal.Heal) {
-            return getHealingActionResults(combatant)
+            return takeHealingAction(combatant)
         }
 
         // from here on down is all about the Attack
@@ -225,80 +226,22 @@ class Combat(val battleId: Int) {
         logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
         val actionResults = mutableListOf<CombatActionResult>()
-        val iterator = attackList.listIterator()
 
-        while (iterator.hasNext()) {
-            val attack = iterator.next()
-            var attackResults: List<CombatActionResult>
+        for (attack in attackList) {
+            actionResults.addAll (takeAttackAction (combatant, target, attack))
 
-            if (attack.action is Weapon) {
-                attackResults = meleeOrRangeAttack(combatant, target, attack, attack.action)
-            } else {
-                attackResults = attackWithSpell(combatant, target, attack)
-            }
-
-            if (attackResults.isEmpty()) {
-                actionResults.add(CombatActionResult(combatant, target, turnId, 0, 0, "no results for attack: ${attack.action}"))
-            } else {
-                actionResults.addAll(attackResults)
-            }
-
-            val additionalAttack = getExtraAttackTriggeredByLastAttack(combatant, target, attackList)
+            val additionalAttack = getAdditionalAttack(combatant, target, attackList, actionResults)
             if (additionalAttack != null) {
-                iterator.add(additionalAttack)
+                val newTarget = additionalAttack.target as CombatantWithStatus
+                actionResults.addAll (takeAttackAction (combatant, newTarget, additionalAttack))
             }
-
-            actionId++
         }
 
         logger.info { "turn = $turnId, attackResults = $actionResults" }
         return actionResults
     }
 
-    fun getExtraAttackTriggeredByLastAttack(
-        combatant: CombatantWithStatus, target: CombatantWithStatus, attackList: List<Attack>): Attack?
-    {
-        val nearbyTargets = getOpponents(combatant).filter { it != target && it.isPositive() && it.distance(target).toFeet() <= Constants.MELEE_RANGE }
-        if (nearbyTargets.isEmpty()) return null
-        val nextTarget = nearbyTargets.first()
-
-        val lastAttack = attackList.last()
-
-        // TODO: if last attack was not successful return null
-
-        val modifiersAlreadyUsedThisTurn = attackList.map { it.actionModifiers }.flatten()
-
-        val modifiers = combatant.getActionModifiersAvailable()
-        for (modifier in modifiers) {
-            if (modifier in modifiersAlreadyUsedThisTurn) {
-                logger.debug { "modifier already used this turn: $modifier" }
-                continue
-            }
-
-            when (modifier) {
-                Cleave -> {
-                    if (lastAttack.action is Weapon &&
-                        lastAttack.action.hasMasteryProperty(MasteryProperty.Cleave))
-                    {
-                        return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
-                    }
-                }
-                HordeBreaker -> {
-                    // TODO: only if 2nd target not attacked by you this turn
-                    return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
-                }
-                SuddenStrike -> {
-                    if (DreadfulStrike in modifiersAlreadyUsedThisTurn) {
-                        return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
-                    }
-                }
-                else -> {}
-            }
-        }
-        return null
-    }
-
-    fun getHealingActionResults(combatant: CombatantWithStatus): List<CombatActionResult> {
+    fun takeHealingAction(combatant: CombatantWithStatus): List<CombatActionResult> {
         val healTarget = chooseHealingTarget(combatant) ?: return listOf(
             CombatActionResult(combatant, combatant, turnId, 0, 0,
                 "goal is healing, but no healing target chosen" )
@@ -321,6 +264,59 @@ class Combat(val battleId: Int) {
             listOf(CombatActionResult(combatant, combatant, turnId, 0, 0,
                 "goal is healing, but no healing action available"))
         }
+    }
+
+    fun takeAttackAction(combatant: CombatantWithStatus, target: CombatantWithStatus, attack: Attack) : List<CombatActionResult>
+    {
+        var attackResults = if (attack.action is Weapon) {
+            meleeOrRangeAttack(combatant, target, attack, attack.action)
+        } else {
+            attackWithSpell(combatant, target, attack)
+        }
+
+        val result = if (attackResults.isNotEmpty()) attackResults else
+            listOf(CombatActionResult (combatant, target, turnId, 0, 0, "no results for attack: ${attack.action}"))
+
+        actionId++
+        return result
+    }
+
+    fun getAdditionalAttack(combatant: CombatantWithStatus, target: CombatantWithStatus,
+                            attackList: List<Attack>, attackResults: List<CombatActionResult>): Attack?
+    {
+        val nearbyTargets = getOpponents(combatant).filter { it != target && it.isPositive() && it.distance(target).toFeet() <= Constants.MELEE_RANGE }
+        if (nearbyTargets.isEmpty()) return null
+        val nextTarget = nearbyTargets.first()
+
+        val lastAttack = attackList.last()
+        if (lastAttack.action !is Weapon) return null
+
+        val lastResult = attackResults.lastOrNull() ?: return null
+        if (lastResult.damageResultList.sumOf { it.amount } == 0) return null
+
+        fun wasModifierUsedThisTurn(mod: ActionModifier) =
+            attackResults.filter { it.turnId == turnId }.any { it.actionTaken.contains(mod.toString()) }
+
+        val modifiers = combatant.getActionModifiersAvailable()
+        for (modifier in modifiers) {
+            if (wasModifierUsedThisTurn (modifier)) {
+                logger.debug { "modifier already used this turn: $modifier" }
+                continue
+            }
+
+            val getExtra = when (modifier) {
+                Cleave       -> (lastAttack.action.hasMasteryProperty(MasteryProperty.Cleave))
+                HordeBreaker -> true  // TODO: only if 2nd target not attacked by you this turn
+                SuddenStrike -> wasModifierUsedThisTurn(DreadfulStrike)
+                else -> false
+            }
+
+            if (getExtra) {
+                logger.debug { "adding extra attack for ActionModifier: $modifier" }
+                return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
+            }
+        }
+        return null
     }
 
     fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA

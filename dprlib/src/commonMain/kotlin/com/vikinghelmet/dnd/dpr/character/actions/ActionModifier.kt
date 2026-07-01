@@ -16,14 +16,14 @@ enum class ActionModifier(val supported: Boolean = false) {
     // ED = Extra Damage
 
     // racial
-    BreathWeaponFire,           // 1/turn, max=PB/LR; SA, replaces 1 attack (can combine with other attacks)
+    BreathWeapon,           // 1/turn, max=PB/LR; SA, replaces 1 attack (can combine with other attacks)
     HellishRebuke,          // reaction: creature DEX save fail -> 2d10 fire damage
 
     // weapon mastery
     Cleave(true),           // 1/turn; EA=5 // TODO: move this usage to MasteryProperty ?
 
     // barbarian
-    RageEnter,              // BA: max=3/LR, 1/SR (table); ED=2 (table), damage resistance; adv on STR checks/saves
+    Rage,                   // BA: max=3/LR, 1/SR (table); ED=2 (table), damage resistance; adv on STR checks/saves
     DangerSense,            // adv on DEX saves
     RecklessAttack,         // 1/turn; adv on STR attacks; opponents gain adv too
 
@@ -37,8 +37,7 @@ enum class ActionModifier(val supported: Boolean = false) {
 
     // fighter
     SecondWind,                 // BA: restoreHP = 1d10 + level; max=2/LR, 1/SR (table)
-    ManeuverParryDex,           // reaction: reduce damage by SD + (STR or DEX mod)
-    ManeuverParryStr,           // reaction: reduce damage by SD + (STR or DEX mod)
+    ManeuverParry,              // reaction: reduce damage by SD + (STR or DEX mod)
     ManeuverDistractingStrike,  // 1/attack: increase damage by SD; next attack on target gains adv
     ManeuverPrecisionAttack,    // 1/attack: on a miss, add SD to attack roll (potentially turn miss into hit)
 
