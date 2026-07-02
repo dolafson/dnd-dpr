@@ -1,10 +1,12 @@
 package com.vikinghelmet.dnd.dpr.character.actions
 
+import com.vikinghelmet.dnd.dpr.action.Damage
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
 
-enum class ActionModifier(val supported: Boolean = false) {
-    // SA = Spell-like Action
+enum class ActionModifier(val supported: Boolean = false) : TargetEffectCause {
     // WH = Weapon Hit
     // TS = Target Spacing (2nd target w/in TS feet of 1st)
     // SD = Superiority Dice
@@ -16,41 +18,41 @@ enum class ActionModifier(val supported: Boolean = false) {
     // ED = Extra Damage
 
     // racial
-    BreathWeapon,           // 1/turn, max=PB/LR; SA, replaces 1 attack (can combine with other attacks)
+    BreathWeapon,           // attack: 1/turn, max=PB/LR; replaces 1 attack (can combine with other attacks)
     HellishRebuke,          // reaction: creature DEX save fail -> 2d10 fire damage
 
     // weapon mastery
-    Cleave(true),           // 1/turn; EA=5 // TODO: move this usage to MasteryProperty ?
+    Cleave(true),           // WH: 1/turn; EA=5 // TODO: move this usage to MasteryProperty ?
 
     // barbarian
     Rage,                   // BA: max=3/LR, 1/SR (table); ED=2 (table), damage resistance; adv on STR checks/saves
-    DangerSense,            // adv on DEX saves
-    RecklessAttack,         // 1/turn; adv on STR attacks; opponents gain adv too
+    DangerSense,            // alwaysOn: adv on DEX saves
+    RecklessAttack,         // beforeAttack: 1/turn; adv on STR attacks; opponents gain adv too
 
     // cleric
-    ChannelDivinity(true),  // 1/turn; max=1/SR (table)  // TODO: currently in SpellsWithComplexRules
+    ChannelDivinity(true),  // action: 1/turn; max=1/SR (table)  // TODO: currently in SpellsWithComplexRules
 
     // rogue
-    SneakAttack,            // 1/turn; ED=1d6 (table) if you have adv and weapon is Finesse/Ranged OR if ally TS=5 and no disadv
+    SneakAttack,            // WH: 1/turn; ED=1d6 (table) if you have adv and weapon is Finesse/Ranged OR if ally TS=5 and no disadv
     CunningAction,          // BA: Dash, Disengage, or Hide
     SteadyAim,              // BA: gain adv on next attack of current turn; 0 movement before/after attack
 
     // fighter
     SecondWind,                 // BA: restoreHP = 1d10 + level; max=2/LR, 1/SR (table)
     ManeuverParry,              // reaction: reduce damage by SD + (STR or DEX mod)
-    ManeuverDistractingStrike,  // 1/attack: increase damage by SD; next attack on target gains adv
-    ManeuverPrecisionAttack,    // 1/attack: on a miss, add SD to attack roll (potentially turn miss into hit)
+    ManeuverDistractingStrike,  // WH: 1/attack: increase damage by SD; next attack on target gains adv
+    ManeuverPrecisionAttack,    // afterAttack: 1/attack: on a miss, add SD to attack roll (potentially turn miss into hit)
 
     // ranger
-    HuntersMark(true),      // BA: ED=1d6; max=2/LR; max inc by level (table)
+    //HuntersMark(true),      // BA: ED=1d6; max=2/LR; max inc by level (table) ... handled via spell list
     HuntersLore,            // 1/HuntersMark; no direct impact to combat
-    HordeBreaker,           // 1/turn; EA=5, if 2nd not attacked by you this turn
-    ColossusSlayer(true),   // 1/turn; ED = 1d8 on WH if creature was missing HP
-    DreadfulStrike(true),   // 1/turn, max=WIS/LR; ED = 2d6 psychic damage on WH; aka "DS"
-    PolarStrikes(true),     // 1/turn; ED = 1d4 cold on WH
+    HordeBreaker,           // WH: 1/turn; EA=5, if 2nd not attacked by you this turn
+    ColossusSlayer(true),   // WH: 1/turn; ED = 1d8 - only if creature was missing HP
+    DreadfulStrike(true),   // WH: 1/turn, max=WIS/LR; ED = 2d6 psychic damage; aka "DS"
+    PolarStrikes(true),     // WH: 1/turn; ED = 1d4 cold
 
     // ranger L11
-    SuperiorHuntersPrey,    // 1/turn; apply HM damage to a 2nd creature if TS=30
+    SuperiorHuntersPrey,    // afterAttack: 1/turn; apply HM damage to a 2nd creature if TS=30
 
     StalkersFlurry,         // 1/DS ; ED: 2d6 -> 2d8
     SuddenStrike,           // 1/DS ; EA=5
@@ -62,12 +64,27 @@ enum class ActionModifier(val supported: Boolean = false) {
 
     override fun toString() = Globals.addWStoCamelCase(name)
 
-    fun getBonusDamage(): DiceBlock {
+    // methods indicating when a modifier is applied
+
+    fun givesAdvantage()   = listOf(RecklessAttack).contains(this)
+    fun givesExtraAttack() = listOf(Cleave, HordeBreaker, SuddenStrike).contains(this)
+
+    fun isAttack()      = listOf(BreathWeapon)
+    fun isAction()      = listOf(ChannelDivinity)
+    fun isBonusAction() = listOf(Rage, CunningAction, SteadyAim, SecondWind).contains(this) // HuntersMark
+    fun isReaction()    = listOf(HellishRebuke, ManeuverParry, ChillingRetribution).contains(this)
+
+    fun onWeaponHit()   = listOf(Cleave, SneakAttack, HordeBreaker, ColossusSlayer, DreadfulStrike, PolarStrikes).contains(this)
+    fun onWeaponMiss()  = listOf(ManeuverPrecisionAttack).contains(this)
+    fun onSavingThrow() = listOf(DangerSense).contains(this)
+    fun withDS()        = listOf(StalkersFlurry, SuddenStrike, MassFear).contains(this)
+
+    fun getDamage(): Damage {
         when (this) {
-            ColossusSlayer -> return DiceBlock("1d8")
-            DreadfulStrike -> return DiceBlock("2d6")
-            PolarStrikes -> return DiceBlock("1d4")
-            else -> return DiceBlock()
+            ColossusSlayer  -> return Damage(DiceBlock("1d8"), 0,0, DamageType.piercing) // TODO: should be same as weapon used
+            DreadfulStrike  -> return Damage(DiceBlock("2d6"), 0,0, DamageType.psychic)
+            PolarStrikes    -> return Damage(DiceBlock("1d4"), 0,0, DamageType.cold)
+            else            -> return Damage(DiceBlock(),      0,0, DamageType.undefined)
         }
     }
 

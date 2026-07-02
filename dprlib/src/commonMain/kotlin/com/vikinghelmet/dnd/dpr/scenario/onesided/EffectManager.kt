@@ -115,7 +115,7 @@ data class EffectManager(val runningEffectList: MutableList<TargetEffect>,)
         val precondition = Preconditions()
 
         for (actionModifier in attack.actionModifiers) {
-            precondition.bonusDamageDice += actionModifier.getBonusDamage()
+            precondition.bonusDamageDice += actionModifier.getDamage().dice
         }
 
         for (priorEffect in runningEffectList)

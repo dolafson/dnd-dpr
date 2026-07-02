@@ -8,7 +8,7 @@ data class SpellCast(
     val spell: Spell,
     val turnCast: Int,
     var turnEnded: Int? = null,
-    var targetList: MutableList<CombatantWithStatus> = mutableListOf(),
+    var targetList: List<CombatantWithStatus> = listOf(),
 ) {
     init {
         if ((spell.getDuration() ?: 0) <= 1) turnEnded = turnCast

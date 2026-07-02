@@ -172,40 +172,35 @@ class Combat(val battleId: Int) {
 
             combatant.checkForSaveAtStartOfTurn(turnId)
 
-            if (!combatant.canTakeAction()) {
+            if (combatant.canTakeAction()) {
+                takeTurn (combatant)
+            }
+            else {
                 val reason = if (combatant.currentHP == 0) "zeroHP" else
                     combatant.toList().filter { it.unableToAct }.toList().toString()
-                actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to act"))
-                logger.warn { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, can not take action: reason=$reason" }
-            } else {
-                val turnActionResults = takeTurn (combatant)
-                if (turnActionResults.isEmpty()) {
-                    // this should not happen ... if no action is possible, takeTurn should return a result explaining why
-                    actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "able to act, but no action results"))
-
-                    logger.warn { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, action taken but NO RESULTS !!!" }
-                }
-                actionResultList.addAll (turnActionResults)
+                actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to act: reason=$reason"))
             }
 
             combatant.checkForSaveAtEndOfTurn()
         }
     }
 
-    fun takeTurn(combatant: CombatantWithStatus): List<CombatActionResult> {
+    fun takeTurn(combatant: CombatantWithStatus) {
         logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant is taking action" }
         actionId = 0
         effectId = 0
 
         val savingThrow = combatant.checkForSaveByTakingAction()
         if (savingThrow.first) {
-            return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "saving throw action, result = ${savingThrow.second}"))
+            actionResultList.add (CombatActionResult(combatant, combatant, turnId, 0, 0, "saving throw action, result = ${savingThrow.second}"))
+            return
         }
 
         val goal = combatant.getActionGoal(this)
 
         if (goal == ActionGoal.Heal) {
-            return takeHealingAction(combatant)
+            actionResultList.addAll (takeHealingAction(combatant))
+            return
         }
 
         // from here on down is all about the Attack
@@ -214,31 +209,40 @@ class Combat(val battleId: Int) {
         combatant.target = target
 
         if (target == null) {
-            return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0, "no target available"))
+            actionResultList.add (CombatActionResult(combatant, combatant, turnId, 0, 0, "no target available"))
+            return
         }
 
         val attackList = chooseTurnActions(goal, combatant, target).attacks.toMutableList()
 
         if (attackList.isEmpty()) {
-            return listOf(CombatActionResult(combatant, target, turnId, 0, 0, "no attacks available for target"))
+            actionResultList.add (CombatActionResult(combatant, target, turnId, 0, 0, "no attacks available for target"))
+            return
         }
 
         logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
-        val actionResults = mutableListOf<CombatActionResult>()
+        val hasAdvantage   = combatant.any { it.attacksAgainstOthers == AttackAdvantage.advantage }
+        val givesAdvantage = getActionModifiersAvailable(combatant).firstOrNull { it.givesAdvantage() && !hasAdvantage }
 
         for (attack in attackList) {
-            actionResults.addAll (takeAttackAction (combatant, target, attack))
+            if (givesAdvantage != null) {
+                attack.actionModifiers.add (givesAdvantage)
+                combatant.add (TargetEffect(turnId, givesAdvantage))
+            }
 
-            val additionalAttack = getAdditionalAttack(combatant, target, attackList, actionResults)
+            actionResultList.addAll (takeAttackAction (combatant, target, attack))
+
+            val additionalAttack = getAdditionalAttack(combatant, target, attackList)
             if (additionalAttack != null) {
                 val newTarget = additionalAttack.target as CombatantWithStatus
-                actionResults.addAll (takeAttackAction (combatant, newTarget, additionalAttack))
+                actionResultList.addAll (takeAttackAction (combatant, newTarget, additionalAttack))
             }
         }
+    }
 
-        logger.info { "turn = $turnId, attackResults = $actionResults" }
-        return actionResults
+    fun getActionModifiersAvailable(combatant: CombatantWithStatus) : List<ActionModifier> {
+        return combatant.getActionModifiersAvailable (modifiersUsedAcrossTurns (combatant))
     }
 
     fun takeHealingAction(combatant: CombatantWithStatus): List<CombatActionResult> {
@@ -254,6 +258,10 @@ class Combat(val battleId: Int) {
             return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0,
                 "unable to heal, opponent standing on healing target"))
         }
+
+        // TODO: if selected healing target is not in range / unreachable (movement blocked), then either ...
+        //  a) choose a closer healing target (if possible)
+        //  b) perform a ranged weapon attack
 
         val range = combatant.distance(healTarget).toFeet()
         val healTurn = combatant.getPreferredTurn(ActionGoal.Heal, healTarget, range, this)
@@ -281,8 +289,20 @@ class Combat(val battleId: Int) {
         return result
     }
 
-    fun getAdditionalAttack(combatant: CombatantWithStatus, target: CombatantWithStatus,
-                            attackList: List<Attack>, attackResults: List<CombatActionResult>): Attack?
+    fun modifiersUsedAcrossTurns(combatant: CombatantWithStatus): List<ActionModifier> { // TODO: optimize this by storing mods directly in CombatActionResult
+        val result = mutableListOf<ActionModifier>()
+        actionResultList.filter { it.attacker == combatant }.forEach { a ->
+            ActionModifier.entries.forEach { mod ->
+                if (a.actionTaken.contains(mod.toString())) result.add(mod)
+            }
+        }
+        return result
+    }
+
+    fun wasModifierUsedThisTurn(mod: ActionModifier) =
+        actionResultList.filter { it.turnId == turnId }.any { it.actionTaken.contains(mod.toString()) }
+
+    fun getAdditionalAttack(combatant: CombatantWithStatus, target: CombatantWithStatus, attackList: List<Attack>): Attack?
     {
         val nearbyTargets = getOpponents(combatant).filter { it != target && it.isPositive() && it.distance(target).toFeet() <= Constants.MELEE_RANGE }
         if (nearbyTargets.isEmpty()) return null
@@ -291,31 +311,24 @@ class Combat(val battleId: Int) {
         val lastAttack = attackList.last()
         if (lastAttack.action !is Weapon) return null
 
-        val lastResult = attackResults.lastOrNull() ?: return null
+        val lastResult = actionResultList.lastOrNull() ?: return null
         if (lastResult.damageResultList.sumOf { it.amount } == 0) return null
 
-        fun wasModifierUsedThisTurn(mod: ActionModifier) =
-            attackResults.filter { it.turnId == turnId }.any { it.actionTaken.contains(mod.toString()) }
+        combatant.getActionModifiersAvailable()
+            .filter { it.givesExtraAttack() && !wasModifierUsedThisTurn(it) }
+            .forEach {
+                val getExtra = when (it) {
+                    Cleave       -> (lastAttack.action.hasMasteryProperty(MasteryProperty.Cleave))
+                    HordeBreaker -> true  // TODO: only if 2nd target not attacked by you this turn
+                    SuddenStrike -> wasModifierUsedThisTurn(DreadfulStrike) // TODO: choose either SuddenStrike or MassFear
+                    else -> false
+                }
 
-        val modifiers = combatant.getActionModifiersAvailable()
-        for (modifier in modifiers) {
-            if (wasModifierUsedThisTurn (modifier)) {
-                logger.debug { "modifier already used this turn: $modifier" }
-                continue
+                if (getExtra) {
+                    logger.debug { "adding extra attack for ActionModifier: $it" }
+                    return Attack(nextTarget, lastAttack.action, mutableListOf(it))
+                }
             }
-
-            val getExtra = when (modifier) {
-                Cleave       -> (lastAttack.action.hasMasteryProperty(MasteryProperty.Cleave))
-                HordeBreaker -> true  // TODO: only if 2nd target not attacked by you this turn
-                SuddenStrike -> wasModifierUsedThisTurn(DreadfulStrike)
-                else -> false
-            }
-
-            if (getExtra) {
-                logger.debug { "adding extra attack for ActionModifier: $modifier" }
-                return Attack(nextTarget, lastAttack.action, mutableListOf(modifier))
-            }
-        }
         return null
     }
 
@@ -388,7 +401,7 @@ class Combat(val battleId: Int) {
             ))
         }
 
-        healer.spellCastList.add(SpellCast(healer.combatant, spell, turnId, targetList = targetsToHeal.toMutableList()))
+        healer.recordSpellCasting(spell, turnId, targetsToHeal)
         actionId++
 
         return resultList
@@ -489,11 +502,10 @@ class Combat(val battleId: Int) {
         val damageResultList = mutableListOf<DamageResult>()
 
         if (attackRoll >= target.getAC() || autoHit) {
-            val isCritDamage = autoHit || target.isAttackerAutoCritDamage()
+            val isCritDamage  = autoHit || target.isAttackerAutoCritDamage()
+            val initialDamage = getDamage(combatant, attack, isCritDamage, action.getDamageList())
 
-            val initialDamage = getInitialDamage(attack, isCritDamage, action.getDamageList())
-
-            damageResultList.addAll (getDamageAgainstTarget (target, initialDamage))
+            damageResultList.addAll (applyDamageImmunityResistanceAndVulnerability (target, initialDamage))
 
             target.applyDamage(turnId, damageResultList)
         }
@@ -501,15 +513,19 @@ class Combat(val battleId: Int) {
         return listOf (CombatActionResult(combatant, target, turnId, actionId, effectId++, attack, damageResultList))
     }
 
-    fun getInitialDamage(attack: Attack, isCrit: Boolean, baseDamageList: List<Damage>): List<DamageResult>
+    fun getDamage(combatant: CombatantWithStatus, attack: Attack, isCrit: Boolean, baseDamageList: List<Damage>): List<DamageResult>
     {
         val damageList = baseDamageList.toMutableList()
 
-        for (modifier in attack.actionModifiers) {
-            val bonusDamage = modifier.getBonusDamage()
-            if (!bonusDamage.isEmpty()) {
-                damageList.add(Damage(bonusDamage.copy(), 0, 0, DamageType.undefined))
-            }
+        if (attack.action is Weapon) {
+            getActionModifiersAvailable(combatant)
+                .filter { it.onWeaponHit() }
+                .filter { ! wasModifierUsedThisTurn(it) }
+                .filter { it.getDamage().isNotEmpty() }
+                .forEach {
+                    attack.actionModifiers.add(it)
+                    damageList.add(it.getDamage())
+                }
         }
 
         val result = mutableListOf<DamageResult>()
@@ -525,7 +541,7 @@ class Combat(val battleId: Int) {
         return result
     }
 
-    fun getDamageAgainstTarget(target: CombatantWithStatus, initialDamage: List<DamageResult>)
+    fun applyDamageImmunityResistanceAndVulnerability (target: CombatantWithStatus, initialDamage: List<DamageResult>)
         : List<DamageResult>
     {
         val result = mutableListOf<DamageResult>()
@@ -572,10 +588,10 @@ class Combat(val battleId: Int) {
             result.addAll(spellAttackResults)
         }
 
-        val targetList = result.map {it.target }.toMutableList()
+        val targetList = result.map {it.target }
         //println("attackWithSpell: targetList = $targetList")
 
-        combatant.spellCastList.add(SpellCast(combatant, spell, turnId, targetList = targetList))
+        combatant.recordSpellCasting(spell, turnId, targetList)
         return result
     }
 
@@ -619,7 +635,7 @@ class Combat(val battleId: Int) {
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
 
         val resultList = mutableListOf<CombatActionResult>()
-        var sharedDamageList = getInitialDamage(attack, false, spellAttack.getDamageList())
+        var sharedDamageList = getDamage(combatant, attack, false, spellAttack.getDamageList())
 
         if (targetList.isEmpty()) {
             logger.warn { "battleId=$battleId, turn=$turnId, castSavingThrowSpell: target list is empty (SHOULD NOT HAPPEN), focus=$focusTarget focusLoc=${focusTarget.location}, myloc=${combatant.location}" }
@@ -629,7 +645,7 @@ class Combat(val battleId: Int) {
             var successfulSave = target.makeSavingThrow (combatant.getSpellSaveDC(), save.saveAbility)
             logger.debug { "successfulSave = $successfulSave" }
 
-            var damageResultList = getDamageAgainstTarget(target, sharedDamageList)
+            var damageResultList = applyDamageImmunityResistanceAndVulnerability(target, sharedDamageList)
             var initialDamage = damageResultList.sumOf { it.amount }
             logger.debug { "initial damage = $initialDamage" }
 
@@ -739,7 +755,8 @@ class Combat(val battleId: Int) {
     fun footer(turnId: Int, label: String): String {
         val aList = teamA.map { shortSummary(priorState[it])  }.toList()
         val bList = teamB.map { shortSummary(priorState[it])  }.toList()
-        return CombatActionResultFormatter.footer(battleId, turnId, label, aList, bList) +"\n"
+        return  CombatActionResultFormatter.footer(battleId, turnId, label, aList) +"\n"+
+                CombatActionResultFormatter.footer(battleId, turnId, label, bList) +"\n"
     }
 
     fun output(): String {

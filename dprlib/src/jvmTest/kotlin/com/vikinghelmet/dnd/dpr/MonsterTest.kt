@@ -191,7 +191,7 @@ class MonsterTest {
 
         val frightAttack = getSavingThrowAction("Frightful Presence")
         assertNotNull(frightAttack)
-        assertEquals("[ undefined]", frightAttack!!.getSpellAttacks(0)[0].getDamageList().toString()) // no damage, condition only
+        assertEquals("[]", frightAttack!!.getSpellAttacks(0)[0].getDamageList().toString()) // no damage, condition only
 
         // legendary action ...
         val wingAttack = getSavingThrowAction("Wing Attack")

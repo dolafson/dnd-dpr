@@ -87,7 +87,6 @@ data class EditablePlayerCharacter (
         //   ("at level X you will always have spell ABC prepared")
         val subclass = getSubclassName()
         logger.debug { "subclass = $subclass" }
-        logger.debug { "subclassAll = ${ Globals.subclassSpellsPrepared }" }
         if (subclass != null) {
             Globals.getSubclassSpellsPrepared(subclass).forEach {
                 logger.debug { "subclass spellprep = $it" }

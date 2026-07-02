@@ -76,10 +76,10 @@ class CombatTest {
             }
 
             for (turn in possibleTurns) {
-                var firstSpellAction = turn.attacks.firstNotNullOfOrNull { it.action as? Spell }
-                if (firstSpellAction != null) {
-                    println("firstSpellAction = $firstSpellAction")
-                    leif.spellCastList.add(SpellCast(leif, firstSpellAction!!, 0))
+                var spellAttack = turn.attacks.firstNotNullOfOrNull { it.action as? Spell }
+                if (spellAttack != null) {
+                    println("spellAttack = $spellAttack")
+                    leif.recordSpellCasting(spellAttack, turnId)
                     break
                 }
             }
@@ -677,9 +677,7 @@ class CombatTest {
         println("before turn, kael.currentHp = ${kael.currentHP}")
 
         while (kael.currentHP < kael.getHP()) {
-            val results = combat.takeTurn(kael)
-            println("combat results = $results")
-            println("after turn, kael.currentHp = ${kael.currentHP}")
+            combat.takeTurn(kael)
             assertTrue(kael.currentHP > 3)
         }
 
@@ -726,14 +724,15 @@ class CombatTest {
         dragon.location = Location(0, 0)
         leif.location = Location(1, 0)
 
-        var dragonAttackResult = combat.takeTurn(dragon)
+        combat.takeTurn(dragon)
+        var dragonAttackResult = combat.actionResultList.filter { it.turnId == 0 }
         assertEquals(1, dragonAttackResult.size)
         //println("dragonAttackResult 1 = $dragonAttackResult")
 
         assertEquals("Poison Breath", dragonAttackResult[0].actionTaken)
         assertEquals(1, dragon.waitingForRecharge.size)
 
-        dragonAttackResult = combat.takeTurn(dragon)
+        combat.takeTurn(dragon)
         //println("dragonAttackResult 2 = $dragonAttackResult")
 
         // recharge happens 2 times out of 6; should be guaranteed to happen at least once after 10 rounds
@@ -783,5 +782,34 @@ class CombatTest {
         val words = input.split(Regex("[\\s_]+"))
         val joined = words.joinToString("") { word -> word.lowercase().replaceFirstChar { it.uppercase() } }
         assertEquals("SpareTheDying", joined)
+    }
+
+    @Test
+    fun cureWounds() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(TestUtil.kael, TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+
+        // force melee range
+        combat.teamA[0].location = Location(-1, 0)
+        combat.teamA[1].location = Location(0, 0)
+        combat.teamB[0].location = Location(1, 0)
+
+        val kael = combat.teamA[0]
+        val leif = combat.teamA[1]
+
+        kael.applyDamage(0, listOf(DamageResult(kael.getHP()+1, DamageType.fire)))
+
+        val goal = leif.getActionGoal(combat)
+        assertEquals(ActionGoal.Heal, goal)
+
+        val turn = leif.getPreferredTurn(goal, kael, Constants.MELEE_RANGE, combat)
+        println("turn = $turn")
+
+        val spell =  turn!!.first.getSpell()!!
+        assertEquals("Cure Wounds", spell.name)
+
+        val healAmount = leif.getHealingAmount(spell, true)
+        println("healAmount = $healAmount")
+        assertTrue(healAmount > 0)
     }
 }

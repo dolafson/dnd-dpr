@@ -139,7 +139,7 @@ class ScenarioBuilder(
             return true
         }
 
-        if (spell.properties.Concentration == "Yes") {
+        if (spell.requiresConcentration()) {
             // check spells across all turns in current scenario to determine if any of them might still be running
             for (priorSpell in currentScenario.getSpellsAcrossTurns()) {
                 if ((priorSpell.getDuration() ?: 0) > currentScenario.turns.size) {

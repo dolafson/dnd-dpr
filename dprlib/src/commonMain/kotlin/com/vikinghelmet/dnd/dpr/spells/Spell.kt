@@ -65,7 +65,9 @@ open class Spell(
 
     fun incursDamage() = getSpellAttacks(0).any { it.getDamageList().any { it.isNotEmpty() } }
 
-    // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
+    fun requiresConcentration() = (properties.Concentration == "Yes")
+
+        // TODO: find a way to model spells with delayed effect, such as 2014 Hail of Thorns:
     // concentration up to 1 min, but only 1 instant of damage
     // note, in 2024 the spell was changed to Instantaneous (Bonus Action)
     fun getDuration(): Int? {
@@ -134,7 +136,7 @@ open class Spell(
                 }
 
                 // 2014 spells: damage is stored differently
-                if (damagePayload == null) {
+                if (is2014() && damagePayload == null) {
                     logger.debug { "spell name=$name properties.Damage = ${properties.Damage}" }
                     damagePayload = Damage(DiceBlock(properties.Damage ?: "0d4"))
                 }

@@ -21,8 +21,8 @@ class RangerSpellTest {
         character.editableFields.level = 17
         val ensnaringStrike  = Globals.getSpell("Ensnaring Strike", character.is2014())
 
-        assertEquals(Damage(null,null,null,null,null), ensnaringStrike.getSpellAttacks(0)[0].damagePayload)
-        assertEquals(Damage("none","Piercing",null,1,"d6"), ensnaringStrike.getSpellAttacks(0)[1].damagePayload)
+        assertEquals(null, ensnaringStrike.getSpellAttacks(0)[0].damagePayload) // restrained effect
+        assertEquals(Damage("none","Piercing",null,1,"d6"), ensnaringStrike.getSpellAttacks(0)[1].damagePayload) // TODO: should occur at start of next turn
     }
 
     @Test

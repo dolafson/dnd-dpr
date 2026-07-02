@@ -1,8 +1,10 @@
 package com.vikinghelmet.dnd.dpr.spells.payload
 
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 @SerialName("Healing")
@@ -12,17 +14,23 @@ data class Healing(
     val _bonus: Int? = null,
     val diceCount: Int? = null,
     val diceSize: String? = null ,
+    var _healingDice: DiceBlock = DiceBlock(),
 ) : Payload() {
-    var healingDice: DiceBlock = DiceBlock("${ (diceCount?: 0) }d${diceSize?: 4}")
 
-    constructor(dice: DiceBlock) : this("auto", false) {
-        healingDice = dice
-    }
+    @Transient private val logger = LoggerFactory.get(Healing::class.simpleName ?: "")
 
-    init {
+    constructor(dice: DiceBlock) : this("auto", false, _healingDice = dice)
+
+    // NOTE: in kotlin, "init" blocks are called before json deserialization ... so not used here
+
+    fun getHealingDice(): DiceBlock {
+        if (!_healingDice.isEmpty()) return _healingDice
+
+        _healingDice = DiceBlock("${ (diceCount?: 0) }${diceSize?: 4}")
         if (_bonus != null) {
-            healingDice.addBonus(_bonus)
+            _healingDice.addBonus(_bonus)
         }
+        return _healingDice
     }
 
 }

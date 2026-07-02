@@ -5,7 +5,6 @@ import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.spells.payload.Damage
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffect
-import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlin.math.pow
@@ -55,11 +54,12 @@ data class SpellAttack(
 
     override fun getDamageList(): List<com.vikinghelmet.dnd.dpr.action.Damage>
     {
-        var damageType = damagePayload?.damageType ?: "undefined"
+        if (damagePayload == null) return emptyList()
+        var damageType = damagePayload.damageType ?: DamageType.undefined.name
         if (damageType.contains(" ")) damageType = "fire" // choose acid, cold, fire, ...
 
         return listOf(com.vikinghelmet.dnd.dpr.action.Damage(
-            damagePayload?.getDamageDice() ?: DiceBlock(),
+            damagePayload.getDamageDice(),
             0, 0,
             DamageType.valueOf(damageType.lowercase())))
     }

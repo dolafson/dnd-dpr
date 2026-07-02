@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
@@ -59,6 +60,11 @@ open class TargetEffect (
             conditions.addAll(spell.getSpellFailConditions())
             conditions.forEach { applyCondition(it) }
             applySpellName(spell.name)
+        }
+
+        if (cause == ActionModifier.RecklessAttack) {
+            attacksAgainstOthers = AttackAdvantage.advantage
+            attacksAgainstMe     = AttackAdvantage.advantage
         }
     }
 

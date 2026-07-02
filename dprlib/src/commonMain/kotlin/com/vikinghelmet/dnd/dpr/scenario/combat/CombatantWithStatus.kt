@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.action.Combatant
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
+import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
@@ -22,10 +23,7 @@ import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
-import com.vikinghelmet.dnd.dpr.util.Condition
-import com.vikinghelmet.dnd.dpr.util.Constants
-import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.Movement
+import com.vikinghelmet.dnd.dpr.util.*
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 import kotlin.math.max
@@ -261,6 +259,30 @@ data class CombatantWithStatus(
         return Spell.isSlotAvailable(this, spell, spellCastList.map { it.spell})
     }
 
+    fun recordSpellCasting(spell: Spell, turnId: Int, targetList: List<CombatantWithStatus> = emptyList())
+    {
+        if (spell.requiresConcentration() &&
+            spellCastList.any { it.isStillRunning() && it.spell.requiresConcentration() } )
+        {
+            breakConcentration(turnId)
+        }
+
+        spellCastList.add(SpellCast(combatant, spell, turnId, targetList = targetList))
+    }
+
+    fun breakConcentration(turnId: Int) {
+        logger.debug { "concentration is broken" }
+
+        spellCastList.filter { it.isStillRunning() && it.spell.requiresConcentration() }.forEach { spellCast ->
+            spellCast.turnEnded = turnId
+            spellCast.targetList.forEach { spellTarget ->
+                spellTarget.removeAll {
+                    it.cause === spellCast.spell
+                }
+            }
+        }
+    }
+
     // --------------------------------------------------------------------
     // SAVING THROWS
 
@@ -269,6 +291,9 @@ data class CombatantWithStatus(
     }
 
     fun checkForSaveAtStartOfTurn(turnId: Int) {
+        // check for action modifiers that clear at start of turn
+        removeAll { it.cause is ActionModifier && it.attacksAgainstOthers == AttackAdvantage.advantage }
+
         // check spells cast on others - if expired duration, remove the effect from all targets
         spellCastList.filter { it.isExpired(turnId) }.forEach { spellCast ->
             spellCast.targetList.forEach { target ->
@@ -339,19 +364,6 @@ data class CombatantWithStatus(
         }
     }
 
-    fun breakConcentration(turnId: Int) {
-        logger.debug { "concentration is broken" }
-
-        spellCastList.filter { it.isStillRunning() }.forEach { spellCast ->
-            spellCast.turnEnded = turnId
-            spellCast.targetList.forEach { spellTarget ->
-                spellTarget.removeAll {
-                    it.cause === spellCast.spell
-                }
-            }
-        }
-    }
-
     fun isCleric(): Boolean {
         return (combatant is PlayerCharacter) && (combatant.getClass() == ClassName.Cleric)
     }
@@ -359,7 +371,10 @@ data class CombatantWithStatus(
     // return either a random or maximum value
     fun getHealingAmount(spell: Spell, random: Boolean): Int {
         val healing = spell.getHealing()
-        var roll = if (random) healing.healingDice.roll() else healing.healingDice.max()
+        val dice = healing.getHealingDice()
+        if (dice.isEmpty()) return 0
+
+        var roll = if (random) dice.roll() else dice.max()
 
         if (healing.ability == "auto") {
             val spellCastingBonus = (this.combatant as? PlayerCharacter)?.getSpellAbilityBonusWithoutPB() ?: 0
@@ -385,6 +400,28 @@ data class CombatantWithStatus(
 
     // --------------------------------------------------------------------
     // TURN OPTIONS
+
+    fun getActionModifierDailyLimit(mod: ActionModifier): Int {
+        return when (mod) {
+            ActionModifier.DreadfulStrike -> getAbilityModifier(AbilityType.Wisdom)
+
+            // TODO: table lookup for the following ...
+            ActionModifier.Rage -> 3
+            ActionModifier.SecondWind -> 1
+
+            // TODO: limits based on superiority dice
+            ActionModifier.ManeuverParry, ActionModifier.ManeuverPrecisionAttack, ActionModifier.ManeuverDistractingStrike -> 3
+            else -> Int.MAX_VALUE // unlimited
+        }
+    }
+
+    fun getActionModifiersAvailable(modifiersUsed: List<ActionModifier>): List<ActionModifier> {
+        return combatant.getActionModifiersAvailable().filter {
+            val limit = getActionModifierDailyLimit(it)
+            val used = modifiersUsed.count { it2 -> it == it2 }
+            (used < limit)
+        }
+    }
 
     fun getPossibleTurns(target: CombatantWithStatus, range: Int): List<Turn> {
         val builder = ScenarioBuilder(this, target)
@@ -431,24 +468,24 @@ data class CombatantWithStatus(
             .filter { it.getSpell() == null || isSpellViable(target,combat, it) }
 
         val numOpponents = combat?.getOpponents(this)?.size ?: 1
-        val initialResults = mutableListOf<RankedTurnOption>()
+        val results = mutableListOf<RankedTurnOption>()
 
         for (turn in possible) {
             val ranking = TurnOptionRanking.fromTurn(turn)
             val scenario = Scenario(this.combatant, listOf(turn), numOpponents, Constants.DEFAULT_TARGET_SPACING) // TODO: spacing
             val scenarioResult = ScenarioCalculator(scenario,).calculateDPRForAllTurns()
 
-            initialResults.add (RankedTurnOption (turn, ranking, scenarioResult,))
+            results.add (RankedTurnOption (turn, ranking, scenarioResult,))
         }
 
         if (goal == ActionGoal.Attack) {
-            return initialResults.sortedWith( compareByDescending<RankedTurnOption> { it.ranking.ordinal }
+            return results.sortedWith( compareByDescending<RankedTurnOption> { it.ranking.ordinal }
                 .thenByDescending { it.scenarioResult.totalDamage } )
         }
 
         // healing: sort first by ranking, then by max heal amount
 
-        return initialResults.sortedWith(  compareByDescending<RankedTurnOption> { it.ranking.ordinal }
+        return results.sortedWith(  compareByDescending<RankedTurnOption> { it.ranking.ordinal }
             .thenByDescending { getHealingAmount(it.turn.getSpell()!!, false) } )
     }
 
@@ -522,12 +559,21 @@ data class CombatantWithStatus(
 
         // exclude spells with damageType that target is immune to
         if (spell.incursDamage()) {
-            val damageType = spell.getSpellAttacks(0).first().getDamageList().first().type // TODO: improve
+            val damage = spell.getSpellAttacks(0).filter { it.getDamageList().isNotEmpty() }.flatMap { it.getDamageList() }.firstOrNull()
+            if (damage == null) return false
+
+            val damageType = damage.type // TODO: improve
             if (target.getDamageImmunities().contains(damageType)) {
                 logger.debug { "skipping spell turn option, target is immune: ${spell.name}" }
                 return false
             }
         }
+
+        if (!spell.isHealing() && !spell.incursDamage() && TargetEffect(0, spell).isEmpty()) {
+            logger.debug { "skipping spell turn option, spell yields no healing, damage or target effects: ${spell.name}" }
+            return false
+        }
+
         return true
     }
 
@@ -544,7 +590,7 @@ data class CombatantWithStatus(
         if (combat != null) {
             logger.warn {
                 "battleId=${combat.battleId}, turnId=${combat.turnId}, getActionGoal: remaining healing spells: ${
-                    combatant.getPreparedSpells().all { it.isHealing() && isSlotAvailable(it) }
+                    combatant.getPreparedSpells().filter { it.isHealing() && isSlotAvailable(it) }.map { it.name }
                 }"
             }
         }

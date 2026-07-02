@@ -2,10 +2,25 @@ package com.vikinghelmet.dnd.dpr.action
 
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
+import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Serializable
 
 @Serializable
 class Damage(val dice: DiceBlock, var bonus: Int, var abilityBonus: Int, val type: DamageType) {
+
+    @kotlinx.serialization.Transient
+    private val logger = LoggerFactory.get(Damage::class.simpleName ?: "")
+
+    init{
+        if (type == DamageType.undefined) {
+            try {
+                throw Exception("Damage undefined")
+            } catch (e: Exception) {
+                val stackTraceString: String = e.stackTraceToString()
+                logger.debug { stackTraceString }
+            }
+        }
+    }
 
     override fun toString(): String {
         val builder = StringBuilder("$dice")

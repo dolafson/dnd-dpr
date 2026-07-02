@@ -1,7 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat.results
 
 import com.vikinghelmet.dnd.dpr.action.Attack
-import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatantWithStatus
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
@@ -35,7 +34,7 @@ data class CombatActionResult(
     private val logger = LoggerFactory.get(CombatActionResult::class.simpleName ?: "")
 
     constructor(c: CombatantWithStatus) : this(
-        c, c, 0, "0", 0, "initiative = ${c.initiative}", listOf(DamageResult(0, DamageType.undefined)),
+        c, c, 0, "0", 0, "initiative = ${c.initiative}", emptyList(),
         c.getHP(), deathSaves = listOf(""), effects = "", condition = "", attackerNewLocation = c.location.copy()
     )
 
