@@ -19,6 +19,7 @@ import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatCollection
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResultFormatter
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioIterator
@@ -193,7 +194,10 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
 
     fun getCombatResultCSV(): String {
         val fileContent = StringBuilder()
-        viewModel.getCombatList()!!.forEach { fileContent.append(it.output()).append("\n")  }
+        viewModel.getCombatList()!!.forEach {
+            val csv = CombatActionResultFormatter.output(it)
+            fileContent.append(csv).append("\n")
+        }
         return fileContent.toString()
     }
 

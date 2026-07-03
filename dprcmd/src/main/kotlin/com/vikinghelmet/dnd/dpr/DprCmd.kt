@@ -11,6 +11,7 @@ import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatCollection
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResultFormatter
 import com.vikinghelmet.dnd.dpr.scenario.onesided.*
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
@@ -321,7 +322,10 @@ suspend fun main(args : Array<String>) {
         logger.warn { "" }
 
         val fileContent = StringBuilder()
-        combatList.forEach { fileContent.append(it.output()).append("\n")  }
+        combatList.forEach {
+            val csv = CombatActionResultFormatter.output(it)
+            fileContent.append(csv).append("\n")
+        }
         println(fileContent.toString())
     }
     else if (args[i].toIntOrNull() == null) {
