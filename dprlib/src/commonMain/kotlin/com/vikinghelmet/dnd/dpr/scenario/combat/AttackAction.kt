@@ -17,8 +17,6 @@ import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Constants
-import dev.shivathapaa.logger.api.LoggerFactory
-import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.max
 import kotlin.math.min
@@ -32,19 +30,13 @@ class AttackAction(
     var target: CombatantWithStatus = combatant // stop hitting yourself ... initialize to self because null is messier
 )
 {
-    @Transient
-    private val logger = LoggerFactory.get(AttackAction::class.simpleName ?: "")
-
     var actionId = 0
     var effectId = 0
     val actionResultList = mutableListOf<CombatActionResult>()
 
-    private fun pad2(input: Int) = input.toString().padStart(2, '0')
-    private fun getAttrString() = mapOf("battleId" to pad2(battleId), "turnId" to pad2(turnId)).toString()
-    fun logError(msg: () -> String) = logger.error { getAttrString() +": "+ msg() }
-    fun logWarn(msg: () -> String)  = logger.warn  { getAttrString() +": "+ msg() }
-    fun logInfo(msg: () -> String)  = logger.info  { getAttrString() +": "+ msg() }
-    fun logDebug(msg: () -> String) = logger.debug { getAttrString() +": "+ msg() }
+    fun logError(msg: () -> String) = combat.logError(msg)
+    fun logInfo(msg: () -> String)  = combat.logInfo(msg)
+    fun logDebug(msg: () -> String) = combat.logDebug(msg)
 
     fun getOpponents()         = combat.getOpponents(combatant)
     fun getNotDeadOpponents()  = getOpponents().filter { !it.isDead() }.toList()
@@ -71,7 +63,7 @@ class AttackAction(
 
         // from here on down is all about the Attack
 
-        val selectedTarget = chooseAttackTarget()
+        val selectedTarget = chooseTarget()
         combatant.target = selectedTarget
 
         if (selectedTarget == null) {
@@ -155,7 +147,7 @@ class AttackAction(
         return null
     }
 
-    fun chooseAttackTarget(): CombatantWithStatus?
+    fun chooseTarget(): CombatantWithStatus?
     {
         // if you are within melee range of a healthy opponent, you can't move (don't provoke an oppy attack) ...
         // just attack someone right in front of you
@@ -168,7 +160,7 @@ class AttackAction(
 
         // if you already have a target that is not dead/dying, try to finish them off
         if (combatant.target != null && combatant.target!!.isPositive()) {
-            logger.verbose { "chooseTarget: keeping current target = ${combatant.target}" }
+            logDebug { "chooseTarget: keeping current target = ${combatant.target}" }
             targetList = listOf(combatant.target!!)
         }
         else {
@@ -328,7 +320,7 @@ class AttackAction(
             }
 
             if (spellAttackResults.isEmpty()) {
-                logWarn { "spellAttackResults is empty, spell = $spell" }
+                logInfo { "spellAttackResults is empty, spell = $spell" }
             }
             result.addAll(spellAttackResults)
         }
@@ -382,7 +374,7 @@ class AttackAction(
         var sharedDamageList = getDamage(attack, false, spellAttack.getDamageList())
 
         if (targetList.isEmpty()) {
-            logWarn { "castSavingThrowSpell: target list is empty (SHOULD NOT HAPPEN), focus=$focusTarget focusLoc=${focusTarget.location}, myloc=${combatant.location}" }
+            logError { "castSavingThrowSpell: target list is empty (SHOULD NOT HAPPEN), focus=$focusTarget focusLoc=${focusTarget.location}, myloc=${combatant.location}" }
         }
 
         for (target in targetList) {

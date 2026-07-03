@@ -33,12 +33,8 @@ class Combat(val battleId: Int) {
     fun teamSummary(team: List<CombatantWithStatus>): String {
         return "${ team.sortedByDescending { it.initiative }.map { it.summary() }.toList() }"
     }
+    fun isRunning() =  (teamA.any { it.isPositive() } && teamB.any { it.isPositive() })
 
-    fun initInitialState() {
-        for (c in (teamA+teamB)) {
-            initialState[c] = CombatActionResult(c)
-        }
-    }
 
     constructor(battleId: Int, noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false)
         : this(battleId)
@@ -58,7 +54,9 @@ class Combat(val battleId: Int) {
         // we won't do that here - unique rolls are more realistic, and easier to implement
         initiativeList = (teamA + teamB).sortedByDescending { it.initiative }.toList()
 
-        initInitialState()
+        for (c in (teamA+teamB)) {
+            initialState[c] = CombatActionResult(c)
+        }
     }
 
     private fun getCounter(team: List<Combatant>): AtomicInt? {
@@ -75,8 +73,6 @@ class Combat(val battleId: Int) {
         // for a team of equals, append a letter suffix
         return if (teamCounter == null) tmp else "$tmp ${'A' + teamCounter.fetchAndIncrement()}"
     }
-
-    fun isRunning() =  (teamA.any { it.isPositive() } && teamB.any { it.isPositive() })
 
     fun run(): Boolean {
         logInfo { "initiativeList = ${ initiativeList.associateBy { it.initiative }}" }
@@ -135,7 +131,6 @@ class Combat(val battleId: Int) {
             return
         }
 
-        // no more "continue" after this, all branches need to hit
         combatant.checkForSaveAtStartOfTurn(turnId)
 
         if (!combatant.canTakeAction()) {

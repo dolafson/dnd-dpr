@@ -5,8 +5,6 @@ import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
-import dev.shivathapaa.logger.api.LoggerFactory
-import kotlinx.serialization.Transient
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
@@ -18,14 +16,11 @@ class HealingAction(
     var target: CombatantWithStatus = combatant // stop hitting yourself ... initialize to self because null is messier
 )
 {
-    @Transient
-    private val logger = LoggerFactory.get(HealingAction::class.simpleName ?: "")
-
-    fun logInfo(msg: () -> String)  = logger.info  { combat.getAttrString() +": "+ msg() }
+    fun logInfo(msg: () -> String)  = combat.logInfo(msg)
 
     fun takeAction(): List<CombatActionResult>
     {
-        val healTarget = chooseHealingTarget() ?: return listOf(
+        val healTarget = chooseTarget() ?: return listOf(
             CombatActionResult(combatant, combatant, turnId, 0, 0,
                 "goal is healing, but no healing target chosen" )
         )
@@ -55,7 +50,7 @@ class HealingAction(
 
     fun getMyTeam() = combat.getMyTeam (combatant)
 
-    fun chooseHealingTarget(): CombatantWithStatus? {
+    fun chooseTarget(): CombatantWithStatus? {
         val team = getMyTeam()
 
         // if the team has a dying cleric, heal them first (so they can heal others)
