@@ -86,10 +86,10 @@ class Combat(val battleId: Int) {
             }
 
             turnId++
-            // exit after 100 turns, or in any aberrant situation where a live A and B occupy the same space
+
+            // check for any live opponents at the same location, and make small adjustments as needed
             val notDeadA = teamA.filter { it.isPositive() }
             val notDeadB = teamB.filter { it.isPositive() }
-            val runningTooLong = turnId > 100
 
             while (notDeadA.any { it -> notDeadB.any { it2 -> it2.location == it.location }}) {
                 notDeadA.filter { it -> notDeadB.any { it2 -> it2.location == it.location }}.forEach {
@@ -98,28 +98,22 @@ class Combat(val battleId: Int) {
                 }
             }
 
+            // don't let combat run forever
+            val runningTooLong = turnId > 100
             if (runningTooLong) {
-                repeat(3) { logWarn { "" } }
-                logWarn {"combat is running too long" }
-
-                logWarn {"teamA = ${ teamSummary(teamA)}" }
-                logWarn {"teamB = ${ teamSummary(teamB)}" }
-
-                // throw IllegalStateException("turnId=$turnId, combat is running too long")
+                logWarn {"running too long, teamA = ${ teamSummary(teamA)}" }
+                logWarn {"running too long, teamB = ${ teamSummary(teamB)}" }
                 return false
             }
         }
-        if (!teamB.any { it.isPositive() }) {
-            logWarn { "winner = teamA = ${ teamSummary(teamA) } " }
-            return true
-        } else {
-            logWarn { "winner = teamB = ${ teamSummary(teamB) } " }
-            return false
-        }
+
+        val winningTeam = if (!teamB.any { it.isPositive() }) teamA else teamB
+        logWarn { "winningTeam = $winningTeam" }
+        return winningTeam == teamA
     }
 
-    fun fullTurn(combatant: CombatantWithStatus) {
-
+    fun fullTurn(combatant: CombatantWithStatus)
+    {
         if (combatant.isDead()) {
             logDebug { "combatant=$combatant, is dead" }
             return
