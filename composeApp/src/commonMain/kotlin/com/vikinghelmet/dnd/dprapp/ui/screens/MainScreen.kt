@@ -18,7 +18,7 @@ import com.vikinghelmet.dnd.dpr.action.CombatantMenuItem
 import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
-import com.vikinghelmet.dnd.dpr.scenario.combat.CombatLoop
+import com.vikinghelmet.dnd.dpr.scenario.combat.CombatCollection
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioIterator
@@ -29,9 +29,12 @@ import com.vikinghelmet.dnd.dprapp.ui.widgets.BasicTextMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.CombatantMenu
 import com.vikinghelmet.dnd.dprapp.ui.widgets.NumericMenu
 import dev.shivathapaa.logger.api.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.time.measureTime
 
 fun getCombatants() = dprFiles.getPartyList() + dprFiles.getEditableCharacterList() + Globals.monsters
 
@@ -142,28 +145,38 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         val teamB = pickTeam (viewModel.getCombatant(false)!!)
 
         val numSimulations = 30 // TODO ?
-        val loop = CombatLoop(teamA, teamB, numSimulations, false)
+        val loop = CombatCollection(teamA, teamB, numSimulations, false)
         loop.log()
-
-        val combatList = mutableListOf<Combat>()
 
         scope.launch {
             outputText = "Starting combat loop\n"
-            delay(1)
             loading = true
+            currentProgress = 0f
 
-            repeat(numSimulations) {
-                combatList.add (loop.runOnce())
-                currentProgress = loop.getPercentComplete()
-                //outputText += "."
-                delay(1)
-                println("currentProgress: $currentProgress")
+            val combatList = mutableListOf<Combat>()
+            val channel = Channel<Combat>(capacity = numSimulations)
+
+            val elapsed = measureTime {
+                // launch all simulations in parallel on the Default dispatcher
+                launch(Dispatchers.Default) {
+                    repeat(numSimulations) {
+                        launch { channel.send(loop.runOnce()) }
+                    }
+                }
+
+                // receive results one at a time, updating progress as each completes
+                repeat(numSimulations) {
+                    combatList.add(channel.receive())
+                    currentProgress = combatList.size.toFloat() / numSimulations.toFloat()
+                }
             }
 
+            channel.close()
             outputText += "\n\nTeamA win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }%"
+            outputText += "\n\nDuration = ${elapsed.inWholeSeconds} secs"
+            loading = false
+            viewModel.setCombatList(combatList)
         }
-        loading = false
-        viewModel.setCombatList(combatList)
     }
 
     fun getScenarioResultCSV(): String {

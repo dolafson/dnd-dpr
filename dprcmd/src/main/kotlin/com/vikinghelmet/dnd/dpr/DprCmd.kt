@@ -10,8 +10,7 @@ import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
-import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
-import com.vikinghelmet.dnd.dpr.scenario.combat.CombatLoop
+import com.vikinghelmet.dnd.dpr.scenario.combat.CombatCollection
 import com.vikinghelmet.dnd.dpr.scenario.onesided.*
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI
 import com.vikinghelmet.dnd.dpr.util.CharacterAPI.getCharacterApiURL
@@ -264,7 +263,7 @@ OR
 """)
 }
 
-fun main(args : Array<String>) {
+suspend fun main(args : Array<String>) {
     JulConfigurator()
 
     if (args.isEmpty()) {
@@ -306,10 +305,9 @@ fun main(args : Array<String>) {
     val targets   = getCombatantGroup(args[i++])
 
     if (args[i].startsWith("auto")) {
-        val loop = CombatLoop(attackers, targets, 30, args[i].startsWith("auto:fly"))
-
-        val combatList = mutableListOf<Combat>()
-        repeat(30) { combatList.add(loop.runOnce()) }
+        val loop = CombatCollection(attackers, targets, 30, args[i].startsWith("auto:fly"))
+        loop.run()
+        val combatList = loop.combatList
 
         logger.warn { "" }
         logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }" }
