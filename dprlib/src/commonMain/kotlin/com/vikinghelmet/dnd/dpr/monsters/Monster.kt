@@ -105,7 +105,7 @@ data class Monster(
 
     override fun isFeatEnabled(requested: Feat) = false
 
-    override fun isRacialTraitEnabled(requested: RacialTrait) = false // TODO
+    override fun isRacialTraitEnabled(requested: RacialTrait) = false // TODO: Racial traits
 
     override fun isEvasive() = special_abilities?.any { it.name == "Evasion" } ?: false
 
@@ -131,7 +131,7 @@ data class Monster(
         return actions.filter { it.dc == null }.map { it.toWeapon() }.toList()
     }
 
-    override fun getSpellBonusToHit() = 0 // TODO
+    override fun getSpellBonusToHit() = 0 // TODO: monsters that cast spells
 
     override fun getSpellSaveDC(): Int {
         if (actions == null) return 0
@@ -142,9 +142,9 @@ data class Monster(
         return 0
     }
 
-    override fun getPreparedBonusActionSpells(targetProximity: Int) = emptyList<PreparedSpell>() // TODO
+    override fun getPreparedBonusActionSpells(targetProximity: Int) = emptyList<PreparedSpell>()
 
-    override fun getSpellSlots() = emptyList<Int>() // TODO
+    override fun getSpellSlots() = emptyList<Int>()
 
     override fun getActionsAvailable(): ActionsAvailable { // TODO: duplication between this and PC
         if (_actionsAvailable.isEmpty()) {
@@ -189,9 +189,9 @@ data class Monster(
         }
     }
 
-    override fun getActionModifiersAvailable() = emptyList<ActionModifier>() // TODO
+    override fun getActionModifiersAvailable() = emptyList<ActionModifier>() // TODO: ActionModifier is PC only ?
 
-    override fun getActionList() = emptyList<ActionAdded>() // TODO
+    override fun getActionList() = emptyList<ActionAdded>() // TODO: ActionList is PC only ?
 
     fun expandMultiAttack(): List<Action>
     {

@@ -53,9 +53,9 @@ open class PlayerCharacter(
 
     override fun getSpeed(movement: Movement) = 30 // TODO: data.race.weightSpeeds.normal.{walk,fly,burrow,climb,swim}
 
-    override fun getDamageImmunities(): List<DamageType> = emptyList() // TODO ?
-    override fun getDamageResistances(): List<DamageType> = emptyList() // TODO ?
-    override fun getDamageVulnerabilities(): List<DamageType> = emptyList() // TODO ?
+    override fun getDamageImmunities(): List<DamageType> = emptyList() // TODO: immunity/resistance/vulnerability
+    override fun getDamageResistances(): List<DamageType> = emptyList()
+    override fun getDamageVulnerabilities(): List<DamageType> = emptyList()
 
     open fun getLevel(): Int {
         return characterData.classes.first().level
@@ -213,7 +213,7 @@ open class PlayerCharacter(
         else dexBonus
     }
 
-    // TODO: use of "includesMelee / includesRange" (above, below) should really be based on scenario
+    // TODO: use of includesMelee / includesRange (above, below) should really be based on scenario
     //  - you get the melee bonus only if you are using the weapon in a melee attack, etc
 
     fun getAttackBonus(w: Weapon): Int {

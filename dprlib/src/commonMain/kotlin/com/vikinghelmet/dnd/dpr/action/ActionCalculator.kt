@@ -689,7 +689,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
 
         debug()
 
-        // TODO: "autoCrit" from paralyzed/unconscious should only apply to melee attacks (not range)
+        // TODO: autoCrit from paralyzed/unconscious should only apply to melee attacks (not range)
 
         // Crit%:        (B211, F211, J211)
         // NOTE: we are intentionally ordering these differently than the Ludic Spreadsheet;
