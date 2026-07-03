@@ -1,6 +1,9 @@
 package com.vikinghelmet.dnd.dpr.scenario.onesided
 
-import com.vikinghelmet.dnd.dpr.action.*
+import com.vikinghelmet.dnd.dpr.action.ActionCalculator
+import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.Damage
+import com.vikinghelmet.dnd.dpr.action.Weapon
 import com.vikinghelmet.dnd.dpr.action.results.AttackResult
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
@@ -10,6 +13,7 @@ import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.LogOnce
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
@@ -154,7 +158,7 @@ class ScenarioCalculator(
         }
 
         if (resultList.isEmpty()) {
-            logger.warn { "spell dpr, result list is empty, spell = $spell" }
+            LogOnce.warn("spell dpr, result list is empty, spell = $spell")
         }
         else {
             effectManager.add(TargetEffect(turnId, spell, resultList.first().chanceToHit.avg))

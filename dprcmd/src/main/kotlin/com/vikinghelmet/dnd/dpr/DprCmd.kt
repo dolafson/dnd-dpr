@@ -306,7 +306,14 @@ suspend fun main(args : Array<String>) {
 
     if (args[i].startsWith("auto")) {
         val loop = CombatCollection(attackers, targets, 30, args[i].startsWith("auto:fly"))
-        loop.run()
+
+        if (args[i].contains("async")) {
+            loop.runAsync()
+        }
+        else {
+            loop.run()
+        }
+        
         val combatList = loop.combatList
 
         logger.warn { "" }

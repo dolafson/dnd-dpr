@@ -12,7 +12,6 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.location.Direction
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResultFormatter
-import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.HealthStatus
 import com.vikinghelmet.dnd.dpr.spells.SaveResult.*
@@ -44,6 +43,13 @@ class Combat(val battleId: Int) {
 
     val initialState = mutableMapOf<CombatantWithStatus, CombatActionResult>() // used for debugging
     val priorState = mutableMapOf<CombatantWithStatus, CombatActionResult>() // used during output()
+
+    private fun pad2(input: Int) = input.toString().padStart(2, '0')
+    private fun getAttrString() = mapOf("battleId" to pad2(battleId), "turnId" to pad2(turnId)).toString()
+    fun logError(msg: () -> String) = logger.error { getAttrString() +": "+ msg() }
+    fun logWarn(msg: () -> String)  = logger.warn  { getAttrString() +": "+ msg() }
+    fun logInfo(msg: () -> String)  = logger.info  { getAttrString() +": "+ msg() }
+    fun logDebug(msg: () -> String) = logger.debug { getAttrString() +": "+ msg() }
 
     fun initInitialState() {
         for (c in (teamA+teamB)) {
@@ -90,12 +96,11 @@ class Combat(val battleId: Int) {
     fun isRunning() =  (teamA.any { it.isPositive() } && teamB.any { it.isPositive() })
 
     fun run(): Boolean {
-        logger.info { "initiativeList = ${ initiativeList.associateBy { it.initiative }}" }
+        logInfo { "initiativeList = ${ initiativeList.associateBy { it.initiative }}" }
 
         while (isRunning()) {
-            logger.info {
-                "battleId=$battleId, turn=$turnId, teamA: ${ teamSummary(teamA) }, teamB: ${ teamSummary(teamB) }"
-            }
+            logInfo { "teamA: ${ teamSummary(teamA) }, teamB: ${ teamSummary(teamB) }" }
+
             fullTurn()
             turnId++
             // exit after 100 turns, or in any aberrant situation where a live A and B occupy the same space
@@ -105,45 +110,30 @@ class Combat(val battleId: Int) {
 
             while (notDeadA.any { it -> notDeadB.any { it2 -> it2.location == it.location }}) {
                 notDeadA.filter { it -> notDeadB.any { it2 -> it2.location == it.location }}.forEach {
-                    logger.error { "combatant in same space as opponents; jitter: $it" }
+                    logError { "combatant in same space as opponents; jitter: $it" }
                     it.location.jitter()
                 }
             }
 
             if (runningTooLong) {
-                repeat(3) { logger.warn { "" } }
-                logger.warn {"turnId=$turnId, combat is running too long" }
+                repeat(3) { logWarn { "" } }
+                logWarn {"combat is running too long" }
 
-                logger.warn {"turnId=$turnId, teamA = ${ teamSummary(teamA)}" }
-                logger.warn {"turnId=$turnId, teamB = ${ teamSummary(teamB)}" }
-
-                initialState.forEach { (c, state) ->
-                    logger.warn {
-                        "turn=-1, combatant=$c, initialLoc=${state.attackerNewLocation}"
-                    }
-                }
-                actionResultList.forEach { r ->
-                    logger.warn {
-                        "turn=${r.turnId}, combatant=${r.attacker}, newLoc=${r.attackerNewLocation}"
-                    }
-                }
+                logWarn {"teamA = ${ teamSummary(teamA)}" }
+                logWarn {"teamB = ${ teamSummary(teamB)}" }
 
                 // throw IllegalStateException("turnId=$turnId, combat is running too long")
                 return false
             }
         }
         if (!teamB.any { it.isPositive() }) {
-            logger.warn { "battleId=$battleId, turn=$turnId, winner = teamA = ${ teamSummary(teamA) } " }
+            logWarn { "winner = teamA = ${ teamSummary(teamA) } " }
             return true
         } else {
-            logger.warn { "battleId=$battleId, turn=$turnId, winner = teamB = ${ teamSummary(teamB) } " }
+            logWarn { "winner = teamB = ${ teamSummary(teamB) } " }
             return false
         }
     }
-
-    fun isWinnerTeamA() = !teamA.all { it.isDead() }
-
-    fun getResult() = CombatResult(this, actionResultList)
 
     fun teamSummary(team: List<CombatantWithStatus>): String {
         return "${ team.sortedByDescending { it.initiative }.map { it.summary() }.toList() }"
@@ -151,7 +141,7 @@ class Combat(val battleId: Int) {
 
     fun fullTurn() {
         if (initiativeList.isEmpty()) {
-            logger.warn { "turnId=$turnId, initiative list is empty!!" }
+            logWarn { "initiative list is empty!!" }
             return
         }
 
@@ -162,11 +152,11 @@ class Combat(val battleId: Int) {
             }
 
             if (combatant.isDead()) {
-                logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, is dead" }
+                logDebug { "combatant=$combatant, is dead" }
                 continue
             } else if (combatant.isDying()) {
                 actionResultList.add(combatant.deathSave(turnId))
-                logger.info { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
+                logInfo { "combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
                 continue
             }
 
@@ -186,7 +176,7 @@ class Combat(val battleId: Int) {
     }
 
     fun takeTurn(combatant: CombatantWithStatus) {
-        logger.debug { "battleId=$battleId, fullTurn, turn=$turnId, combatant=$combatant is taking action" }
+        logDebug { "combatant=$combatant is taking action" }
         actionId = 0
         effectId = 0
 
@@ -220,7 +210,7 @@ class Combat(val battleId: Int) {
             return
         }
 
-        logger.debug { "turn = $turnId, combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
+        logDebug { "combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
         val hasAdvantage   = combatant.any { it.attacksAgainstOthers == AttackAdvantage.advantage }
         val givesAdvantage = getActionModifiersAvailable(combatant).firstOrNull { it.givesAdvantage() && !hasAdvantage }
@@ -325,7 +315,7 @@ class Combat(val battleId: Int) {
                 }
 
                 if (getExtra) {
-                    logger.debug { "adding extra attack for ActionModifier: $it" }
+                    logDebug { "adding extra attack for ActionModifier: $it" }
                     return Attack(nextTarget, lastAttack.action, mutableListOf(it))
                 }
             }
@@ -387,7 +377,7 @@ class Combat(val battleId: Int) {
                 healAmount /= targetsToHeal.size    // TODO: support uneven distribution of healing amount
             }
             healTarget.applyHealing(healAmount)
-            logger.info { "turn = $turnId, ${healer.shortName()} heals ${healTarget.shortName()} for $healAmount HP (now ${healTarget.currentHP}/${healTarget.getHP()})" }
+            logInfo { "${healer.shortName()} heals ${healTarget.shortName()} for $healAmount HP (now ${healTarget.currentHP}/${healTarget.getHP()})" }
 
             val damageResultList = listOf(DamageResult(healAmount, DamageType.healing))
             resultList.add (CombatActionResult(
@@ -474,7 +464,7 @@ class Combat(val battleId: Int) {
         val attackAdvantage = AttackAdvantage.fromList (listOf (
             target.getAttacksAgainstMe(), combatant.getAttacksAgainstOthers()
         ))
-        logger.info { "attacker advantage = $attackAdvantage" }
+        logInfo { "attacker advantage = $attackAdvantage" }
         when (attackAdvantage) {
             AttackAdvantage.advantage    -> attackRoll = max(attackRoll, (1..20).random())
             AttackAdvantage.disadvantage -> attackRoll = min(attackRoll, (1..20).random())
@@ -494,7 +484,7 @@ class Combat(val battleId: Int) {
         val autoHit = attackRoll == 20 // critical Hit + Damage ... TODO: for a champion, autoHit on 19 or 18
 
         val name = action.getActionName()
-        logger.debug { "combatant = $combatant, target = $target, action = $name" }
+        logDebug { "combatant = $combatant, target = $target, action = $name" }
 
         attackRoll += action.getAttackBonus()
 
@@ -548,7 +538,7 @@ class Combat(val battleId: Int) {
 
         for (it in initialDamage) {
             if (target.getDamageImmunities().contains(it.type)) {
-                logger.info { "target has immunity ${it.type}" }
+                logInfo { "target has immunity ${it.type}" }
                 continue
             }
             var effectDamage = it.amount
@@ -561,7 +551,7 @@ class Combat(val battleId: Int) {
             result.add (DamageResult (effectDamage, it.type))
         }
 
-        logger.debug { "target = $target, damage = $result" }
+        logDebug { "target = $target, damage = $result" }
         return result
     }
 
@@ -570,11 +560,11 @@ class Combat(val battleId: Int) {
     {
         val attackBonus = combatant.getSpellBonusToHit()
         val spell = attack.action as Spell
-        logger.debug { "spell = ${spell.fullString()}" }
+        logDebug { "spell = ${spell.fullString()}" }
 
         val result = mutableListOf<CombatActionResult>()
         for (spellAttack in spell.getSpellAttacks(attackBonus)) {
-            logger.debug { "spell = ${spell.name}, spellAttack = $spellAttack" }
+            logDebug { "spell = ${spell.name}, spellAttack = $spellAttack" }
 
             val spellAttackResults = if (spellAttack.isSavingThrowAttack()) {
                 castSavingThrowSpell (combatant, target, spell, spellAttack, attack)
@@ -583,7 +573,7 @@ class Combat(val battleId: Int) {
             }
 
             if (spellAttackResults.isEmpty()) {
-                logger.warn { "battleId=$battleId, turn=$turnId, spellAttackResults is empty, spell = $spell" }
+                logWarn { "spellAttackResults is empty, spell = $spell" }
             }
             result.addAll(spellAttackResults)
         }
@@ -629,7 +619,7 @@ class Combat(val battleId: Int) {
                     targetList.addAll (potentialTargets)
                 }
             }
-            logger.debug { "cone dir=$maxDir, targetList=$targetList" }
+            logDebug { "cone dir=$maxDir, targetList=$targetList" }
         }
 
         // TODO: add support for Hunters Mark damage on melee/range spell attacks
@@ -638,16 +628,16 @@ class Combat(val battleId: Int) {
         var sharedDamageList = getDamage(combatant, attack, false, spellAttack.getDamageList())
 
         if (targetList.isEmpty()) {
-            logger.warn { "battleId=$battleId, turn=$turnId, castSavingThrowSpell: target list is empty (SHOULD NOT HAPPEN), focus=$focusTarget focusLoc=${focusTarget.location}, myloc=${combatant.location}" }
+            logWarn { "castSavingThrowSpell: target list is empty (SHOULD NOT HAPPEN), focus=$focusTarget focusLoc=${focusTarget.location}, myloc=${combatant.location}" }
         }
 
         for (target in targetList) {
             var successfulSave = target.makeSavingThrow (combatant.getSpellSaveDC(), save.saveAbility)
-            logger.debug { "successfulSave = $successfulSave" }
+            logDebug { "successfulSave = $successfulSave" }
 
             var damageResultList = applyDamageImmunityResistanceAndVulnerability(target, sharedDamageList)
             var initialDamage = damageResultList.sumOf { it.amount }
-            logger.debug { "initial damage = $initialDamage" }
+            logDebug { "initial damage = $initialDamage" }
 
             val finalDamage = applySavingThrowDamageModifiers(spellAttack, attack, initialDamage, successfulSave, damageResultList)
             target.applyDamage(turnId, finalDamage)
@@ -674,7 +664,7 @@ class Combat(val battleId: Int) {
 
         // if breath weapon or similar, add to the recharge list
         if (attack.action is SavingThrowAction && attack.action.recharge != null) {
-            logger.info { "add attack to waitingForRecharge: ${attack.action}" }
+            logInfo { "add attack to waitingForRecharge: ${attack.action}" }
             combatant.waitingForRecharge.add(attack.action)
         }
 
@@ -691,7 +681,7 @@ class Combat(val battleId: Int) {
         var damage = initialDamage
         val saveResult = spellAttack.getSaveResult()
         val isEvasive = attack.target.isEvasive()
-        logger.debug { "saveResult (onSuccess) = ${saveResult.name}, isEvasive = $isEvasive" }
+        logDebug { "saveResult (onSuccess) = ${saveResult.name}, isEvasive = $isEvasive" }
 
         // TODO: (almost?) all saving throw actions apply a single damage result ?
 
@@ -702,12 +692,12 @@ class Combat(val battleId: Int) {
             } else {
                 when (saveResult) {
                     SPELL_ENDS -> {
-                        logger.debug { "spell ends" } // TODO: update condition list ?
+                        logDebug { "spell ends" } // TODO: update condition list ?
                         damageResult.amount = 0
                     }
 
                     CONDITION_ENDS -> {
-                        logger.debug { "condition ends" } // TODO: update condition list ?
+                        logDebug { "condition ends" } // TODO: update condition list ?
                         damageResult.amount = 0
                     }
 

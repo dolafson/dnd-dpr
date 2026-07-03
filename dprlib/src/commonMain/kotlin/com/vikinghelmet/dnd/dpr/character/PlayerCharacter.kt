@@ -24,10 +24,7 @@ import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
-import com.vikinghelmet.dnd.dpr.util.Constants
-import com.vikinghelmet.dnd.dpr.util.DiceBlock
-import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.Movement
+import com.vikinghelmet.dnd.dpr.util.*
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -311,7 +308,7 @@ open class PlayerCharacter(
                 result.add (PreparedSpell(psRemote.alwaysPrepared, spell))
             }
             catch (e: Exception) {
-                logger.error { "unable to add preparedSpell ${name}: $e" }
+                LogOnce.error("unable to add preparedSpell ${name}")
             }
         }
         return result

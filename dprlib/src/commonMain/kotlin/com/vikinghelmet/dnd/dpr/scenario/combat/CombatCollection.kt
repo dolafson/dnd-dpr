@@ -26,7 +26,11 @@ class CombatCollection(
         logger.warn { "teamB: $teamB" }
     }
 
-    suspend fun run() { // async, avg 4.7s
+    fun run() {
+        repeat(numSimulations) { runOnce() }
+    }
+
+    suspend fun runAsync() {
         /*
         coroutineScope {
             repeat(numSimulations) { this.launch { runOnce() } }

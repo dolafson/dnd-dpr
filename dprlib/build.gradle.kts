@@ -66,7 +66,8 @@ kotlin {
             //implementation("com.diamondedge:logging-jvm:2.1.0")
             //implementation("com.diamondedge:logging-js:2.1.0")
 
-            implementation("io.github.shivathapaa:logger:1.2.0")
+            implementation("io.github.shivathapaa:logger:1.4.0")
+            implementation("io.github.shivathapaa:logger-coroutines:1.4.0")
         }
 
         commonTest.dependencies {
