@@ -75,7 +75,7 @@ data class Location(var x: Int, var y: Int) {
         }
 
         if (this == initialLocation) {
-            logger.warn { "Moving toward $other, old location = $initialLocation, no movement, alreadyWithinOneUnit=$alreadyWithinOneUnit" }
+            logger.info { "Moving toward $other, old location = $initialLocation, no movement, alreadyWithinOneUnit=$alreadyWithinOneUnit" }
         } else {
             logger.debug { "Moving toward $other, old location = $initialLocation, new location = $this" }
         }

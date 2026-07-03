@@ -588,7 +588,7 @@ data class CombatantWithStatus(
         }
 
         if (combat != null) {
-            logger.warn {
+            logger.info {
                 "battleId=${combat.battleId}, turnId=${combat.turnId}, getActionGoal: remaining healing spells: ${
                     combatant.getPreparedSpells().filter { it.isHealing() && isSlotAvailable(it) }.map { it.name }
                 }"

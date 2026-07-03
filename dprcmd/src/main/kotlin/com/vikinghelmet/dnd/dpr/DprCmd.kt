@@ -313,7 +313,7 @@ suspend fun main(args : Array<String>) {
         else {
             loop.run()
         }
-        
+
         val combatList = loop.combatList
 
         logger.warn { "" }
