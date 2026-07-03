@@ -1,7 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
-import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier.*
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
@@ -25,7 +24,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @OptIn(ExperimentalAtomicApi::class)
-class CombatTurn(
+class AttackAction(
     val combat: Combat,
     val combatant: CombatantWithStatus,
     val battleId: Int = combat.battleId,
@@ -34,7 +33,7 @@ class CombatTurn(
 )
 {
     @Transient
-    private val logger = LoggerFactory.get(CombatTurn::class.simpleName ?: "")
+    private val logger = LoggerFactory.get(AttackAction::class.simpleName ?: "")
 
     var actionId = 0
     var effectId = 0
@@ -47,48 +46,28 @@ class CombatTurn(
     fun logInfo(msg: () -> String)  = logger.info  { getAttrString() +": "+ msg() }
     fun logDebug(msg: () -> String) = logger.debug { getAttrString() +": "+ msg() }
 
-    fun fullTurn() : List<CombatActionResult> {
-        if (combatant.isDead()) {
-            logDebug { "combatant=$combatant, is dead" }
-            return emptyList()
-        } else if (combatant.isDying()) {
-            actionResultList.add(combatant.deathSave(turnId))
-            logInfo { "combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
-            return actionResultList
-        }
+    fun getOpponents()         = combat.getOpponents(combatant)
+    fun getNotDeadOpponents()  = getOpponents().filter { !it.isDead() }.toList()
+    fun getPositiveOpponents() = getOpponents().filter { it.isPositive() }.toList()
 
-        combatant.checkForSaveAtStartOfTurn(turnId)
-
-        if (combatant.canTakeAction()) {
-            takeAction()
+    fun modifiersUsedAcrossTurns(): List<ActionModifier> { // TODO: optimize this by storing mods directly in CombatActionResult
+        val result = mutableListOf<ActionModifier>()
+        (combat.actionResultList + actionResultList).filter { it.attacker == combatant }.forEach { a ->
+            ActionModifier.entries.forEach { mod ->
+                if (a.actionTaken.contains(mod.toString())) result.add(mod)
+            }
         }
-        else {
-            val reason = if (combatant.currentHP == 0) "zeroHP" else
-                combatant.toList().filter { it.unableToAct }.toList().toString()
-            actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to act: reason=$reason"))
-        }
-
-        combatant.checkForSaveAtEndOfTurn()
-        return actionResultList
+        return result
     }
 
-    fun takeAction() {
+    fun wasModifierUsedThisTurn(mod: ActionModifier) = actionResultList.any { it.actionTaken.contains(mod.toString()) }
+    fun getActionModifiersAvailable() = combatant.getActionModifiersAvailable (modifiersUsedAcrossTurns ())
+
+
+    fun takeAction(): List<CombatActionResult> {
         logDebug { "combatant=$combatant is taking action" }
         actionId = 0
         effectId = 0
-
-        val savingThrow = combatant.checkForSaveByTakingAction()
-        if (savingThrow.first) {
-            actionResultList.add (CombatActionResult(combatant, combatant, turnId, 0, 0, "saving throw action, result = ${savingThrow.second}"))
-            return
-        }
-
-        val goal = combatant.getActionGoal(combat)
-
-        if (goal == ActionGoal.Heal) {
-            actionResultList.addAll (takeHealingAction())
-            return
-        }
 
         // from here on down is all about the Attack
 
@@ -97,15 +76,15 @@ class CombatTurn(
 
         if (selectedTarget == null) {
             actionResultList.add (CombatActionResult(combatant, combatant, turnId, 0, 0, "no target available"))
-            return
+            return actionResultList
         }
 
         target = selectedTarget // NOT NULL
-        val attackList = chooseTurnActions(goal).attacks.toMutableList()
+        val attackList = chooseAttackActions().attacks.toMutableList()
 
         if (attackList.isEmpty()) {
             actionResultList.add (CombatActionResult(combatant, target!!, turnId, 0, 0, "no attacks available for target"))
-            return
+            return actionResultList
         }
 
         logDebug { "combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
@@ -127,39 +106,7 @@ class CombatTurn(
                 actionResultList.addAll (takeAttackAction (additionalAttack))
             }
         }
-    }
-
-    fun getActionModifiersAvailable() : List<ActionModifier> {
-        return combatant.getActionModifiersAvailable (modifiersUsedAcrossTurns ())
-    }
-
-    fun takeHealingAction(): List<CombatActionResult> {
-        val healTarget = chooseHealingTarget() ?: return listOf(
-            CombatActionResult(combatant, combatant, turnId, 0, 0,
-                "goal is healing, but no healing target chosen" )
-        )
-
-        // move towards target, even if you can't heal them yet ...
-        combatant.moveTowardTarget(healTarget, combat)
-
-        if (getOpponents().any { it.location == healTarget.location }) {
-            return listOf(CombatActionResult(combatant, combatant, turnId, 0, 0,
-                "unable to heal, opponent standing on healing target"))
-        }
-
-        // TODO: if selected healing target is not in range / unreachable (movement blocked), then either ...
-        //  a) choose a closer healing target (if possible)
-        //  b) perform a ranged weapon attack
-
-        val range = combatant.distance(healTarget).toFeet()
-        val healTurn = combatant.getPreferredTurn(ActionGoal.Heal, healTarget, range, combat)
-
-        return if (healTurn != null) {
-            healWithSpell(combatant, healTarget, healTurn.first)
-        } else {
-            listOf(CombatActionResult(combatant, combatant, turnId, 0, 0,
-                "goal is healing, but no healing action available"))
-        }
+        return actionResultList
     }
 
     fun takeAttackAction(attack: Attack) : List<CombatActionResult>
@@ -170,24 +117,13 @@ class CombatTurn(
             attackWithSpell(attack)
         }
 
-        val result = if (attackResults.isNotEmpty()) attackResults else
+        val result = attackResults.ifEmpty {
             listOf(CombatActionResult (combatant, target, turnId, 0, 0, "no results for attack: ${attack.action}"))
+        }
 
         actionId++
         return result
     }
-
-    fun modifiersUsedAcrossTurns(): List<ActionModifier> { // TODO: optimize this by storing mods directly in CombatActionResult
-        val result = mutableListOf<ActionModifier>()
-        (combat.actionResultList + actionResultList).filter { it.attacker == combatant }.forEach { a ->
-            ActionModifier.entries.forEach { mod ->
-                if (a.actionTaken.contains(mod.toString())) result.add(mod)
-            }
-        }
-        return result
-    }
-
-    fun wasModifierUsedThisTurn(mod: ActionModifier) = actionResultList.any { it.actionTaken.contains(mod.toString()) }
 
     fun getAdditionalAttack(attackList: List<Attack>): Attack?
     {
@@ -217,81 +153,6 @@ class CombatTurn(
                 }
             }
         return null
-    }
-
-    fun getOpponents() = combat.getOpponents(combatant)
-
-    fun getMyTeam() = combat.getMyTeam (combatant)
-
-    fun getNotDeadOpponents(): List<CombatantWithStatus> {
-        return getOpponents().filter { !it.isDead() }.toList()
-    }
-
-    fun getPositiveOpponents(): List<CombatantWithStatus> {
-        return getOpponents().filter { it.isPositive() }.toList()
-    }
-
-    fun chooseHealingTarget(): CombatantWithStatus? {
-        val team = getMyTeam()
-
-        // if the team has a dying cleric, heal them first (so they can heal others)
-        if (team.any { it.isCleric() && it.isDying() }) {
-            return team.filter { it.isDying() }.maxBy { it.deathSavingThrows.count { false }}
-        }
-
-        // choose the one closest to death ... first the dying, then the stable
-        if (team.any { it.isDying() }) {
-            return team.filter { it.isDying() }.maxBy { it.deathSavingThrows.count { false }}
-        }
-
-        // if no one is dying, choose the closest stable patient (if any)
-        if (team.any { it.isStable() }) {
-            return team.filter { it.isStable() }.minByOrNull { it.distance(combatant) }
-        }
-
-        // if everyone is positive, ignore the undamaged, and heal someone with lowest HP
-        return team.filter { it.isDamaged() }.minByOrNull { it.currentHP }
-    }
-
-    fun healWithSpell(healer: CombatantWithStatus, primaryTarget: CombatantWithStatus, turn: Turn): List<CombatActionResult> {
-        val attack = turn.attacks.firstOrNull() ?: return emptyList()
-        val spell = attack.action as? Spell ?: return emptyList()
-
-        val targetsToHeal = if (spell.impactMultipleCreatures()) {
-            getMyTeam().filter { !it.isDead() && it.getHP() > it.currentHP } // TODO: more selective healing targets
-        } else {
-            listOf(primaryTarget)
-        }
-
-        // TODO: filter healing targets by spell range
-
-        val resultList = mutableListOf<CombatActionResult>()
-        val healAmountRolled = healer.getHealingAmount(spell, true)
-
-        for (healTarget in targetsToHeal) {
-            var healAmount = healAmountRolled
-            if (spell.impactMultipleCreatures()) {
-                healAmount /= targetsToHeal.size    // TODO: support uneven distribution of healing amount
-            }
-            healTarget.applyHealing(healAmount)
-            logInfo { "${healer.shortName()} heals ${healTarget.shortName()} for $healAmount HP (now ${healTarget.currentHP}/${healTarget.getHP()})" }
-
-            val damageResultList = listOf(DamageResult(healAmount, DamageType.healing))
-            resultList.add (CombatActionResult(
-                healer,
-                healTarget,
-                turnId,
-                actionId,
-                effectId++,
-                attack,
-                damageResultList
-            ))
-        }
-
-        healer.recordSpellCasting(spell, turnId, targetsToHeal)
-        actionId++
-
-        return resultList
     }
 
     fun chooseAttackTarget(): CombatantWithStatus?
@@ -351,8 +212,8 @@ class CombatTurn(
         return target
     }
 
-    fun chooseTurnActions(goal: ActionGoal): Turn {
-        val preferredTurnOption = combatant.getPreferredTurn(goal, target, combatant.distance(target).toFeet(), combat)
+    fun chooseAttackActions(): Turn {
+        val preferredTurnOption = combatant.getPreferredTurn(ActionGoal.Attack, target, combatant.distance(target).toFeet(), combat)
         return preferredTurnOption?.first ?: Turn(emptyList())
     }
 

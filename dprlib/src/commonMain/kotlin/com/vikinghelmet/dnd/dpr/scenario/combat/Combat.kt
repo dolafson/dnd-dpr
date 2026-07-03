@@ -21,12 +21,18 @@ class Combat(val battleId: Int) {
 
     val initialState = mutableMapOf<CombatantWithStatus, CombatActionResult>() // used for debugging
 
-    private fun pad2(input: Int) = input.toString().padStart(2, '0')
-    private fun getAttrString() = mapOf("battleId" to pad2(battleId), "turnId" to pad2(turnId)).toString()
+    fun pad2(input: Int) = input.toString().padStart(2, '0')
+    fun getAttrString() = mapOf("battleId" to pad2(battleId), "turnId" to pad2(turnId)).toString()
     fun logError(msg: () -> String) = logger.error { getAttrString() +": "+ msg() }
     fun logWarn(msg: () -> String)  = logger.warn  { getAttrString() +": "+ msg() }
     fun logInfo(msg: () -> String)  = logger.info  { getAttrString() +": "+ msg() }
     fun logDebug(msg: () -> String) = logger.debug { getAttrString() +": "+ msg() }
+
+    fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA
+    fun getMyTeam(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamA else teamB
+    fun teamSummary(team: List<CombatantWithStatus>): String {
+        return "${ team.sortedByDescending { it.initiative }.map { it.summary() }.toList() }"
+    }
 
     fun initInitialState() {
         for (c in (teamA+teamB)) {
@@ -78,7 +84,11 @@ class Combat(val battleId: Int) {
         while (isRunning()) {
             logInfo { "teamA: ${ teamSummary(teamA) }, teamB: ${ teamSummary(teamB) }" }
 
-            fullTurn()
+            for (combatant in initiativeList) {
+                if (!isRunning()) {  break }
+                fullTurn(combatant)
+            }
+
             turnId++
             // exit after 100 turns, or in any aberrant situation where a live A and B occupy the same space
             val notDeadA = teamA.filter { it.isPositive() }
@@ -112,26 +122,40 @@ class Combat(val battleId: Int) {
         }
     }
 
-    fun teamSummary(team: List<CombatantWithStatus>): String {
-        return "${ team.sortedByDescending { it.initiative }.map { it.summary() }.toList() }"
-    }
+    fun fullTurn(combatant: CombatantWithStatus) {
 
-    fun fullTurn() {
-        if (initiativeList.isEmpty()) {
-            logWarn { "initiative list is empty!!" }
+        if (combatant.isDead()) {
+            logDebug { "combatant=$combatant, is dead" }
             return
         }
 
-        for (combatant in initiativeList)
-        {
-            if (!isRunning()) { // combat may end mid-turn, once either team has no remaining members with HP > 0
-                break
-            }
-
-            actionResultList.addAll (CombatTurn(this, combatant).fullTurn())
+        if (combatant.isDying()) {
+            actionResultList.add(combatant.deathSave(turnId))
+            logInfo { "combatant=$combatant, after death saving throw, save list: ${combatant.deathSavingThrows}, currentHP: ${combatant.currentHP}" }
+            return
         }
-    }
 
-    fun getOpponents(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamB else teamA
-    fun getMyTeam(combatant: CombatantWithStatus) = if (combatant.onTeamA) teamA else teamB
+        // no more "continue" after this, all branches need to hit
+        combatant.checkForSaveAtStartOfTurn(turnId)
+
+        if (!combatant.canTakeAction()) {
+            val reason = if (combatant.currentHP == 0) "zeroHP" else
+                combatant.toList().filter { it.unableToAct }.toList().toString()
+            actionResultList.add(CombatActionResult(combatant, combatant, turnId, 0, 0, "unable to act: reason=$reason"))
+        }
+        else  {
+            val savingThrow = combatant.checkForSaveByTakingAction()
+            if (savingThrow.first) {
+                actionResultList.add (CombatActionResult(combatant, combatant, turnId, 0, 0, "saving throw action, result = ${savingThrow.second}"))
+            }
+            else {
+                actionResultList.addAll (when (combatant.getActionGoal(this)) {
+                    ActionGoal.Heal   -> HealingAction (this, combatant).takeAction()
+                    ActionGoal.Attack -> AttackAction (this, combatant).takeAction()
+                } )
+            }
+        }
+
+        combatant.checkForSaveAtEndOfTurn()
+    }
 }

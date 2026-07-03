@@ -331,7 +331,7 @@ class CombatTest {
         dragon.currentHP = 62
         dragon.location = Location(-18, -15)
 
-        val target = CombatTurn(combat, dragon).chooseAttackTarget()
+        val target = AttackAction(combat, dragon).chooseAttackTarget()
         println(target)
         assertEquals(rhogar, target)
     }
@@ -354,16 +354,16 @@ class CombatTest {
 
         combat.teamB[3].location = Location(50, 50) // far, far away
 
-        val combatTurn = CombatTurn(combat, dragon, target = combat.teamB[0])
+        val attackAction = AttackAction(combat, dragon, target = combat.teamB[0])
 
-        var dragonAttacks = combatTurn.chooseTurnActions(ActionGoal.Attack).attacks
+        var dragonAttacks = attackAction.chooseAttackActions().attacks
         // println("dragonAttacks = $dragonAttacks")
         assertEquals(1, dragonAttacks.size)
 
         val breathAttack = dragonAttacks[0]
         assertEquals("Poison Breath", breathAttack.action.getActionName())
 
-        val attackResultList = combatTurn.attackWithSpell(breathAttack)
+        val attackResultList = attackAction.attackWithSpell(breathAttack)
         // println("attackResultList = $attackResultList")
 
         assertEquals(3, attackResultList.size)
@@ -383,8 +383,8 @@ class CombatTest {
         dragon.location = Location(3, 0)
         oleg.location   = Location(2, -1) // very close
 
-        val combatTurn = CombatTurn(combat, dragon, target = oleg)
-        var dragonAttacks = combatTurn.chooseTurnActions(ActionGoal.Attack).attacks
+        val attackAction = AttackAction(combat, dragon, target = oleg)
+        var dragonAttacks = attackAction.chooseAttackActions().attacks
 
         // println("dragonAttacks = $dragonAttacks")
         assertEquals(1, dragonAttacks.size)
@@ -397,7 +397,7 @@ class CombatTest {
 
         assertEquals(listOf("downLeft","downLeft2"), coneNames)
 
-        val attackResultList = combatTurn.attackWithSpell(breathAttack)
+        val attackResultList = attackAction.attackWithSpell(breathAttack)
         // println("attackResultList = $attackResultList")
 
         assertEquals(1, attackResultList.size)
@@ -417,8 +417,8 @@ class CombatTest {
 
         // skeleton is immune to poison, next best option is Multiattack
         // this validates attack filtering in CombatantWithStatus.isSpellValid (getDamageImmunities)
-        val combatTurn = CombatTurn(combat, dragon, target = skeleton)
-        var dragonAttacks = combatTurn.chooseTurnActions(ActionGoal.Attack).attacks
+        val attackAction = AttackAction(combat, dragon, target = skeleton)
+        var dragonAttacks = attackAction.chooseAttackActions().attacks
 
         assertEquals(listOf("Multiattack","Bite","Claw","Claw"), dragonAttacks.map { it.action.getActionName() }.toList())
     }
@@ -460,7 +460,7 @@ class CombatTest {
         val preferredTurnOption = leif.getPreferredTurn(ActionGoal.Attack, goblin, 10, combat)
         assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
-        CombatTurn(combat, leif).fullTurn()
+        AttackAction(combat, leif).takeAction()
 
         // https://www.dndbeyond.com/spells/2085-entangle?srsltid=AfmBOoqr7BbKDxX_vWM2WEXKy8YxQaMmDT7ptb4dS4y9CoXZpRwjkHHd
         assertTrue (goblin.any { it.conditions.contains(Condition.Restrained) })
@@ -501,7 +501,7 @@ class CombatTest {
             val preferredTurnOption = leif.getPreferredTurn(ActionGoal.Attack, goblin, 10, combat)
             assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
-            CombatTurn(combat, leif).fullTurn()
+            combat.fullTurn(leif)
 
             // ignore any turns where spell failed; we want to measure the avg duration after the spell is in effect
 
@@ -512,7 +512,7 @@ class CombatTest {
                     leif.checkForSaveAtStartOfTurn(turnId)
 
                     // target gets a chance to save by taking an action on their turn
-                    CombatTurn(combat, goblin).fullTurn()
+                    combat.fullTurn(goblin)
 
                     if (goblin.toList().isEmpty()) {
                         //println("condition ended on turn=$turnId")
@@ -524,6 +524,7 @@ class CombatTest {
         }
 
         val avg = turnCountList.average().toInt()
+        println ("avg = $avg")
         assertTrue(avg in 2..<5)
     }
 
@@ -610,7 +611,7 @@ class CombatTest {
         val preferredTurnOption = leif.getPreferredTurn(ActionGoal.Attack, goblin, 10, combat)
         assertEquals(listOf("Entangle"), preferredTurnOption!!.first.attacks.map { it.action.getActionName() }.toList())
 
-        CombatTurn(combat, leif).fullTurn()
+        AttackAction(combat, leif).takeAction()
 
         assertTrue (goblin.any { it.conditions.contains(Condition.Restrained) })
         assertEquals(1, leif.spellCastList.filter {it.isStillRunning()}.count())
@@ -683,7 +684,7 @@ class CombatTest {
         println("before turn, kael.currentHp = ${kael.currentHP}")
 
         while (kael.currentHP < kael.getHP()) {
-            CombatTurn(combat, kael).fullTurn()
+            HealingAction(combat, kael).takeAction()
             assertTrue(kael.currentHP > 3)
         }
 
@@ -730,14 +731,14 @@ class CombatTest {
         dragon.location = Location(0, 0)
         leif.location = Location(1, 0)
 
-        var dragonAttackResult = CombatTurn(combat, dragon).fullTurn()
+        var dragonAttackResult = AttackAction(combat, dragon).takeAction()
         assertEquals(1, dragonAttackResult.size)
         //println("dragonAttackResult 1 = $dragonAttackResult")
 
         assertEquals("Poison Breath", dragonAttackResult[0].actionTaken)
         assertEquals(1, dragon.waitingForRecharge.size)
 
-        CombatTurn(combat, dragon).fullTurn()
+        AttackAction(combat, dragon).takeAction()
         //println("dragonAttackResult 2 = $dragonAttackResult")
 
         // recharge happens 2 times out of 6; should be guaranteed to happen at least once after 10 rounds
