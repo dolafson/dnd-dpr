@@ -372,4 +372,25 @@ class PlayerCharacterTest {
         assertTrue(109 <= TestUtil.kael.getSpellsForClass().size)
         assertTrue(216 <= TestUtil.eldir.getSpellsForClass().size)
     }
+
+
+    @Test
+    fun getClassFeatures3() {
+        TestUtil.party3.forEach {
+            println("${it.getName()}, enabled = ${it.getClassFeatureNamesEnabled()}")
+//            it.getClassFeatureNamesEnabled().forEach { enabled -> println("${it.getName()}, $enabled") }
+//            assertTrue (it.getClassFeatureNamesEnabled().contains("Ability Score Improvement"))
+        }
+        /*
+        listOf(TestUtil.eldir3, TestUtil.lars3, TestUtil.leif3, TestUtil.oleg3, TestUtil.rhogar3).forEach {
+            assertTrue (it.getClassFeatureNamesEnabled().containsAll(listOf("8: Ability Score Improvement","12: Ability Score Improvement","16: Ability Score Improvement")))
+        }
+        // rhogar (fighter) gets 2 more ASI bumps than everyone else
+        assertTrue (TestUtil.rhogar3.getClassFeatureNamesEnabled().containsAll(listOf("6: Ability Score Improvement","14: Ability Score Improvement")))
+
+        listOf(TestUtil.eldir3, TestUtil.kael3, TestUtil.leif3).forEach {
+            assertTrue (it.getClassFeatureNamesEnabled().contains("Spellcasting"))
+        } */
+    }
+
 }

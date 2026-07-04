@@ -6,6 +6,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class ClassFeature {
     Subclass,
+    /*
+Eldir  , enabled = [Core Wizard Traits, Spellcasting, Ritual Adept, Arcane Recovery, Scholar, Wizard Subclass]
+Kael   , enabled = [Spellcasting, Divine Domain, Channel Divinity, Proficiencies, Hit Points]
+Lars   , enabled = [Core Rogue Traits, Expertise, Sneak Attack, Thieves’ Cant, Weapon Mastery, Cunning Action, Rogue Subclass, Steady Aim]
+Leif   , enabled = [Core Ranger Traits, Spellcasting, Favored Enemy, Weapon Mastery, Deft Explorer, Fighting Style, Ranger Subclass]
+Oleg   , enabled = [Rage, Unarmored Defense, Weapon Mastery, Danger Sense, Reckless Attack, Barbarian Subclass, Primal Knowledge, Core Barbarian Traits]
+Rhogar , enabled = [Core Fighter Traits, Fighting Style, Second Wind, Weapon Mastery, Action Surge, Tactical Mind, Fighter Subclass]
+     */
     DivineDomain,
     Evasive,
     AbilityScoreImprovement,

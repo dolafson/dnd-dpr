@@ -584,6 +584,10 @@ open class PlayerCharacter(
         return characterData.classes.first().definition.classFeatures.map { it.name }
     }
 
+    fun getClassFeatureNamesEnabled(): List<String> {
+        return characterData.classes.first().definition.classFeatures.filter { it.requiredLevel <= getLevel() }. map { it.name }
+    }
+
     fun getSubclassFeatureNames(): List<String> {
         val sub = characterData.classes.first().subclassDefinition ?: return emptyList()
         return sub.classFeatures.map { it.name }
