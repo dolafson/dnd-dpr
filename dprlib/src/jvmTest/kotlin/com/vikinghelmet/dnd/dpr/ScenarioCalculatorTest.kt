@@ -35,24 +35,24 @@ class ScenarioCalculatorTest {
     
     @Test
     fun maxDPRTwoTurnMelee() {
-        assertEquals (SimpleResult(19, listOf(listOf("Shortsword","Hunter's Mark"), listOf("Shortsword","Shortsword"))),
+        assertEquals (SimpleResult(21, listOf(listOf("Hunter's Mark","Shortsword"), listOf("Shortsword","Shortsword"))),
             bestDPR(2, MELEE_RANGE))
     }
 
     @Test
     fun maxDPRTwoTurnRange() {
-        assertEquals (SimpleResult(20, List(2) { listOf("Longbow","Hail of Thorns") }), bestDPR(2, MELEE_RANGE*2))
+        assertEquals (SimpleResult(21, listOf(listOf("Hunter's Mark","Longbow"),listOf("Longbow","Hail of Thorns"))), bestDPR(2, MELEE_RANGE*2))
     }
 
     @Test
     fun maxDPRThreeTurnMelee() {
-        assertEquals (SimpleResult(33, listOf(listOf("Shortsword","Hunter's Mark")) + List(2) { listOf("Shortsword","Shortsword") }),
+        assertEquals (SimpleResult(35, listOf(listOf("Hunter's Mark","Shortsword")) + List(2) { listOf("Shortsword","Shortsword") }),
             bestDPR(3, MELEE_RANGE))
     }
 
     @Test
     fun maxDPRThreeTurnRange() {
-        assertEquals (SimpleResult(31, listOf(listOf("Longbow","Hunter's Mark")) + List(2) { listOf("Longbow","Hail of Thorns") }),
+        assertEquals (SimpleResult(34, listOf(listOf("Hunter's Mark","Longbow")) + List(2) { listOf("Longbow","Hail of Thorns") }),
             bestDPR(3, MELEE_RANGE*2))
     }
 

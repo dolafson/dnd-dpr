@@ -5,7 +5,7 @@ import com.vikinghelmet.dnd.dpr.action.Weapon
 import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
 import com.vikinghelmet.dnd.dpr.util.Constants
 
-class ActionsAvailable {
+class ActionsAvailable { // container for PRIMARY combat actions: weapons or non-BA-non-ritual spells
     val mapOfLists = mutableMapOf<Int, MutableList<Action>>()
 
     override fun toString(): String {

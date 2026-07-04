@@ -86,17 +86,17 @@ class ActionCalculatorTest {
         val meleeBuilder = ScenarioBuilder(character, Globals.getMonster("Goblin"))
         val meleeScenarios = meleeBuilder.build(Constants.MELEE_RANGE, Constants.NUM_TURNS_PER_SCENARIO, DEFAULT_NUM_TARGETS, DEFAULT_TARGET_SPACING)
 
-        assertEquals(10, meleeBuilder.turnOptions.size)
-        assertEquals(32250, meleeScenarios.size)
+        assertEquals(13, meleeBuilder.turnOptions.size)
+        assertEquals(51375, meleeScenarios.size)
 
         assertEquals(listOf(
                 listOf("Dagger","Shortsword"),
-                listOf("Dagger","Hunter's Mark"),
+                listOf("Dagger","Hunter's Mark"), listOf("Hunter's Mark", "Dagger"),
                 listOf("Quarterstaff"),
-                listOf("Quarterstaff","Hunter's Mark"),
+                listOf("Quarterstaff","Hunter's Mark"), listOf("Hunter's Mark", "Quarterstaff"),
                 listOf("Shortsword","Dagger"),
                 listOf("Shortsword","Shortsword"),
-                listOf("Shortsword","Hunter's Mark"),
+                listOf("Shortsword","Hunter's Mark"), listOf("Hunter's Mark", "Shortsword"),
                 listOf("Cure Wounds"),
                 listOf("Entangle"),
                 listOf("Mind Sliver"),
@@ -112,13 +112,13 @@ class ActionCalculatorTest {
             println("turn option = { $buf }")
         }
 
-        assertEquals(5, rangeBuilder.turnOptions.size)
-        assertEquals(792, rangeScenarios.size)
+        assertEquals(6, rangeBuilder.turnOptions.size)
+        assertEquals(1152, rangeScenarios.size)
 
         assertEquals(listOf(
             listOf("Longbow"),
             listOf("Longbow","Hail of Thorns"),
-            listOf("Longbow","Hunter's Mark"),
+            listOf("Longbow","Hunter's Mark"), listOf("Hunter's Mark", "Longbow"),
             listOf("Entangle"),
             listOf("Mind Sliver"),
         ),  rangeBuilder.turnOptions.map { it.attacks.map { it2 -> it2.getLabel()} } )

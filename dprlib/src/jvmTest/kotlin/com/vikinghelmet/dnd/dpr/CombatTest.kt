@@ -68,7 +68,7 @@ class CombatTest {
             //var attackNames = possibleTurns.map { it.attacks.map { it2 -> it2.action.getActionName() } }.flatten()
 
             when (turnId) {
-                0,1 -> assertEquals(5, possibleTurns.size) // LB, LB+Hail, LB+HM, Entangle, MS
+                0,1 -> assertEquals(6, possibleTurns.size) // LB, LB+Hail, HM+LB, LB+HM, Entangle, MS
                 2,3,4 -> assertEquals(2, possibleTurns.size) // LB, MS
             }
 
@@ -101,7 +101,7 @@ class CombatTest {
 
         // dragon has high strength, so Entangle is excluded
 
-        assertEquals(listOf("Longbow","Hunter's Mark"), preferred!!.first.attacks.map { it.action.getActionName() }.toList())
+        assertEquals(listOf("Hunter's Mark", "Longbow"), preferred!!.first.attacks.map { it.action.getActionName() }.toList())
     }
 
     @Test

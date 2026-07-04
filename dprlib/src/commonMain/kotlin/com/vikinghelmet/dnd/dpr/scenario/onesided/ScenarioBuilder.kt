@@ -71,7 +71,7 @@ class ScenarioBuilder(
         logger.debug {"# possibleTurns, actionsAvailable = $actionsAvailable" }
         logger.debug {"# possibleTurns, actionList(prox) = $actionList" }
 
-        val bonusActionNames = attacker.getPreparedBonusActionSpells(targetProximity).map { it.name }
+        val bonusActionSpells = attacker.getPreparedBonusActionSpells(targetProximity)
         val turnOptions = ArrayList<Turn>()
 
         for (action in actionList) {
@@ -83,48 +83,28 @@ class ScenarioBuilder(
                 Globals.debug("error: action without a spell or a weapon")
                 continue
             }
-
             // remainder pertains to weapon attacks
-            var turn: Turn? = null
+            fun makeBA(bonus: Action) = listOf(Attack(target = target, action = bonus, isBonusAction = true))
+            fun makeTurnStartingWithBA(bonus: Action) = Turn(attacks = makeBA(bonus) + getAttacksForTurn(action))
+            fun makeTurnEndingWithBA(bonus: Action)   = Turn(attacks = getAttacksForTurn(action) + makeBA(bonus))
 
             // light weapon ?  see if you have a 2nd one to use in a BA
-            if (action.hasWeaponProperty(WeaponProperty.Light))
-            {
-                val lightWeapons = actionsAvailable.getLightWeaponsForBA(targetProximity, action)
-                logger.debug { "light weapon 1=$action, light weapons for BA = ${ lightWeapons }" }
+            val lightWeapons = if (action.hasWeaponProperty (WeaponProperty.Light))
+                actionsAvailable.getLightWeaponsForBA (targetProximity, action) else emptyList()
 
-                for (w2 in lightWeapons) {
-                    turn = Turn(
-                        attacks = getAttacksForTurn(action) + listOf(
-                            // TODO: use weapon nicnkames ?
-                            Attack(target = target, action = w2, isBonusAction = true),
-                        )
-                    )
-                    turnOptions.add(turn)
-                }
+            if (lightWeapons.isNotEmpty()) {
+                lightWeapons.forEach { turnOptions.add (makeTurnEndingWithBA (it)) }
             }
-
-            // if you didn't find a 2nd light weapon, just use the first weapon w/out a BA
-            if (turn == null) {
-                turn = Turn(attacks = getAttacksForTurn(action))
-                turnOptions.add(turn)
+            else {
+                // if you didn't find a pair of light weapons, just use the first weapon w/out a BA
+                turnOptions.add (Turn (attacks = getAttacksForTurn(action)))
             }
 
             // bonus action spells: mostly for ranger and paladin
-            for (bonusName in bonusActionNames) {
-                try {
-                    val bonus = Globals.getSpell(bonusName, attacker.is2014())
-                    turnOptions.add(
-                        Turn(
-                            attacks = getAttacksForTurn(action) + listOf(
-                                Attack(target = target, action = bonus, isBonusAction = true),
-                            )
-                        )
-                    )
-                }
-                catch (e: Exception) {
-                    println("unable to add bonus action $bonusName: $e")
-                }
+            bonusActionSpells.forEach {
+                turnOptions.add (makeTurnEndingWithBA (it))
+                // sometimes starting with BA is better
+                if (!it.takeImmediatelyAfterHitting()) { turnOptions.add (makeTurnStartingWithBA(it)) }
             }
         }
         return turnOptions
