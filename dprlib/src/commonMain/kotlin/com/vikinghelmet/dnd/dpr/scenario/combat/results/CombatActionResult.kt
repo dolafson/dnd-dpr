@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat.results
 
 import com.vikinghelmet.dnd.dpr.action.Attack
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatantWithStatus
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
@@ -21,34 +22,29 @@ data class CombatActionResult(
     val actionTaken: String,
     val damageResultList: List<DamageResult>,
 
-    val targetHP: Int,
+    val targetHP: Int = target.currentHP,
     val targetHealth: HealthStatus = HealthStatus.positive,
-    val deathSaves: List<String>,
+    val deathSaves: List<String> = toDeathSaves(target.deathSavingThrows),
 
-    val effects: String,
-    val condition: String,
+    val effects: String = target.getEffectString(),
+    val condition: String = target.getConditionString(),
 
-    val attackerNewLocation: Location,
+    val attackerNewLocation: Location = attacker.location.copy(),
 ) {
     @Transient
     private val logger = LoggerFactory.get(CombatActionResult::class.simpleName ?: "")
 
     constructor(c: CombatantWithStatus) : this(
         c, c, 0, "0", 0, "initiative = ${c.initiative}", emptyList(),
-        c.getHP(), deathSaves = listOf(""), effects = "", condition = "", attackerNewLocation = c.location.copy()
+        c.getHP(), targetHealth = HealthStatus.positive,
+        deathSaves = listOf(""), effects = "", condition = "", attackerNewLocation = c.location.copy()
     )
 
     constructor(
         combatant: CombatantWithStatus, target: CombatantWithStatus,
         turnId: Int, actionId: Int, effectId: Int,
         actionLabel: String
-    ) : this(
-        combatant, target,
-        turnId, "$actionId", effectId,
-        actionLabel, emptyList(),
-        target.currentHP, target.healthStatus, toDeathSaves(target.deathSavingThrows),
-        target.getEffectString(), target.getConditionString(), combatant.location.copy()
-    )
+    ) : this(combatant, target, turnId, "$actionId", effectId, actionLabel, emptyList())
 
     constructor(
         combatant: CombatantWithStatus, target: CombatantWithStatus,
@@ -58,8 +54,6 @@ data class CombatActionResult(
         combatant, target,
         turnId, (if (attack.isBonusAction == true) "BA" else "$actionId"), effectId,
         attack.getLabel(), damageResultList,
-        target.currentHP, target.healthStatus, toDeathSaves(target.deathSavingThrows),
-        target.getEffectString(), target.getConditionString(), combatant.location.copy()
     )
 
     fun getValue(field: CombatActionResultField): Any {
@@ -101,5 +95,9 @@ data class CombatActionResult(
 
     companion object {
         fun toDeathSaves(list: List<Boolean>) = list.map { if (it) "pass" else "fail" }
+
+        fun selfHealing(c: CombatantWithStatus, turnId: Int, label: String, healAmount: Int) = CombatActionResult(
+                c, c, turnId, "BA", 0, label, listOf(DamageResult(healAmount, DamageType.healing)),
+        )
     }
 }

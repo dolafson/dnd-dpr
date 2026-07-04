@@ -235,6 +235,11 @@ class AttackAction(
                 combatant.temporaryDamageResistance.addAll (listOf(DamageType.bludgeoning, DamageType.piercing, DamageType.slashing))
 
                 combatant.add (TargetEffect(turnId, cause = Rage))
+
+                actionResultList.add (
+                    CombatActionResult (combatant, combatant, turnId, "BA", 0, bonusMod.toString(), emptyList())
+                )
+                return null // since we create a separate line item above, don't append this mod to the attack label
             }
 
             // TODO: CunningAction, SteadyAim ... not ready for these yet
@@ -243,11 +248,12 @@ class AttackAction(
                 if (combatant.currentHP > combatant.getHP() / 2) { return null } // dont use SecondWind if HP is high
 
                 val level = (combatant.combatant as PlayerCharacter).getLevel()
-                val healingDice = DiceBlock(0,0,0,1,0,level)
-                val healAmount = healingDice.roll()
-                logDebug { "SecondWind: beforeHP = ${combatant.currentHP}, healAmount = $healAmount" }
+                val healAmount = DiceBlock(0,0,0,1,0,level).roll()
                 combatant.applyHealing(healAmount)
-                logDebug { "SecondWind: afterHP = ${combatant.currentHP}" }
+                actionResultList.add (
+                    CombatActionResult.selfHealing (combatant, turnId, bonusMod.toString(), healAmount)
+                )
+                return null // since we create a separate line item above, don't append this mod to the attack label
             }
 
             else -> { return null }
@@ -295,7 +301,7 @@ class AttackAction(
             target.applyDamage(turnId, damageResultList)
         }
 
-        return listOf (CombatActionResult(combatant, target, turnId, actionId, effectId++, attack, damageResultList))
+        return listOf (attackResult(target, attack, damageResultList))
     }
 
     fun getDamage(attack: Attack, isCrit: Boolean, baseDamageList: List<Damage>): List<DamageResult>
@@ -452,15 +458,7 @@ class AttackAction(
                 }
             }
 
-            resultList.add (CombatActionResult(
-                combatant,
-                target,
-                turnId,
-                actionId,
-                effectId++,
-                attack,
-                damageResultList
-            ))
+            resultList.add (attackResult (target, attack, damageResultList))
         }
 
         // if breath weapon or similar, add to the recharge list
@@ -471,6 +469,16 @@ class AttackAction(
 
         return resultList
     }
+
+    fun attackResult(target: CombatantWithStatus, attack: Attack, damageResultList: List<DamageResult>) = CombatActionResult(
+            combatant,
+            target,
+            turnId,
+            actionId,
+            effectId++,
+            attack,
+            damageResultList
+        )
 
     fun applySavingThrowDamageModifiers(
         spellAttack: SpellAttack,
