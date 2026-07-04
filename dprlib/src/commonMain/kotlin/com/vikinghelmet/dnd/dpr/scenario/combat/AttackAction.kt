@@ -320,6 +320,7 @@ class AttackAction(
         }
 
         if (combatant.any { it.cause == Rage }) {
+            attack.actionModifiers.add(Rage)
             damageList.add (Damage (DiceBlock(), 2, 0, baseDamageList.first().type)) // TODO: 2 -> table driven amount
         }
 
@@ -352,9 +353,11 @@ class AttackAction(
             }
             var effectDamage = it.amount
             if (target.getDamageResistances().contains(it.type)) {
+                logInfo { "target(${target.shortName()}) has resistance ${it.type}, damage reduced from $effectDamage to ${effectDamage/2}" }
                 effectDamage /= 2
             }
             if (target.getDamageVulnerabilities().contains(it.type)) {
+                logInfo { "target(${target.shortName()}) has vulnerability ${it.type}, damage increased from $effectDamage to ${effectDamage*2}" }
                 effectDamage *= 2
             }
             result.add (DamageResult (effectDamage, it.type))
