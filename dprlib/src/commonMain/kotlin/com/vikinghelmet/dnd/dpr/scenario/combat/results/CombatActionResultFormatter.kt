@@ -78,6 +78,9 @@ object CombatActionResultFormatter {
         return buffer.append(")").toString()
     }
 
+    // TODO: usage of "priorState" is confusing ... it simply tracks the name and PER-TURN HP/health of each combatant
+    // note: we need a separate CombatActionResult for SecondWind, else CSV output of HP/Health will be incorrect
+
     fun footer(combat: Combat, turnId: Int, label: String, priorState: MutableMap<CombatantWithStatus, CombatActionResult>, ): String {
         val aList = combat.teamA.map { shortSummary(priorState[it])  }.toList()
         val bList = combat.teamB.map { shortSummary(priorState[it])  }.toList()
