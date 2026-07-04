@@ -11,13 +11,13 @@ import com.vikinghelmet.dnd.dpr.monsters.Monster
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffectList
+import com.vikinghelmet.dnd.dpr.scenario.TurnBuilder
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Distance
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.*
 import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
-import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioBuilder
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
@@ -424,9 +424,8 @@ data class CombatantWithStatus(
     }
 
     fun getPossibleTurns(target: CombatantWithStatus, range: Int): List<Turn> {
-        val builder = ScenarioBuilder(this, target)
-
-        val possibleTurns = builder.possibleTurns(this.getActionsAvailable(), range).toMutableList()
+        val actions = getActionsAvailable()
+        val possibleTurns = TurnBuilder(this, target).getPossibleTurns(actions, range).toMutableList()
 
         val iterator = possibleTurns.iterator()
         while (iterator.hasNext()) {
