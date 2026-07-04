@@ -110,7 +110,7 @@ data class CombatantWithStatus(
         currentHP = 0
         healthStatus = HealthStatus.dying
         // add the Unconscious if not there already
-        if (! (any { it.cause != null && it.cause is DamageResult } )) {
+        if (! (any { it.isUnconsciousDueToDamage() } )) {
             add(TargetEffect(turnId, cause = cause, conditions = mutableListOf(Condition.Unconscious)))
         }
     }
@@ -389,7 +389,7 @@ data class CombatantWithStatus(
         currentHP = newHP
         healthStatus = if (newHP > 0) HealthStatus.positive else HealthStatus.stable
         if (newHP > 0) {
-            removeAll { it.cause != null && it.cause is DamageResult }
+            removeAll { it.isUnconsciousDueToDamage() }
         }
     }
 

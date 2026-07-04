@@ -1,6 +1,8 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat
 
 import com.vikinghelmet.dnd.dpr.action.*
+import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier.*
 import com.vikinghelmet.dnd.dpr.character.inventory.MasteryProperty
@@ -17,6 +19,7 @@ import com.vikinghelmet.dnd.dpr.spells.SpellAttack
 import com.vikinghelmet.dnd.dpr.spells.payload.fields.AreaOfEffectShape
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.max
 import kotlin.math.min
@@ -72,10 +75,10 @@ class AttackAction(
         }
 
         target = selectedTarget // NOT NULL
-        val attackList = chooseAttackActions().attacks.toMutableList()
+        val attackList = chooseAttackActions().attacks
 
         if (attackList.isEmpty()) {
-            actionResultList.add (CombatActionResult(combatant, target!!, turnId, 0, 0, "no attacks available for target"))
+            actionResultList.add (CombatActionResult(combatant, target, turnId, 0, 0, "no attacks available for target"))
             return actionResultList
         }
 
@@ -205,8 +208,52 @@ class AttackAction(
     }
 
     fun chooseAttackActions(): Turn {
-        val preferredTurnOption = combatant.getPreferredTurn(ActionGoal.Attack, target, combatant.distance(target).toFeet(), combat)
-        return preferredTurnOption?.first ?: Turn(emptyList())
+        val preferredTurnOption =
+            combatant.getPreferredTurn(ActionGoal.Attack, target, combatant.distance(target).toFeet(), combat)
+                ?: return Turn(emptyList())
+
+        if (preferredTurnOption.first.includesBA() || preferredTurnOption.first.attacks.isEmpty()) {
+            return preferredTurnOption.first
+        }
+
+        val bonusMod = chooseBonusActionModifier() ?: return preferredTurnOption.first
+
+        val attacks = preferredTurnOption.first.attacks.map { it.copy() }
+        attacks[0].actionModifiers.add (bonusMod)
+        return Turn(attacks)
+    }
+
+    fun chooseBonusActionModifier(): ActionModifier? {
+        val bonusMod = getActionModifiersAvailable().firstOrNull { it.isBonusAction() }
+
+        // check BA constraints, apply BA if possible, then update attack info
+
+        when (bonusMod) {
+            Rage -> {
+                if (combatant.any { it.cause == Rage }) { return null } // don't add Rage if already in Rage
+
+                combatant.temporaryDamageResistance.addAll (listOf(DamageType.bludgeoning, DamageType.piercing, DamageType.slashing))
+
+                combatant.add (TargetEffect(turnId, cause = Rage))
+            }
+
+            // TODO: CunningAction, SteadyAim ... not ready for these yet
+
+            SecondWind -> {
+                if (combatant.currentHP > combatant.getHP() / 2) { return null } // dont use SecondWind if HP is high
+
+                val level = (combatant.combatant as PlayerCharacter).getLevel()
+                val healingDice = DiceBlock(0,0,0,1,0,level)
+                val healAmount = healingDice.roll()
+                logDebug { "SecondWind: beforeHP = ${combatant.currentHP}, healAmount = $healAmount" }
+                combatant.applyHealing(healAmount)
+                logDebug { "SecondWind: afterHP = ${combatant.currentHP}" }
+            }
+
+            else -> { return null }
+        }
+
+        return bonusMod
     }
 
     fun getAttackRoll(): Int {
@@ -264,6 +311,14 @@ class AttackAction(
                     attack.actionModifiers.add(it)
                     damageList.add(it.getDamage())
                 }
+        }
+
+        if (combatant.any { it.cause == Rage }) {
+            damageList.add (Damage (DiceBlock(), 2, 0, baseDamageList.first().type)) // TODO: 2 -> table driven amount
+        }
+
+        if (getActionModifiersAvailable().contains(SneakAttack)) {
+            // TODO: ED=1d6 (table) if you have adv and weapon is Finesse/Ranged OR if ally TS=5 and no disadv
         }
 
         val result = mutableListOf<DamageResult>()

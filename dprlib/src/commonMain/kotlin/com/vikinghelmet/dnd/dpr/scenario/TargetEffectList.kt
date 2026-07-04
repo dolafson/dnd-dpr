@@ -19,5 +19,7 @@ open class TargetEffectList(
     fun isAutoFailStrAndDexSaves(): Boolean = targetEffects.any { it.autoFailStrAndDexSaves }
     fun isUnableToAct():            Boolean = targetEffects.any { it.unableToAct }
 
+    // TODO: combine these methods into one that returns AttackAdvantage enum (tri-state) ?
     fun getDisadvantageOnSave(): AbilityType? = targetEffects.firstNotNullOfOrNull { it.disadvantageOnSave }
+    fun getAdvantageOnSave(): AbilityType? = targetEffects.firstNotNullOfOrNull { it.advantageOnSave }
 }

@@ -18,7 +18,10 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
 
         var saveRoll = roll()
         if (target.getDisadvantageOnSave() == saveAbility) {
-            saveRoll = kotlin.math.min(saveRoll, roll())
+            saveRoll = kotlin.math.min (saveRoll, roll())
+        }
+        else if (target.getAdvantageOnSave() == saveAbility) {
+            saveRoll = kotlin.math.max (saveRoll, roll())
         }
 
         var targetSaveBonus = target.getAbilityModifier(saveAbility)

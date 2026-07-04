@@ -15,6 +15,8 @@ data class Turn(val attacks: List<Attack>) {
         return attacks.hashCode()
     }
 
+    fun includesBA() = attacks.any { it.isBonusAction == true }
+
     fun matchesGoal(goal: ActionGoal): Boolean {
         val spell = getSpell()
         if (spell == null || !spell.isHealing()) {

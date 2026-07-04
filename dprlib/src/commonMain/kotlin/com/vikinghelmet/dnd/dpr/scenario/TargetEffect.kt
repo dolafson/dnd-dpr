@@ -2,6 +2,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.spells.payload.Attack.Save
@@ -39,6 +40,8 @@ open class TargetEffect (
     // some effects are dependent on abilityType; these aren't modeled in Preconditions,
     // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
 
+    @get:JvmName("getCustomFieldAdvantageOnSave")
+    var advantageOnSave:             AbilityType? = null, // always just 1 at a time
     @get:JvmName("getCustomFieldDisadvantageOnSave")
     var disadvantageOnSave:          AbilityType? = null, // always just 1 at a time
     var savePenaltyFilter:           AbilityType? = null, // never assigned
@@ -62,9 +65,8 @@ open class TargetEffect (
             applySpellName(spell.name)
         }
 
-        if (cause == ActionModifier.RecklessAttack) {
-            attacksAgainstOthers = AttackAdvantage.advantage
-            attacksAgainstMe     = AttackAdvantage.advantage
+        if (cause is ActionModifier) {
+            applyActionModifier()
         }
     }
 
@@ -78,6 +80,8 @@ open class TargetEffect (
     fun getDuration() = if (getSpell() == null) 1 else getSpell()?.getDuration() ?: 0
 
     fun hasSaveImpact() = savePenalty.isNotEmpty() || disadvantageOnSave != null || autoFailStrAndDexSaves
+
+    fun isUnconsciousDueToDamage() = cause != null && cause is DamageResult && conditions.contains(Condition.Unconscious)
 
     fun isEmptyExceptForAdvantage(): Boolean {
         return  attacksAgainstOthers == AttackAdvantage.normal && !unableToAct && !attackerAutoCritDamage &&
@@ -169,6 +173,24 @@ open class TargetEffect (
             }
             else -> {
 //                logger.warn { "condition does not currently impact target effect: "+cond }
+            }
+        }
+    }
+
+    fun applyActionModifier() {
+        when (cause) {
+            ActionModifier.Rage -> {
+                // You have Resistance to Bludgeoning, Piercing, and Slashing damage.   // see AttackAction.chooseBonusActionModifier
+                // bonus damage - starts at 2, table driven                             // see AttackAction.getDamage
+                // You have Advantage on Strength checks and Strength saving throws.    // see below
+                advantageOnSave = AbilityType.Strength
+            }
+            ActionModifier.RecklessAttack -> {
+                attacksAgainstOthers = AttackAdvantage.advantage
+                attacksAgainstMe     = AttackAdvantage.advantage
+            }
+            ActionModifier.SteadyAim -> {
+                attacksAgainstOthers = AttackAdvantage.advantage
             }
         }
     }
@@ -269,6 +291,7 @@ open class TargetEffect (
 
         // some effects are dependent on abilityType; these aren't modelled in Preconditions,
         // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
+        if (advantageOnSave != null) buf.append("advantageOnSave="+advantageOnSave).append(";")
         if (disadvantageOnSave != null) buf.append("disadvantageOnSave="+disadvantageOnSave).append(";")
         if (autoFailStrAndDexSaves) buf.append("autoFailStrAndDexSaves="+autoFailStrAndDexSaves).append(";")
         if (savePenaltyFilter  != null) buf.append("savePenaltyFilter="+savePenaltyFilter).append(";")
