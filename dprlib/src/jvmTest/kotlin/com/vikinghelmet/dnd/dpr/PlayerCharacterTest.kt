@@ -4,6 +4,7 @@ import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier.*
 import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature
+import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature.*
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
@@ -194,12 +195,13 @@ class PlayerCharacterTest {
         assertEquals(listOf("Channel Divinity", "Channel Divinity: Turn Undead", "Channel Divinity: Preserve Life", "Harness Divine Power"),
             TestUtil.kael3.getActionList().map { it.name })
 
-        assertEquals(listOf(ChannelDivinity), TestUtil.kael3.getActionModifiersAvailable())
+        assertEquals(listOf(ActionModifier.ChannelDivinity), TestUtil.kael3.getActionModifiersAvailable())
 
         assertEquals(listOf("Vex (Shortbow)", "Vex (Shortsword)", "Sneak Attack", "Cunning Action", "Steady Aim"),
             TestUtil.lars3.getActionList().map { it.name })
 
-        assertEquals(listOf(SneakAttack, CunningAction, SteadyAim), TestUtil.lars3.getActionModifiersAvailable())
+        assertEquals(listOf(ActionModifier.SneakAttack, ActionModifier.CunningAction, ActionModifier.SteadyAim),
+            TestUtil.lars3.getActionModifiersAvailable())
 
         assertEquals(listOf("Slow (Longbow)", "Nick (Scimitar)", "Hunter’s Mark", "Dreadful Strike"),
             TestUtil.leif3.getActionList().map { it.name })
@@ -210,7 +212,7 @@ class PlayerCharacterTest {
         assertEquals(listOf("Relentless Endurance", "Graze (Greatsword)", "Cleave (Greataxe)", "Rage (Enter)", "Extend Rage", "Rage: Primal Knowledge"),
             TestUtil.oleg3.getActionList().map { it.name })
 
-        assertEquals(listOf(Cleave, Rage), TestUtil.oleg3.getActionModifiersAvailable())
+        assertEquals(listOf(Cleave, ActionModifier.Rage), TestUtil.oleg3.getActionModifiersAvailable())
 
         assertEquals(listOf("Breath Weapon (Fire)", "Topple (Battleaxe)", "Sap (Longsword)",
             "Slow (Longbow)", "Second Wind", "Action Surge", "Tactical Mind",
@@ -218,7 +220,7 @@ class PlayerCharacterTest {
             "Maneuver: Precision Attack", "Maneuver: Distracting Strike"),
             TestUtil.rhogar3.getActionList().map { it.name })
 
-        assertEquals(listOf(BreathWeapon, SecondWind, ManeuverParry,
+        assertEquals(listOf(BreathWeapon, ActionModifier.SecondWind, ManeuverParry,
             ManeuverPrecisionAttack, ManeuverDistractingStrike),
             TestUtil.rhogar3.getActionModifiersAvailable())
     }
@@ -281,6 +283,11 @@ class PlayerCharacterTest {
             getClassFeaturesExceptFirstLevelAndASI(TestUtil.eldir))
 
         assertEquals(mapOf(
+                "Channel Divinity: Preserve Life" to 2,
+                "Blessed Healer" to 6,
+                "Divine Strike" to 8,
+                "Supreme Healing" to 17,
+
                 "Channel Divinity" to 2,
                 "Destroy Undead" to 5,
                 "Divine Intervention" to 10,
@@ -376,21 +383,33 @@ class PlayerCharacterTest {
 
     @Test
     fun getClassFeatures3() {
-        TestUtil.party3.forEach {
-            println("${it.getName()}, enabled = ${it.getClassFeatureNamesEnabled()}")
-//            it.getClassFeatureNamesEnabled().forEach { enabled -> println("${it.getName()}, $enabled") }
-//            assertTrue (it.getClassFeatureNamesEnabled().contains("Ability Score Improvement"))
-        }
         /*
-        listOf(TestUtil.eldir3, TestUtil.lars3, TestUtil.leif3, TestUtil.oleg3, TestUtil.rhogar3).forEach {
-            assertTrue (it.getClassFeatureNamesEnabled().containsAll(listOf("8: Ability Score Improvement","12: Ability Score Improvement","16: Ability Score Improvement")))
-        }
-        // rhogar (fighter) gets 2 more ASI bumps than everyone else
-        assertTrue (TestUtil.rhogar3.getClassFeatureNamesEnabled().containsAll(listOf("6: Ability Score Improvement","14: Ability Score Improvement")))
+        TestUtil.party3.forEach { c ->
+            val shortName = c.getName().replace(" .*".toRegex(), "")
+            val features = c.getClassFeatureNamesEnabled()
+                .filter { !it.startsWith("Core ") && !it.contains("Spellcasting") && !it.contains("Subclass") }
+                .filter { !it.contains("Weapon Mastery") && !it.contains("Fighting Style")}
+                .map { it.replace(" ".toRegex(), "") }
 
-        listOf(TestUtil.eldir3, TestUtil.kael3, TestUtil.leif3).forEach {
-            assertTrue (it.getClassFeatureNamesEnabled().contains("Spellcasting"))
+            println("$shortName = $features")
         } */
-    }
 
+        assertEquals (listOf (EvocationSavant, PotentCantrip, RitualAdept, ArcaneRecovery, Scholar),
+            TestUtil.eldir3.getClassFeaturesEnabled())
+
+        assertEquals (listOf (BonusProficiency, DiscipleOfLife, ChannelDivinityPreserveLife, DivineDomain, ClassFeature.ChannelDivinity, Proficiencies, HitPoints),
+            TestUtil.kael3.getClassFeaturesEnabled())
+
+        assertEquals (listOf (MageHandLegerdemain, Expertise, ClassFeature.SneakAttack, ThievesCant, ClassFeature.CunningAction, ClassFeature.SteadyAim),
+            TestUtil.lars3.getClassFeaturesEnabled())
+
+        assertEquals (listOf (DreadAmbusher, GloomStalkerSpells, UmbralSight, FavoredEnemy, DeftExplorer, FightingStyle),
+            TestUtil.leif3.getClassFeaturesEnabled())
+
+        assertEquals (listOf (Frenzy, ClassFeature.Rage, UnarmoredDefense, ClassFeature.DangerSense, ClassFeature.RecklessAttack, PrimalKnowledge),
+            TestUtil.oleg3.getClassFeaturesEnabled())
+
+        assertEquals (listOf (CombatSuperiority, StudentOfWar, ManeuverOptions, FightingStyle, ClassFeature.SecondWind, ActionSurge, TacticalMind),
+            TestUtil.rhogar3.getClassFeaturesEnabled())
+    }
 }

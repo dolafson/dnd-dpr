@@ -5,22 +5,28 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class ClassFeature {
+    // Common features
     Subclass,
-    /*
-Eldir  , enabled = [Core Wizard Traits, Spellcasting, Ritual Adept, Arcane Recovery, Scholar, Wizard Subclass]
-Kael   , enabled = [Spellcasting, Divine Domain, Channel Divinity, Proficiencies, Hit Points]
-Lars   , enabled = [Core Rogue Traits, Expertise, Sneak Attack, Thieves’ Cant, Weapon Mastery, Cunning Action, Rogue Subclass, Steady Aim]
-Leif   , enabled = [Core Ranger Traits, Spellcasting, Favored Enemy, Weapon Mastery, Deft Explorer, Fighting Style, Ranger Subclass]
-Oleg   , enabled = [Rage, Unarmored Defense, Weapon Mastery, Danger Sense, Reckless Attack, Barbarian Subclass, Primal Knowledge, Core Barbarian Traits]
-Rhogar , enabled = [Core Fighter Traits, Fighting Style, Second Wind, Weapon Mastery, Action Surge, Tactical Mind, Fighter Subclass]
-     */
-    DivineDomain,
-    Evasive,
     AbilityScoreImprovement,
     ExtraAttack,
-    UnarmoredDefense,
     FightingStyle,
-    DreadAmbusher, // GloomStalker level 3
+
+    // Wizard
+    EvocationSavant, PotentCantrip, RitualAdept, ArcaneRecovery, Scholar,
+    // Cleric
+    BonusProficiency, DiscipleOfLife, ChannelDivinityPreserveLife, DivineDomain, ChannelDivinity, Proficiencies, HitPoints,
+
+    // Rogue
+    MageHandLegerdemain, Expertise, SneakAttack, ThievesCant, CunningAction, SteadyAim,
+    Evasive, // Rogue level 7
+
+    // Ranger
+    DreadAmbusher, GloomStalkerSpells, UmbralSight, FavoredEnemy, DeftExplorer,
+    // Barbarian
+    Frenzy, Rage, UnarmoredDefense, DangerSense, RecklessAttack, PrimalKnowledge,
+    // Fighter
+    CombatSuperiority, StudentOfWar, ManeuverOptions, SecondWind, ActionSurge, TacticalMind,
+
     ;
 
     override fun toString() = Globals.addWStoCamelCase(name)

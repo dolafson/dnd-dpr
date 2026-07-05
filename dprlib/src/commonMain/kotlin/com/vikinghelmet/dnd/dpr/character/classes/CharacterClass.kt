@@ -9,8 +9,8 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 @Serializable
 data class CharacterClass(
-    val definition: com.vikinghelmet.dnd.dpr.character.classes.ClassDefinition1,
-    val subclassDefinition: com.vikinghelmet.dnd.dpr.character.classes.ClassDefinition1? = null,
+    val definition:         ClassTopDefinition,
+    val subclassDefinition: ClassTopDefinition? = null,
 
     // note: these two data sets look similar, but are not identical ...
     //      data.classes[].classFeatures[].definition

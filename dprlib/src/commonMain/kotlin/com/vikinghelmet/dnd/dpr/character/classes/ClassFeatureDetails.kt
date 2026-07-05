@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @JsonIgnoreUnknownKeys
 @Serializable
-data class ClassFeature1(
+data class ClassFeatureDetails(
     /*
     {"id":10292322,"name":"Foe Slayer","prerequisite":null,
     "description":"<p>The damage die of your Hunter’s Mark is a d10 rather than a d6.</p>",

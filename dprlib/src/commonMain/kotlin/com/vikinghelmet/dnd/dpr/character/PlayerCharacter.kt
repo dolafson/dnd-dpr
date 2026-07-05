@@ -577,21 +577,23 @@ open class PlayerCharacter(
     }
 
     fun getClassFeaturesByLevel(): Map<String, Int> {
-        return characterData.classes.first().definition.classFeatures.map { it -> Pair(it.name, it.requiredLevel) }.toMap()
+        return getClassFeatureDetails().map { it -> Pair(it.name, it.requiredLevel) }.toMap()
     }
 
     fun getClassFeatureNames(): List<String> {
-        return characterData.classes.first().definition.classFeatures.map { it.name }
+        return getClassFeatureDetails().map { it.name }
     }
 
     fun getClassFeatureNamesEnabled(): List<String> {
-        return characterData.classes.first().definition.classFeatures.filter { it.requiredLevel <= getLevel() }. map { it.name }
+        return getClassFeatureDetails().filter { it.requiredLevel <= getLevel() }. map { it.name }
+    }
+    fun getClassFeaturesEnabled(): List<ClassFeature> {
+        return getClassFeatureDetails().filter { it.requiredLevel <= getLevel() }. mapNotNull { ClassFeature.fromName(it.name) }
     }
 
-    fun getSubclassFeatureNames(): List<String> {
-        val sub = characterData.classes.first().subclassDefinition ?: return emptyList()
-        return sub.classFeatures.map { it.name }
-    }
+    fun getClassFeatureDetails() =
+        characterData.classes.first().subclassDefinition?.classFeatures ?:
+        characterData.classes.first().definition.classFeatures
 
     fun getApiRequestParameters(): ApiRequestParameters {
         val classId = characterData.classes.first().subclassDefinition?.id ?:
