@@ -8,6 +8,8 @@ import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature.*
 import com.vikinghelmet.dnd.dpr.character.feats.Feat
 import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
+import com.vikinghelmet.dnd.dpr.scenario.combat.AttackAction
+import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -411,5 +413,34 @@ class PlayerCharacterTest {
 
         assertEquals (listOf (CombatSuperiority, StudentOfWar, ManeuverOptions, FightingStyle, ClassFeature.SecondWind, ActionSurge, TacticalMind),
             TestUtil.rhogar3.getClassFeaturesEnabled())
+    }
+
+    @Test
+    fun dangerSense() {
+        TestUtil.dependency()
+
+        val combat = Combat(0, listOf(TestUtil.leif3), listOf(TestUtil.oleg3))
+        val leif = combat.teamA[0]
+        val oleg = combat.teamB[0]
+
+        assertEquals (AbilityType.Dexterity, oleg.getAdvantageOnSave())
+
+        val attackAction = AttackAction(combat, leif, target = oleg)
+
+        val turn = leif.getPossibleTurns(oleg, 30).first { it.attacks.any { it.action.getActionName().startsWith("Hail") } }
+        assertEquals(2, turn.attacks.size)
+        assertEquals("Longbow", turn.attacks[0].action.getActionName())
+        assertEquals("Hail of Thorns", turn.attacks[1].action.getActionName())
+
+        println ("attack results = ${ attackAction.takeAttackAction (turn.attacks[0]) }")
+        println ("attack results = ${ attackAction.takeAttackAction (turn.attacks[1]) }")
+
+        // TODO: use mock to ensure SavingThrowGenerator calls target.getAdvantageOnSave(), gets DEX, then makes roll with adv ?
+
+        /*
+attack results = [Leif -> Oleg: damage=[(8, piercing), (6, psychic)], attack=Longbow[Dreadful Strike])]
+22:20:26  WARN | SavingThrowGenerator - AdvantageOnSave: Dexterity
+attack results = [Leif -> Oleg: damage=[(4, piercing)], attack=Hail of Thorns)]
+         */
     }
 }

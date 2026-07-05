@@ -1,10 +1,11 @@
 package com.vikinghelmet.dnd.dpr.character.classes
 
+import com.vikinghelmet.dnd.dpr.scenario.TargetEffectCause
 import com.vikinghelmet.dnd.dpr.util.Globals
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class ClassFeature {
+enum class ClassFeature : TargetEffectCause {
     // Common features
     Subclass,
     AbilityScoreImprovement,
@@ -30,6 +31,8 @@ enum class ClassFeature {
     ;
 
     override fun toString() = Globals.addWStoCamelCase(name)
+
+    fun givesAdvantage() = listOf(RecklessAttack).contains(this)
 
     companion object {
         fun fromName(name: String) = entries.firstOrNull { it.name == Globals.removeNonAlpha(name) }

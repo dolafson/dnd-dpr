@@ -26,8 +26,6 @@ enum class ActionModifier(val supported: Boolean = false) : TargetEffectCause {
 
     // barbarian
     Rage,                   // BA: max=3/LR, 1/SR (table); ED=2 (table), damage resistance; adv on STR checks/saves
-    DangerSense,            // alwaysOn: adv on DEX saves
-    RecklessAttack,         // beforeAttack: 1/turn; adv on STR attacks; opponents gain adv too
 
     // cleric
     ChannelDivinity(true),  // action: 1/turn; max=1/SR (table)  // TODO: currently in SpellsWithComplexRules
@@ -66,7 +64,6 @@ enum class ActionModifier(val supported: Boolean = false) : TargetEffectCause {
 
     // methods indicating when a modifier is applied
 
-    fun givesAdvantage()   = listOf(RecklessAttack).contains(this)
     fun givesExtraAttack() = listOf(Cleave, HordeBreaker, SuddenStrike).contains(this)
 
     fun isAttack()      = listOf(BreathWeapon)
@@ -76,7 +73,6 @@ enum class ActionModifier(val supported: Boolean = false) : TargetEffectCause {
 
     fun onWeaponHit()   = listOf(Cleave, SneakAttack, HordeBreaker, ColossusSlayer, DreadfulStrike, PolarStrikes).contains(this)
     fun onWeaponMiss()  = listOf(ManeuverPrecisionAttack).contains(this)
-    fun onSavingThrow() = listOf(DangerSense).contains(this)
     fun withDS()        = listOf(StalkersFlurry, SuddenStrike, MassFear).contains(this)
 
     fun getDamage(): Damage {

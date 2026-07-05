@@ -176,5 +176,4 @@ class SavePenaltyTest {
         assertEquals(0f,    Globals.round2(result2.attackResults[0].damagePerRound.final), "t=1, a=1, feat=$feat, dph")
         assertEquals(20.38f,Globals.round2(result2.attackResults[3].damagePerRound.final), "t=2, a=3, feat=$feat, dph")
     }
-
 }

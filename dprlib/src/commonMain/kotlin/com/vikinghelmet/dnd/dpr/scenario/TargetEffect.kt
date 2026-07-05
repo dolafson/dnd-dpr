@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr.scenario
 
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.spells.Spell
@@ -67,6 +68,10 @@ open class TargetEffect (
 
         if (cause is ActionModifier) {
             applyActionModifier()
+        }
+
+        if (cause is ClassFeature) {
+            applyClassFeature()
         }
     }
 
@@ -185,12 +190,20 @@ open class TargetEffect (
                 // You have Advantage on Strength checks and Strength saving throws.    // see below
                 advantageOnSave = AbilityType.Strength
             }
-            ActionModifier.RecklessAttack -> {
+            ActionModifier.SteadyAim -> {
+                attacksAgainstOthers = AttackAdvantage.advantage
+            }
+        }
+    }
+
+    fun applyClassFeature() {
+        when (cause) {
+            ClassFeature.RecklessAttack -> {
                 attacksAgainstOthers = AttackAdvantage.advantage
                 attacksAgainstMe     = AttackAdvantage.advantage
             }
-            ActionModifier.SteadyAim -> {
-                attacksAgainstOthers = AttackAdvantage.advantage
+            ClassFeature.DangerSense -> {
+                advantageOnSave = AbilityType.Dexterity
             }
         }
     }

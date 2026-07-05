@@ -5,6 +5,7 @@ import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.character.actions.ActionModifier
+import com.vikinghelmet.dnd.dpr.character.classes.ClassFeature
 import com.vikinghelmet.dnd.dpr.character.classes.ClassName
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.monsters.Monster
@@ -39,6 +40,14 @@ data class CombatantWithStatus(
     var initiative: Int = (1..20).random() + combatant.getInitiativeBonus(),
     var flightSupported: Boolean = false,
 ) : Combatant by combatant, TargetEffectList() {
+
+    init {
+        if (combatant is PlayerCharacter) {
+            combatant.getClassFeaturesEnabled().forEach {
+                if (it == ClassFeature.DangerSense) { add(TargetEffect(0, it)) }
+            }
+        }
+    }
 
     @Transient
     private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")

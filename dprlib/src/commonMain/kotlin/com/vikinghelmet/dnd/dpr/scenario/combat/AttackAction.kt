@@ -58,6 +58,8 @@ class AttackAction(
     fun wasModifierUsedThisTurn(mod: ActionModifier) = actionResultList.any { it.actionTaken.contains(mod.toString()) }
     fun getActionModifiersAvailable() = combatant.getActionModifiersAvailable (modifiersUsedAcrossTurns ())
 
+    fun getClassFeatures() =
+        if (combatant.combatant !is PlayerCharacter) emptyList() else combatant.combatant.getClassFeaturesEnabled()
 
     fun takeAction(): List<CombatActionResult> {
         logDebug { "combatant=$combatant is taking action" }
@@ -85,11 +87,14 @@ class AttackAction(
         logDebug { "combatant = ${combatant.shortName()}, selected target = ${target.shortName()}" }
 
         val hasAdvantage   = combatant.any { it.attacksAgainstOthers == AttackAdvantage.advantage }
-        val givesAdvantage = getActionModifiersAvailable().firstOrNull { it.givesAdvantage() && !hasAdvantage }
+
+        // val givesAdvantage = getActionModifiersAvailable().firstOrNull { it.givesAdvantage() && !hasAdvantage }
+        val givesAdvantage = getClassFeatures().firstOrNull { it.givesAdvantage() && !hasAdvantage }
 
         for (attack in attackList) {
             if (givesAdvantage != null) {
-                attack.actionModifiers.add (givesAdvantage)
+                logDebug { "givesAdvantage = $givesAdvantage" }
+                //attack.actionModifiers.add (givesAdvantage)
                 combatant.add (TargetEffect(turnId, givesAdvantage))
             }
 
@@ -513,8 +518,13 @@ class AttackAction(
                         damageResult.amount = 0
                     }
 
-                    NO_EFFECT -> damageResult.amount = 0
+                    NO_EFFECT -> {
+                        logDebug { "no effect" }
+                        damageResult.amount = 0
+                    }
+
                     HALF_DAMAGE -> {
+                        logDebug { "half damage" }
                         if (isEvasive) damageResult.amount = 0 else damageResult.amount /= 2
                     }
 

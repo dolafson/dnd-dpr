@@ -3,9 +3,13 @@ package com.vikinghelmet.dnd.dpr.scenario.combat.save
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatantWithStatus
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import dev.shivathapaa.logger.api.LoggerFactory
+import kotlinx.serialization.Transient
 
 class SavingThrowGenerator(val target: CombatantWithStatus)
 {
+    @Transient private val logger = LoggerFactory.get(SavingThrowGenerator::class.simpleName ?: "")
+
     private fun roll(): Int { // this method may get mocked during test
         return  (1..20).random()
     }
@@ -18,9 +22,11 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
 
         var saveRoll = roll()
         if (target.getDisadvantageOnSave() == saveAbility) {
+            logger.warn { "DisadvantageOnSave: $saveAbility" }
             saveRoll = kotlin.math.min (saveRoll, roll())
         }
         else if (target.getAdvantageOnSave() == saveAbility) {
+            logger.warn { "AdvantageOnSave: $saveAbility" }
             saveRoll = kotlin.math.max (saveRoll, roll())
         }
 
