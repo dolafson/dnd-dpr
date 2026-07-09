@@ -197,7 +197,7 @@ data class CombatantWithStatus(
         for (i in 1..maxMoves) {
             val oneOffMap = mutableMapOf<Location, Distance>()
 
-            for (oneOffLoc in location.getOneOff()) {
+            for (oneOffLoc in location.getNeighborsForMovement()) {
                 val distanceList = mutableListOf<Distance>()
                 targetLocationList.forEach {
                     val d = it.distance(oneOffLoc)
@@ -227,16 +227,31 @@ data class CombatantWithStatus(
         return closestDistance
     }
 
-    fun moveTowardTarget(target: CombatantWithStatus, combat: Combat): Distance {
+    fun moveTowardTarget(target: CombatantWithStatus, combat: Combat) {
+        val maxMoves = getSpeed() / Constants.DISTANCE_GRANULARITY
+    /* OLD
         val initialLoc = location.copy()
-        // you can not occupy the same space as another creature ... unless they are dead / unconscious
         val locationsToAvoid = (combat.teamA + combat.teamB).filter { it.canTakeAction() }.map { it.location }
 
-        location.moveTowardLocation(target.location, getSpeed() / Constants.DISTANCE_GRANULARITY, locationsToAvoid)
+        location.moveTowardLocation(target.location, maxMoves, locationsToAvoid)
 
         val distance = distance(target.location)
         logMovement("moving toward target $target", initialLoc, distance)
-        return distance
+     */
+
+        val hostileCenters = combat.getOpponents(this).filter { it != target && it.canTakeAction() }.map { it.location }
+        val hostileLocations = hostileCenters + hostileCenters.flatMap { it.getNeighborsForMovement() }
+        val friendlyLocations = combat.getMyTeam(this).filter { it.canTakeAction() }.map { it.location }
+
+        val newLoc = location.moveTowardLocation (target.location, maxMoves, hostileLocations, friendlyLocations)
+        if (newLoc == null) {
+            logger.debug { "target is not reachable: ${target.location}"}
+        }
+        else {
+            val distance = distance(newLoc)
+            logMovement("moving toward target $target", location, distance)
+            location = newLoc
+        }
     }
 
     fun getPreferredCombatDistance(): Distance {

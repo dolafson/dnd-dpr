@@ -146,24 +146,21 @@ class CombatTest {
 
         for (turnId in 0..2) {
             println("########## turn=$turnId")
-            oldLoc = leif.location.copy()
             distance = leif.moveAwayFromTarget(listOf(dragon), distance, combat)
-            leif.logMovement("moving away from targets", oldLoc, distance)
 
             when (turnId) {
-                0 -> { assertEquals(Location(-9, -8), leif.location); assertEquals(65, distance.toFeet()) }
-                1 -> { assertEquals(Location(-15, -14), leif.location); assertEquals(60, distance.toFeet()) }
-                2 -> { assertEquals(Location(-21, -20), leif.location); assertEquals(50, distance.toFeet()) }
+                0 -> { assertEquals(Location(-9, -2), leif.location); assertEquals(60, distance.toFeet()) }
+                1 -> { assertEquals(Location(-15, -2), leif.location); assertEquals(50, distance.toFeet()) }
+                2 -> { assertEquals(Location(-21, -2), leif.location); assertEquals(40, distance.toFeet()) }
             }
 
-            oldLoc = dragon.location.copy()
-            distance = dragon.moveTowardTarget(leif, combat)
-            dragon.logMovement("moving toward target $leif", oldLoc, distance)
+            dragon.moveTowardTarget(leif, combat)
+            distance = leif.distance(dragon)
 
             when (turnId) {
-                0 -> { assertEquals(Location(-5, -7), dragon.location); assertEquals(20, distance.toFeet()) }
-                1 -> { assertEquals(Location(-13, -13), dragon.location); assertEquals(10, distance.toFeet()) }
-                2 -> { assertEquals(Location(-20, -19), dragon.location); assertEquals(5, distance.toFeet()) }
+                0 -> { assertEquals(Location(-5, -2), dragon.location); assertEquals(20, distance.toFeet()) }
+                1 -> { assertEquals(Location(-13, -2), dragon.location); assertEquals(10, distance.toFeet()) }
+                2 -> { assertEquals(Location(-20, -2), dragon.location); assertEquals(5, distance.toFeet()) }
             }
 
             if (distance.toFeet() <= Constants.MELEE_RANGE) {
@@ -181,8 +178,8 @@ class CombatTest {
         val leif = combat.teamA[0]
         val dragon = combat.teamB[0]
 
-        // for flight test, move them further apart (140 ft)
-        leif.location = Location(-14, -2)
+        // for flight test, move them further apart and vary the Y coordinate
+        leif.location = Location(-14, -8)
         dragon.location = Location(14, -2)
 
         var oldLoc: Location? = null
@@ -196,18 +193,19 @@ class CombatTest {
 
             when (turnId) {
                 0 -> { assertEquals(Location(-20, -8), leif.location); assertEquals(170, distance.toFeet()) }
-                1 -> { assertEquals(Location(-26, -14), leif.location); assertEquals(125, distance.toFeet()) }
-                2 -> { assertEquals(Location(-32, -20), leif.location); assertEquals(75, distance.toFeet()) }
+                1 -> { assertEquals(Location(-26, -8), leif.location); assertEquals(150, distance.toFeet()) }
+                2 -> { assertEquals(Location(-32, -8), leif.location); assertEquals(100, distance.toFeet()) }
+                3 -> { assertEquals(Location(-38, -8), leif.location); assertEquals(50, distance.toFeet()) }
             }
 
-            oldLoc = dragon.location.copy()
-            distance = dragon.moveTowardTarget(leif, combat)
-            dragon.logMovement("moving toward target $leif", oldLoc, distance)
+            dragon.moveTowardTarget(leif, combat)
+            distance = leif.distance(dragon)
 
             when (turnId) {
-                0 -> { assertEquals(Location(-2, -7), dragon.location); assertEquals(90, distance.toFeet()) }
-                1 -> { assertEquals(Location(-18, -13), dragon.location); assertEquals(40, distance.toFeet()) }
-                2 -> { assertEquals(Location(-31, -19), dragon.location); assertEquals(5, distance.toFeet()) }
+                0 -> { assertEquals(Location(4, -8), dragon.location); assertEquals(120, distance.toFeet()) }
+                1 -> { assertEquals(Location(-12, -8), dragon.location); assertEquals(70, distance.toFeet()) }
+                2 -> { assertEquals(Location(-28, -8), dragon.location); assertEquals(20, distance.toFeet()) }
+                3 -> { assertEquals(Location(-37, -8), dragon.location); assertEquals(5, distance.toFeet()) }
             }
 
             if (distance.toFeet() <= Constants.MELEE_RANGE) {

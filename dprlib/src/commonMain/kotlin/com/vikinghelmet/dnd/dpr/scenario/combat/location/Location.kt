@@ -81,11 +81,21 @@ data class Location(var x: Int, var y: Int) {
         }
     }
 
-    fun getOneOff(): List<Location> {
+    /* NOTE - our current game rules do not support diagonal movement; if we wanted to support diagonals,
+        we could try the 5-10-5 approach, but that would require changes to the moveAway and moveToward methods
+     */
+    fun getNeighborsForMovement(): List<Location> {
+        /*
         return listOf(
             Location(x-1, y-1), Location(x, y-1), Location(x+1, y-1),
             Location(x-1, y),                     Location(x+1, y),
             Location(x-1, y+1), Location(x, y+1), Location(x+1, y+1),
+        ) */
+
+        return listOf(
+                                Location(x, y-1),
+            Location(x-1, y),                     Location(x+1, y),
+                                Location(x, y+1),
         )
     }
 
@@ -109,5 +119,65 @@ data class Location(var x: Int, var y: Int) {
 
     override fun toString(): String {
         return "($x, $y)"
+    }
+
+    /**
+     * Search for an empty space in the neighborhood of a target, while avoiding obstacles.
+     * NOTE: this algorithm consumes a fair bit of extra memory (lots of list construction)
+     *
+     * @param target The target location - could be an enemy (to attack) or a friendly (to heal)
+     * @param maxMoves The number of moves per turn (combatant's speed)
+     * @param hostileLocations Avoid these locations, lets you provoke an opportunity attacks
+     * @param friendlyLocations You can pass through these, but you can not end your turn on one
+     *
+     * @return A space in the neighborhood of the target (if reachable this turn), or a space
+     * that is maxMoves along the shortest path (if reachable on a future turn), or null (if target
+     * is surrounded / not reachable ever)
+     */
+    fun moveTowardLocation(target: Location,
+                           maxMoves: Int,
+                           hostileLocations: List<Location>,
+                           friendlyLocations: List<Location>): Location?
+    {
+        val targetNeighbors = target.getNeighborsForMovement()
+
+        if (this in targetNeighbors) {
+            return this // no movement necessary, target is already within reach
+        }
+
+        if (targetNeighbors.all { it in hostileLocations }) {
+            return null // target is surrounded, you'll never be able to reach it
+        }
+
+        val queue: ArrayDeque<List<Location>> = ArrayDeque()
+        val visited = mutableSetOf<Location>()
+
+        queue.add(listOf(this))
+        visited.add(this)
+
+        while (queue.isNotEmpty()) {
+            val currentPath = queue.removeFirst()
+            val currentNode = currentPath.last()
+            val moves = currentPath.size
+            if (currentNode in targetNeighbors && currentNode !in friendlyLocations) {
+                return if (moves <= maxMoves) currentNode else currentPath.get(maxMoves)
+            }
+
+            if (moves > 100) {   // TODO: reasonable maximum to avoid searching forever ...
+                continue
+            }
+
+            for (neighbor in currentNode.getNeighborsForMovement()) {
+                if (neighbor in hostileLocations) {
+                    continue
+                }
+                if (neighbor !in visited) {
+                    visited.add(neighbor)
+                    queue.add(currentPath + neighbor)
+                }
+            }
+        }
+
+        return null
     }
 }
