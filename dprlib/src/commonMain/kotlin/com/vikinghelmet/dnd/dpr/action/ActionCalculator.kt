@@ -650,7 +650,7 @@ class ActionCalculator(var scenario: Scenario, val effectManager: EffectManager)
         debug("attack Bonus:  "+attackBonus)
         debug()
 
-        val damageList = meleeOrRangeAttack.getDamageList().toMutableList()
+        val damageList = meleeOrRangeAttack.getDamageList().map { Damage(it, attack.isBonusAction) }.toMutableList()
         if (! preconditions.bonusDamageDice.isEmpty()) {
             damageList.add(
                 Damage(preconditions.bonusDamageDice.copy(), 0, 0, DamageType.undefined)

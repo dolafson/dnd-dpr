@@ -97,7 +97,7 @@ data class AttackResult(
             targetName -> this.attack.target.getName()
             targetAC   -> this.attack.target.getAC()
 
-            damageList  -> meleeOrRangeAction.getDamageList()
+            damageList  -> meleeOrRangeAction.getDamageList().map { Damage(it, attack.isBonusAction) }.toList()
             attackBonus -> meleeOrRangeAction.getAttackBonus()
 
             spellSaveAbility -> saveAbility ?: ""

@@ -11,6 +11,13 @@ class Damage(val dice: DiceBlock, var bonus: Int, var abilityBonus: Int, val typ
     @kotlinx.serialization.Transient
     private val logger = LoggerFactory.get(Damage::class.simpleName ?: "")
 
+    constructor(from: Damage, isBonus: Boolean?): this(
+        from.dice,
+        if (isBonus == true) 0 else from.bonus,
+        if (isBonus == true) 0 else from.abilityBonus,
+        from.type)
+
+/*
     init{
         if (type == DamageType.undefined) {
             try {
@@ -21,7 +28,7 @@ class Damage(val dice: DiceBlock, var bonus: Int, var abilityBonus: Int, val typ
             }
         }
     }
-
+*/
     override fun toString(): String {
         val builder = StringBuilder("$dice")
         if (bonus > 0) { builder.append(" + $bonus") }

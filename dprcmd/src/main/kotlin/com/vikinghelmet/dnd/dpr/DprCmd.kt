@@ -203,7 +203,12 @@ fun runCustomAttack(attacker: Combatant, target: Combatant, turnString: String) 
         for (attackName in turn.split(",")) {
             try {
                 val weapon = attacker.getWeaponList().firstOrNull { it.name == attackName }
-                attackList.add(Attack(target, weapon!!))
+                if (attackList.isEmpty()) {
+                    attackList.add(Attack(target, weapon!!))
+                }
+                else {
+                    attackList.add(Attack(target, weapon!!, isBonusAction = true)) // TODO: this only works for level < 5
+                }
             } catch (e: Exception) {
                 val spell = Globals.getSpell(attackName, attacker.is2014())
                 logger.verbose { "spell = ${spell.fullString()}" }
