@@ -33,22 +33,22 @@ class CombatTest {
         TestUtil.dependency()
         //Globals.initLogger(LogLevel.DEBUG) // DEBUG
 
-        val loc1 = Location(-4, 0)
-        val loc2 = Location(3, -2)
+        var loc1 = Location(-4, 0)
+        var loc2 = Location(3, -2)
 
         // note: a lot of movement may occur on a diagonal
 
-        loc1.moveTowardLocation(loc2, 6)
-        assertEquals(Location(2, -1), loc1) // movement occurred
+        loc1 = loc1.moveTowardLocation(loc2, 6, emptyList(), emptyList())!!
+        assertEquals(Location(2, 0), loc1) // movement occurred
 
-        loc2.moveTowardLocation(loc1, 6)
-        assertEquals(Location(3, -2), loc2) // movement occurred
+        loc2 = loc2.moveTowardLocation(loc1, 6, emptyList(), emptyList())!!
+        assertEquals(Location(3, 0), loc2) // movement occurred
 
-        loc1.moveTowardLocation(loc2, 6)
-        assertEquals(Location(2, -1), loc1) // no movement needed
+        loc1 = loc1.moveTowardLocation(loc2, 6, emptyList(), emptyList())!!
+        assertEquals(Location(2, 0), loc1) // no movement needed
 
-        loc2.moveTowardLocation(loc1, 6)
-        assertEquals(Location(3, -2), loc2)  // no movement needed
+        loc2 = loc2.moveTowardLocation(loc1, 6, emptyList(), emptyList())!!
+        assertEquals(Location(3, 0), loc2)  // no movement needed
     }
 
     @Test
@@ -193,19 +193,19 @@ class CombatTest {
 
             when (turnId) {
                 0 -> { assertEquals(Location(-20, -8), leif.location); assertEquals(170, distance.toFeet()) }
-                1 -> { assertEquals(Location(-26, -8), leif.location); assertEquals(150, distance.toFeet()) }
-                2 -> { assertEquals(Location(-32, -8), leif.location); assertEquals(100, distance.toFeet()) }
-                3 -> { assertEquals(Location(-38, -8), leif.location); assertEquals(50, distance.toFeet()) }
+                1 -> { assertEquals(Location(-25, -9), leif.location); assertEquals(120, distance.toFeet()) }
+                2 -> { assertEquals(Location(-25, -13), leif.location); assertEquals(65, distance.toFeet()) }
+                3 -> { assertEquals(Location(-25, -19), leif.location); assertEquals(40, distance.toFeet()) }
             }
 
             dragon.moveTowardTarget(leif, combat)
             distance = leif.distance(dragon)
 
             when (turnId) {
-                0 -> { assertEquals(Location(4, -8), dragon.location); assertEquals(120, distance.toFeet()) }
-                1 -> { assertEquals(Location(-12, -8), dragon.location); assertEquals(70, distance.toFeet()) }
-                2 -> { assertEquals(Location(-28, -8), dragon.location); assertEquals(20, distance.toFeet()) }
-                3 -> { assertEquals(Location(-37, -8), dragon.location); assertEquals(5, distance.toFeet()) }
+                0 -> { assertEquals(Location(-2, -2), dragon.location); assertEquals(90, distance.toFeet()) }
+                1 -> { assertEquals(Location(-18, -2), dragon.location); assertEquals(45, distance.toFeet()) }
+                2 -> { assertEquals(Location(-25, -11), dragon.location); assertEquals(10, distance.toFeet()) }
+                3 -> { assertEquals(Location(-25, -18), dragon.location); assertEquals(5, distance.toFeet()) }
             }
 
             if (distance.toFeet() <= Constants.MELEE_RANGE) {

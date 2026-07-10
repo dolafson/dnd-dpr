@@ -229,16 +229,6 @@ data class CombatantWithStatus(
 
     fun moveTowardTarget(target: CombatantWithStatus, combat: Combat) {
         val maxMoves = getSpeed() / Constants.DISTANCE_GRANULARITY
-    /* OLD
-        val initialLoc = location.copy()
-        val locationsToAvoid = (combat.teamA + combat.teamB).filter { it.canTakeAction() }.map { it.location }
-
-        location.moveTowardLocation(target.location, maxMoves, locationsToAvoid)
-
-        val distance = distance(target.location)
-        logMovement("moving toward target $target", initialLoc, distance)
-     */
-
         val hostileCenters = combat.getOpponents(this).filter { it != target && it.canTakeAction() }.map { it.location }
         val hostileLocations = hostileCenters + hostileCenters.flatMap { it.getNeighborsForMovement() }
         val friendlyLocations = combat.getMyTeam(this).filter { it.canTakeAction() }.map { it.location }

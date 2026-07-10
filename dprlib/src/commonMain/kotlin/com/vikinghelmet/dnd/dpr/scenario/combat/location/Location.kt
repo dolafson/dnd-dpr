@@ -49,54 +49,11 @@ data class Location(var x: Int, var y: Int) {
     // NOTE: location units are in increment of 5 feet
     fun distance(otherLocation: Location) = Distance(this, otherLocation)
 
-    fun moveTowardLocation(other: Location, maxMoves: Int, locationsToAvoid: List<Location> = listOf(other)) {
-        val initialLocation = this.copy()
-        //if (x == other.x && y == other.y) return // sharing the same space: should be avoided when possible
-
-        val alreadyWithinOneUnit = (abs(x - other.x) <= 1 && abs(y - other.y) <= 1)
-
-        // stop when you are within 1 unit
-        if (! alreadyWithinOneUnit)
-        {
-            val newLoc = this.copy()
-            for (i in 1..maxMoves) {
-                if (x < other.x -1) newLoc.x = x+1 else if (x > other.x +1) newLoc.x = x-1
-                if (y < other.y -1) newLoc.y = y+1 else if (y > other.y +1) newLoc.y = y-1
-                // TODO: allow movement through (or around) combatants, just don't allow ending turn in an occupied space
-                // https://app.roll20.net/forum/post/6025034/reference-post-occupied-squares-and-creature-size
-                if (locationsToAvoid.contains(newLoc)) {
-                    // two characters may not occupy the same space
-                    break
-                } else {
-                    this.x = newLoc.x
-                    this.y = newLoc.y
-                }
-            }
-        }
-
-        if (this == initialLocation) {
-            logger.info { "Moving toward $other, old location = $initialLocation, no movement, alreadyWithinOneUnit=$alreadyWithinOneUnit" }
-        } else {
-            logger.debug { "Moving toward $other, old location = $initialLocation, new location = $this" }
-        }
-    }
-
     /* NOTE - our current game rules do not support diagonal movement; if we wanted to support diagonals,
         we could try the 5-10-5 approach, but that would require changes to the moveAway and moveToward methods
      */
     fun getNeighborsForMovement(): List<Location> {
-        /*
-        return listOf(
-            Location(x-1, y-1), Location(x, y-1), Location(x+1, y-1),
-            Location(x-1, y),                     Location(x+1, y),
-            Location(x-1, y+1), Location(x, y+1), Location(x+1, y+1),
-        ) */
-
-        return listOf(
-                                Location(x, y-1),
-            Location(x-1, y),                     Location(x+1, y),
-                                Location(x, y+1),
-        )
+        return listOf( Location(x, y-1), Location(x-1, y), Location(x+1, y), Location(x, y+1) )
     }
 
     override fun equals(other: Any?): Boolean {
@@ -121,13 +78,23 @@ data class Location(var x: Int, var y: Int) {
         return "($x, $y)"
     }
 
+    fun sign(value: Int) = if (value >= 0) 1 else -1
+
+    fun isInsideRectangle(loc1: Location, loc2: Location): Boolean {
+        val minX = minOf(loc1.x, loc2.x)
+        val maxX = maxOf(loc1.x, loc2.x)
+        val minY = minOf(loc1.y, loc2.y)
+        val maxY = maxOf(loc1.y, loc2.y)
+        return this.x in minX..maxX && this.y in minY..maxY
+    }
+
     /**
      * Search for an empty space in the neighborhood of a target, while avoiding obstacles.
      * NOTE: this algorithm consumes a fair bit of extra memory (lots of list construction)
      *
      * @param target The target location - could be an enemy (to attack) or a friendly (to heal)
      * @param maxMoves The number of moves per turn (combatant's speed)
-     * @param hostileLocations Avoid these locations, lets you provoke an opportunity attacks
+     * @param hostileLocations Avoid these locations, to avoid provoking an opportunity attack
      * @param friendlyLocations You can pass through these, but you can not end your turn on one
      *
      * @return A space in the neighborhood of the target (if reachable this turn), or a space
@@ -146,7 +113,11 @@ data class Location(var x: Int, var y: Int) {
         }
 
         if (targetNeighbors.all { it in hostileLocations }) {
-            return null // target is surrounded, you'll never be able to reach it
+            return null // target is surrounded, you'll never be able to reach it .. TODO: best-effort approach ?
+        }
+
+        if (!hostileLocations.any { it.isInsideRectangle(this, target) }) {
+            return shortestPathWithNoObstacles (target, maxMoves)
         }
 
         val queue: ArrayDeque<List<Location>> = ArrayDeque()
@@ -179,5 +150,28 @@ data class Location(var x: Int, var y: Int) {
         }
 
         return null
+    }
+
+    fun shortestPathWithNoObstacles(target: Location, maxMoves: Int): Location {
+        // no obstacles, so the shortest path is a straight line ...
+        // but since we don't support diagonals, shortest path is two sides of a rectangle
+        var dx = this.x - target.x
+        if (abs(dx) > maxMoves) {
+            return Location(this.x - maxMoves * sign(dx), this.y)
+        }
+
+        var dy = this.y - target.y
+        if (abs(dx) + abs(dy) > maxMoves) {
+            return Location(this.x - dx, this.y - (maxMoves - abs(dx)) * sign(dy))
+        }
+
+        // target is in range, find a place to land that is 1 space removed
+        if (dx == 0) {
+            dy -= sign(dy)
+        }
+        else {
+            dx -= sign(dx)
+        }
+        return Location(this.x - dx, this.y - dy)
     }
 }
