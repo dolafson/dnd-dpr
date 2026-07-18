@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr
 import com.vikinghelmet.dnd.dpr.action.Attack
 import com.vikinghelmet.dnd.dpr.action.Turn
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.scenario.TurnBuilder
 import com.vikinghelmet.dnd.dpr.scenario.combat.ActionGoal
 import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.combat.HealingAction
@@ -36,11 +37,53 @@ class HealingTest {
         println("before turn, kael.currentHp = ${kael.currentHP}")
 
         while (kael.currentHP < kael.getHP()) {
-            HealingAction(combat, kael).takeAction()
+            val result = HealingAction(combat, kael).takeAction()
+            println("result = $result")
             assertTrue(kael.currentHP > 3)
         }
 
         assertEquals(kael.currentHP, kael.getHP())
+    }
+
+    @Test
+    fun preserveLife() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+
+        // force melee range
+        combat.teamA[0].location = Location(0, 0)
+        combat.teamB[0].location = Location(1, 0)
+
+        val kael = combat.teamA[0]
+
+        for (turnId in 0..1) {
+            kael.currentHP = 3 // force lowHP
+
+            val possibleTurns = TurnBuilder(kael, kael).getPossibleTurns(kael.getActionsAvailable(), 0).toMutableList()
+
+            val channelDivinityList = possibleTurns.filter {
+                val complex = SpellsWithComplexRules.fromName(it.getSpell()?.name ?: "bogus")
+                complex != null && complex.isChannelDivinity()
+            }
+
+            assertEquals(2, channelDivinityList.size)
+
+            val channelDivinityWithSlotsAvailable = channelDivinityList.filter { kael.isSlotAvailable(it.getSpell()!!) }
+
+            when (turnId) {
+                0 -> assertEquals(2, channelDivinityWithSlotsAvailable.size)
+                1 -> assertEquals(0, channelDivinityWithSlotsAvailable.size)
+            }
+
+            var result = HealingAction(combat, kael).takeAction()
+            //println("result = $result")
+
+            when (turnId) {
+                0 -> assertEquals("Channel Divinity: Preserve Life", result[0].actionTaken)
+                1 -> assertEquals("Healing Word", result[0].actionTaken)
+            }
+
+        }
     }
 
     @Test

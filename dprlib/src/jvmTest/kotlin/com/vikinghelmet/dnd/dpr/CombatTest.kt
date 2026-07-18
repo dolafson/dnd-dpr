@@ -69,7 +69,8 @@ class CombatTest {
 
             when (turnId) {
                 0,1 -> assertEquals(6, possibleTurns.size) // LB, LB+Hail, HM+LB, LB+HM, Entangle, MS
-                2,3,4 -> assertEquals(2, possibleTurns.size) // LB, MS
+                  2 -> assertEquals(4, possibleTurns.size) // LB, LB+HM, HM+LB, MS
+                3,4 -> assertEquals(2, possibleTurns.size) // LB, MS
             }
 
             for (turn in possibleTurns) {

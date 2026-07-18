@@ -270,7 +270,7 @@ data class CombatantWithStatus(
     // SPELLS
 
     fun isSlotAvailable(spell: Spell): Boolean {
-        return Spell.isSlotAvailable(this, spell, spellCastList.map { it.spell})
+        return Spell.isSlotAvailable(this.combatant, spell, spellCastList.map { it.spell})
     }
 
     fun recordSpellCasting(spell: Spell, turnId: Int, targetList: List<CombatantWithStatus> = emptyList())
