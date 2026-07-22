@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario.combat.save
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatantWithStatus
 import com.vikinghelmet.dnd.dpr.spells.Spell
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
 
@@ -21,13 +22,17 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
         if (autoFailSave) return false
 
         var saveRoll = roll()
-        if (target.getDisadvantageOnSave() == saveAbility) {
-            logger.warn { "DisadvantageOnSave: $saveAbility" }
-            saveRoll = kotlin.math.min (saveRoll, roll())
-        }
-        else if (target.getAdvantageOnSave() == saveAbility) {
-            logger.warn { "AdvantageOnSave: $saveAbility" }
-            saveRoll = kotlin.math.max (saveRoll, roll())
+        val advantage = target.getAdvantageOnSave(saveAbility)
+        when (advantage) {
+            AttackAdvantage.disadvantage -> {
+                logger.warn { "DisadvantageOnSave: $saveAbility" }
+                saveRoll = kotlin.math.min (saveRoll, roll())
+            }
+            AttackAdvantage.advantage -> {
+                logger.warn { "AdvantageOnSave: $saveAbility" }
+                saveRoll = kotlin.math.max (saveRoll, roll())
+            }
+            AttackAdvantage.normal -> {}
         }
 
         var targetSaveBonus = target.getAbilityModifier(saveAbility)

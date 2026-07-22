@@ -10,6 +10,7 @@ import com.vikinghelmet.dnd.dpr.character.feats.FeatAdded
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.combat.AttackAction
 import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
+import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -423,7 +424,7 @@ class PlayerCharacterTest {
         val leif = combat.teamA[0]
         val oleg = combat.teamB[0]
 
-        assertEquals (AbilityType.Dexterity, oleg.getAdvantageOnSave())
+        assertEquals (AttackAdvantage.advantage, oleg.getAdvantageOnSave(AbilityType.Dexterity))
 
         val attackAction = AttackAction(combat, leif, target = oleg)
 

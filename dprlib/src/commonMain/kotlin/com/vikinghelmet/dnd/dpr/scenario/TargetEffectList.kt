@@ -19,8 +19,11 @@ open class TargetEffectList(
     fun isAutoFailStrAndDexSaves(): Boolean = targetEffects.any { it.autoFailStrAndDexSaves }
     fun isUnableToAct():            Boolean = targetEffects.any { it.unableToAct }
 
-    // TODO: combine get(Disa|A)dvantageOnSave into one method that returns AttackAdvantage enum (tri-state) ?
-    // TODO: (Disa|A)dvantageOnSave should return a list of AbilityType (eg Barbarian may have adv on STR and DEX)
-    fun getDisadvantageOnSave(): AbilityType? = targetEffects.firstNotNullOfOrNull { it.disadvantageOnSave }
-    fun getAdvantageOnSave(): AbilityType? = targetEffects.firstNotNullOfOrNull { it.advantageOnSave }
+    fun getAdvantageOnSave(abilityType: AbilityType): AttackAdvantage {
+        val adv    = targetEffects.any { it.advantageOnSave    == abilityType }
+        val disadv = targetEffects.any { it.disadvantageOnSave == abilityType }
+        return if (adv && !disadv) AttackAdvantage.advantage
+            else if (!adv && disadv) AttackAdvantage.disadvantage
+            else AttackAdvantage.normal
+    }
 }
