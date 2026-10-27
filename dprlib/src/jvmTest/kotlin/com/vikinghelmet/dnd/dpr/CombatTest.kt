@@ -691,4 +691,31 @@ class CombatTest {
         assertEquals(0, dragon.waitingForRecharge.size)
     }
 
+    @Test
+    fun flameskullFireballAttack() {
+        TestUtil.dependency()
+        val combat = Combat(0,listOf(Globals.getMonster("Flameskull")), listOf(TestUtil.oleg, TestUtil.lars, TestUtil.leif))
+
+        // force melee
+        combat.teamA[0].location = Location(0,0)
+        for (x in 0..2) {
+            combat.teamB[x].location = Location(x + 1, 0)
+        }
+        val skull = combat.teamA[0]
+        val oleg = combat.teamB[0]
+
+        val attackAction = AttackAction(combat, skull, target = oleg)
+        var skullAttacks = attackAction.chooseAttackActions().attacks
+
+        assertEquals(listOf("Fireball"), skullAttacks.map { it.action.getActionName() }.toList())
+        //println (skullAttacks.map { it.action.getActionName() }.toList())
+
+        var resultList = AttackAction(combat, skull).takeAction()
+        println(resultList)
+
+        // Fireball is a 20 ft radius sphere, so all three adjacent opponents are in the area
+        assertEquals(combat.teamB.map { it.getName() }.toSet(),
+            resultList.filter { it.actionTaken.contains("Fireball") }.map { it.target.getName() }.toSet())
+    }
+
 }

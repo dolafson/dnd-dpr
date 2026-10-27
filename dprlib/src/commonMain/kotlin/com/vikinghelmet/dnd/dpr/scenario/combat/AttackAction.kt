@@ -21,6 +21,7 @@ import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
 import com.vikinghelmet.dnd.dpr.util.Constants
 import com.vikinghelmet.dnd.dpr.util.DiceBlock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -415,13 +416,32 @@ class AttackAction(
 
         val aoe = spellAttack.getAoe()
 
-        if (aoe == null || aoe.shape != AreaOfEffectShape.Cone) { // TODO: add support for other shapes
+        if (aoe == null || aoe.shape !in listOf(AreaOfEffectShape.Cone) + RADIUS_SHAPES + CUBE_SHAPES) { // TODO: Line, Wall
             targetList.add(focusTarget)
+        }
+        else if (aoe.shape in RADIUS_SHAPES || aoe.shape in CUBE_SHAPES) {
+            // centered on the focus target (Emanation is centered on the caster)
+            // TODO: allies inside the area should also be affected
+            val center = if (aoe.shape == AreaOfEffectShape.Emanation) combatant.location else focusTarget.location
+            val size = Distance.fromFeet(aoe.getSizeInFeet()).units
+
+            val inArea: (CombatantWithStatus) -> Boolean = if (aoe.shape in RADIUS_SHAPES) {
+                { center.distance(it.location).units <= size }
+            } else {
+                // cube/square "size" is the side length; approximate as a square centered on the target
+                { abs(center.x - it.location.x) <= size / 2 && abs(center.y - it.location.y) <= size / 2 }
+            }
+
+            targetList.add(focusTarget)
+            targetList.addAll(getPositiveOpponents().filter { it !== focusTarget && inArea(it) })
+            logDebug { "${aoe.shape} center=$center size=$size, targetList=$targetList" }
         }
         else {
             var maxCount=0
             var maxDir: Direction? = null
             for (dir in Direction.entries) {
+                // TODO: Cone length is in 5 ft squares, but this passes feet (15 ft cone -> 15 squares);
+                //  use Distance.fromFeet(aoe.getSizeInFeet()).units, after checking breath weapon test expectations
                 val cone = Cone(combatant.location, dir, aoe.getSizeInFeet())
                 val points = cone.getPoints()
                 if (! points.contains(focusTarget.location)) continue
@@ -534,5 +554,11 @@ class AttackAction(
         }
 
         return damageResultList
+    }
+
+    companion object {
+        private val RADIUS_SHAPES = listOf(AreaOfEffectShape.Sphere, AreaOfEffectShape.Circle,
+                                           AreaOfEffectShape.Cylinder, AreaOfEffectShape.Emanation)
+        private val CUBE_SHAPES   = listOf(AreaOfEffectShape.Cube, AreaOfEffectShape.Square)
     }
 }
