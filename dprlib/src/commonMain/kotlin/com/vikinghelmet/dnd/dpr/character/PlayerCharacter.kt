@@ -443,28 +443,7 @@ open class PlayerCharacter(
 
         for (spell in getPreparedPrimaryActionSpells()) {
             logger.debug { "getActionsAvailable, spell = $spell" }
-
-            if (spell.isRangedSpellAttack()) {
-                actionsAvailable.add(spell.getRange(), spell)
-            }
-            else {
-                // all spells - except for "ranged spell attack" - can be used in melee
-                actionsAvailable.add(Constants.MELEE_RANGE, spell)
-
-                if (spell.getRange() > Constants.MELEE_RANGE) {
-                    actionsAvailable.add(spell.getRange(), spell)
-                }
-                else {
-                    // "range = self, but aoe is 60 ft cone ..."
-                    // this may be inaccurate for some AOE shapes, but close enough for now
-                    if (spell.getSpellAttacks(0).isNotEmpty()) {
-                        val aoeSize = spell.getSpellAttacks(0).first().getAoeSize()
-                        if (aoeSize > 0) {
-                            actionsAvailable.add(aoeSize, spell)
-                        }
-                    }
-                }
-            }
+            actionsAvailable.addSpell(spell)
         }
         return actionsAvailable
     }

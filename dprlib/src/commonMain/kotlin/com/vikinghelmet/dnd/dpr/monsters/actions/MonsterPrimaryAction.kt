@@ -94,11 +94,17 @@ data class MonsterPrimaryAction(
         }
         else {
             attackType = if (desc.contains("Melee or Range")) AttackType.MeleeOrRange else AttackType.Range
+            val reach = desc.replace(".* range ".toRegex(), "").replace(" .*".toRegex(),"")   //  "... 30/120 ft., ...",
 
-            val reach      = desc.replace(".* range ".toRegex(), "").replace(" .*".toRegex(),"")   //  "... 30/120 ft., ...",
-            val reachSplit = reach.split("/")
-            range     = reachSplit[0].toInt()
-            longRange = reachSplit[1].toInt()
+            if (! reach.contains("/")) {
+                range = reach.toInt()
+                longRange = reach.toInt()
+            }
+            else {
+                val reachSplit = reach.split("/")
+                range = reachSplit[0].toInt()
+                longRange = reachSplit[1].toInt()
+            }
         }
 
         if (attack_bonus != null) {

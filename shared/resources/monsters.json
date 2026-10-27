@@ -16451,6 +16451,197 @@
     "url": "/api/2014/monsters/fire-giant"
   },
   {
+    "index": "flameskull",
+    "name": "Flameskull",
+    "size": "Tiny",
+    "type": "undead",
+    "alignment": "neutral evil",
+    "armor_class": [
+      {
+        "type": "dex",
+        "value": 13
+      }
+    ],
+    "hit_points": 40,
+    "hit_dice": "9d4",
+    "hit_points_roll": "9d4+18",
+    "speed": {
+      "walk": "0 ft.",
+      "fly": "40 ft.",
+      "hover": true
+    },
+    "strength": 1,
+    "dexterity": 17,
+    "constitution": 14,
+    "intelligence": 16,
+    "wisdom": 10,
+    "charisma": 11,
+    "proficiencies": [
+      {
+        "value": 5,
+        "proficiency": {
+          "index": "skill-arcana",
+          "name": "Skill: Arcana",
+          "url": "/api/2014/proficiencies/skill-arcana"
+        }
+      },
+      {
+        "value": 2,
+        "proficiency": {
+          "index": "skill-perception",
+          "name": "Skill: Perception",
+          "url": "/api/2014/proficiencies/skill-perception"
+        }
+      }
+    ],
+    "damage_vulnerabilities": [],
+    "damage_resistances": [
+      "lightning",
+      "necrotic",
+      "piercing"
+    ],
+    "damage_immunities": [
+      "cold",
+      "fire",
+      "poison"
+    ],
+    "condition_immunities": [
+      {
+        "index": "charmed",
+        "name": "Charmed",
+        "url": "/api/2014/conditions/charmed"
+      },
+      {
+        "index": "frightened",
+        "name": "Frightened",
+        "url": "/api/2014/conditions/frightened"
+      },
+      {
+        "index": "paralyzed",
+        "name": "Paralyzed",
+        "url": "/api/2014/conditions/paralyzed"
+      },
+      {
+        "index": "poisoned",
+        "name": "Poisoned",
+        "url": "/api/2014/conditions/poisoned"
+      },
+      {
+        "index": "prone",
+        "name": "Prone",
+        "url": "/api/2014/conditions/prone"
+      }
+    ],
+    "senses": {
+      "darkvision": "60 ft.",
+      "passive_perception": 12
+    },
+    "languages": "Common",
+    "challenge_rating": 4,
+    "proficiency_bonus": 2,
+    "xp": 1100,
+    "special_abilities": [
+      {
+        "name": "Illumination",
+        "desc": "The flameskull sheds either dim light in a 15-foot radius, or bright light in a 15-foot radius and dim light for an additional 15 feet. It can switch between the options as an action."
+      },
+      {
+        "name": "Magic Resistance",
+        "desc": "The flameskull has advantage on saving throws against spells and other magical effects."
+      },
+      {
+        "name": "Rejuvenation",
+        "desc": "If the flameskull is destroyed, it regains all its hit points in 1 hour unless holy water is sprinkled on its remains or a dispel magic or remove curse spell is cast on them."
+      },
+      {
+        "name": "Spellcasting",
+        "desc": "The flameskull is a 5th-level spellcaster. Its spellcasting ability is Intelligence (spell save DC 13, +5 to hit with spell attacks). It requires no somatic or material components to cast its spells. The flameskull has the following wizard spells prepared:\n\n- Cantrips (at will): mage hand\n- 1st level (3 slots): magic missile, shield\n- 2nd level (2 slots): blur, flaming sphere\n- 3rd level (1 slot): fireball",
+        "spellcasting": {
+          "level": 5,
+          "ability": {
+            "index": "int",
+            "name": "INT",
+            "url": "/api/2014/ability-scores/int"
+          },
+          "dc": 13,
+          "modifier": 5,
+          "components_required": [
+            "V"
+          ],
+          "school": "wizard",
+          "slots": {
+            "1": 3,
+            "2": 2,
+            "3": 1
+          },
+          "spells": [
+            {
+              "name": "Mage Hand",
+              "level": 0,
+              "url": "/api/2014/spells/mage-hand"
+            },
+            {
+              "name": "Magic Missile",
+              "level": 1,
+              "url": "/api/2014/spells/magic-missile"
+            },
+            {
+              "name": "Shield",
+              "level": 1,
+              "url": "/api/2014/spells/shield"
+            },
+            {
+              "name": "Blur",
+              "level": 2,
+              "url": "/api/2014/spells/blur"
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2,
+              "url": "/api/2014/spells/flaming-sphere"
+            },
+            {
+              "name": "Fireball",
+              "level": 3,
+              "url": "/api/2014/spells/fireball"
+            }
+          ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "name": "Multiattack",
+        "multiattack_type": "actions",
+        "desc": "The flameskull uses Fire Ray twice.",
+        "actions": [
+          {
+            "action_name": "Fire Ray",
+            "count": 2,
+            "type": "ranged"
+          }
+        ]
+      },
+      {
+        "name": "Fire Ray",
+        "desc": "Ranged Spell Attack: +5 to hit, range 30 ft., one target. Hit: 10 (3d6) fire damage.",
+        "attack_bonus": 5,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "fire",
+              "name": "Fire",
+              "url": "/api/2014/damage-types/fire"
+            },
+            "damage_dice": "3d6"
+          }
+        ]
+      }
+    ],
+    "image": "/api/images/monsters/flameskull.png",
+    "url": "/api/2014/monsters/flameskull"
+  },
+  {
     "index": "flesh-golem",
     "name": "Flesh Golem",
     "size": "Medium",

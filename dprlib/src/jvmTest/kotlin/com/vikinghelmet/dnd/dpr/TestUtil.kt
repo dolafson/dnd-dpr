@@ -27,8 +27,8 @@ object TestUtil {
 
         Globals.addSubclassSpellsPrepared(getResource("subclass.spellprep.json") ?: "[]")
 
-        //Globals.addMonsters(getResource("monsters.json") ?: "[]")
-        Globals.addMonsters(getResource("monsters.srd.json") ?: "[]")
+        Globals.addMonsters(getResource("monsters.json") ?: "[]")
+        //Globals.addMonsters(getResource("monsters.srd.json") ?: "[]")
     }
 
     fun dependency() {}

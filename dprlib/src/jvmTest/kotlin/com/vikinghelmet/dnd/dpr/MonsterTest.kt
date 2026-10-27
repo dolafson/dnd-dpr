@@ -39,6 +39,29 @@ class MonsterTest {
     }
 
     @Test
+    fun spellcasting() {
+        TestUtil.dependency()
+        val flameskull = Globals.getMonster("Flameskull")
+        assertNotNull(flameskull)
+
+        assertEquals(5, flameskull!!.getSpellBonusToHit())
+        assertEquals(13, flameskull.getSpellSaveDC())
+        assertEquals(listOf(3, 2, 1, 0, 0, 0, 0, 0, 0), flameskull.getSpellSlots())
+
+        val available = flameskull.getActionsAvailable()
+        val ranged = available.getPrimaryAction(Constants.MELEE_RANGE * 2).map { it.getActionName() }.toSet()
+        assertTrue(ranged.containsAll(listOf("Fire Ray", "Magic Missile", "Fireball", "Flaming Sphere")), "ranged = $ranged")
+
+        val melee = available.getPrimaryAction(MELEE_RANGE).map { it.getActionName() }.toSet()
+        assertTrue(melee.containsAll(listOf("Magic Missile", "Fireball")), "melee = $melee")
+
+        // monsters without slot-based spellcasting are unchanged
+        val goblin = Globals.getMonster("Goblin")!!
+        assertEquals(0, goblin.getSpellBonusToHit())
+        assertTrue(goblin.getSpellSlots().isEmpty())
+    }
+
+    @Test
     fun globalTest() {
         TestUtil.dependency()
 
@@ -198,4 +221,24 @@ class MonsterTest {
         assertNotNull(wingAttack)
         assertEquals("[ bludgeoning]", wingAttack!!.getSpellAttacks(0)[0].getDamageList().toString()) // source data missing damage dice
     }
+
+    @Test
+    fun flameSkull() {
+        TestUtil.dependency()
+        val monster = Globals.getMonster("Flameskull")
+        assertNotNull(monster)
+        assertEquals(13, monster.getAC())
+        assertFalse(monster.isEvasive())
+
+        assertEquals(
+            listOf(-5, +3, +2, +3, 0, 0),
+            AbilityType.getAllNotALL().map { monster.getAbilityModifier(it) }.toList()
+        )
+
+        val weaponList = monster.getWeaponList()
+        // assertEquals(4, weaponList.size)
+
+        weaponList.forEach { println(it) }
+    }
+
 }

@@ -17,8 +17,11 @@ import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.MonsterPrimaryAction
 import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
+import com.vikinghelmet.dnd.dpr.monsters.spells.Spellcasting
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
 import com.vikinghelmet.dnd.dpr.util.Constants
+import com.vikinghelmet.dnd.dpr.util.Globals
+import com.vikinghelmet.dnd.dpr.util.LogOnce
 import com.vikinghelmet.dnd.dpr.util.Movement
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.SerialName
@@ -131,20 +134,44 @@ data class Monster(
         return actions.filter { it.dc == null }.map { it.toWeapon() }.toList()
     }
 
-    override fun getSpellBonusToHit() = 0 // TODO: monsters that cast spells
+    // slot-based "Spellcasting" only; "Innate Spellcasting" (per-day usage) is not yet supported
+    fun getSpellcasting(): Spellcasting? =
+        special_abilities.firstOrNull { it.name == "Spellcasting" && it.spellcasting != null }?.spellcasting
+
+    override fun getSpellBonusToHit() = getSpellcasting()?.modifier ?: 0
 
     override fun getSpellSaveDC(): Int {
-        if (actions == null) return 0
-        val dc = actions.firstNotNullOfOrNull { it.dc } // TODO: monsters with multiple dc's ?
+        val dc = actions?.firstNotNullOfOrNull { it.dc } // TODO: monsters with multiple dc's ?
         if (dc != null) {
             return dc.dc_value
         }
-        return 0
+        return getSpellcasting()?.dc ?: 0
     }
 
     override fun getPreparedBonusActionSpells(targetProximity: Int) = emptyList<PreparedSpell>()
 
-    override fun getSpellSlots() = emptyList<Int>()
+    override fun getSpellSlots(): List<Int> {
+        val slots = getSpellcasting()?.slots ?: return emptyList()
+        if (slots.isEmpty()) return emptyList()
+        return (1..9).map { slots[it.toString()] ?: 0 }
+    }
+
+    fun getPreparedPrimaryActionSpells(): List<PreparedSpell> {
+        val spellcasting = getSpellcasting() ?: return emptyList()
+        val result = mutableListOf<PreparedSpell>()
+
+        for (s in spellcasting.spells) {
+            val spell = Globals.getSpellOrNull(s.name, is2014())
+            if (spell == null) {
+                LogOnce.error("unable to add monster spell ${s.name} for ${getName()}")
+                continue
+            }
+            // same filtering as PlayerCharacter: no rituals or bonus actions in the primary list
+            if (spell.isRitual() || spell.isBonusAction()) continue
+            result.add(PreparedSpell(true, spell))
+        }
+        return result
+    }
 
     override fun getActionsAvailable(): ActionsAvailable { // TODO: duplication between this and PC
         if (_actionsAvailable.isEmpty()) {
@@ -169,6 +196,11 @@ data class Monster(
         addSavingThrowActions(special_abilities)
         addSavingThrowActions(legendary_actions)
         addSavingThrowActions(reactions)
+
+        for (spell in getPreparedPrimaryActionSpells()) {
+            logger.debug { "initActionsAvailable, spell = $spell" }
+            _actionsAvailable.addSpell(spell)
+        }
     }
 
     private fun addSavingThrowActions(list: List<MonsterAction>) {

@@ -3,6 +3,7 @@ package com.vikinghelmet.dnd.dpr.scenario
 import com.vikinghelmet.dnd.dpr.action.Action
 import com.vikinghelmet.dnd.dpr.action.Weapon
 import com.vikinghelmet.dnd.dpr.action.enums.WeaponProperty
+import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.util.Constants
 
 class ActionsAvailable { // container for PRIMARY combat actions: weapons or non-BA-non-ritual spells
@@ -42,6 +43,30 @@ class ActionsAvailable { // container for PRIMARY combat actions: weapons or non
 
     fun add(range: Int, action: Action) {
         mapOfLists.getOrPut(range) { mutableListOf() }.add(action)
+    }
+
+    fun addSpell(spell: Spell) {
+        if (spell.isRangedSpellAttack()) {
+            add(spell.getRange(), spell)
+        }
+        else {
+            // all spells - except for "ranged spell attack" - can be used in melee
+            add(Constants.MELEE_RANGE, spell)
+
+            if (spell.getRange() > Constants.MELEE_RANGE) {
+                add(spell.getRange(), spell)
+            }
+            else {
+                // "range = self, but aoe is 60 ft cone ..."
+                // this may be inaccurate for some AOE shapes, but close enough for now
+                if (spell.getSpellAttacks(0).isNotEmpty()) {
+                    val aoeSize = spell.getSpellAttacks(0).first().getAoeSize()
+                    if (aoeSize > 0) {
+                        add(aoeSize, spell)
+                    }
+                }
+            }
+        }
     }
 
     fun isEmpty() = mapOfLists.isEmpty()
