@@ -24,6 +24,7 @@ import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
+import com.vikinghelmet.dnd.dpr.spells.payload.Attack
 import com.vikinghelmet.dnd.dpr.util.*
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.Transient
@@ -45,6 +46,11 @@ data class CombatantWithStatus(
         if (combatant is PlayerCharacter) {
             combatant.getClassFeaturesEnabled().forEach {
                 if (it == ClassFeature.DangerSense) { add(TargetEffect(0, it)) }
+            }
+        }
+        if (combatant is Monster) {
+            if (combatant.hasMagicResistance()) {
+                add(TargetEffect(0, advantageOnSaveAgainstMagic = true))
             }
         }
     }
@@ -297,11 +303,33 @@ data class CombatantWithStatus(
         }
     }
 
+    fun addSpellEffect(turnId: Int, spell: Spell, save: Attack.Save, spellSaveDC: Int) {
+
+        val conditions = spell.getSpellFailConditions()
+        val immunities = getConditionImmunities()
+
+        if (! conditions.isEmpty() && immunities.containsAll(conditions)) {
+            logger.debug { "target is immune to all spell conditions: $conditions" }
+            return
+        }
+
+        // TODO: handle partial immunity; eg. cast Tasha's Hideous Laughter against Flameskull ...
+        // it is immune to Prone but not incapacitated
+
+        val effect = TargetEffect(turnId, spell, save = save, spellSaveDC = spellSaveDC)
+
+        if (effect.isEmpty()) {
+            return
+        }
+
+        add(effect)
+    }
+
     // --------------------------------------------------------------------
     // SAVING THROWS
 
-    fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType): Boolean  {
-        return savingThrowGenerator.makeSavingThrow(spellSaveDC, saveAbility)
+    fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType, spell: Spell?): Boolean  {
+        return savingThrowGenerator.makeSavingThrow(spellSaveDC, saveAbility, spell)
     }
 
     fun checkForSaveAtStartOfTurn(turnId: Int) {
@@ -372,7 +400,7 @@ data class CombatantWithStatus(
 
         // spellcaster: when taking damage, make a saving throw to maintain concentration
         val saveDC = min (10, totalDamage/2)
-        val savingThrowSuccess = makeSavingThrow (saveDC, AbilityType.Constitution)
+        val savingThrowSuccess = makeSavingThrow (saveDC, AbilityType.Constitution, null)
         if (!savingThrowSuccess) {
             breakConcentration (turnId)
         }

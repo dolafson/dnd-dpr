@@ -15,14 +15,14 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
         return  (1..20).random()
     }
 
-    fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType): Boolean  {
+    fun makeSavingThrow (spellSaveDC: Int, saveAbility: AbilityType, spell: Spell?): Boolean  {
         val autoFailSave = (target.isAutoFailStrAndDexSaves() &&
                 listOf(AbilityType.Strength, AbilityType.Dexterity).contains(saveAbility))
 
         if (autoFailSave) return false
 
         var saveRoll = roll()
-        val advantage = target.getAdvantageOnSave(saveAbility)
+        val advantage = target.getAdvantageOnSave(saveAbility, spell)
         when (advantage) {
             AttackAdvantage.disadvantage -> {
                 logger.warn { "DisadvantageOnSave: $saveAbility" }
@@ -53,7 +53,7 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
                 val spell = effect.cause as Spell
                 if (spellNameFunction(spell.name)) {
                     attempted = true
-                    if (makeSavingThrow(effect.spellSaveDC, effect.save!!.saveAbility)) {
+                    if (makeSavingThrow(effect.spellSaveDC, effect.save!!.saveAbility, spell)) {
                         iter.remove()
                         succeeded = true
                         if (thereCanBeOnlyOne) {
@@ -67,20 +67,4 @@ class SavingThrowGenerator(val target: CombatantWithStatus)
         }
         return Pair(attempted, succeeded)
     }
-
-    fun saveByTakingAction(): Boolean {
-        val iter = target.iterator()
-        while (iter.hasNext()) {
-            val effect = iter.next()
-            if (effect.cause !is Spell) continue
-            if (SaveByTakingAnAction.contains((effect.cause as Spell).name)) {
-                if (makeSavingThrow(effect.spellSaveDC, effect.save!!.saveAbility)) {
-                    iter.remove()
-                }
-                return true
-            }
-        }
-        return false
-    }
-
 }

@@ -19,10 +19,8 @@ import com.vikinghelmet.dnd.dpr.monsters.actions.Reaction
 import com.vikinghelmet.dnd.dpr.monsters.armor.ArmorClass
 import com.vikinghelmet.dnd.dpr.monsters.spells.Spellcasting
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
-import com.vikinghelmet.dnd.dpr.util.Constants
-import com.vikinghelmet.dnd.dpr.util.Globals
-import com.vikinghelmet.dnd.dpr.util.LogOnce
-import com.vikinghelmet.dnd.dpr.util.Movement
+import com.vikinghelmet.dnd.dpr.util.*
+import com.vikinghelmet.dnd.dpr.util.Condition
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -106,6 +104,8 @@ data class Monster(
     override fun getDamageResistances()     = damage_resistances.map     { DamageType.valueOf(it) }.toList()
     override fun getDamageVulnerabilities() = damage_vulnerabilities.map { DamageType.valueOf(it) }.toList()
 
+    override fun getConditionImmunities()   = condition_immunities.map { Condition.valueOf(it.name) }
+
     override fun isFeatEnabled(requested: Feat) = false
 
     override fun isRacialTraitEnabled(requested: RacialTrait) = false // TODO: Racial traits
@@ -137,6 +137,8 @@ data class Monster(
     // slot-based "Spellcasting" only; "Innate Spellcasting" (per-day usage) is not yet supported
     fun getSpellcasting(): Spellcasting? =
         special_abilities.firstOrNull { it.name == "Spellcasting" && it.spellcasting != null }?.spellcasting
+
+    fun hasMagicResistance(): Boolean = special_abilities.any { it.name == "Magic Resistance" }
 
     override fun getSpellBonusToHit() = getSpellcasting()?.modifier ?: 0
 

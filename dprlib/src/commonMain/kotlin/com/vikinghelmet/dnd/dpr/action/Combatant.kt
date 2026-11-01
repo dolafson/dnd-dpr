@@ -8,6 +8,7 @@ import com.vikinghelmet.dnd.dpr.character.race.RacialTrait
 import com.vikinghelmet.dnd.dpr.character.spells.PreparedSpell
 import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.ActionsAvailable
+import com.vikinghelmet.dnd.dpr.util.Condition
 import com.vikinghelmet.dnd.dpr.util.Movement
 
 interface Combatant : CombatantMenuItem {
@@ -23,6 +24,8 @@ interface Combatant : CombatantMenuItem {
     fun getDamageImmunities(): List<DamageType>
     fun getDamageResistances(): List<DamageType>
     fun getDamageVulnerabilities(): List<DamageType>
+
+    fun getConditionImmunities(): List<Condition>
 
     fun getAbilityScore(abilityType: AbilityType): Int
     fun getAbilityModifier(abilityType: AbilityType): Int

@@ -1,6 +1,7 @@
 package com.vikinghelmet.dnd.dpr
 
 import com.vikinghelmet.dnd.dpr.action.enums.DamageType
+import com.vikinghelmet.dnd.dpr.character.stats.AbilityType
 import com.vikinghelmet.dnd.dpr.scenario.TargetEffect
 import com.vikinghelmet.dnd.dpr.scenario.combat.*
 import com.vikinghelmet.dnd.dpr.scenario.combat.location.Cone
@@ -591,7 +592,7 @@ class CombatTest {
 
         // make sure Leif succeeds on next two saves, but fails the 3rd
         val generator = mockk<SavingThrowGenerator>()
-        every { generator.makeSavingThrow(any(), any()) } returnsMany listOf(true, true, false)
+        every { generator.makeSavingThrow(any(), any(), any()) } returnsMany listOf(true, true, false)
         leif.savingThrowGenerator = generator
 
         for (turnId in 4..6) {
@@ -689,6 +690,39 @@ class CombatTest {
             dragon.checkForSaveAtStartOfTurn(turn)
         }
         assertEquals(0, dragon.waitingForRecharge.size)
+    }
+
+    @Test
+    fun flameskullMagicResistance() {
+        TestUtil.dependency()
+        val combat = Combat(0, listOf(Globals.getMonster("Flameskull")), listOf(Globals.getMonster("Goblin")))
+        val skull  = combat.teamA[0]
+        val goblin = combat.teamB[0]
+        val fireball = Globals.getSpell("Fireball", true)
+
+        // advantage only on saves against spells
+        assertEquals(AttackAdvantage.advantage, skull.getAdvantageOnSave(AbilityType.Dexterity, fireball))
+        assertEquals(AttackAdvantage.normal,    skull.getAdvantageOnSave(AbilityType.Dexterity, null))
+        assertEquals(AttackAdvantage.normal,    goblin.getAdvantageOnSave(AbilityType.Dexterity, fireball))
+
+        // advantage + disadvantage cancel out
+        skull.add(TargetEffect(0, disadvantageOnSave = AbilityType.Dexterity))
+        assertEquals(AttackAdvantage.normal, skull.getAdvantageOnSave(AbilityType.Dexterity, fireball))
+
+        // statistical check: DEX +3 vs DC 15 -> normal 45%, advantage ~70%
+        val fresh = Combat(0, listOf(Globals.getMonster("Flameskull")), listOf(Globals.getMonster("Goblin"))).teamA[0]
+        val n = 20000
+        val withSpell    = (1..n).count { fresh.makeSavingThrow(15, AbilityType.Dexterity, fireball) } / n.toDouble()
+        val withoutSpell = (1..n).count { fresh.makeSavingThrow(15, AbilityType.Dexterity, null) } / n.toDouble()
+        println("save rate vs spell = $withSpell, vs non-spell = $withoutSpell")
+        assertTrue(withSpell in 0.67..0.72, "withSpell = $withSpell")
+        assertTrue(withoutSpell in 0.42..0.48, "withoutSpell = $withoutSpell")
+
+        // monster SavingThrowActions (eg. breath weapons) are Spell subclasses, so they also get advantage
+        val dragon = Globals.getMonster("Young Green Dragon")!!
+        val breath = dragon.getActionsAvailable().getPrimaryAction(Constants.MELEE_RANGE)
+            .first { it.getActionName().contains("Breath") } as Spell
+        println("advantage vs breath weapon = ${skull.getAdvantageOnSave(AbilityType.Constitution, breath)}")
     }
 
     @Test

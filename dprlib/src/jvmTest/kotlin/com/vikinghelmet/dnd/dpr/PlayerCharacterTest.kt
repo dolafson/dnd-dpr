@@ -424,7 +424,7 @@ class PlayerCharacterTest {
         val leif = combat.teamA[0]
         val oleg = combat.teamB[0]
 
-        assertEquals (AttackAdvantage.advantage, oleg.getAdvantageOnSave(AbilityType.Dexterity))
+        assertEquals (AttackAdvantage.advantage, oleg.getAdvantageOnSave(AbilityType.Dexterity, null))
 
         val attackAction = AttackAction(combat, leif, target = oleg)
 

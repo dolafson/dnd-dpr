@@ -38,6 +38,8 @@ open class TargetEffect (
     var autoFailStrAndDexSaves: Boolean = false, // Paralyzed, Petrified, Stunned,
     var unableToAct:            Boolean = false,
 
+    var advantageOnSaveAgainstMagic: Boolean = false,
+
     // some effects are dependent on abilityType; these aren't modeled in Preconditions,
     // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
 

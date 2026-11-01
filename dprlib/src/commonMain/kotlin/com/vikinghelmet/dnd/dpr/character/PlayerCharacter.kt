@@ -57,6 +57,8 @@ open class PlayerCharacter(
     override fun getDamageResistances(): List<DamageType> = emptyList()
     override fun getDamageVulnerabilities(): List<DamageType> = emptyList()
 
+    override fun getConditionImmunities(): List<Condition> = emptyList()
+
     open fun getLevel(): Int {
         return characterData.classes.first().level
     }

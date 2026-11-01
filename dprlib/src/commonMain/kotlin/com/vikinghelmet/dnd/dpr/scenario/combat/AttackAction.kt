@@ -467,7 +467,7 @@ class AttackAction(
         }
 
         for (target in targetList) {
-            var successfulSave = target.makeSavingThrow (combatant.getSpellSaveDC(), save.saveAbility)
+            var successfulSave = target.makeSavingThrow (combatant.getSpellSaveDC(), save.saveAbility, spell)
             logDebug { "successfulSave = $successfulSave" }
 
             var damageResultList = applyDamageImmunityResistanceAndVulnerability(target, sharedDamageList)
@@ -480,10 +480,7 @@ class AttackAction(
             totalDamage += finalDamage.sumOf { it.amount }
 
             if (!successfulSave) {
-                val effect = TargetEffect(turnId, spell, save = save, spellSaveDC = combatant.getSpellSaveDC())
-                if (!effect.isEmpty()) {
-                    target.add(effect)
-                }
+                target.addSpellEffect(turnId, spell, save, combatant.getSpellSaveDC())
             }
 
             resultList.add (attackResult (target, attack, damageResultList))
