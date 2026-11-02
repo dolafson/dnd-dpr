@@ -304,6 +304,8 @@ open class TargetEffect (
         if (attackerAutoCritDamage) buf.append("attackerAutoCrit").append(";")
         if (!attackerExtraDamageOnHit.isEmpty()) buf.append("extraDamageOnHit="+attackerExtraDamageOnHit).append(";")
 
+        if (advantageOnSaveAgainstMagic) buf.append("advantageOnSaveAgainstMagic="+advantageOnSaveAgainstMagic).append(";")
+
         // some effects are dependent on abilityType; these aren't modelled in Preconditions,
         // they can only be calculated at the moment a new spell is cast (old spell conditionally impacts new spell)
         if (advantageOnSave != null) buf.append("advantageOnSave="+advantageOnSave).append(";")
