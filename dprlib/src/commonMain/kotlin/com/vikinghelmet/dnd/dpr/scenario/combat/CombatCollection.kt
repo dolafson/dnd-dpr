@@ -53,4 +53,13 @@ class CombatCollection(
     fun getTeamAWinPercentage(): Float {
         return 100.toFloat() * aTeamWinCount.toFloat() / numSimulations.toFloat()
     }
+
+    fun getTeamADeathPercentage(deathCount: Int): Float {
+        var matchCount = 0
+        for (combat in combatList) {
+            if (deathCount == combat.teamA.count { it.isDead() }) matchCount++
+        }
+        return 100.toFloat() * matchCount.toFloat() / numSimulations.toFloat()
+    }
+
 }
