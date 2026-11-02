@@ -202,7 +202,7 @@ open class Spell(
                 if (complex?.isChannelDivinity() == true) {
                     val maxSlots = 1 // TODO: table for cleric usage of Channel Divinity
                     val slotsUsed = spellCastList.count {
-                        SpellsWithComplexRules.fromName(spell.name)?.isChannelDivinity() == true }
+                        SpellsWithComplexRules.fromName(it.name)?.isChannelDivinity() == true }
                     return (slotsUsed < maxSlots)
                 }
             }

@@ -11,6 +11,7 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.location.Location
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.DamageResult
 import com.vikinghelmet.dnd.dpr.scenario.combat.save.SavingThrowGenerator
+import com.vikinghelmet.dnd.dpr.spells.NoNameSpell
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
 import com.vikinghelmet.dnd.dpr.util.AttackAdvantage
@@ -752,4 +753,23 @@ class CombatTest {
             resultList.filter { it.actionTaken.contains("Fireball") }.map { it.target.getName() }.toSet())
     }
 
+    @Test
+    fun spellSlotConsumption() {
+        TestUtil.dependency()
+        // Globals.initLogger(LogLevel.DEBUG) // DEBUG
+
+        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.eldir3))
+        val eldir = combat.teamB[0]
+
+        // as a level 3 wizard, Eldir gets 2 slots for level 2 spells
+        assertTrue (eldir.isSlotAvailable (Globals.getSpell("Web", false)))
+
+        val noNameSpell = NoNameSpell(2)
+
+        eldir.spellCastList.add(SpellCast(eldir, noNameSpell, 0, 0))
+        assertTrue (eldir.isSlotAvailable (Globals.getSpell("Web", false)))
+
+        eldir.spellCastList.add(SpellCast(eldir, noNameSpell, 0, 0))
+        assertFalse (eldir.isSlotAvailable (Globals.getSpell("Web", false)))
+    }
 }
