@@ -25,7 +25,7 @@ class HealingTest {
     @Test
     fun getClericHealing() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
 
         // force melee range
         combat.teamA[0].location = Location(0, 0)
@@ -48,7 +48,7 @@ class HealingTest {
     @Test
     fun preserveLife() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
 
         // force melee range
         combat.teamA[0].location = Location(0, 0)
@@ -89,7 +89,7 @@ class HealingTest {
     @Test
     fun getClericPreferredTurnWhenDamaged() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
 
         // force melee range
         combat.teamA[0].location = combat.teamB[0].location.copy()
@@ -119,7 +119,7 @@ class HealingTest {
     @Test
     fun prayerOfHealing() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.kael3), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.kael3), listOf(Globals.getMonster("Goblin")))
 
         // TODO - there are multiple things broken with this spell
         // 1. it routinely returns 0 healing (probably due to #2 below ...)
@@ -161,7 +161,7 @@ class HealingTest {
     @Test
     fun cureWounds() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.kael, TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.kael, TestUtil.leif), listOf(Globals.getMonster("Goblin")))
 
         // force melee range
         combat.teamA[0].location = Location(-1, 0)

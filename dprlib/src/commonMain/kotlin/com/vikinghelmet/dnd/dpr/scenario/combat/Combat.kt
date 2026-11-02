@@ -36,42 +36,48 @@ class Combat(val battleId: Int) {
     fun isRunning() =  (teamA.any { it.isPositive() } && teamB.any { it.isPositive() })
 
 
-    constructor(battleId: Int, noStatusTeamA: List<Combatant>, noStatusTeamB: List<Combatant>, flightSupported: Boolean = false)
+    constructor(battleId: Int, teamA: List<CombatantWithStatus>, teamB: List<CombatantWithStatus>)
         : this(battleId)
     {
-        val aCounter = getCounter(noStatusTeamA)
-        val bCounter = getCounter(noStatusTeamB)
-
-        noStatusTeamA.forEach {
-            teamA.add (CombatantWithStatus (it, getNewName(it, aCounter), true, flightSupported = flightSupported))
-        }
-
-        noStatusTeamB.forEach {
-            teamB.add (CombatantWithStatus (it, getNewName(it, bCounter), false, flightSupported = flightSupported))
-        }
+        require(teamA.all { it.onTeamA } && teamB.none { it.onTeamA }) { "onTeamA does not match team assignment" }
+        this.teamA.addAll(teamA)
+        this.teamB.addAll(teamB)
 
         // when computing initiative order, a DM will often use a single roll for an entire group of monsters
         // we won't do that here - unique rolls are more realistic, and easier to implement
-        initiativeList = (teamA + teamB).sortedByDescending { it.initiative }.toList()
+        initiativeList = (this.teamA + this.teamB).sortedByDescending { it.initiative }.toList()
 
-        for (c in (teamA+teamB)) {
+        for (c in (this.teamA + this.teamB)) {
             initialState[c] = CombatActionResult(c)
         }
     }
 
-    private fun getCounter(team: List<Combatant>): AtomicInt? {
-        return if (team.size > 1 && team.all { it == team.firstOrNull() }) AtomicInt(0) else null
-    }
+    companion object {
+        // convenience factory for callers that start from plain Combatants
+        fun of(battleId: Int, teamA: List<Combatant>, teamB: List<Combatant>, flightSupported: Boolean = false) =
+            Combat(battleId, toTeam(teamA, true, flightSupported), toTeam(teamB, false, flightSupported))
 
-    private fun getNewName(combatant: Combatant, teamCounter: AtomicInt?): String {
-        val tmp = if (combatant is Monster) {
-            combatant.getName().replace(" ".toRegex(), "") // just eliminate whitespace
+        fun toTeam(combatants: List<Combatant>, onTeamA: Boolean, flightSupported: Boolean = false): List<CombatantWithStatus> {
+            val counter = getCounter(combatants)
+            return combatants.map {
+                CombatantWithStatus (it, getNewName(it, counter), onTeamA, flightSupported = flightSupported)
+            }
         }
-        else {
-            combatant.getName().replace(" .*".toRegex(), "") // PC: eliminate everything after+including first whitespace
+
+        private fun getCounter(team: List<Combatant>): AtomicInt? {
+            return if (team.size > 1 && team.all { it == team.firstOrNull() }) AtomicInt(0) else null
         }
-        // for a team of equals, append a letter suffix
-        return if (teamCounter == null) tmp else "$tmp ${'A' + teamCounter.fetchAndIncrement()}"
+
+        private fun getNewName(combatant: Combatant, teamCounter: AtomicInt?): String {
+            val tmp = if (combatant is Monster) {
+                combatant.getName().replace(" ".toRegex(), "") // just eliminate whitespace
+            }
+            else {
+                combatant.getName().replace(" .*".toRegex(), "") // PC: eliminate everything after+including first whitespace
+            }
+            // for a team of equals, append a letter suffix
+            return if (teamCounter == null) tmp else "$tmp ${'A' + teamCounter.fetchAndIncrement()}"
+        }
     }
 
     fun run(): Boolean {

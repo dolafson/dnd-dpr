@@ -10,6 +10,7 @@ import com.vikinghelmet.dnd.dpr.action.results.AttackResultFormatter
 import com.vikinghelmet.dnd.dpr.character.PlayerCharacter
 import com.vikinghelmet.dnd.dpr.editable.EditableFields
 import com.vikinghelmet.dnd.dpr.editable.EditablePlayerCharacter
+import com.vikinghelmet.dnd.dpr.scenario.combat.Combat
 import com.vikinghelmet.dnd.dpr.scenario.combat.CombatCollection
 import com.vikinghelmet.dnd.dpr.scenario.combat.results.CombatActionResultFormatter
 import com.vikinghelmet.dnd.dpr.scenario.onesided.*
@@ -237,12 +238,13 @@ fun runCustomAttack(attacker: Combatant, target: Combatant, turnString: String) 
 
 fun showUsage() {
     println("""
-Usage:  [-d] [--csv]  <attacker>  <target>  <auto | attacks> 
+Usage:  [-d] [--csv] [--depletion=N]  <attacker>  <target>  <auto | attacks> 
 
 options:
 
     -i, -d          info/debug logging (default = warn)
     --csv           CSV output
+    --depletion=N   (auto only) start combat with N% of HP and spell slots already spent (highest slots first)
 
 attacker and target - comma separated lists, with one or more of the following:
 
@@ -292,6 +294,8 @@ suspend fun main(args : Array<String>) {
 
     logger.debug { "All spell and monster resources loaded from" }
 
+    var depletionPercentage = 0
+
     var i=0
     args.forEach { arg ->
         when (arg) {
@@ -299,6 +303,10 @@ suspend fun main(args : Array<String>) {
             "-i"    -> { Globals.initLogger(LogLevel.INFO); i++ }
             "-d"    -> { Globals.initLogger(LogLevel.DEBUG); i++ }
             "-w"    -> { Globals.initLogger(LogLevel.WARN); i++ }
+        }
+        if (arg.startsWith("--depletion=")) {
+            depletionPercentage = arg.substringAfter("--depletion=").toInt()
+            i++
         }
     }
 
@@ -311,7 +319,12 @@ suspend fun main(args : Array<String>) {
     val targets   = getCombatantGroup(args[i++])
 
     if (args[i].startsWith("auto")) {
-        val loop = CombatCollection(attackers, targets, 30, args[i].startsWith("auto:fly"))
+        val fly   = args[i].startsWith("auto:fly")
+        val teamA = Combat.toTeam(attackers, true, fly)
+        val teamB = Combat.toTeam(targets, false, fly)
+        (teamA + teamB).forEach { it.applyDepletion(depletionPercentage) }
+
+        val loop = CombatCollection(teamA, teamB, 30)
 
         if (args[i].contains("async")) {
             loop.runAsync()

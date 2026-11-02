@@ -57,7 +57,7 @@ class CombatTest {
     fun chooseTargetLeif() {
         TestUtil.dependency()
 
-        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
+        val combat = Combat.of(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
         val leif = combat.teamA[0]
         val dragon = combat.teamB[0]
 
@@ -89,7 +89,7 @@ class CombatTest {
     @Test
     fun getPreferredTurnVersusGoblin() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
         val preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], 60)
 
         assertEquals(TurnOptionRanking.SpellThatGivesAdvantage, preferred!!.second)
@@ -99,7 +99,7 @@ class CombatTest {
     @Test
     fun getPreferredTurnVersusDragon() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
+        val combat = Combat.of(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
         val preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], 60)
 
         // dragon has high strength, so Entangle is excluded
@@ -110,7 +110,7 @@ class CombatTest {
     @Test
     fun getDragonPreferredVersusLeif() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif))
 
         // dragon has no attack options when range = 60
         var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack,combat.teamB[0], 60)
@@ -124,7 +124,7 @@ class CombatTest {
     @Test
     fun getDragonPreferredVersusUndead() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
 
         // skeleton is immune to poison, so we take the next best option
         var preferred = combat.teamA[0].getPreferredTurn(ActionGoal.Attack, combat.teamB[0], 0)
@@ -135,7 +135,7 @@ class CombatTest {
     fun groundChase() {
         TestUtil.dependency()
 
-        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
+        val combat = Combat.of(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")))
         val leif = combat.teamA[0]
         val dragon = combat.teamB[0]
 
@@ -177,7 +177,7 @@ class CombatTest {
     fun airChase() {
         TestUtil.dependency()
 
-        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")), flightSupported = true)
+        val combat = Combat.of(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Young Green Dragon")), flightSupported = true)
         val leif = combat.teamA[0]
         val dragon = combat.teamB[0]
 
@@ -222,7 +222,7 @@ class CombatTest {
     fun chooseNewTargetDamagedFriend() {
         TestUtil.dependency()
         val goblin = Globals.getMonster("Goblin")
-        val combat = Combat(0,
+        val combat = Combat.of(0,
             listOf(TestUtil.leif, TestUtil.oleg),
             listOf(goblin.copy(), goblin.copy(), goblin.copy()))
 
@@ -254,7 +254,7 @@ class CombatTest {
     fun chooseNewTargetHurtMePersonally() {
         TestUtil.dependency()
         val goblin = Globals.getMonster("Goblin")
-        val combat = Combat(0,
+        val combat = Combat.of(0,
             listOf(TestUtil.leif, TestUtil.oleg),
             listOf(goblin.copy(), goblin.copy(), goblin.copy()))
 
@@ -274,7 +274,7 @@ class CombatTest {
     fun chooseNewTargetHurtParty() {
         TestUtil.dependency()
         val goblin = Globals.getMonster("Goblin")
-        val combat = Combat(0,
+        val combat = Combat.of(0,
             listOf(TestUtil.eldir, TestUtil.leif, TestUtil.oleg, TestUtil.kael, TestUtil.lars, TestUtil.rhogar),
             listOf(goblin.copy(), goblin.copy(), goblin.copy()))
 
@@ -297,7 +297,7 @@ class CombatTest {
         //Globals.initLogger(LogLevel.DEBUG) // DEBUG
 
         val dragonNoStatus = Globals.getMonster("Young Green Dragon")
-        val combat = Combat(0,
+        val combat = Combat.of(0,
             listOf(TestUtil.eldir, TestUtil.kael, TestUtil.lars, TestUtil.leif, TestUtil.oleg, TestUtil.rhogar),
             listOf(dragonNoStatus))
         /*
@@ -339,7 +339,7 @@ class CombatTest {
         TestUtil.dependency()
         // Globals.initLogger(LogLevel.DEBUG) // DEBUG
 
-        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif, TestUtil.lars, TestUtil.rhogar, TestUtil.kael))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif, TestUtil.lars, TestUtil.rhogar, TestUtil.kael))
 
         val dragon = combat.teamA[0]
 
@@ -373,7 +373,7 @@ class CombatTest {
         TestUtil.dependency()
         // Globals.initLogger(LogLevel.DEBUG) // DEBUG
 
-        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.oleg))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.oleg))
 
         val dragon = combat.teamA[0]
         val oleg   = combat.teamB[0]
@@ -404,7 +404,7 @@ class CombatTest {
     @Test
     fun dragonMultiattack() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(Globals.getMonster("Skeleton")))
 
         // force melee
         combat.teamA[0].location = Location(0,0)
@@ -445,8 +445,8 @@ class CombatTest {
 //        var goblinWithHighAC = Globals.getMonster("Goblin").copy(
 //            armor_class = mutableListOf(ArmorClass(type = "unobtanium", value=50)) // increase AC to keep goblin alive longer
 //        )
-//        val combat = Combat(0, listOf(TestUtil.leif), listOf(goblinWithHighAC))
-        val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+//        val combat = Combat.of(0, listOf(TestUtil.leif), listOf(goblinWithHighAC))
+        val combat = Combat.of(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
         val leif = combat.teamA[0]
         val goblin = combat.teamB[0]
 
@@ -491,8 +491,8 @@ class CombatTest {
         val turnCountList = mutableListOf<Int>()
 
         repeat(100) {
-            val combat = Combat(0, listOf(TestUtil.getCharacter("party2/leif.json")), listOf(Globals.getMonster("Goblin").copy()))
-            //val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+            val combat = Combat.of(0, listOf(TestUtil.getCharacter("party2/leif.json")), listOf(Globals.getMonster("Goblin").copy()))
+            //val combat = Combat.of(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
             val leif = combat.teamA[0]
             val goblin = combat.teamB[0]
 
@@ -529,7 +529,7 @@ class CombatTest {
     @Test
     fun getClericPreferredTurnVersusGoblin() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.kael), listOf(Globals.getMonster("Goblin")))
 
         val kael = combat.teamA[0]
         // force melee range
@@ -566,7 +566,7 @@ class CombatTest {
     @Test
     fun breakConcentration() {
         TestUtil.dependency()
-        val combat = Combat(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0, listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
         val leif = combat.teamA[0]
         val goblin = combat.teamB[0]
 
@@ -616,7 +616,7 @@ class CombatTest {
     @Test
     fun getTurnOptionRankingList() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0,listOf(TestUtil.leif), listOf(Globals.getMonster("Goblin")))
         val leif = combat.teamA[0]
         val goblin = combat.teamB[0]
         val range = 60
@@ -642,7 +642,7 @@ class CombatTest {
         //Globals.initLogger(LogLevel.DEBUG) // DEBUG
 
         val dragonNoStatus = Globals.getMonster("Young Green Dragon")
-        val combat = Combat(0,
+        val combat = Combat.of(0,
             listOf(TestUtil.eldir, TestUtil.kael, TestUtil.lars, TestUtil.leif, TestUtil.oleg, TestUtil.rhogar),
             listOf(dragonNoStatus))
 
@@ -668,7 +668,7 @@ class CombatTest {
         TestUtil.dependency()
         // Globals.initLogger(LogLevel.DEBUG) // DEBUG
 
-        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.leif))
 
         val dragon = combat.teamA[0]
         val leif = combat.teamB[0]
@@ -694,9 +694,29 @@ class CombatTest {
     }
 
     @Test
+    fun combatCollectionCopiesTemplates() {
+        TestUtil.dependency()
+        val teamA = Combat.toTeam(listOf(TestUtil.leif), true)
+        val teamB = Combat.toTeam(listOf(Globals.getMonster("Goblin")), false)
+        teamB[0].currentHP = 3 // eg. depletion
+
+        val loop = CombatCollection(teamA, teamB, 5)
+        loop.run()
+
+        // every simulation starts from the template HP, and the templates are never mutated
+        for (combat in loop.combatList) {
+            val goblin = combat.teamB[0]
+            assertTrue(goblin !== teamB[0])
+            assertEquals(3, combat.initialState.entries.first { it.key === goblin }.value.targetHP)
+        }
+        assertEquals(3, teamB[0].currentHP)
+        assertTrue(teamB[0].none { it.conditions.isNotEmpty() })
+    }
+
+    @Test
     fun flameskullMagicResistance() {
         TestUtil.dependency()
-        val combat = Combat(0, listOf(Globals.getMonster("Flameskull")), listOf(Globals.getMonster("Goblin")))
+        val combat = Combat.of(0, listOf(Globals.getMonster("Flameskull")), listOf(Globals.getMonster("Goblin")))
         val skull  = combat.teamA[0]
         val goblin = combat.teamB[0]
         val fireball = Globals.getSpell("Fireball", true)
@@ -711,7 +731,7 @@ class CombatTest {
         assertEquals(AttackAdvantage.normal, skull.getAdvantageOnSave(AbilityType.Dexterity, fireball))
 
         // statistical check: DEX +3 vs DC 15 -> normal 45%, advantage ~70%
-        val fresh = Combat(0, listOf(Globals.getMonster("Flameskull")), listOf(Globals.getMonster("Goblin"))).teamA[0]
+        val fresh = Combat.of(0, listOf(Globals.getMonster("Flameskull")), listOf(Globals.getMonster("Goblin"))).teamA[0]
         val n = 20000
         val withSpell    = (1..n).count { fresh.makeSavingThrow(15, AbilityType.Dexterity, fireball) } / n.toDouble()
         val withoutSpell = (1..n).count { fresh.makeSavingThrow(15, AbilityType.Dexterity, null) } / n.toDouble()
@@ -729,7 +749,7 @@ class CombatTest {
     @Test
     fun flameskullFireballAttack() {
         TestUtil.dependency()
-        val combat = Combat(0,listOf(Globals.getMonster("Flameskull")), listOf(TestUtil.oleg, TestUtil.lars, TestUtil.leif))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Flameskull")), listOf(TestUtil.oleg, TestUtil.lars, TestUtil.leif))
 
         // force melee
         combat.teamA[0].location = Location(0,0)
@@ -758,7 +778,7 @@ class CombatTest {
         TestUtil.dependency()
         // Globals.initLogger(LogLevel.DEBUG) // DEBUG
 
-        val combat = Combat(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.eldir3))
+        val combat = Combat.of(0,listOf(Globals.getMonster("Young Green Dragon")), listOf(TestUtil.eldir3))
         val eldir = combat.teamB[0]
 
         // as a level 3 wizard, Eldir gets 2 slots for level 2 spells
@@ -771,5 +791,43 @@ class CombatTest {
 
         eldir.spellCastList.add(SpellCast(eldir, noNameSpell, 0, 0))
         assertFalse (eldir.isSlotAvailable (Globals.getSpell("Web", false)))
+    }
+
+    @Test
+    fun depletion() {
+        TestUtil.dependency()
+        val teamA = Combat.toTeam(listOf(TestUtil.eldir3), true)
+        val teamB = Combat.toTeam(listOf(Globals.getMonster("Flameskull")), false)
+        val eldir = teamA[0]
+        val skull = teamB[0]
+
+        // level 3 wizard: slots = [4, 2]; 50% of 6 slots = 3, highest first -> L2, L2, L1
+        val eldirMaxHP = eldir.getHP()
+        eldir.applyDepletion(50)
+        assertEquals(eldirMaxHP - (eldirMaxHP * 50 + 50) / 100, eldir.currentHP)
+        assertEquals(listOf(2, 2, 1), eldir.spellCastList.map { it.spell.properties.Level })
+        assertTrue (eldir.isSlotAvailable(Globals.getSpell("Magic Missile", false)))
+        assertFalse(eldir.isSlotAvailable(Globals.getSpell("Web", false)))
+
+        // flameskull: slots = [3, 2, 1]; 50% of 6 = 3 -> L3, L2, L2
+        skull.applyDepletion(50)
+        assertEquals(20, skull.currentHP) // 40 - 20
+        assertEquals(listOf(3, 2, 2), skull.spellCastList.map { it.spell.properties.Level })
+
+        // 100% depletion leaves 1 HP and no slots
+        val goblin = Combat.toTeam(listOf(Globals.getMonster("Goblin")), false)[0]
+        goblin.applyDepletion(100)
+        assertEquals(1, goblin.currentHP)
+        assertTrue(goblin.spellCastList.isEmpty())
+
+        // depletion carries over into every simulation, and the templates are not mutated
+        val loop = CombatCollection(teamA, teamB, 3)
+        loop.run()
+        for (combat in loop.combatList) {
+            assertEquals(listOf(3, 2, 2), combat.teamB[0].spellCastList
+                .filter { it.turnCast == CombatantWithStatus.PRE_COMBAT_TURN }.map { it.spell.properties.Level })
+        }
+        assertEquals(3, eldir.spellCastList.size)
+        assertEquals(3, skull.spellCastList.size)
     }
 }

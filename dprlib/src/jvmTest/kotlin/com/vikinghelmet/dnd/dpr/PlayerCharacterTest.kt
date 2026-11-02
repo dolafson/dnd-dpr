@@ -420,7 +420,7 @@ class PlayerCharacterTest {
     fun dangerSense() {
         TestUtil.dependency()
 
-        val combat = Combat(0, listOf(TestUtil.leif3), listOf(TestUtil.oleg3))
+        val combat = Combat.of(0, listOf(TestUtil.leif3), listOf(TestUtil.oleg3))
         val leif = combat.teamA[0]
         val oleg = combat.teamB[0]
 

@@ -146,7 +146,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         val teamB = pickTeam (viewModel.getCombatant(false)!!)
 
         val numSimulations = 30 // TODO ?
-        val loop = CombatCollection(teamA, teamB, numSimulations, true)
+        val loop = CombatCollection(Combat.toTeam(teamA, true, true), Combat.toTeam(teamB, false, true), numSimulations)
         loop.log()
 
         scope.launch {

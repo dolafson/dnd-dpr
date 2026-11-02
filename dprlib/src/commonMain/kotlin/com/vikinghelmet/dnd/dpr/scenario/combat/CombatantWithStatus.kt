@@ -21,6 +21,7 @@ import com.vikinghelmet.dnd.dpr.scenario.combat.save.*
 import com.vikinghelmet.dnd.dpr.scenario.onesided.Scenario
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioCalculator
 import com.vikinghelmet.dnd.dpr.scenario.onesided.ScenarioResult
+import com.vikinghelmet.dnd.dpr.spells.NoNameSpell
 import com.vikinghelmet.dnd.dpr.spells.SavingThrowAction
 import com.vikinghelmet.dnd.dpr.spells.Spell
 import com.vikinghelmet.dnd.dpr.spells.SpellsWithComplexRules
@@ -57,6 +58,42 @@ data class CombatantWithStatus(
 
     @Transient
     private val logger = LoggerFactory.get(CombatantWithStatus::class.simpleName ?: "")
+
+    // fresh state for another simulation: re-roll location and initiative, keep currentHP and
+    // spell slots consumed before combat (eg. depletion)
+    fun copyForNewCombat(): CombatantWithStatus {
+        val result = copy(
+            location   = Location(onTeamA),
+            initiative = (1..20).random() + combatant.getInitiativeBonus()
+        )
+        result.spellCastList.addAll(spellCastList.filter { it.turnCast == PRE_COMBAT_TURN }.map { it.copy() })
+        return result
+    }
+
+    // resources spent before this combat (eg. earlier encounters in the adventuring day):
+    // reduce currentHP by a percentage of max HP, and consume a percentage of spell slots, highest level first
+    fun applyDepletion(percentage: Int) {
+        require(percentage in 0..100) { "depletion percentage must be 0..100: $percentage" }
+        if (percentage == 0) return
+
+        currentHP = max(1, currentHP - percentOf(getHP(), percentage)) // stay conscious
+
+        val slots = getSpellSlots()
+        var toConsume = percentOf(slots.sum(), percentage)
+
+        for (index in slots.indices.reversed()) {
+            if (toConsume == 0) break
+            val level = index + 1
+            val used = spellCastList.count { it.spell.properties.Level == level }
+            val count = min(toConsume, max(0, slots[index] - used))
+
+            repeat(count) {
+                spellCastList.add(SpellCast(combatant, NoNameSpell(level), PRE_COMBAT_TURN, PRE_COMBAT_TURN))
+            }
+            toConsume -= count
+        }
+        logger.debug { "applyDepletion($percentage): currentHP=$currentHP, consumed=${ spellCastList.map { it.spell.properties.Level } }" }
+    }
 
     val deathSavingThrows = mutableListOf<Boolean>()
     val spellCastList = mutableListOf<SpellCast>()
@@ -672,5 +709,11 @@ data class CombatantWithStatus(
             }
         }
         return buf.toString()
+    }
+
+    companion object {
+        const val PRE_COMBAT_TURN = -1 // turnId for spells "cast" before combat starts (eg. depletion)
+
+        private fun percentOf(value: Int, percentage: Int) = (value * percentage + 50) / 100 // round to nearest
     }
 }

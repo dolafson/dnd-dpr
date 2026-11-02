@@ -36,7 +36,7 @@ data class CombatActionResult(
 
     constructor(c: CombatantWithStatus) : this(
         c, c, 0, "0", 0, "initiative = ${c.initiative}", emptyList(),
-        c.getHP(), targetHealth = HealthStatus.positive,
+        c.currentHP, targetHealth = HealthStatus.positive,
         deathSaves = listOf(""), effects = "", condition = "", attackerNewLocation = c.location.copy()
     )
 

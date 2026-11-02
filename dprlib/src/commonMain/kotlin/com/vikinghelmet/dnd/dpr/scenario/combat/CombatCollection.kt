@@ -1,6 +1,5 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat
 
-import com.vikinghelmet.dnd.dpr.action.Combatant
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -8,10 +7,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Transient
 
 class CombatCollection(
-    val teamA: List<Combatant>,
-    val teamB: List<Combatant>,
-    val numSimulations: Int,
-    val flightSupported: Boolean = false
+    val teamA: List<CombatantWithStatus>,
+    val teamB: List<CombatantWithStatus>,
+    val numSimulations: Int
 )
 {
     @Transient
@@ -42,7 +40,8 @@ class CombatCollection(
     }
 
     fun runOnce(): Combat {
-        val combat = Combat(battleId++, teamA, teamB, flightSupported = flightSupported)
+        // each simulation gets its own copies, since Combat mutates HP, location, effects, etc.
+        val combat = Combat(battleId++, teamA.map { it.copyForNewCombat() }, teamB.map { it.copyForNewCombat() })
         if (combat.run()) aTeamWinCount++
         combatList.add(combat) // add combat to the list after it is finished running
         return combat
