@@ -244,7 +244,8 @@ options:
 
     -i, -d          info/debug logging (default = warn)
     --csv           CSV output
-    --depletion=N   (auto only) start combat with N% of HP and spell slots already spent (highest slots first)
+    --depletionA=N  (auto only) start combat with N% of HP and spell slots already spent (highest slots first) on teamA
+    --depletionB=N  (auto only) start combat with N% of HP and spell slots already spent (highest slots first) on teamB
 
 attacker and target - comma separated lists, with one or more of the following:
 
@@ -294,7 +295,8 @@ suspend fun main(args : Array<String>) {
 
     logger.debug { "All spell and monster resources loaded from" }
 
-    var depletionPercentage = 0
+    var depletionA = 0
+    var depletionB = 0
 
     var i=0
     args.forEach { arg ->
@@ -304,8 +306,12 @@ suspend fun main(args : Array<String>) {
             "-d"    -> { Globals.initLogger(LogLevel.DEBUG); i++ }
             "-w"    -> { Globals.initLogger(LogLevel.WARN); i++ }
         }
-        if (arg.startsWith("--depletion=")) {
-            depletionPercentage = arg.substringAfter("--depletion=").toInt()
+        if (arg.startsWith("--depletionA=")) {
+            depletionA = arg.substringAfter("--depletionA=").toInt()
+            i++
+        }
+        if (arg.startsWith("--depletionB=")) {
+            depletionB = arg.substringAfter("--depletionB=").toInt()
             i++
         }
     }
@@ -319,10 +325,11 @@ suspend fun main(args : Array<String>) {
     val targets   = getCombatantGroup(args[i++])
 
     if (args[i].startsWith("auto")) {
-        val fly   = args[i].startsWith("auto:fly")
-        val teamA = Combat.toTeam(attackers, true, fly)
-        val teamB = Combat.toTeam(targets, false, fly)
-        (teamA + teamB).forEach { it.applyDepletion(depletionPercentage) }
+        val nofly = args[i].startsWith("auto:nofly")
+        val teamA = Combat.toTeam(attackers, true, !nofly)
+        val teamB = Combat.toTeam(targets, false, !nofly)
+        teamA.forEach { it.applyDepletion(depletionA) }
+        teamB.forEach { it.applyDepletion(depletionB) }
 
         val loop = CombatCollection(teamA, teamB, 30)
 
@@ -335,9 +342,7 @@ suspend fun main(args : Array<String>) {
 
         val combatList = loop.combatList
 
-        logger.warn { "" }
-        logger.warn { "teamA Combat win percentage = ${ Globals.getPercent(loop.getTeamAWinPercentage()) }" }
-        logger.warn { "" }
+        logger.warn { loop.getTeamADeathPercentages() }
 
         val fileContent = StringBuilder()
         combatList.forEach {

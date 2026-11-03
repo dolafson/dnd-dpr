@@ -1,5 +1,6 @@
 package com.vikinghelmet.dnd.dpr.scenario.combat
 
+import com.vikinghelmet.dnd.dpr.util.Globals
 import dev.shivathapaa.logger.api.LoggerFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,4 +62,12 @@ class CombatCollection(
         return 100.toFloat() * matchCount.toFloat() / numSimulations.toFloat()
     }
 
+    fun getTeamADeathPercentages(): String {
+        var outputText = ""
+        for (x in 0..teamA.size-1) {
+            outputText += "\nTeamA ${x} deaths = ${Globals.getPercent(getTeamADeathPercentage(x))}%"
+        }
+        outputText += "\nTeamA TPK      = ${Globals.getPercent(getTeamADeathPercentage(teamA.size))}%"
+        return outputText
+    }
 }

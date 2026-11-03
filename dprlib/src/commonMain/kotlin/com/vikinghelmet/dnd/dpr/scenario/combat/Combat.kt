@@ -33,8 +33,9 @@ class Combat(val battleId: Int) {
     fun teamSummary(team: List<CombatantWithStatus>): String {
         return "${ team.sortedByDescending { it.initiative }.map { it.summary() }.toList() }"
     }
-    fun isRunning() =  (teamA.any { it.isPositive() } && teamB.any { it.isPositive() })
-
+    fun isRunning() =
+        (teamA.any { it.isPositive() } && !teamB.all { it.isDead() }) ||
+        (teamB.any { it.isPositive() } && !teamA.all { it.isDead() })
 
     constructor(battleId: Int, teamA: List<CombatantWithStatus>, teamB: List<CombatantWithStatus>)
         : this(battleId)

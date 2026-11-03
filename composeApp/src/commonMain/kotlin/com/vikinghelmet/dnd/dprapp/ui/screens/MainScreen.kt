@@ -173,11 +173,7 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
             }
 
             channel.close()
-            for (x in 0..teamA.size-1) {
-                outputText += "\nTeamA ${x} deaths = ${Globals.getPercent(loop.getTeamADeathPercentage(x))}%"
-            }
-            outputText += "\nTeamA TPK = ${Globals.getPercent(loop.getTeamADeathPercentage(teamA.size))}%"
-
+            outputText += loop.getTeamADeathPercentages()
             outputText += "\n\nDuration = ${elapsed.inWholeSeconds} secs"
             loading = false
             viewModel.setCombatList(combatList)
