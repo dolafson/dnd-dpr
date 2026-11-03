@@ -159,6 +159,11 @@ data class CombatantWithStatus(
             die(turnId)
             return
         }
+        if (healthStatus == HealthStatus.dying) {
+            // if you are already dying and get hit again, add a failed death save
+            deathSavingThrows.add(false)
+            return
+        }
         currentHP = 0
         healthStatus = HealthStatus.dying
         // add the Unconscious if not there already
