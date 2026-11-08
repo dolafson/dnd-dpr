@@ -21,7 +21,7 @@ data class GrantedModifier(
     val componentTypeId: Int,
     val modifierSubTypeId: Int,
     val modifierTypeId: Int,
-    val restriction: String,
+    val restriction: String? = null,
 
     val dice: Dice? = null, // TODO: flaming spear, etc
 )
