@@ -35,7 +35,7 @@ fun NumericMenu(
 
             Text(displayValue.toString(), modifier = Modifier.clickable { expanded = !expanded }.padding(horizontal = 5.dp))
 
-            val options = (numericRange.min..numericRange.max).toList()
+            val options = (numericRange.min..numericRange.max step numericRange.step).toList()
 
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 options.forEach { option ->

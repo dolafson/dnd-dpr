@@ -46,6 +46,9 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     var numTargets by remember { mutableStateOf(1) }
     var targetSpacing by remember { mutableStateOf(5) }
 
+    var healthA by remember { mutableStateOf(100) }
+    var healthB by remember { mutableStateOf(100) }
+
     var currentProgress by remember { mutableFloatStateOf(0f) }
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope() // Create a coroutine scope
@@ -142,11 +145,14 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     fun runCombat() {
         viewModel.setScenarioResultList(emptyList())
 
-        val teamA = pickTeam (viewModel.getCombatant(true)!!)
-        val teamB = pickTeam (viewModel.getCombatant(false)!!)
+        val teamA = Combat.toTeam(pickTeam (viewModel.getCombatant(true)!!), true, true)
+        val teamB = Combat.toTeam(pickTeam (viewModel.getCombatant(false)!!), false, true)
+
+        teamA.forEach { it.applyDepletion(100 - healthA) }
+        teamB.forEach { it.applyDepletion(100 - healthB) }
 
         val numSimulations = 30 // TODO ?
-        val loop = CombatCollection(Combat.toTeam(teamA, true, true), Combat.toTeam(teamB, false, true), numSimulations)
+        val loop = CombatCollection(teamA, teamB, numSimulations)
         loop.log()
 
         scope.launch {
@@ -288,6 +294,23 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                         println("new numTargets: $numTargets")
                     })
                 }
+
+                Row(modifier = Modifier.padding(bottom = 10.dp)) {
+                    Text(text = "%HealthA", modifier = Modifier.padding(end = 10.dp))
+
+                    NumericMenu(NumericRange(0, 100, healthA, 10), { newValue ->
+                        healthA = newValue
+                        println("new healthA: $healthA")
+                    })
+
+                    Text(text = "%HealthB", modifier = Modifier.padding(start = 10.dp, end = 10.dp))
+
+                    NumericMenu(NumericRange(0, 100, healthB, 10), { newValue ->
+                        healthB = newValue
+                        println("new healthB: $healthB")
+                    })
+                }
+
             }
 
             Column() {
