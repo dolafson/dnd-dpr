@@ -46,8 +46,8 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
     var numTargets by remember { mutableStateOf(1) }
     var targetSpacing by remember { mutableStateOf(5) }
 
-    var healthA by remember { mutableStateOf(100) }
-    var healthB by remember { mutableStateOf(100) }
+    var usedA by remember { mutableStateOf(0) }
+    var usedB by remember { mutableStateOf(0) }
 
     var currentProgress by remember { mutableFloatStateOf(0f) }
     var loading by remember { mutableStateOf(false) }
@@ -148,8 +148,8 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
         val teamA = Combat.toTeam(pickTeam (viewModel.getCombatant(true)!!), true, true)
         val teamB = Combat.toTeam(pickTeam (viewModel.getCombatant(false)!!), false, true)
 
-        teamA.forEach { it.applyDepletion(100 - healthA) }
-        teamB.forEach { it.applyDepletion(100 - healthB) }
+        teamA.forEach { it.applyDepletion(usedA) }
+        teamB.forEach { it.applyDepletion(usedB) }
 
         val numSimulations = 30 // TODO ?
         val loop = CombatCollection(teamA, teamB, numSimulations)
@@ -296,18 +296,18 @@ fun MainScreen(viewModel: DprViewModel, navHostController: NavHostController)
                 }
 
                 Row(modifier = Modifier.padding(bottom = 10.dp)) {
-                    Text(text = "%HealthA", modifier = Modifier.padding(end = 10.dp))
+                    Text(text = "%UsedA", modifier = Modifier.padding(end = 10.dp))
 
-                    NumericMenu(NumericRange(0, 100, healthA, 10), { newValue ->
-                        healthA = newValue
-                        println("new healthA: $healthA")
+                    NumericMenu(NumericRange(0, 100, usedA, 10), { newValue ->
+                        usedA = newValue
+                        println("new usedA: $usedA")
                     })
 
-                    Text(text = "%HealthB", modifier = Modifier.padding(start = 10.dp, end = 10.dp))
+                    Text(text = "%UsedB", modifier = Modifier.padding(start = 20.dp, end = 10.dp))
 
-                    NumericMenu(NumericRange(0, 100, healthB, 10), { newValue ->
-                        healthB = newValue
-                        println("new healthB: $healthB")
+                    NumericMenu(NumericRange(0, 100, usedB, 10), { newValue ->
+                        usedB = newValue
+                        println("new usedB: $usedB")
                     })
                 }
 
