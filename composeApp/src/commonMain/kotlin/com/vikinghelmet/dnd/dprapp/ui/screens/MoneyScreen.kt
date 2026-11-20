@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,9 +40,11 @@ fun MoneyScreen(navHostController: NavHostController)
     val readOnlyModifier = Modifier.padding(start=10.dp, bottom = 5.dp)
     val remainderModifier = Modifier.padding(start=20.dp, bottom = 5.dp)
 
-    val goldInput   = rememberTextFieldState(initialText = "0")
-    val silverInput = rememberTextFieldState(initialText = "0")
-    val copperInput = rememberTextFieldState(initialText = "0")
+    val coinInputMap  = mutableMapOf<CoinType, TextFieldState>()
+    CoinType.entries.forEach { it -> coinInputMap[it] = rememberTextFieldState(initialText = "0") }
+//    val goldInput   = rememberTextFieldState(initialText = "0")
+//    val silverInput = rememberTextFieldState(initialText = "0")
+//    val copperInput = rememberTextFieldState(initialText = "0")
 
     LaunchedEffect(Unit) {
     }
@@ -61,19 +64,12 @@ fun MoneyScreen(navHostController: NavHostController)
                 Box(modifier = outerPCModifier) {
                     NumericMenu(playerCount, {})
                 }
-                Box(modifier = outerBoxModifier) {
-                    Box(modifier = innerBoxModifier) {
-                        BasicTextField(state = goldInput, readOnly = false, modifier = inputModifier)
-                    }
-                }
-                Box(modifier = outerBoxModifier) {
-                    Box(modifier = innerBoxModifier) {
-                        BasicTextField(state = silverInput, readOnly = false, modifier = inputModifier)
-                    }
-                }
-                Box(modifier = outerBoxModifier) {
-                    Box(modifier = innerBoxModifier) {
-                        BasicTextField(state = copperInput, readOnly = false, modifier = inputModifier)
+
+                CoinType.entries.forEach { coinType ->
+                    Box(modifier = outerBoxModifier) {
+                        Box(modifier = innerBoxModifier) {
+                            BasicTextField(state = coinInputMap.get(coinType)!!, readOnly = false, modifier = inputModifier)
+                        }
                     }
                 }
             }
@@ -82,36 +78,33 @@ fun MoneyScreen(navHostController: NavHostController)
                 Text(" ", modifier = topLabelModifier)
 
                 var remainder = 0
+                var remainderEP = 0
 
-                CoinType.entries.forEach {
-                    val inputText = when (it) {
-                        CoinType.Gold -> goldInput.text.toString()
-                        CoinType.Silver -> silverInput.text.toString()
-                        CoinType.Copper -> copperInput.text.toString()
-                    }
-
-                    println("coinType = ${it.name}, inputText = $inputText, playerCount = ${playerCount.current}")
+                CoinType.entries.forEach { coinType ->
+                    val inputText = coinInputMap[coinType]!!.text.toString()
+                    println("coinType = ${coinType.name}, inputText = $inputText, playerCount = ${playerCount.current}")
 
                     Row(modifier = readOnlyRowModifier) {
                         if (playerCount.current <= 0) {
                             Text("0", modifier = readOnlyModifier)
-                            /*
-                            if (it == CoinType.Copper) {
-                                Text("0", modifier = remainderModifier)
-                            } */
                         }
                         else {
                             val input = inputText.toIntOrNull() ?: 0
-                            val output = (remainder * 10 + input) / playerCount.current
-                            remainder = (remainder * 10 + input) % playerCount.current
+                            var output = 0
+                            if (coinType == CoinType.Electrum) {
+                                output = input / playerCount.current
+                                remainderEP = input % playerCount.current
+                            }
+                            else {
+                                val subtotal = remainder * 10 + remainderEP * 5 + input
+                                output = subtotal / playerCount.current
+                                remainder = subtotal % playerCount.current
+                                remainderEP = 0
+                            }
 
-                            println("coinType = ${it.name}, inputText = $inputText, output = $output, remainder = $remainder")
+                            println("coinType = ${coinType.name}, inputText = $inputText, output = $output, remainder = $remainder")
 
                             Text("$output", modifier = readOnlyModifier)
-/*
-                            if (it == CoinType.Copper) {
-                                Text("$remainder", modifier = remainderModifier)
-                            } */
                         }
                     }
                 }
